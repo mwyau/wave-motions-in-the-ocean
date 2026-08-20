@@ -13,6 +13,7 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 - External contributor pull requests are accepted. Agent/maintainer work should not create a PR unless the owner requests one.
 - Merge pull requests with rebase merge only. Never use merge commits or squash merge.
 - When direct integration to `main` is authorized, keep history linear: rebase/fast-forward rather than creating merge commits.
+- During long audits, reconstructions, or refactors, commit coherent checkpoints frequently instead of holding a large amount of completed work until the end. Each checkpoint should leave the repository internally understandable and should not introduce temporary generated artifacts.
 - The owner may squash or rewrite `main` history at any time. Treat the current contents of `main` as authoritative; do not rely on long-lived commit SHAs or stable historical commit boundaries.
 - Write commit subjects as short human-readable sentences beginning with a capital letter. Do not use Conventional Commit prefixes such as `ci:`, `docs:`, `feat:`, `fix:`, `refactor:`, or `chore:`.
 - The canonical publication workflow is not a general-purpose repository mutation hook. Never add one-off migration, cleanup, source-editing, commit, or push logic to it.
