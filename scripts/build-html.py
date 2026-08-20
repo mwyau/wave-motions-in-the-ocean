@@ -4,6 +4,7 @@
 Pandoc is used after a temporary, generated compatibility transform. Chapter
 prose/equations are never duplicated or maintained as HTML. TikZ sources are
 rendered to SVG; source-PDF crops are rendered to PNG under build/dist only.
+Expensive source-page and TikZ renders are content-addressed under .cache/.
 """
 from __future__ import annotations
 
@@ -16,6 +17,7 @@ import subprocess
 import sys
 import tempfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from functools import lru_cache
 from pathlib import Path
 
 from PIL import Image
@@ -25,9 +27,14 @@ RECON = ROOT / "reconstruction"
 SOURCE = ROOT / "source"
 FIGURES = RECON / "figures"
 BUILD = ROOT / "build" / "html-pandoc"
+CACHE = Path(os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motions")))
+SOURCE_PAGE_CACHE = CACHE / "source-pages"
+TIKZ_CACHE = CACHE / "tikz"
 OUT = ROOT / "dist"
 ASSETS = OUT / "assets"
 FIG_ASSETS = ASSETS / "figures"
+SOURCE_RENDER_DPI = 170
+TIKZ_CACHE_VERSION = "v1"
 
 SOURCEART_RE = re.compile(
     r"\\sourceart(?:\[(?P<width>[^]]+)\])?"
@@ -45,7 +52,7 @@ DIRECT_PDF_RE = re.compile(
     re.S,
 )
 LOCAL_RASTER_RE = re.compile(
-    r"\\includegraphics(?:\[[^]]*\])?\{figures/(?P<name>[^}]+\.(?:png|jpe?g))\}",
+    r"\\includegraphics(?:\[[^]]*\])?\s*\{figures/(?P<name>[^}]+\.(?:png|jpe?g))\}",
     re.I,
 )
 PDF_ONLY_RE = re.compile(
@@ -71,6 +78,15 @@ def require(cmd: str) -> None:
         raise SystemExit(f"missing required command: {cmd}")
 
 
+@lru_cache(maxsize=None)
+def file_sha256(path_text: str) -> str:
+    digest = hashlib.sha256()
+    with Path(path_text).open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def page_size_points(pdf: Path, page: int) -> tuple[float, float]:
     text = subprocess.check_output(
         ["pdfinfo", "-f", str(page), "-l", str(page), "-box", str(pdf)], text=True
@@ -89,7 +105,11 @@ def parse_trim(text: str) -> tuple[float, float, float, float]:
 
 
 def source_crop(pdf_name: str, page: int, trim: str, *, angle: float = 0.0) -> str:
-    identity = f"{pdf_name}|{page}|{trim}|{angle:g}"
+    pdf = SOURCE / pdf_name
+    if not pdf.exists():
+        raise FileNotFoundError(pdf)
+    pdf_digest = file_sha256(str(pdf.resolve()))
+    identity = f"{pdf_name}|{pdf_digest}|{page}|{trim}|{angle:g}|dpi={SOURCE_RENDER_DPI}"
     digest = hashlib.sha1(identity.encode()).hexdigest()[:10]
     stem = Path(pdf_name).stem
     name = f"source-{stem}-p{page:03d}-{digest}.png"
@@ -97,16 +117,16 @@ def source_crop(pdf_name: str, page: int, trim: str, *, angle: float = 0.0) -> s
     if dest.exists():
         return f"assets/figures/{name}"
 
-    pdf = SOURCE / pdf_name
-    if not pdf.exists():
-        raise FileNotFoundError(pdf)
-    page_cache = BUILD / "source-pages" / f"{stem}-p{page:03d}.png"
+    page_cache = (
+        SOURCE_PAGE_CACHE
+        / f"{stem}-{pdf_digest[:12]}-p{page:03d}-r{SOURCE_RENDER_DPI}.png"
+    )
     page_cache.parent.mkdir(parents=True, exist_ok=True)
     if not page_cache.exists():
         prefix = page_cache.with_suffix("")
         run([
             "pdftoppm", "-f", str(page), "-l", str(page), "-singlefile",
-            "-r", "170", "-png", str(pdf), str(prefix),
+            "-r", str(SOURCE_RENDER_DPI), "-png", str(pdf), str(prefix),
         ])
     img = Image.open(page_cache).convert("RGB")
     pw, ph = page_size_points(pdf, page)
@@ -132,6 +152,20 @@ def render_tikz_svg(stem: str) -> None:
     tikz = FIGURES / f"{stem}.tikz"
     if not tikz.exists():
         raise FileNotFoundError(tikz)
+
+    digest = hashlib.sha256(
+        TIKZ_CACHE_VERSION.encode()
+        + b"\0"
+        + (ROOT / "tex-packages.txt").read_bytes()
+        + b"\0"
+        + tikz.read_bytes()
+    ).hexdigest()[:16]
+    cached_svg = TIKZ_CACHE / f"{stem}-{digest}.svg"
+    if cached_svg.exists():
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(cached_svg, dest)
+        return
+
     td = BUILD / "tikz" / stem
     if td.exists():
         shutil.rmtree(td)
@@ -156,6 +190,8 @@ def render_tikz_svg(stem: str) -> None:
     run(["latexmk", "-pdf", "-interaction=nonstopmode", "-halt-on-error", "figure.tex"], cwd=td)
     tmp_svg = td / "figure.svg"
     run(["pdftocairo", "-svg", str(td / "figure.pdf"), str(tmp_svg)])
+    cached_svg.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(tmp_svg, cached_svg)
     dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(tmp_svg, dest)
 
@@ -172,7 +208,7 @@ def referenced_tikz() -> list[str]:
 def prepare_vector_assets() -> None:
     stems = referenced_tikz()
     workers = max(1, min(4, (os.cpu_count() or 2)))
-    print(f"Rendering {len(stems)} TikZ figures to SVG ({workers} workers)...")
+    print(f"Rendering {len(stems)} TikZ figures to SVG ({workers} workers; cache enabled)...")
     failures: list[tuple[str, BaseException]] = []
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futs = {pool.submit(render_tikz_svg, stem): stem for stem in stems}
@@ -239,7 +275,7 @@ def pandoc_page(source_tex: Path, output: Path, title: str) -> None:
     run([
         "pandoc", str(source_tex), "-f", "latex", "-t", "html5", "-s",
         "--mathjax=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js",
-        "--metadata", f"title={title}", "-o", str(output),
+        "--metadata", f"title={title}", "--metadata", "lang=en-US", "-o", str(output),
     ])
 
 
@@ -247,8 +283,14 @@ def inject_css_and_nav(page: Path, nav: str) -> None:
     text = page.read_text(errors="replace")
     if "assets/wave.css" not in text:
         text = text.replace("</head>", '<link rel="stylesheet" href="assets/wave.css" />\n</head>')
-    text = text.replace("<body>", "<body>\n" + nav, 1)
-    text = text.replace("</body>", nav + "\n</body>", 1)
+    top = (
+        '<a class="skip-link" href="#main-content">Skip to content</a>\n'
+        + nav
+        + '\n<main id="main-content">'
+    )
+    bottom = "</main>\n" + nav
+    text = text.replace("<body>", "<body>\n" + top, 1)
+    text = text.replace("</body>", bottom + "\n</body>", 1)
     page.write_text(text)
 
 
@@ -299,7 +341,7 @@ def build_index(temp: Path) -> None:
 
 def build_references(temp: Path) -> None:
     md = temp / "references.md"
-    md.write_text("---\ntitle: References\nnocite: |\n  @*\n---\n")
+    md.write_text("---\ntitle: References\nlang: en-US\nnocite: |\n  @*\n---\n")
     page = OUT / "references.html"
     run([
         "pandoc", str(md), "-s", "-t", "html5", "--citeproc",
@@ -321,6 +363,10 @@ def validate() -> None:
     broken: list[tuple[str, str]] = []
     for page in required:
         text = page.read_text(errors="replace")
+        if not re.search(r'<html[^>]+lang="en-US"', text, flags=re.I):
+            raise SystemExit(f"HTML language metadata missing from {page.name}")
+        if '<main id="main-content">' not in text or 'class="skip-link"' not in text:
+            raise SystemExit(f"HTML main/skip navigation missing from {page.name}")
         for attr in ("src", "href"):
             for ref in re.findall(rf'{attr}=["\']([^"\']+)["\']', text, flags=re.I):
                 if ref.startswith(("http:", "https:", "mailto:", "#", "javascript:", "data:")):
@@ -347,6 +393,8 @@ def main() -> int:
         page.unlink(missing_ok=True)
     BUILD.mkdir(parents=True)
     FIG_ASSETS.mkdir(parents=True)
+    SOURCE_PAGE_CACHE.mkdir(parents=True, exist_ok=True)
+    TIKZ_CACHE.mkdir(parents=True, exist_ok=True)
     prepare_vector_assets()
     # Intentionally edited raster figures and front-matter photos are committed once.
     for raster in FIGURES.rglob("*"):
@@ -361,8 +409,11 @@ def main() -> int:
         """html { color-scheme: light; }
 body { max-width: 72rem; margin: 0 auto; padding: 1.5rem 2rem 4rem; line-height: 1.58; font-family: Georgia, 'Times New Roman', serif; }
 h1,h2,h3,nav { font-family: system-ui, sans-serif; }
+main { min-width: 0; }
+.skip-link { position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+.skip-link:focus { left: 1rem; top: 1rem; width: auto; height: auto; z-index: 1000; padding: .5rem .75rem; background: white; color: black; border: 2px solid currentColor; }
 .book-nav { margin: 0 0 2rem; padding: .75rem 0; border-bottom: 1px solid #bbb; }
-.book-nav + header { margin-top: 1rem; }
+.book-nav + main > header { margin-top: 1rem; }
 .book-toc { margin: 3rem 0; padding-top: 1rem; border-top: 1px solid #bbb; }
 .flushright { text-align: right; margin: 1.5rem 0; }
 img, svg { display: block; max-width: min(100%, 58rem); height: auto; margin: 1.1rem auto; }
