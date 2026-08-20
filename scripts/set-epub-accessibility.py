@@ -19,6 +19,8 @@ XHTML_NS = "http://www.w3.org/1999/xhtml"
 EPUB_NS = "http://www.idpf.org/2007/ops"
 SVG_NS = "http://www.w3.org/2000/svg"
 XLINK_NS = "http://www.w3.org/1999/xlink"
+XML_NS = "http://www.w3.org/XML/1998/namespace"
+LANGUAGE = "en-US"
 
 ACCESSIBILITY_SUMMARY = (
     "Mathematics is encoded as MathML and the EPUB includes linked table-of-contents navigation. "
@@ -111,6 +113,17 @@ def svg_image_ref(image: ET.Element) -> str | None:
     return image.get(f"{{{XLINK_NS}}}href") or image.get("href")
 
 
+def set_svg_accessible_name(svg: ET.Element, text: str) -> None:
+    """Give an SVG both ARIA and native SVG accessible-name mechanisms."""
+    svg.set("role", "img")
+    svg.set("aria-label", text)
+    title = svg.find(f"{{{SVG_NS}}}title")
+    if title is None:
+        title = ET.Element(f"{{{SVG_NS}}}title")
+        svg.insert(0, title)
+    title.text = text
+
+
 def set_known_image_alternatives(
     source: zipfile.ZipFile,
     opf_name: str,
@@ -145,17 +158,16 @@ def set_known_image_alternatives(
                 cover_found = True
                 changed = True
 
-        # Pandoc commonly wraps the EPUB cover raster in an inline SVG. Give
-        # the outer SVG an accessible name rather than placing prose on its
-        # low-level <image> child.
+        # Pandoc commonly wraps the EPUB cover raster in an inline SVG. Name
+        # the outer SVG through both ARIA and its native <title>; EPUB reading
+        # systems vary in which accessibility mapping they expose.
         for svg in root.findall(".//{*}svg"):
             if not any(
                 ref_basename(svg_image_ref(image)) == cover_basename
                 for image in svg.findall(".//{*}image")
             ):
                 continue
-            svg.set("role", "img")
-            svg.set("aria-label", COVER_ALTERNATIVE)
+            set_svg_accessible_name(svg, COVER_ALTERNATIVE)
             cover_found = True
             changed = True
 
@@ -195,6 +207,10 @@ def apply_metadata(epub: Path) -> None:
         if metadata is None:
             raise SystemExit("EPUB package metadata is missing")
 
+        # The package document contains human-readable metadata of its own, so
+        # identify that text's default language independently of dc:language.
+        opf_root.set(f"{{{XML_NS}}}lang", LANGUAGE)
+
         # Replace these fields rather than trusting Pandoc defaults. Older
         # Pandoc versions ignore the accessibility YAML keys, while newer ones
         # can provide defaults that would overstate the current figure support.
@@ -233,17 +249,15 @@ def apply_metadata(epub: Path) -> None:
             opf_name,
             opf_root,
         )
-        entries = [
-            (
-                info,
-                (
-                    opf_bytes
-                    if info.filename == opf_name
-                    else rewritten_xhtml.get(info.filename, source.read(info.filename))
-                ),
-            )
-            for info in infos
-        ]
+        entries: list[tuple[zipfile.ZipInfo, bytes]] = []
+        for info in infos:
+            if info.filename == opf_name:
+                data = opf_bytes
+            elif info.filename in rewritten_xhtml:
+                data = rewritten_xhtml[info.filename]
+            else:
+                data = source.read(info.filename)
+            entries.append((info, data))
 
     with tempfile.NamedTemporaryFile(
         prefix="wave-motions-a11y-",
@@ -315,7 +329,7 @@ def image_alternative_inventory(
             total += 1
             value = svg.get("aria-label")
             if not value:
-                title = svg.find("./{*}title")
+                title = svg.find(f"{{{SVG_NS}}}title")
                 value = (
                     " ".join("".join(title.itertext()).split())
                     if title is not None
@@ -353,6 +367,19 @@ def validate_metadata(epub: Path) -> None:
         metadata = opf_root.find("{*}metadata")
         if metadata is None:
             raise SystemExit("EPUB package metadata is missing")
+        if opf_root.get(f"{{{XML_NS}}}lang") != LANGUAGE:
+            raise SystemExit(
+                f"EPUB package text language is not declared as {LANGUAGE}"
+            )
+        dc_languages = [
+            (element.text or "").strip()
+            for element in metadata.findall(f"{{{DC_NS}}}language")
+        ]
+        if LANGUAGE not in dc_languages:
+            raise SystemExit(
+                f"EPUB publication language is incomplete: {dc_languages!r}"
+            )
+
         actual: dict[str, list[str]] = {}
         for element in metadata.findall("{*}meta"):
             property_name = element.get("property")
@@ -407,6 +434,20 @@ def validate_metadata(epub: Path) -> None:
                     "EPUB lost a known accessible image description: "
                     + required
                 )
+
+        # Validate native SVG naming as well as the ARIA name. Some EPUB
+        # reading systems expose only one of these mechanisms.
+        cover_title_found = False
+        for member in manifest_xhtml_members(opf_name, opf_root):
+            root = ET.fromstring(archive.read(member))
+            for svg in root.findall(".//{*}svg"):
+                if svg.get("aria-label") != COVER_ALTERNATIVE:
+                    continue
+                title = svg.find(f"{{{SVG_NS}}}title")
+                if title is not None and " ".join(title.itertext()).strip() == COVER_ALTERNATIVE:
+                    cover_title_found = True
+        if not cover_title_found:
+            raise SystemExit("EPUB cover SVG is missing its native accessible title")
 
     print("EPUB accessibility discovery metadata OK")
     print(
