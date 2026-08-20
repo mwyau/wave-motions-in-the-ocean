@@ -85,9 +85,9 @@ calling $z=\eta$ an interface.
 The interface is massless. In the absence of surface tension, therefore, it
 supports no pressure differences across it. The appropriate \emph{dynamical} boundary
 condition is
-\begin{waveequation}
+\[
  p(x,y,\eta,t)=p_{\rm atmosphere}.
-\end{waveequation}
+\]
 To write this in terms of $\phi,\eta$ return to
 \[
  \vec u_t+(\vec u\cdot\nabla)\vec u=-\nabla p/\rho-g\hat k.
@@ -130,12 +130,12 @@ Notice how a specified $p_{atm}(x,y,t)$ would enter the problem through this bou
 condition.
 
 The full problem is
-\begin{align*}
+\begin{wavealign}
  \eta_t+\phi_x\eta_x+\phi_y\eta_y&=\phi_z &&\text{at }z=\eta,\\
  \phi_t+\frac12|\nabla\phi|^2+g\eta&=0 &&\text{at }z=\eta,\\
  \nabla^2\phi&=0,\\
  \phi_z&=0 &&\text{at }z=-D.
-\end{align*}
+\end{wavealign}
 
 \section{Linear solutions}
 
@@ -166,13 +166,13 @@ $\phi=Ae^{-i\sigma t+ikx}Z(z)$. The interior equation gives
 $-k^2Z+Z_{zz}=0$ which has the solutions $Z(z)=e^{\pm kz}$. The linear combination of these
 that satisfies the bottom boundary condition is $Z(z)=\cosh k(z+D)$. The free surface
 conditions may be combined into
-\begin{waveequation}
+\[
  \phi_{tt}+g\phi_z=0\qquad\text{at}\qquad z=0.
-\end{waveequation}
+\]
 The solution
-\begin{waveequation}
+\[
  \phi=Ae^{-i\sigma t+ikx}\cosh k(z+D)
-\end{waveequation}
+\]
 satisfies this provided
 \begin{waveequation}
  \sigma^2=gk\tanh kD
@@ -255,9 +255,9 @@ which yields
  \rho_1(\sigma^2/k+g)=\rho_2(-\sigma^2/k+g).
 \]
 The latter may be rewritten
-\[
+\begin{waveequation}
  \sigma^2=gk\frac{\rho_2-\rho_1}{\rho_2+\rho_1}.
-\]
+\end{waveequation}
 Note that if $\rho_1=0$, then we recover the deep water dispersion relation of the previous
 section, $\sigma^2=gk$.
 
@@ -479,9 +479,9 @@ Therefore
  \phi=\phi_0(x,y,t)-(z+1)^2\delta^2(\phi_{0xx}+\phi_{0yy})/2.
 \]
 This expression is now substituted into the surface boundary conditions to obtain
-\begin{waveequation}
+\[
  \phi_{0t}+\frac12(\phi_{0x}^2+\phi_{0y}^2)+O(\delta^2)+\eta=0.
-\end{waveequation}
+\]
 
 \setcounter{page}{50}
 
@@ -494,11 +494,11 @@ This expression is now substituted into the surface boundary conditions to obtai
 where $h=1+\eta$. Note that these equations are now the field equations because the
 dependence on $z$ is gone. Recall that $u_0=\phi_{0x}$, $v_0=\phi_{0y}$, etc. Inserting these into the
 above yields
-\begin{align*}
+\begin{wavealign}
  h_t+(u_0h)_x+(v_0h)_y&=0,\\
  u_{0t}+u_0u_{0x}+v_0u_{0y}&=-\eta_x,\\
  v_{0t}+u_0v_{0x}+v_0v_{0y}&=-\eta_y.
-\end{align*}
+\end{wavealign}
 These equations can be converted to the dimensional form by multiplying the right
 hand side of the second and third equations by $g$ and by interpreting $h$ as $D+\eta$.
 These are the \emph{nonlinear shallow water equations}. We previously arrived at their
@@ -852,7 +852,7 @@ we find that
 \]
 so that the total energy is $\overline E=\frac12\rho ga^2$. Finally, after some algebra, the energy flux can
 be written
-\begin{wavealign}
+\begin{align*}
  \overline{Eflux}
  &=\int_{-D}^{0}\overline{up}\,dz\\
  &=\frac12\rho ga^2
@@ -860,15 +860,15 @@ be written
  \frac{\sigma}{2k}
  \left(1+\frac{2kD}{\sinh2kD}\right)\\
  &=\overline E\,\frac{\partial\sigma}{\partial k}.
-\end{wavealign}
+\end{align*}
 That is
-\[
+\begin{waveequation}
  \overline{Eflux}=\overline E\,\vec c_g.
-\]
+\end{waveequation}
 Thus, the period average of the energy equation is, for the plane wave
-\[
+\begin{waveequation}
  \overline E_t+\nabla_H\cdot(\overline E\,\vec c_g)=0.
-\]
+\end{waveequation}
 It may be used to determine $\overline E(\vec x,t)$ from $\overline E(\vec x,0)$ if the wave is slowly varying, i.e. if
 $a=a(\vec x,t)$. This may occur either if $a(\vec x,0)$ is slowly varying or if $D$ is a slowly varying
 function of position.
@@ -935,10 +935,10 @@ and noting that $P_t+UP_x+VP_y+WP_z=0$, we arrive at
 \]
 Finally $w^*=u^*D_x+v^*D_y$ at $z=-D$, which becomes $w=0$ at $z=-D$. If we assume
 a plane wave solution $\eta=ae^{-i\sigma t+ikx+i\ell y}$ etc. then we obtain a dispersion relation of
-\begin{waveequation}
+\[
  \sigma=kU+\ell V+
  \left[g(k^2+\ell^2)^{1/2}\tanh D(k^2+\ell^2)^{1/2}\right]^{1/2}
-\end{waveequation}
+\]
 which is simply that for surface gravity waves but Doppler shifted by the background
 current.
 
