@@ -56,6 +56,13 @@
   \normalsize
 }
 
+% Concise cover credit shown only in paged modern output. Pandoc-based
+% README/HTML views drop the unknown command; EPUB expands it explicitly.
+\newcommand{\wavecovercredit}{%
+  \par\vfill
+  {\footnotesize\input{cover-credit}\par}%
+}
+
 \newcommand{\sourcepagebreak}{\par}
 \newcommand{\sourceinput}[1]{\input{#1}}
 
