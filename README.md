@@ -87,15 +87,6 @@ The reconstruction is still a work in progress.
 
 *Stony Brook — Albert M. W. Yau, 2026*
 
-**Cover image.** Katsushika Hokusai (Japanese, 1760–1849),
-*Under the Wave off Kanagawa (Kanagawa oki nami ura)*, also known as
-*The Great Wave*, from the series *Thirty-six Views of Mount Fuji
-(Fugaku sanjūrokkei)*, ca. 1830–32. Woodblock print; ink and color on paper,
-10 1/8 x 14 15/16 in. (25.7 x 37.9 cm). The Metropolitan Museum of Art,
-New York, H. O. Havemeyer Collection, Bequest of Mrs. H. O. Havemeyer, 1929
-(JP1847). The Met designates the work Public Domain; the digital image is provided
-through The Met Open Access program under CC0.
-
 <figure>
 <img src="reconstruction/figures/frontmatter/salmon-hendershott-como-1980.jpeg" />
 <p>Rick Salmon (left) and Myrl Hendershott at Villa Carlotta, Lake Como,
