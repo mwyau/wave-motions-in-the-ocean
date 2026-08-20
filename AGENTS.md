@@ -23,15 +23,20 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 
 ## Work coordination with issues
 
-- When GitHub Issues access is readily available, use Issues to coordinate non-trivial agent/session work. Before modifying the repository, search open and relevant recently closed issues for overlapping or prior work. Reuse a matching open issue. If a closed issue directly covers a continuation or follow-up, reopen and reuse it when practical; otherwise create one concise issue for the coherent task.
-- Do not block straightforward work solely because the Issues API is unavailable or impractical to reach. Preserve the same scope/ownership and handoff information in the working session, then create or update the relevant issue later when practical.
-- Agent/session coordination issues should normally use the `[internal]` title prefix so they are easy to distinguish from public or reader-facing issues. Do not rename unrelated public issues merely to impose this convention.
-- The issue should state what is being changed, the main files/areas involved, and any temporary branch, workflow, or trigger it owns.
-- When issue access is readily available, add concise progress notes when useful: scope changes, meaningful checkpoints during long work, blockers, or findings another agent may need. Do not interrupt straightforward work merely to report routine progress.
-- Before integrating, re-check open issues, relevant recently closed issues, and the latest `main` for newly overlapping work when issue access is available.
-- If another active issue overlaps, preserve its work and avoid competing edits; coordinate or split scope before proceeding.
-- For non-trivial work, the final issue comment is the durable handoff document and should be detailed enough for another agent to continue without the original session context. Include the completed scope, files/areas changed, relevant commits, validation performed and results, important findings and decisions with rationale, unresolved questions or known limitations, status of temporary branches/workflows/triggers, and concrete next steps or restart points. Trivial fixes may use a short closeout.
-- After writing the handoff, close the issue. If the task is abandoned or superseded, still record the findings, current state, and restart/handoff information before closing it rather than leaving a misleading active claim.
+Issues are durable workstreams and handoff records, not a log entry for every finding.
+
+- Before non-trivial work, search open and relevant recently closed issues. Reuse the closest active issue whenever the work fits its goal.
+- Prefer one umbrella issue for a related audit/integration batch. Open a new `[internal]` issue only when the work is independently schedulable, needs a distinct owner or completion criterion, or would make an existing issue misleading. Do not open a new issue for a small bug discovered inside an active audit when a comment/checklist item is sufficient.
+- Before editing, leave a concise claim on the owning issue when concurrent work is likely: name the files or area, the goal, and the `main` SHA you started from. Ownership is file/area-specific, not repository-wide.
+- If another active issue owns an overlapping file or decision, do not race it. Leave the finding on that issue with evidence and a recommended action. Transfer ownership only after coordination or an owner instruction; record the transfer on the affected issue(s).
+- Feedback to another workstream should usually be an issue comment, not a new issue. Include the affected path/behavior, why it matters, enough evidence or reproduction detail to act on it, and whether it blocks the current work.
+- Use progress comments at meaningful boundaries, not for every operation. Good checkpoints are `reviewed through <sha>`, an integrated commit, a changed decision, a blocker, or a handoff. A long audit should always leave its latest review boundary in the issue.
+- Re-read the latest `main` and relevant issue comments immediately before integration. If `main` moved, rebuild the commit on the new tip and preserve unrelated changes.
+- Close specialist issues when their scoped work and handoff are complete. Do not keep several specialist issues open only because they all await the same repository-wide Build/release gate; record that dependency and let the CI/release or umbrella issue own the shared gate.
+- Deferred ideas that are not being worked should normally live in `reconstruction/PLAN.md` (or the relevant task record) instead of occupying an active issue. Open or reopen an issue when work actually starts.
+- If an issue becomes redundant, superseded, or folded into an umbrella, leave a short handoff pointing to the surviving record and close it rather than maintaining parallel status threads.
+- Do not block straightforward work solely because the Issues API is unavailable. Preserve the same scope, ownership, review-boundary, and handoff information in the session and update the issue later when practical.
+- The final issue comment is the durable handoff. For non-trivial work include completed scope, files/areas changed, relevant commits, validation and results, important decisions, unresolved limitations, temporary branch/workflow/trigger status, and the concrete next review/restart point. Trivial fixes may use a short closeout.
 
 ## Automation
 

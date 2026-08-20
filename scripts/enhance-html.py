@@ -187,8 +187,22 @@ table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scro
   .math.display, mjx-container[jax="CHTML"][display="true"] { padding-bottom: .55rem; }
 }
 @media print {
-  :root, :root[data-theme="dark"] { color-scheme: light; }
-  body { background: white; color: black; }
+  :root,
+  :root:not([data-theme]),
+  :root[data-theme="light"],
+  :root[data-theme="dark"] {
+    color-scheme: light;
+    --wave-bg: #fff;
+    --wave-text: #000;
+    --wave-muted: #444;
+    --wave-link: #000;
+    --wave-visited: #000;
+    --wave-rule: #aaa;
+    --wave-control-bg: #fff;
+    --wave-control-border: #aaa;
+    --wave-selection: #ddd;
+  }
+  body { background: var(--wave-bg); color: var(--wave-text); }
   .theme-toggle { display: none; }
   img[src^="assets/figures/"] { filter: none !important; }
 }

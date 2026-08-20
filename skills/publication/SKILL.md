@@ -90,7 +90,7 @@ Shared Downloads are:
 - `wave-motions-facsimile.pdf` — Facsimile PDF
 - `wave-motions.epub` — EPUB
 
-README badges are **Read | Online**, **Read | PDF**, **Read | EPUB**, **License | CC BY-NC-SA 4.0**, and the native GitHub Actions **Publish** status badge for `.github/workflows/publish.yml`. Keep the badge row after the complete title/dedication/authorship block. Do not add a facsimile badge unless explicitly requested.
+README badges are **Read | Online**, **Read | PDF**, **Read | EPUB**, **License | CC BY-NC-SA 4.0**, and the native GitHub Actions **Build** status badge for `.github/workflows/publish.yml`. Keep the badge row after the complete title/dedication/authorship block. Do not add a facsimile badge unless explicitly requested.
 
 Section anchors are public links; keep them stable.
 

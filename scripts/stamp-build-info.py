@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import html
+import re
 import shutil
 import tempfile
 import zipfile
@@ -14,6 +15,8 @@ from build_info import current_build
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 EPUB = DIST / "wave-motions.epub"
+HTML_STAMP_RE = re.compile(r'<footer class="build-info">.*?</footer>\s*', re.S)
+EPUB_STAMP_RE = re.compile(br'<p class="build-info">.*?</p>\s*', re.S)
 
 
 def stamp_html() -> None:
@@ -31,13 +34,19 @@ def stamp_html() -> None:
 
     for path in pages:
         text = path.read_text(errors="replace")
-        if 'class="build-info"' not in text:
-            text = text.replace("</body>", footer + "\n</body>", 1)
+        text = HTML_STAMP_RE.sub("", text)
+        if "</body>" not in text:
+            raise SystemExit(f"HTML body end is missing from {path.name}")
+        text = text.replace("</body>", footer + "\n</body>", 1)
+        if text.count('class="build-info"') != 1:
+            raise SystemExit(f"HTML build stamp count is not one in {path.name}")
+        if label not in text or url not in text:
+            raise SystemExit(f"HTML exact build stamp is missing from {path.name}")
         path.write_text(text)
 
     index = DIST / "index.html"
     index_text = index.read_text(errors="replace")
-    if "GitHub Source" not in index_text or info.short_sha not in index_text:
+    if "GitHub Source" not in index_text or label not in index_text:
         raise SystemExit("HTML build stamp is missing from index.html")
     print(f"HTML build identity OK: {info.label}")
 
@@ -63,6 +72,8 @@ def stamp_epub() -> None:
     stamped_xhtml = False
     rewritten: list[tuple[zipfile.ZipInfo, bytes]] = []
     for item, data in entries:
+        if item.filename.lower().endswith((".xhtml", ".html")):
+            data = EPUB_STAMP_RE.sub(b"", data)
         if (
             not stamped_xhtml
             and item.filename.lower().endswith((".xhtml", ".html"))
@@ -102,8 +113,10 @@ def stamp_epub() -> None:
             for name in archive.namelist()
             if name.lower().endswith((".xhtml", ".html"))
         )
-        if info.short_sha.encode() not in xhtml or info.commit_url.encode() not in xhtml:
-            raise SystemExit("EPUB visible build identity is missing")
+        if xhtml.count(b'class="build-info"') != 1:
+            raise SystemExit("EPUB build stamp count is not one")
+        if label.encode() not in xhtml or info.commit_url.encode() not in xhtml:
+            raise SystemExit("EPUB exact build identity is missing")
 
     print(f"EPUB build identity OK: {info.label}")
 

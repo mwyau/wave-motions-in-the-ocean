@@ -11,14 +11,16 @@ No overlay or difference image is produced.
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from types import ModuleType
 
-from PIL import Image, ImageOps, ImageDraw
+from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
 RECON = ROOT / "reconstruction"
@@ -32,25 +34,22 @@ META_RE = re.compile(
 )
 
 
+def load_publication_renderer() -> ModuleType:
+    """Load the HTML builder so comparison renders use its exact figure geometry."""
+    path = ROOT / "scripts" / "build-html.py"
+    spec = importlib.util.spec_from_file_location("wave_build_html", path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Could not load publication renderer: {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+PUBLICATION_RENDERER = load_publication_renderer()
+
+
 def run(cmd: list[str], *, cwd: Path | None = None) -> None:
     subprocess.run(cmd, cwd=cwd, check=True)
-
-
-def page_size_points(pdf: Path, page: int) -> tuple[float, float]:
-    text = subprocess.check_output(
-        ["pdfinfo", "-f", str(page), "-l", str(page), "-box", str(pdf)], text=True
-    )
-    m = re.search(rf"Page\s+{page} size:\s+([0-9.]+) x ([0-9.]+) pts", text)
-    if not m:
-        raise RuntimeError(f"Could not read page size for {pdf.name} page {page}")
-    return float(m.group(1)), float(m.group(2))
-
-
-def parse_trim(text: str) -> tuple[float, float, float, float]:
-    vals = re.findall(r"(-?[0-9.]+)\s*bp", text)
-    if len(vals) != 4:
-        raise ValueError(f"Expected four bp trim values, got: {text!r}")
-    return tuple(map(float, vals))  # left, bottom, right, top
 
 
 def render_original(pdf_name: str, page: int, trim: str, out_png: Path, dpi: int) -> None:
@@ -76,8 +75,8 @@ def render_original(pdf_name: str, page: int, trim: str, out_png: Path, dpi: int
             ]
         )
         img = Image.open(prefix.with_suffix(".png")).convert("RGB")
-        pw, ph = page_size_points(pdf, page)
-        left, bottom, right, top = parse_trim(trim)
+        pw, ph = PUBLICATION_RENDERER.page_size_points(pdf, page)
+        left, bottom, right, top = PUBLICATION_RENDERER.parse_trim(trim)
         x0 = round(left / pw * img.width)
         x1 = round(img.width - right / pw * img.width)
         y0 = round(top / ph * img.height)
@@ -92,23 +91,7 @@ def render_tikz(stem: str, out_png: Path, dpi: int) -> None:
     with tempfile.TemporaryDirectory(prefix="wave-vector-") as td:
         tdpath = Path(td)
         tex = tdpath / "figure.tex"
-        # Input the actual repository source rather than copying it into the temporary tree.
-        tex.write_text(
-            r"""\documentclass[border=6pt]{standalone}
-\usepackage[T1]{fontenc}
-\usepackage{amsmath,amssymb,bm,mathtools}
-\usepackage{graphicx,xcolor,tikz}
-\usetikzlibrary{calc,decorations.pathreplacing}
-\begin{document}
-\begingroup
-\let\par\relax
-\let\smallskip\relax
-\def\center{}
-\def\endcenter{}
-"""
-            + f"\\input{{{tikz.as_posix()}}}\n"
-            + r"\endgroup\end{document}" + "\n"
-        )
+        tex.write_text(PUBLICATION_RENDERER.TIKZ_STANDALONE_TEMPLATE % tikz.as_posix())
         run(
             [
                 "latexmk",
@@ -150,7 +133,11 @@ def side_by_side(left_path: Path, right_path: Path, out_path: Path) -> None:
     gap = 40
     margin = 24
     header = 46
-    canvas = Image.new("RGB", (left.width + right.width + gap + 2 * margin, target_h + header + 2 * margin), "white")
+    canvas = Image.new(
+        "RGB",
+        (left.width + right.width + gap + 2 * margin, target_h + header + 2 * margin),
+        "white",
+    )
     draw = ImageDraw.Draw(canvas)
     draw.text((margin, 12), "Original source", fill="black")
     draw.text((margin + left.width + gap, 12), "Reconstruction", fill="black")
@@ -210,8 +197,12 @@ def compare(stem: str, dpi: int) -> Path:
 def main() -> int:
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("figure", nargs="?", help="figure basename, e.g. ch05-p116-edge-wave-dispersion")
-    group.add_argument("--all", action="store_true", help="regenerate comparisons for every retained TikZ figure")
+    group.add_argument(
+        "figure", nargs="?", help="figure basename, e.g. ch05-p116-edge-wave-dispersion"
+    )
+    group.add_argument(
+        "--all", action="store_true", help="regenerate comparisons for every retained TikZ figure"
+    )
     parser.add_argument("--dpi", type=int, default=180, help="render resolution (default: 180)")
     args = parser.parse_args()
 

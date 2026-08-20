@@ -18,21 +18,25 @@ esac
 need() {
   command -v "$1" >/dev/null 2>&1 || { echo "missing required command: $1" >&2; exit 1; }
 }
-for cmd in latexmk pdflatex pdfinfo pdftotext pdftoppm python3; do need "$cmd"; done
+need python3
 
-# Some minimal TeX installations expose bibtex8 but not a `bibtex` executable.
-# latexmk expects `bibtex`, so provide a temporary compatibility command.
-TOOLBIN="$BUILD/toolbin"
-mkdir -p "$TOOLBIN"
-if command -v bibtex >/dev/null 2>&1; then
-  :
-elif command -v bibtex8 >/dev/null 2>&1; then
-  ln -sf "$(command -v bibtex8)" "$TOOLBIN/bibtex"
-  export PATH="$TOOLBIN:$PATH"
-else
+prepare_bibtex() {
+  # Some minimal TeX installations expose bibtex8 but not a `bibtex` executable.
+  # latexmk expects `bibtex`, so provide a temporary compatibility command only
+  # for PDF builds that can actually invoke the bibliography tool.
+  if command -v bibtex >/dev/null 2>&1; then
+    return
+  fi
+  if command -v bibtex8 >/dev/null 2>&1; then
+    local toolbin="$BUILD/toolbin"
+    mkdir -p "$toolbin"
+    ln -sf "$(command -v bibtex8)" "$toolbin/bibtex"
+    export PATH="$toolbin:$PATH"
+    return
+  fi
   echo "missing required BibTeX executable (bibtex or bibtex8)" >&2
   exit 1
-fi
+}
 
 prepare_build_info() {
   python3 "$ROOT/scripts/build_info.py" --tex "$BUILD/build-info.tex"
@@ -62,6 +66,9 @@ run_latexmk_cached() {
 }
 
 build_pdf() {
+  for cmd in latexmk pdflatex pdfinfo; do need "$cmd"; done
+  prepare_bibtex
+
   rm -rf "$BUILD/facsimile" "$BUILD/modern"
   mkdir -p "$BUILD/facsimile" "$BUILD/modern" "$LATEX_CACHE/facsimile" "$LATEX_CACHE/modern" "$DIST"
   rm -f "$DIST/wave-motions.pdf" "$DIST/wave-motions-facsimile.pdf" \
@@ -120,12 +127,6 @@ clean_html_outputs() {
 reset_generated() {
   rm -rf "$BUILD" "$DIST"
   mkdir -p "$BUILD" "$DIST"
-  TOOLBIN="$BUILD/toolbin"
-  mkdir -p "$TOOLBIN"
-  if ! command -v bibtex >/dev/null 2>&1 && command -v bibtex8 >/dev/null 2>&1; then
-    ln -sf "$(command -v bibtex8)" "$TOOLBIN/bibtex"
-    export PATH="$TOOLBIN:$PATH"
-  fi
 }
 
 case "$TARGET" in

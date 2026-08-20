@@ -102,31 +102,32 @@ check_build_identity() {
   short=$(python3 "$ROOT/scripts/build_info.py" --short)
   label=$(python3 "$ROOT/scripts/build_info.py" --label)
   test "$short" != "unknown"
+  test "$label" != "unknown"
 
   grep -Fq "GitHub Source" "$DIST/index.html"
-  grep -Fq "$short" "$DIST/index.html"
+  grep -Fq "$label" "$DIST/index.html"
 
   mkdir -p "$BUILD/modern"
   pdftotext -layout "$DIST/wave-motions.pdf" "$BUILD/modern/build-identity.txt"
-  grep -Fq "$short" "$BUILD/modern/build-identity.txt"
+  grep -Fq "$label" "$BUILD/modern/build-identity.txt"
 
-  pdfinfo "$DIST/wave-motions-facsimile.pdf" | grep -Fq "$short"
+  pdfinfo "$DIST/wave-motions-facsimile.pdf" | grep -Fq "$label"
 
-  python3 - "$DIST/wave-motions.epub" "$short" <<'PY'
+  python3 - "$DIST/wave-motions.epub" "$label" <<'PY'
 import sys
 import zipfile
 from pathlib import Path
 
 epub = Path(sys.argv[1])
-short = sys.argv[2].encode()
+label = sys.argv[2].encode()
 with zipfile.ZipFile(epub) as archive:
     payload = b"\n".join(
         archive.read(name)
         for name in archive.namelist()
         if name.lower().endswith((".xhtml", ".html", ".opf"))
     )
-if short not in payload:
-    raise SystemExit("EPUB build identity is missing")
+if label not in payload:
+    raise SystemExit("EPUB exact build identity is missing")
 PY
 
   printf 'Build identity OK: %s\n' "$label"

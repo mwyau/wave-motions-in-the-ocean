@@ -46,7 +46,7 @@ DEFAULT_BADGES = (
     "(https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.epub) "
     "[![CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-3c5c99)]"
     "(https://creativecommons.org/licenses/by-nc-sa/4.0/) "
-    "[![Publish](https://github.com/mwyau/wave-motions-in-the-ocean/actions/workflows/"
+    "[![Build](https://github.com/mwyau/wave-motions-in-the-ocean/actions/workflows/"
     "publish.yml/badge.svg?branch=main)]"
     "(https://github.com/mwyau/wave-motions-in-the-ocean/actions/workflows/publish.yml)"
 )
