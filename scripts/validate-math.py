@@ -17,7 +17,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 RECON = ROOT / "reconstruction"
 DIST = ROOT / "dist"
-BUILD = ROOT / "build"
 README = ROOT / "README.md"
 EPUB = DIST / "wave-motions.epub"
 MODERN_PDF = DIST / "wave-motions.pdf"
@@ -36,6 +35,8 @@ PAOLA_SOURCE_SENTINELS = (
 README_MATH_SENTINELS = (r"\ell", "x", "k", "y", "j,k,x,y,w")
 EPUB_VARIABLE_SENTINELS = ("σ", "ρ", "ℓ", "k", "m", "x", "y", "t")
 EPUB_OPERATOR_SENTINELS = ("sin", "cos", "tanh")
+NAMED_FUNCTIONS = ("sin", "cos", "tan", "sinh", "cosh", "tanh", "exp", "log", "ln")
+NUMBERED_ENV_RE = re.compile(r"\\begin\{(?:waveequation|wavealign)\}")
 
 # This single legacy source form is historically faithful and currently
 # normalized only in generated EPUB input. Any additional legacy declaration is
@@ -81,7 +82,35 @@ def check_canonical_source() -> None:
             if text.count(item) > 1:
                 fail(f"{chapter.name}: duplicated known legacy math form {item!r}")
 
+        for function in NAMED_FUNCTIONS:
+            bare = re.search(rf"(?<!\\)\b{function}\b", text)
+            if bare:
+                fail(
+                    f"{chapter.name}: named math function {function!r} appears without a TeX operator command"
+                )
+
     print("Canonical TeX math audit OK")
+
+
+def canonical_equation_labels() -> dict[int, tuple[str, ...]]:
+    labels: dict[int, tuple[str, ...]] = {}
+    for chapter_number in range(1, 7):
+        path = RECON / f"chapter{chapter_number}.tex"
+        text = strip_tex_comments(path.read_text())
+        count = len(NUMBERED_ENV_RE.findall(text))
+        if count == 0:
+            fail(f"{path.name}: no selected numbered equations found")
+        labels[chapter_number] = tuple(
+            f"({chapter_number}.{index})" for index in range(1, count + 1)
+        )
+    return labels
+
+
+def require_labels(text: str, labels: tuple[str, ...], *, artifact: str) -> None:
+    missing = [label for label in labels if label not in text]
+    if missing:
+        preview = ", ".join(missing[:12])
+        fail(f"{artifact}: missing {len(missing)} numbered equation label(s): {preview}")
 
 
 def github_math_patterns(expr: str) -> tuple[re.Pattern[str], re.Pattern[str]]:
@@ -140,6 +169,10 @@ def check_html() -> None:
     for tex in (r"\ell", "x", "k", "y", "j,k,x,y,w"):
         if tex not in index:
             fail(f"HTML Paola-preface math sentinel is missing: {tex!r}")
+
+    for chapter_number, labels in canonical_equation_labels().items():
+        chapter = (DIST / f"chapter{chapter_number}.html").read_text(errors="replace")
+        require_labels(chapter, labels, artifact=f"chapter{chapter_number}.html")
 
     print(
         f"HTML MathJax markup/accessibility invariants OK: "
@@ -237,6 +270,13 @@ def check_epub_mathml() -> None:
         if not atmosphere_math:
             fail("EPUB lost the p_atmosphere mathematical expression")
 
+        epub_text = " ".join(
+            " ".join(ET.fromstring(archive.read(name)).itertext())
+            for name in xhtml_items
+        )
+        for labels in canonical_equation_labels().values():
+            require_labels(epub_text, labels, artifact="EPUB")
+
         print(
             "EPUB MathML semantics OK: "
             f"expressions={len(math_elements)}, docs={len(math_docs)}, "
@@ -260,9 +300,11 @@ def pdf_text(path: Path) -> str:
 
 
 def check_pdf() -> None:
+    extracted: dict[Path, str] = {}
     for path in (MODERN_PDF, FACSIMILE_PDF):
         require_file(path)
         text = " ".join(pdf_text(path).split())
+        extracted[path] = text
         for sentinel in (
             "like him, I put",
             "wavenumber",
@@ -270,6 +312,10 @@ def check_pdf() -> None:
         ):
             if sentinel not in text:
                 fail(f"{path.name}: Paola-preface PDF text sentinel is missing: {sentinel!r}")
+
+    modern_text = extracted[MODERN_PDF]
+    for labels in canonical_equation_labels().values():
+        require_labels(modern_text, labels, artifact=MODERN_PDF.name)
 
     modern_log = Path(os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motions"))) / "latex" / "modern" / "main-modern.log"
     if modern_log.is_file():
