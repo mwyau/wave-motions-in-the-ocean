@@ -30,13 +30,13 @@
   \draw[line width=0.8pt,samples=80,domain=0.06:0.199,variable=\om]
     plot ({\sx*(-\B/(2*\om)-sqrt((\B/(2*\om))^2-1))},{\so*\om});
   \fill ({-\sx}, {\so*\B/2}) circle (1.2pt);
-  \node[anchor=west,font=\footnotesize] at (0.18,{\so*\B/2+0.12})
+  \node[anchor=west] at (0.18,{\so*\B/2+0.16})
     {$\sigma=\dfrac{\beta\sqrt{gD}}{2f}$};
   \node[anchor=east,align=right] at (-2.55,-0.88) {Rossby wave surface};
-  \node[anchor=east,font=\footnotesize] at (-2.48,-1.30)
+  \node[anchor=east] at (-2.48,-1.38)
     {$\sigma=-\dfrac{\beta k}{k^2+\ell^2+f^2/gD}$};
   \fill ({\sx*(-\B/(2*0.105))},{\so*0.105}) circle (1.1pt) coordinate (Crep);
-  \node[anchor=east,font=\footnotesize] at (-4.10,-0.18)
+  \node[anchor=east] at (-4.10,-0.18)
     {$C\!\left(-\dfrac{\beta}{2\sigma},0\right)$};
   \draw[->,line width=0.55pt] (-3.90,-0.10) -- (Crep);
 
@@ -50,7 +50,7 @@
     plot ({\sx*\rg*cos(\t)+\slx*\rg*sin(\t)},
           {\so*\omtop+\sly*\rg*sin(\t)});
   \node[anchor=west] at (1.10,4.35) {Gravity wave surface};
-  \node[anchor=west,font=\footnotesize] at (1.10,4.00)
+  \node[anchor=west] at (1.10,3.92)
     {$\sigma^2=f^2+gD(k^2+\ell^2)$};
   \node[anchor=west] at (0.10,{\so+0.02}) {$f$};
 \end{tikzpicture}

@@ -7,7 +7,7 @@
 % the shelf angle from Snell's law; coast reflection is exact. Segment lengths
 % are display-only.
 \begin{center}
-\begin{tikzpicture}[x=0.78cm,y=0.78cm,>=stealth,line cap=round,line join=round]
+\begin{tikzpicture}[x=0.78cm,y=0.78cm,>=stealth,line cap=round,line join=round,font=\small]
   \def\depthratio{0.10}
   \pgfmathsetmacro{\critical}{asin(sqrt(\depthratio))}
 

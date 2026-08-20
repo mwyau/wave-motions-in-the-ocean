@@ -10,8 +10,8 @@
     -- (6.55,-0.15) -- cycle;
   \node[above=2pt] at (0,2.05) {$x=0$};
   \node[above=2pt] at (3.45,2.05) {$x=L$};
-  \node[above=2pt,font=\itshape] at (1.75,2.05) {(shelf)};
-  \node[above=2pt,font=\itshape] at (5.05,2.05) {(deep sea)};
+  \node[above=2pt] at (1.75,2.05) {(shelf)};
+  \node[above=2pt] at (5.05,2.05) {(deep sea)};
   \node at (1.75,1.15) {$D_1$};
   \node at (5.05,0.95) {$D_2$};
 \end{tikzpicture}
