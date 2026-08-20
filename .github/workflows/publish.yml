@@ -30,6 +30,7 @@ jobs:
       cancel-in-progress: false
     env:
       TINYTEX_VERSION: "2026.08"
+      EPUBCHECK_VERSION: "5.3.0"
     steps:
       - name: Check out repository
         uses: actions/checkout@v7.0.1
@@ -112,6 +113,25 @@ jobs:
         env:
           WAVE_SKIP_VALIDATION: "1"
         run: ./scripts/build.sh all
+
+      - name: Install EPUBCheck
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v java >/dev/null
+          command -v curl >/dev/null
+          command -v unzip >/dev/null
+          curl -fL \
+            "https://github.com/w3c/epubcheck/releases/download/v${EPUBCHECK_VERSION}/epubcheck-${EPUBCHECK_VERSION}.zip" \
+            -o "$RUNNER_TEMP/epubcheck.zip"
+          unzip -q "$RUNNER_TEMP/epubcheck.zip" -d "$RUNNER_TEMP"
+          EPUBCHECK_JAR="$RUNNER_TEMP/epubcheck-${EPUBCHECK_VERSION}/epubcheck.jar"
+          test -s "$EPUBCHECK_JAR"
+          echo "EPUBCHECK_JAR=$EPUBCHECK_JAR" >> "$GITHUB_ENV"
+          java -jar "$EPUBCHECK_JAR" --version
+
+      - name: Check mathematical rendering
+        run: python3 scripts/validate-math.py --require-epubcheck
 
       - name: Check PDF integrity and pagination
         run: bash scripts/validate-publication.sh pdf-integrity
