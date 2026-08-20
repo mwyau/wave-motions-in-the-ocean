@@ -1,0 +1,22 @@
+% wave-source: pdf=ChapmanRizzoli6.pdf; page=12; trim=75bp 450bp 65bp 135bp
+% Source: Wave Motions in the Ocean, printed p.159 (physical p.12), upper figure.
+% Equation-generated roots of tan(kL)=k/(ell-b). Normalized display uses
+% x=kL and (ell-b)L=-1.5; roots are x=2.1746260,5.0036453,8.0384628.
+\begin{tikzpicture}[x=.75cm,y=1cm,>=stealth,font=\small,line cap=round]
+  \draw[->] (0.45,4.20)--(10.65,4.20) node[right] {$kL$};
+  \draw[->] (0.75,0.55)--(0.75,7.80) node[above] {both sides};
+  \begin{scope}
+    \clip (0.55,0.65) rectangle (10.15,7.55);
+    \foreach \a/\b in {0.02/1.54,1.60/3.11,3.18/4.68,4.75/6.25,6.32/7.82,7.89/9.35}{
+      \draw[line width=.70pt,domain=\a:\b,samples=100,smooth,variable=\x]
+        plot ({0.75+\x},{4.20+0.58*tan(\x r)});
+    }
+    \draw[line width=.70pt] (0.75,4.20)--(10.10,0.584);
+  \end{scope}
+  \foreach \x/\y/\n in {2.174626/3.359/1,5.003645/2.265/2,8.038463/1.092/3}{
+    \fill ({0.75+\x},\y) circle(2pt);
+    \node[above right] at ({0.75+\x},\y) {$n=\n$};
+  }
+  \node[anchor=west] at (6.45,7.15) {$\tan(kL)$};
+  \node[anchor=west,rotate=-22] at (6.15,1.45) {$k/(\ell-b)$};
+\end{tikzpicture}
