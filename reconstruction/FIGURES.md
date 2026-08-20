@@ -17,7 +17,7 @@ Equation-validation states are tracked independently of representation status:
 - **Pending** — equation validation materially applies but has not yet been independently completed and recorded.
 - **N/A** — no meaningful equation-defined quantity or relation controls the figure; visual, geometric, source-fidelity, and provenance checks still apply.
 
-The initial 2026-08-20 backfill is conservative: `Validated` is used only where the existing audit record supports an independent equation/constraint check, not merely because a vector was generated from a formula. Current snapshot across the 105 tracked body/front-matter assets and direct source placements: **44 Validated, 6 Partial, 42 Pending, 13 N/A**.
+The initial 2026-08-20 backfill is conservative: `Validated` is used only where the existing audit record supports an independent equation/constraint check, not merely because a vector was generated from a formula. Current snapshot across the 105 tracked body/front-matter assets and direct source placements: **48 Validated, 6 Partial, 38 Pending, 13 N/A**.
 
 Every `.tikz` file carries a `wave-source` comment naming the source PDF, physical page, and crop. `scripts/compare-figures.py` regenerates temporary side-by-side comparisons under `build/comparisons/`; comparison outputs are never committed.
 
@@ -88,6 +88,11 @@ Chapter 1 has no direct source-PDF crop placements in the book body.
 | `ch04-p079-case-b-intersections.tikz` | 79 | **vector-complete** | **Validated** | Both panels are generated from normalized `C/x=tan x`. Independent root calculations reproduce the small-`k` surface pair only for `sigma^2>f^2` and the infinite internal-mode sequence in both sign cases. |
 | `ch04-p080-waveguide-dispersion.tikz` | 80 | **vector-complete** | **Validated** | Surface and internal branches are generated from the stated approximate dispersion relations. Independent limiting checks give the internal branches `sigma->f` as `k->0`, `sigma->N` as `k->infinity`, and vanishing group velocity at both limits. |
 
+| `ch04-p081-mode-structure.tikz` | 81 | **vector-complete** | **Validated** | The `n=1` profiles are generated exactly from `w~sin(pi(z+D)/D)` and `u~cos(pi(z+D)/D)`; nodes, antinodes, and boundary values were independently checked. |
+| `ch04-p081-particle-cells.tikz` | 81 | **vector-complete** | **Validated** | Velocity cells use the same `n=1` solution and are analytically divergence-free. Surface convergence/divergence locations and alternating circulation follow from the independently checked `u,w` phase relation. |
+| `ch04-p083-evanescent-case-a.tikz` | 83 | **vector-complete** | **Validated** | Panels are generated from normalized `C/x=-tan x`. Independent roots confirm an infinite evanescent sequence and the additional small-|k| pair in case A1. |
+| `ch04-p084-evanescent-case-b.tikz` | 84 | **vector-complete** | **Validated** | The normalized relation `C/x=-tanh x` was independently solved: the `S^2>0` sign has no real positive root while the `S^2<0` sign has one positive root and its negative partner. |
+
 ### Chapter 5
 
 Chapter 5 was re-audited first on 2026-08-20. Four previously accepted drawings required scientific geometry corrections; those corrections are now encoded in the vector construction rather than left to visual approximation.
@@ -142,7 +147,7 @@ Chapter 5 was re-audited first on 2026-08-20. Four previously accepted drawings 
 
 ## Direct source-PDF crop placements — complete inventory
 
-These 28 placements are real figures even though no separate image file is committed. They are rendered directly from the source PDFs. Retaining a source crop is a positive scientific decision when vectorization would add interpretation risk; it is not an incomplete reconstruction by itself.
+These 24 placements are real figures even though no separate image file is committed. They are rendered directly from the source PDFs. Retaining a source crop is a positive scientific decision when vectorization would add interpretation risk; it is not an incomplete reconstruction by itself.
 
 The 2026-08-20 source-art pass also treats crop isolation as part of acceptance: surrounding prose/equations must not be embedded in a figure, and no scientific label or line may be cut by the trim. Eight Chapter 4 crops (printed pp. 69--76) failed or were unnecessarily fragile under that criterion and were replaced by isolated vectors. The remaining direct crops below are classified explicitly as vector candidates or deliberate source-art retentions.
 
@@ -152,10 +157,6 @@ Chapter 5 p.97 is a particularly important example: the sphere drawing was revie
 |---|---:|---|---:|---|---|
 | 2 | 34 | `ChapmanRizzoli0_2.pdf` | 44 | **N/A** | **source-pdf** — retain the source-specific sound-speed profile; generic smoothing would invent profile detail. |
 | 2 | 35 | `ChapmanRizzoli0_2.pdf` | 45 | **N/A** | **source-pdf** — retain the source-specific sound-speed profile; generic smoothing would invent profile detail. The p.35 crop was already tightened specifically to exclude duplicated prose. |
-| 4 | 81 | `ChapmanRizzoli4.pdf` | 18 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
-| 4 | 81 | `ChapmanRizzoli4.pdf` | 18 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
-| 4 | 83 | `ChapmanRizzoli4.pdf` | 20 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
-| 4 | 84 | `ChapmanRizzoli4.pdf` | 21 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
 | 4 | 85 | `ChapmanRizzoli4.pdf` | 22 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
 | 4 | 88 | `ChapmanRizzoli4.pdf` | 25 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
 | 4 | 89 | `ChapmanRizzoli4.pdf` | 26 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
