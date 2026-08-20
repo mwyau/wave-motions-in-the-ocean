@@ -1,0 +1,16 @@
+% wave-source: pdf=ChapmanRizzoli3.pdf; page=9; trim=165bp 500bp 130bp 85bp
+% Source: Wave Motions in the Ocean, printed p.44 (physical p.9).
+% Two semi-infinite irrotational fluids meet at z=eta near z=0; each potential
+% satisfies Laplace's equation. The interface waviness is schematic, labels exact.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \draw[densely dashed,line width=0.35pt] (0.60,2.20) -- (9.00,2.20);
+  \draw[line width=0.78pt,smooth,domain=0.60:9.00,samples=110,variable=\x]
+    plot ({\x},{2.20+0.13*sin(155*\x)});
+  \draw[<->,line width=0.55pt] (4.70,2.20) -- (4.70,2.33);
+  \node[anchor=west] at (4.82,2.34) {$\eta$};
+  \node[anchor=east] at (1.45,2.82) {$\rho_1$};
+  \node[anchor=east] at (1.45,1.55) {$\rho_2$};
+  \node at (6.15,2.82) {$\nabla^2\phi_1=0$};
+  \node at (6.15,1.55) {$\nabla^2\phi_2=0$};
+  \node[anchor=west] at (9.12,2.20) {$z=0$};
+\end{tikzpicture}
