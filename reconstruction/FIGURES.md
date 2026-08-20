@@ -17,7 +17,7 @@ Equation-validation states are tracked independently of representation status:
 - **Pending** — equation validation materially applies but has not yet been independently completed and recorded.
 - **N/A** — no meaningful equation-defined quantity or relation controls the figure; visual, geometric, source-fidelity, and provenance checks still apply.
 
-The initial 2026-08-20 backfill is conservative: `Validated` is used only where the existing audit record supports an independent equation/constraint check, not merely because a vector was generated from a formula. Current snapshot across the 105 tracked body/front-matter assets and direct source placements: **41 Validated, 6 Partial, 45 Pending, 13 N/A**.
+The initial 2026-08-20 backfill is conservative: `Validated` is used only where the existing audit record supports an independent equation/constraint check, not merely because a vector was generated from a formula. Current snapshot across the 105 tracked body/front-matter assets and direct source placements: **44 Validated, 6 Partial, 42 Pending, 13 N/A**.
 
 Every `.tikz` file carries a `wave-source` comment naming the source PDF, physical page, and crop. `scripts/compare-figures.py` regenerates temporary side-by-side comparisons under `build/comparisons/`; comparison outputs are never committed.
 
@@ -84,6 +84,10 @@ Chapter 1 has no direct source-PDF crop placements in the book body.
 | `ch04-p078-case-a-intersections.tikz` | 78 | **vector-complete** | **Pending** | Curves use the stated normalized equations and yield the two symmetric real roots. A fresh independent reference-curve/root check is still required under the explicit equation-audit standard. |
 | `ch04-p078-case-a1-no-intersections.tikz` | 78 | **vector-complete** | **Pending** | Curves have opposite sign for every nonzero real `k`, so no propagating real root is implied. A fresh independent reference-curve/sign check is still required under the explicit equation-audit standard. |
 
+| `ch04-p077-frequency-regimes.tikz` | 77 | **vector-complete** | **Validated** | Frequency regimes are classified from the signs of `S^2=sigma^2-f^2`, `R^2=(N^2-sigma^2)/(sigma^2-f^2)`, and `R_1^2=-R^2`; the four orderings were independently checked. |
+| `ch04-p079-case-b-intersections.tikz` | 79 | **vector-complete** | **Validated** | Both panels are generated from normalized `C/x=tan x`. Independent root calculations reproduce the small-`k` surface pair only for `sigma^2>f^2` and the infinite internal-mode sequence in both sign cases. |
+| `ch04-p080-waveguide-dispersion.tikz` | 80 | **vector-complete** | **Validated** | Surface and internal branches are generated from the stated approximate dispersion relations. Independent limiting checks give the internal branches `sigma->f` as `k->0`, `sigma->N` as `k->infinity`, and vanishing group velocity at both limits. |
+
 ### Chapter 5
 
 Chapter 5 was re-audited first on 2026-08-20. Four previously accepted drawings required scientific geometry corrections; those corrections are now encoded in the vector construction rather than left to visual approximation.
@@ -138,7 +142,7 @@ Chapter 5 was re-audited first on 2026-08-20. Four previously accepted drawings 
 
 ## Direct source-PDF crop placements — complete inventory
 
-These 31 placements are real figures even though no separate image file is committed. They are rendered directly from the source PDFs. Retaining a source crop is a positive scientific decision when vectorization would add interpretation risk; it is not an incomplete reconstruction by itself.
+These 28 placements are real figures even though no separate image file is committed. They are rendered directly from the source PDFs. Retaining a source crop is a positive scientific decision when vectorization would add interpretation risk; it is not an incomplete reconstruction by itself.
 
 The 2026-08-20 source-art pass also treats crop isolation as part of acceptance: surrounding prose/equations must not be embedded in a figure, and no scientific label or line may be cut by the trim. Eight Chapter 4 crops (printed pp. 69--76) failed or were unnecessarily fragile under that criterion and were replaced by isolated vectors. The remaining direct crops below are classified explicitly as vector candidates or deliberate source-art retentions.
 
@@ -148,9 +152,6 @@ Chapter 5 p.97 is a particularly important example: the sphere drawing was revie
 |---|---:|---|---:|---|---|
 | 2 | 34 | `ChapmanRizzoli0_2.pdf` | 44 | **N/A** | **source-pdf** — retain the source-specific sound-speed profile; generic smoothing would invent profile detail. |
 | 2 | 35 | `ChapmanRizzoli0_2.pdf` | 45 | **N/A** | **source-pdf** — retain the source-specific sound-speed profile; generic smoothing would invent profile detail. The p.35 crop was already tightened specifically to exclude duplicated prose. |
-| 4 | 77 | `ChapmanRizzoli4.pdf` | 14 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
-| 4 | 79 | `ChapmanRizzoli4.pdf` | 16 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
-| 4 | 80 | `ChapmanRizzoli4.pdf` | 17 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
 | 4 | 81 | `ChapmanRizzoli4.pdf` | 18 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
 | 4 | 81 | `ChapmanRizzoli4.pdf` | 18 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
 | 4 | 83 | `ChapmanRizzoli4.pdf` | 20 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
