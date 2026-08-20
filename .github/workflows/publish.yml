@@ -19,22 +19,40 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
+    env:
+      TINYTEX_VERSION: "2026.08"
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          version: "0.12.1"
+          enable-cache: true
+          cache-dependency-glob: requirements.txt
+
+      - name: Set up Python environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv python install "$(cat .python-version)"
+          uv venv --python "$(cat .python-version)"
+          uv pip sync requirements.txt
+          echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Cache TinyTeX
         id: tinytex-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6.1.0
         with:
           path: ~/.TinyTeX
-          key: wave-motions-tinytex-${{ runner.os }}-${{ hashFiles('tex-packages.txt') }}
+          key: wave-motions-tinytex-2026.08-${{ runner.os }}-${{ hashFiles('tex-packages.txt') }}
           restore-keys: |
-            wave-motions-tinytex-${{ runner.os }}-
+            wave-motions-tinytex-2026.08-${{ runner.os }}-
 
       - name: Cache build intermediates
-        uses: actions/cache@v5
+        uses: actions/cache@v6.1.0
         with:
           path: .cache/wave-motions
           key: wave-motions-build-v2-${{ runner.os }}-${{ github.sha }}
@@ -53,7 +71,7 @@ jobs:
 
       - name: Install TinyTeX if absent
         if: steps.tinytex-state.outputs.installed != 'true'
-        uses: r-lib/actions/setup-tinytex@v2
+        uses: r-lib/actions/setup-tinytex@v2.12.1
 
       - name: Add TinyTeX to PATH
         shell: bash
@@ -78,7 +96,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo -E apt-get install -y --no-install-recommends \
-            qpdf poppler-utils imagemagick ghostscript python3-pil pandoc librsvg2-bin
+            qpdf poppler-utils imagemagick ghostscript pandoc librsvg2-bin
 
       - name: Build and validate publication
         run: ./scripts/build.sh all
@@ -97,7 +115,7 @@ jobs:
           test ! -e dist/html
 
       - name: Upload publication artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: wave-motions-editions
           path: dist/
@@ -107,22 +125,22 @@ jobs:
 
       - name: Configure Pages
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6.0.0
 
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@v5.0.0
         with:
           path: dist
 
   deploy:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@v5.0.0

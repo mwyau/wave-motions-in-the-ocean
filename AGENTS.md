@@ -10,11 +10,14 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 
 ## Git workflow and automation
 
-- Pull requests are not part of the active repository workflow until the owner explicitly enables them. Do not create a PR unless explicitly requested.
+- Pull requests are not part of the active repository workflow until the owner explicitly enables them. Do not create a PR unless explicitly requested. Dependabot-generated dependency update PRs are the standing exception.
 - When integration to `main` is authorized, keep history linear: rebase/fast-forward rather than creating merge commits.
 - The owner may squash or rewrite `main` history at any time. Treat the current contents of `main` as authoritative; do not rely on long-lived commit SHAs or stable historical commit boundaries.
+- Write commit subjects as short human-readable sentences beginning with a capital letter. Do not use Conventional Commit prefixes such as `ci:`, `docs:`, `feat:`, `fix:`, `refactor:`, or `chore:`.
 - The canonical publication workflow is not a general-purpose repository mutation hook. Never add one-off migration, cleanup, source-editing, commit, or push logic to it.
 - If a temporary or task-specific GitHub Actions job must modify tracked repository contents, create a separate purpose-specific workflow. Remove that workflow after the task unless the owner explicitly wants it retained.
+- Keep versioned development dependencies and GitHub Actions on explicit full-version pins. Let Dependabot propose updates rather than replacing exact pins with floating major tags.
+- The reference GitHub-hosted Linux runner is `ubuntu-26.04`. Use the checked-in `.python-version`, `requirements.txt`, TinyTeX release pin, and workflow tool pins as the environment authority.
 
 ## Canonical sources
 
