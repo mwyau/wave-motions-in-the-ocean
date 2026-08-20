@@ -1,13 +1,22 @@
 % wave-source: pdf=ChapmanRizzoli5.pdf; page=19; trim=124.80bp 198.24bp 131.52bp 436.80bp
 % Source: Wave Motions in the Ocean, printed p.114 (physical p.19).
 % Vector redraw of trapped (A) and incident/reflected (B) shelf ray paths.
+% Scientific constraint: each coast/shelf-edge reflection is constructed from
+% mirrored ray segments instead of freehand endpoints. Arrow traversal follows
+% the source from the lower part of each panel toward the upper part. Refraction
+% at x=L is schematic, as in the source; this is not a quantitative Snell plot.
 \begin{center}
-\begin{tikzpicture}[x=0.70cm,y=0.70cm,>=stealth,line cap=round,line join=round]
+\begin{tikzpicture}[x=0.78cm,y=0.78cm,>=stealth,line cap=round,line join=round]
   \begin{scope}
     \draw[very thick] (0,-1.35)--(0,1.35);
     \draw[dashed] (2.3,-1.35)--(2.3,1.35);
-    \draw[->,thick] (0,-0.80)--(2.3,0.20)--(0.35,1.10);
-    \draw[->,thick] (0.35,-1.10)--(0,-0.80);
+    % A common |dy/dx| is used for every shelf leg. The short first/last
+    % segments are collinear continuations, so the coast and shelf-edge
+    % reflections are exactly specular while retaining the source arrow sense.
+    \draw[->,thick] (0.35,-1.102)--(0,-0.98);
+    \draw[->,thick] (0,-0.98)--(2.30,-0.18);
+    \draw[->,thick] (2.30,-0.18)--(0,0.62);
+    \draw[->,thick] (0,0.62)--(0.35,0.742);
     \node[below] at (0,-1.35) {$x=0$};
     \node[below] at (2.3,-1.35) {$x=L$};
     \node[above] at (1.15,1.45) {(A)};
@@ -15,7 +24,11 @@
   \begin{scope}[shift={(5.0,0)}]
     \draw[very thick] (0,-1.35)--(0,1.35);
     \draw[dashed] (2.3,-1.35)--(2.3,1.35);
-    \draw[->,thick] (4.0,-0.95)--(2.3,-0.25)--(0,0.05)--(2.3,0.45)--(4.0,1.25);
+    % Deep-sea ingress/egress and shelf legs are paired symmetrically about y=0.
+    \draw[->,thick] (4.0,-1.25)--(2.3,-0.45);
+    \draw[->,thick] (2.3,-0.45)--(0,0);
+    \draw[->,thick] (0,0)--(2.3,0.45);
+    \draw[->,thick] (2.3,0.45)--(4.0,1.25);
     \node[below] at (0,-1.35) {$x=0$};
     \node[below] at (2.3,-1.35) {$x=L$};
     \node[above] at (1.15,1.45) {(B)};
