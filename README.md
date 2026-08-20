@@ -7,7 +7,7 @@
 Digital edition by **Albert M. W. Yau** — August 2026
 
 <!-- README_BADGES_START -->
-[![Read Online](https://img.shields.io/badge/Read-Online-0969da)](https://mwyau.github.io/wave-motions-in-the-ocean/) [![Read PDF](https://img.shields.io/badge/Read-PDF-b31b1b)](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.pdf) [![Read EPUB](https://img.shields.io/badge/Read-EPUB-f15a24)](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.epub) [![CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-007ec6)](https://creativecommons.org/licenses/by-nc-sa/4.0/) [![Build](https://img.shields.io/github/check-runs/mwyau/wave-motions-in-the-ocean/main?nameFilter=build&label=Build)](https://github.com/mwyau/wave-motions-in-the-ocean/actions/workflows/pages.yml)
+[![Read Online](https://img.shields.io/badge/Read-Online-0969da)](https://mwyau.github.io/wave-motions-in-the-ocean/) [![Read PDF](https://img.shields.io/badge/Read-PDF-b31b1b)](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.pdf) [![Read EPUB](https://img.shields.io/badge/Read-EPUB-85b916)](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.epub) [![CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-3c5c99)](https://creativecommons.org/licenses/by-nc-sa/4.0/) [![Deploy Pages](https://github.com/mwyau/wave-motions-in-the-ocean/actions/workflows/pages.yml/badge.svg?branch=main)](https://github.com/mwyau/wave-motions-in-the-ocean/actions/workflows/pages.yml)
 <!-- README_BADGES_END -->
 
 ## Preface — David C. Chapman
@@ -70,8 +70,8 @@ $\ell$ was supremely unimportant to me. On the positive side, Myrl was absolutel
 best teacher I had in the various courses I took at Scripps. His lectures were always
 interesting, imaginative and full of physical insight. Looking back, I realize that a
 great deal of the important oceanographic concepts and ideas I learned over the years
-go back to my long association with Myrl as teacher, advisor, colleague and, last but
-not least, dear friend. I hope I absorbed from him some of the positive qualities too.
+go back to my long association with Myrl as teacher, advisor, colleague and, last but not
+least, dear friend. I hope I absorbed from him some of the positive qualities too.
 
 *Woods Hole — Paola Malanotte-Rizzoli, 1989*
 
