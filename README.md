@@ -78,9 +78,7 @@ recently been reconstructed in LaTeX. This digital edition has been authorized b
 Paola Malanotte-Rizzoli for release under the **Creative Commons
 Attribution–NonCommercial–ShareAlike 4.0 International license (CC BY-NC-SA 4.0)**.
 
-The reconstruction remains an editorial work in progress. The historical scans remain
-the authority for the 1989 notes; corrections and modernization are made carefully and
-will continue to be reviewed against the originals.
+The reconstruction is still a work in progress.
 
 *Stony Brook — Albert M. W. Yau, 2026*
 
