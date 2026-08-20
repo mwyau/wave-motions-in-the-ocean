@@ -1,29 +1,39 @@
 % wave-source: pdf=ChapmanRizzoli5.pdf; page=20; trim=180.00bp 459.84bp 213.12bp 235.20bp
 % Source: Wave Motions in the Ocean, printed p.115 (physical p.20).
 % Vector redraw of the trapped shelf-mode cross-section.
+% Scientific constraint: the plotted shelf cosine and deep-ocean exponential
+% satisfy both eta continuity and D*eta_x continuity at x=L. The display-only
+% ratio D_2/D_1=6 and phase k_1 L=6*pi+0.75 are chosen solely to reproduce the
+% source's several shelf oscillations while obeying the matching relation;
+% they are not numerical parameters asserted by the notes.
 \par\smallskip
 \begin{center}
-\begin{tikzpicture}[x=0.95cm,y=0.95cm,line cap=round,line join=round,font=\small]
+\begin{tikzpicture}[x=1.35cm,y=1.08cm,line cap=round,line join=round,font=\small]
+  \def\ShelfL{3.25}
+  \def\KOneDeg{345.5297953}
+  \def\KTwo{0.936352662}
+  \def\BreakAmp{0.731688869}
+
   % Stepped shelf/deep-ocean bathymetry.
   \filldraw[fill=black!15,draw=black,line width=0.75pt]
-    (0,-0.12) -- (0,0.62) -- (3.25,0.62) -- (3.25,0.08) -- (6.10,0.08)
+    (0,-0.12) -- (0,0.62) -- (\ShelfL,0.62) -- (\ShelfL,0.08) -- (6.10,0.08)
     -- (6.10,-0.12) -- cycle;
   \draw[line width=0.75pt] (0,0.62) -- (0,1.48);
 
   % Undisturbed sea level.
   \draw[dashed,line width=0.55pt] (0,1.48) -- (6.12,1.48);
 
-  % Keep depth labels clear of the oscillatory elevation curve.
   \node at (1.55,0.84) {$D_1$};
   \node at (4.65,0.68) {$D_2$};
 
-  % Equation-constrained schematic: eta=A cos(k_1 x) on the shelf and
-  % eta=B exp[-k_2(x-L)] in the deep ocean. The displayed shelf wavelength is
-  % schematic because the source does not specify a numerical root here.
-  \draw[line width=0.85pt,samples=140,domain=0:3.25]
-    plot (\x,{1.48+0.42*cos(1080*\x/3.25)});
-  \draw[line width=0.85pt,samples=100,domain=3.25:5.95]
-    plot (\x,{1.48+0.42*exp(-1.15*(\x-3.25))});
+  % eta=A cos(k_1 x) on the shelf. PGF trigonometric functions use degrees,
+  % hence KOneDeg = (180/pi)*k_1.
+  \draw[line width=0.85pt,samples=180,domain=0:\ShelfL]
+    plot (\x,{1.48+0.42*cos(\KOneDeg*\x)});
+  % eta=B exp[-k_2(x-L)] offshore, B/A=cos(0.75). With D_2/D_1=6 and
+  % k_2=(D_1/D_2) k_1 tan(0.75), D eta_x is continuous at the shelf break.
+  \draw[line width=0.85pt,samples=120,domain=\ShelfL:5.95]
+    plot (\x,{1.48+0.42*\BreakAmp*exp(-\KTwo*(\x-\ShelfL))});
 \end{tikzpicture}
 \end{center}
 \smallskip
