@@ -1,6 +1,9 @@
 % wave-source: pdf=ChapmanRizzoli5.pdf; page=23; trim=163.20bp 536.64bp 174.72bp 168.00bp
 % Source: Wave Motions in the Ocean, printed p.118 (physical p.23).
 % Vector redraw of the gravest and first higher coastal-seiche modes.
+% For ell=0 the quarter-wave resonances have k_1 L=(n+1/2)pi. Since
+% k_2=sigma/sqrt(gD_2), the n=1 deep-ocean wavenumber is exactly three times
+% that of n=0, matching the same 3:1 frequency ratio as the shelf structure.
 \par\smallskip
 \begin{center}
 \begin{tikzpicture}[x=0.95cm,y=0.95cm,line cap=round,line join=round,font=\small]
@@ -13,14 +16,15 @@
   % n=0: antinode at the coast and elevation node at the shelf break.
   \draw[line width=0.85pt,samples=100,domain=0:3.25]
     plot (\x,{1.48+0.34*cos(90*\x/3.25)});
-  \draw[line width=0.85pt,samples=100,domain=3.25:6.00]
+  \draw[line width=0.85pt,samples=120,domain=3.25:6.00]
     plot (\x,{1.48-0.18*sin(180*(\x-3.25)/2.75)});
 
-  % n=1: one additional shelf zero and the same shelf-break node.
+  % n=1: one additional shelf zero and the same shelf-break node. Its frequency,
+  % shelf wavenumber, and radiating deep-ocean wavenumber are all 3 times n=0.
   \draw[dashed,line width=0.80pt,samples=120,domain=0:3.25]
     plot (\x,{1.48+0.28*cos(270*\x/3.25)});
-  \draw[dashed,line width=0.80pt,samples=100,domain=3.25:6.00]
-    plot (\x,{1.48+0.15*sin(180*(\x-3.25)/2.75)});
+  \draw[dashed,line width=0.80pt,samples=180,domain=3.25:6.00]
+    plot (\x,{1.48+0.15*sin(540*(\x-3.25)/2.75)});
 
   \node at (0.95,1.90) {$0$};
   \node at (1.05,1.12) {$1$};
