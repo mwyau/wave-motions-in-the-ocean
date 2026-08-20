@@ -15,6 +15,10 @@ ROOT = Path(__file__).resolve().parents[1]
 EPUB = ROOT / "dist" / "wave-motions.epub"
 OPF_NS = "http://www.idpf.org/2007/opf"
 DC_NS = "http://purl.org/dc/elements/1.1/"
+XHTML_NS = "http://www.w3.org/1999/xhtml"
+EPUB_NS = "http://www.idpf.org/2007/ops"
+SVG_NS = "http://www.w3.org/2000/svg"
+XLINK_NS = "http://www.w3.org/1999/xlink"
 
 ACCESSIBILITY_SUMMARY = (
     "Mathematics is encoded as MathML and the EPUB includes linked table-of-contents navigation. "
@@ -34,6 +38,17 @@ ACCESSIBILITY_PROPERTIES = {
 }
 GENERIC_ALT_TEXT = {"image", "figure"}
 
+FRONTISPIECE_BASENAME = "salmon-hendershott-como-1980.jpg"
+FRONTISPIECE_ALTERNATIVE = (
+    "Rick Salmon (left) and Myrl Hendershott at Villa Carlotta, Lake Como, "
+    "during the International School of Physics Enrico Fermi, Course LXXX, "
+    "Topics in Ocean Physics, July 1980."
+)
+COVER_ALTERNATIVE = (
+    "Cover of Wave Motions in the Ocean: Myrl's View, featuring Katsushika "
+    "Hokusai's Under the Wave off Kanagawa (The Great Wave)."
+)
+
 
 def package_document(archive: zipfile.ZipFile) -> tuple[str, ET.Element]:
     try:
@@ -49,6 +64,117 @@ def package_document(archive: zipfile.ZipFile) -> tuple[str, ET.Element]:
         return name, ET.fromstring(archive.read(name))
     except (KeyError, ET.ParseError) as exc:
         raise SystemExit(f"cannot read EPUB package document {name}: {exc}") from exc
+
+
+def manifest_xhtml_members(
+    opf_name: str,
+    opf_root: ET.Element,
+) -> list[str]:
+    manifest = opf_root.find("{*}manifest")
+    if manifest is None:
+        raise SystemExit("EPUB manifest is missing")
+    package_dir = posixpath.dirname(opf_name)
+    members: list[str] = []
+    for item in manifest.findall("{*}item"):
+        if item.get("media-type") != "application/xhtml+xml" or not item.get("href"):
+            continue
+        href = urllib.parse.unquote(item.get("href") or "")
+        members.append(posixpath.normpath(posixpath.join(package_dir, href)))
+    return members
+
+
+def cover_image_basename(opf_root: ET.Element) -> str:
+    manifest = opf_root.find("{*}manifest")
+    if manifest is None:
+        raise SystemExit("EPUB manifest is missing")
+    cover_items = [
+        item
+        for item in manifest.findall("{*}item")
+        if "cover-image" in (item.get("properties") or "").split()
+    ]
+    if len(cover_items) != 1 or not cover_items[0].get("href"):
+        raise SystemExit(
+            f"expected one EPUB cover image, found {len(cover_items)}"
+        )
+    href = urllib.parse.unquote(cover_items[0].get("href") or "")
+    return posixpath.basename(urllib.parse.urlsplit(href).path)
+
+
+def ref_basename(ref: str | None) -> str:
+    if not ref:
+        return ""
+    parsed = urllib.parse.urlsplit(ref)
+    return posixpath.basename(urllib.parse.unquote(parsed.path))
+
+
+def svg_image_ref(image: ET.Element) -> str | None:
+    return image.get(f"{{{XLINK_NS}}}href") or image.get("href")
+
+
+def set_known_image_alternatives(
+    source: zipfile.ZipFile,
+    opf_name: str,
+    opf_root: ET.Element,
+) -> dict[str, bytes]:
+    """Add only alternatives whose content is already authoritative in the book."""
+    cover_basename = cover_image_basename(opf_root)
+    rewritten: dict[str, bytes] = {}
+    frontispiece_found = False
+    cover_found = False
+
+    ET.register_namespace("", XHTML_NS)
+    ET.register_namespace("epub", EPUB_NS)
+    ET.register_namespace("svg", SVG_NS)
+    ET.register_namespace("xlink", XLINK_NS)
+
+    for member in manifest_xhtml_members(opf_name, opf_root):
+        try:
+            root = ET.fromstring(source.read(member))
+        except (KeyError, ET.ParseError) as exc:
+            raise SystemExit(f"cannot parse EPUB XHTML {member}: {exc}") from exc
+
+        changed = False
+        for image in root.findall(".//{*}img"):
+            basename = ref_basename(image.get("src"))
+            if basename == FRONTISPIECE_BASENAME:
+                image.set("alt", FRONTISPIECE_ALTERNATIVE)
+                frontispiece_found = True
+                changed = True
+            if basename == cover_basename:
+                image.set("alt", COVER_ALTERNATIVE)
+                cover_found = True
+                changed = True
+
+        # Pandoc commonly wraps the EPUB cover raster in an inline SVG. Give
+        # the outer SVG an accessible name rather than placing prose on its
+        # low-level <image> child.
+        for svg in root.findall(".//{*}svg"):
+            if not any(
+                ref_basename(svg_image_ref(image)) == cover_basename
+                for image in svg.findall(".//{*}image")
+            ):
+                continue
+            svg.set("role", "img")
+            svg.set("aria-label", COVER_ALTERNATIVE)
+            cover_found = True
+            changed = True
+
+        if changed:
+            rewritten[member] = ET.tostring(
+                root,
+                encoding="utf-8",
+                xml_declaration=True,
+            )
+
+    if not frontispiece_found:
+        raise SystemExit(
+            "EPUB frontispiece image was not found while adding its known alternative text"
+        )
+    if not cover_found:
+        raise SystemExit(
+            "EPUB cover presentation was not found while adding its accessible name"
+        )
+    return rewritten
 
 
 def apply_metadata(epub: Path) -> None:
@@ -96,15 +222,25 @@ def apply_metadata(epub: Path) -> None:
                     "EPUB declares accessibility conformance before the publication has been fully audited"
                 )
 
+        # Serialize the OPF before registering XHTML as the default namespace.
         opf_bytes = ET.tostring(
             opf_root,
             encoding="utf-8",
             xml_declaration=True,
         )
+        rewritten_xhtml = set_known_image_alternatives(
+            source,
+            opf_name,
+            opf_root,
+        )
         entries = [
             (
                 info,
-                opf_bytes if info.filename == opf_name else source.read(info.filename),
+                (
+                    opf_bytes
+                    if info.filename == opf_name
+                    else rewritten_xhtml.get(info.filename, source.read(info.filename))
+                ),
             )
             for info in infos
         ]
@@ -131,37 +267,72 @@ def apply_metadata(epub: Path) -> None:
         tmp.unlink(missing_ok=True)
 
 
+def alternative_bucket(value: str | None) -> str:
+    if value is None:
+        return "missing"
+    value = value.strip()
+    if not value:
+        return "empty"
+    if value.casefold() in GENERIC_ALT_TEXT:
+        return "generic"
+    return "meaningful"
+
+
 def image_alternative_inventory(
     archive: zipfile.ZipFile,
     opf_name: str,
     opf_root: ET.Element,
-) -> tuple[int, int, int, int, int]:
-    manifest = opf_root.find("{*}manifest")
-    if manifest is None:
-        raise SystemExit("EPUB manifest is missing")
-    package_dir = posixpath.dirname(opf_name)
+) -> tuple[int, int, int, int, int, set[str]]:
     total = meaningful = generic = empty = missing = 0
-    for item in manifest.findall("{*}item"):
-        if item.get("media-type") != "application/xhtml+xml" or not item.get("href"):
-            continue
-        href = urllib.parse.unquote(item.get("href") or "")
-        member = posixpath.normpath(posixpath.join(package_dir, href))
+    alternatives: set[str] = set()
+
+    for member in manifest_xhtml_members(opf_name, opf_root):
         try:
             root = ET.fromstring(archive.read(member))
         except (KeyError, ET.ParseError) as exc:
             raise SystemExit(f"cannot parse EPUB XHTML {member}: {exc}") from exc
+
         for image in root.findall(".//{*}img"):
             total += 1
-            alt = image.get("alt")
-            if alt is None:
-                missing += 1
-            elif not alt.strip():
-                empty += 1
-            elif alt.strip().casefold() in GENERIC_ALT_TEXT:
-                generic += 1
-            else:
+            value = image.get("alt")
+            bucket = alternative_bucket(value)
+            if bucket == "meaningful":
                 meaningful += 1
-    return total, meaningful, generic, empty, missing
+                alternatives.add((value or "").strip())
+            elif bucket == "generic":
+                generic += 1
+            elif bucket == "empty":
+                empty += 1
+            else:
+                missing += 1
+
+        # Count each inline SVG that embeds a raster as one visual item. This
+        # catches Pandoc's cover wrapper, which the old <img>-only inventory
+        # silently omitted.
+        for svg in root.findall(".//{*}svg"):
+            if not svg.findall(".//{*}image"):
+                continue
+            total += 1
+            value = svg.get("aria-label")
+            if not value:
+                title = svg.find("./{*}title")
+                value = (
+                    " ".join("".join(title.itertext()).split())
+                    if title is not None
+                    else None
+                )
+            bucket = alternative_bucket(value)
+            if bucket == "meaningful":
+                meaningful += 1
+                alternatives.add((value or "").strip())
+            elif bucket == "generic":
+                generic += 1
+            elif bucket == "empty":
+                empty += 1
+            else:
+                missing += 1
+
+    return total, meaningful, generic, empty, missing, alternatives
 
 
 def validate_metadata(epub: Path) -> None:
@@ -220,11 +391,22 @@ def validate_metadata(epub: Path) -> None:
                     "EPUB must not claim accessibility conformance before the audit is complete"
                 )
 
-        total, meaningful, generic, empty, missing = image_alternative_inventory(
-            archive, opf_name, opf_root
-        )
+        (
+            total,
+            meaningful,
+            generic,
+            empty,
+            missing,
+            alternatives,
+        ) = image_alternative_inventory(archive, opf_name, opf_root)
         if total == 0:
             raise SystemExit("EPUB contains no images to audit for alternative text")
+        for required in (FRONTISPIECE_ALTERNATIVE, COVER_ALTERNATIVE):
+            if required not in alternatives:
+                raise SystemExit(
+                    "EPUB lost a known accessible image description: "
+                    + required
+                )
 
     print("EPUB accessibility discovery metadata OK")
     print(
