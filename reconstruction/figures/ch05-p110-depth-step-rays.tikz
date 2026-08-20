@@ -1,9 +1,9 @@
 % wave-source: pdf=ChapmanRizzoli5.pdf; page=15; trim=69.60bp 212.64bp 97.92bp 465.60bp
 % Source: Wave Motions in the Ocean, printed p.110 (physical p.15).
-% Vector redraw of the depth-step cross section and ray geometry.
-% Scientific constraint: the reflected ray is the exact mirror of the incident
-% ray about the horizontal interface normal, enforcing alpha_R=alpha_I. The
-% transmitted ray is schematic but bends toward the normal for D_1<D_2.
+% Equation-generated depth-step cross section and ray geometry.
+% The illustrative ratio D_1/D_2=0.60 and the source-like incident angle determine
+% alpha_T from Snell's law, sin(alpha_I)/sqrt(g D_2)=sin(alpha_T)/sqrt(g D_1).
+% Reflection is the exact mirror alpha_R=alpha_I. Ray lengths are display-only.
 \begin{center}
 \begin{tikzpicture}[x=0.78cm,y=0.78cm,>=stealth,line cap=round,line join=round,font=\small]
   % Depth-step cross section.
@@ -18,14 +18,21 @@
 
   % Incident, reflected, and transmitted rays at the vertical step.
   \begin{scope}[shift={(8.15,0.75)}]
+    \def\depthratio{0.60}
+    \pgfmathsetmacro{\alphaI}{atan(0.95/1.62)}
+    \pgfmathsetmacro{\alphaT}{asin(sqrt(\depthratio)*sin(\alphaI))}
+    \def\raylen{1.88}
+    \def\translen{1.61}
+
     \draw[line width=0.78pt] (0,-1.55) -- (0,1.30);
     \draw[dashed,line width=0.55pt] (-1.85,0) -- (1.92,0);
     \node[above left] at (-0.18,1.16) {$D_1$};
     \node[above right] at (0.18,1.16) {$D_2$};
 
-    \draw[->,line width=0.85pt] (1.62,0.95) -- (0,0);
-    \draw[->,line width=0.85pt] (0,0) -- (1.62,-0.95);
-    \draw[->,line width=0.85pt] (0,0) -- (-1.48,-0.63);
+    % Angles are measured from the horizontal interface normal.
+    \draw[->,line width=0.85pt] ({\raylen*cos(\alphaI)},{\raylen*sin(\alphaI)}) -- (0,0);
+    \draw[->,line width=0.85pt] (0,0) -- ({\raylen*cos(\alphaI)},{-\raylen*sin(\alphaI)});
+    \draw[->,line width=0.85pt] (0,0) -- ({-\translen*cos(\alphaT)},{-\translen*sin(\alphaT)});
 
     \node[anchor=west,font=\itshape] at (1.48,0.51) {incident};
     \node[anchor=west,font=\itshape] at (1.42,-0.69) {reflected};
