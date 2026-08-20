@@ -1,0 +1,30 @@
+name: Sync README once
+
+on:
+  push:
+    paths:
+      - .github/workflows/sync-readme-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Pandoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+      - name: Synchronize README and remove one-time workflows
+        run: |
+          set -euo pipefail
+          python3 scripts/sync-views.py --readme
+          rm -f .github/workflows/sync-readme-once.yml
+          rm -f .github/workflows/import-cover-image.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md .github/workflows
+          git commit -m "Synchronize cover credit publication views"
+          git push
