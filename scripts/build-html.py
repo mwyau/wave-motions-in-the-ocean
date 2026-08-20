@@ -80,6 +80,11 @@ WAVE_NUMBERED_RE = re.compile(
     r"\\end\{(?P=env)\}",
     re.S,
 )
+NATIVE_TAGGED_EQUATION_RE = re.compile(
+    r"\\begin\{equation\}(?P<body>.*?)\\tag\{(?P<tag>\d+\.\d+)\}(?P<tail>.*?)"
+    r"\\end\{equation\}",
+    re.S,
+)
 FIGURE_MARK_RE = re.compile(r"\\wavefiguremark")
 
 
@@ -283,6 +288,20 @@ def transform_tex(text: str, chapter_number: int | None = None) -> str:
         text = WAVE_NUMBERED_RE.sub(lambda m: rf"\[{m.group('body')}\]", text)
         return FIGURE_MARK_RE.sub("", text)
 
+    native_labels: list[str] = []
+    def native_equation_sub(m: re.Match[str]) -> str:
+        tag = m.group("tag")
+        if not tag.startswith(f"{chapter_number}."):
+            raise SystemExit(f"chapter {chapter_number}: native equation tag {tag} has wrong chapter")
+        native_labels.append(f"({tag})")
+        body = (m.group("body") + m.group("tail")).strip()
+        return (
+            "\\[\n" + body + "\n\\]\n"
+            "\\begin{flushright}\n\\textup{(" + tag + ")}\n\\end{flushright}"
+        )
+
+    text = NATIVE_TAGGED_EQUATION_RE.sub(native_equation_sub, text)
+
     equation_number = 0
     def numbered_equation_sub(m: re.Match[str]) -> str:
         nonlocal equation_number
@@ -293,10 +312,12 @@ def transform_tex(text: str, chapter_number: int | None = None) -> str:
         label = f"({chapter_number}.{equation_number})"
         return (
             "\\[\n" + body + "\n\\]\n"
-            "\\begin{flushright}\n\\textit{" + label + "}\n\\end{flushright}"
+            "\\begin{flushright}\n\\textup{" + label + "}\n\\end{flushright}"
         )
 
     text = WAVE_NUMBERED_RE.sub(numbered_equation_sub, text)
+    if native_labels and equation_number:
+        raise SystemExit(f"chapter {chapter_number}: mixed native and editorial equation numbering is unsupported")
 
     figure_number = 0
     def figure_mark_sub(_: re.Match[str]) -> str:
@@ -304,7 +325,7 @@ def transform_tex(text: str, chapter_number: int | None = None) -> str:
         figure_number += 1
         return (
             "\\begin{center}\n"
-            f"\\textit{{Figure {chapter_number}.{figure_number}}}\n"
+            f"\\textsf{{Figure {chapter_number}.{figure_number}}}\n"
             "\\end{center}"
         )
 
