@@ -9,14 +9,14 @@ on:
 
 permissions:
   actions: read
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
 # Keep production publishing linear. Pull-request refs use separate groups.
 concurrency:
   group: publish-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -26,102 +26,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7.0.1
-        with:
-          fetch-depth: 0
-
-      - name: Apply audited errata cleanup
-        if: github.event_name == 'push' && github.event.head_commit.message == 'Run errata cleanup through publish'
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          # Recover the reviewed patch script from the temporary v2 workflow. The v2
-          # failure was only a physical line-break mismatch in the p.129 source text.
-          python3 - <<'PY'
-          from pathlib import Path
-          import textwrap
-          workflow = Path('.github/workflows/finish-errata-tail-v2.yml').read_text()
-          marker = "cat > /tmp/apply_errata_tail.py <<'PY'\n"
-          script = workflow.split(marker, 1)[1].split("\n          PY\n", 1)[0]
-          Path('/tmp/apply_errata_tail.py').write_text(textwrap.dedent(script))
-          PY
-
-          success=false
-          for attempt in $(seq 1 20); do
-            git fetch origin main
-            first=$(git rev-parse origin/main)
-            sleep 3
-            git fetch origin main
-            second=$(git rev-parse origin/main)
-            if [ "$first" != "$second" ]; then
-              echo "main moved during quiet check; retrying"
-              continue
-            fi
-
-            git reset --hard "$second"
-
-            python3 - <<'PY'
-          from pathlib import Path
-          p = Path('reconstruction/chapter5.tex')
-          text = p.read_text()
-          old = "If $\\ell=0$, then\n$\\sigma=-\\beta/k$ and $c=\\sigma/k=-\\beta/k^2$."
-          new = "If $\\ell=0$, then $\\sigma=-\\beta/k$ and $c=\\sigma/k=-\\beta/k^2$."
-          if old in text:
-              text = text.replace(old, new, 1)
-          p.write_text(text)
-          PY
-
-            python3 /tmp/apply_errata_tail.py
-            python3 scripts/sync-views.py --readme
-            python3 scripts/sync-views.py --check-readme
-            git diff --check
-
-            # Restore the canonical Publish workflow from the parent of the temporary
-            # workflow-changing commit, then remove all transient errata machinery.
-            publish_change=$(git log --reverse --format=%H -- .github/workflows/publish.yml | tail -n 1)
-            while git show "$publish_change^:.github/workflows/publish.yml" 2>/dev/null | grep -q 'Apply audited errata cleanup'; do
-              publish_change=$(git rev-parse "$publish_change^")
-            done
-            git show "$publish_change^:.github/workflows/publish.yml" > .github/workflows/publish.yml
-            rm -f \
-              .github/workflows/errata-audit-corrections.yml \
-              .github/workflows/finish-errata-tail.yml \
-              .github/workflows/finish-errata-tail-v2.yml \
-              .github/workflows/finish-errata-tail-v3.yml \
-              .github/errata-tail.trigger \
-              .github/errata-tail-v2.trigger \
-              .github/errata-tail-v3.trigger \
-              .github/errata-tail-publish.trigger
-
-            git add -- \
-              reconstruction/chapter4.tex \
-              reconstruction/chapter5.tex \
-              reconstruction/ERRATA.md \
-              reconstruction/FIGURES.md \
-              reconstruction/PLAN.md \
-              README.md \
-              .github/workflows/publish.yml \
-              .github/workflows/errata-audit-corrections.yml \
-              .github/workflows/finish-errata-tail.yml \
-              .github/workflows/finish-errata-tail-v2.yml \
-              .github/workflows/finish-errata-tail-v3.yml \
-              .github/errata-tail.trigger \
-              .github/errata-tail-v2.trigger \
-              .github/errata-tail-v3.trigger \
-              .github/errata-tail-publish.trigger
-            git diff --cached --check
-            git commit -m "Resolve audited source errata"
-
-            if git push origin HEAD:main; then
-              success=true
-              break
-            fi
-            echo "main advanced before cleanup push; retrying from newest main"
-          done
-          test "$success" = true
-          git push origin --delete __invalid_unused || true
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v9.0.0
