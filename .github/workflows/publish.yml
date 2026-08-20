@@ -98,21 +98,25 @@ jobs:
           mapfile -t PACKAGES < <(grep -Ev '^\s*(#|$)' tex-packages.txt)
           tlmgr install "${PACKAGES[@]}"
 
-      - name: Build and validate publication
+      - name: Build publication
+        env:
+          WAVE_SKIP_VALIDATION: "1"
         run: ./scripts/build.sh all
 
+      - name: Check PDF integrity and pagination
+        run: bash scripts/validate-publication.sh pdf-integrity
+
+      - name: Check PDF destinations
+        run: bash scripts/validate-publication.sh pdf-destinations
+
+      - name: Check PDF text sentinels
+        run: bash scripts/validate-publication.sh pdf-text
+
+      - name: Render PDF smoke pages
+        run: bash scripts/validate-publication.sh pdf-render
+
       - name: Verify publish root and downloads
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -s dist/index.html
-          test -s dist/wave-motions.pdf
-          test -s dist/wave-motions-facsimile.pdf
-          test -s dist/wave-motions.epub
-          grep -q 'wave-motions.pdf' dist/index.html
-          grep -q 'wave-motions-facsimile.pdf' dist/index.html
-          grep -q 'wave-motions.epub' dist/index.html
-          test ! -e dist/html
+        run: bash scripts/validate-publication.sh publish-root
 
       - name: Upload publication artifact
         uses: actions/upload-artifact@v7.0.1
