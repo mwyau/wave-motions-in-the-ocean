@@ -37,6 +37,7 @@ EPUB_VARIABLE_SENTINELS = ("σ", "ρ", "ℓ", "k", "m", "x", "y", "t")
 EPUB_OPERATOR_SENTINELS = ("sin", "cos", "tanh")
 NAMED_FUNCTIONS = ("sin", "cos", "tan", "sinh", "cosh", "tanh", "exp", "log", "ln")
 NUMBERED_ENV_RE = re.compile(r"\\begin\{(?:waveequation|wavealign)\}")
+NATIVE_TAG_RE = re.compile(r"\\tag\{(?P<tag>\d+\.\d+)\}")
 MATH_ENV_RE = re.compile(
     r"\\begin\{(?P<env>waveequation|wavealign|align\*?|equation\*?|gather\*?|multline\*?)\}"
     r"(?P<body>.*?)\\end\{(?P=env)\}",
@@ -119,12 +120,21 @@ def canonical_equation_labels() -> dict[int, tuple[str, ...]]:
     for chapter_number in range(1, 7):
         path = RECON / f"chapter{chapter_number}.tex"
         text = strip_tex_comments(path.read_text())
-        count = len(NUMBERED_ENV_RE.findall(text))
-        if count == 0:
+        wrapper_count = len(NUMBERED_ENV_RE.findall(text))
+        native = tuple(f"({m.group('tag')})" for m in NATIVE_TAG_RE.finditer(text))
+        if native and wrapper_count:
+            fail(f"{path.name}: mixes historical native tags with editorial numbering wrappers")
+        if native:
+            expected = tuple(f"({chapter_number}.{index})" for index in range(1, len(native) + 1))
+            if native != expected:
+                fail(f"{path.name}: native equation tags are not contiguous/in order: {native}")
+            labels[chapter_number] = native
+        elif wrapper_count:
+            labels[chapter_number] = tuple(
+                f"({chapter_number}.{index})" for index in range(1, wrapper_count + 1)
+            )
+        else:
             fail(f"{path.name}: no selected numbered equations found")
-        labels[chapter_number] = tuple(
-            f"({chapter_number}.{index})" for index in range(1, count + 1)
-        )
     return labels
 
 
