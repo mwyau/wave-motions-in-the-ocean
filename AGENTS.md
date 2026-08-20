@@ -23,11 +23,12 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 
 ## Work coordination with issues
 
-- Before modifying the repository, search open GitHub Issues for overlapping work. Reuse the matching issue rather than creating a duplicate; otherwise create one concise issue for the coherent task.
+- Before modifying the repository, search open and relevant recently closed GitHub Issues for overlapping or prior work. Reuse a matching open issue. If a closed issue directly covers a continuation or follow-up, reopen and reuse it when practical; otherwise create one concise issue for the coherent task.
 - The issue should state what is being changed, the main files/areas involved, and any temporary branch, workflow, or trigger it owns. Keep it concise; do not use issues as a progress diary.
-- Update the issue when scope changes, at meaningful checkpoints during long work, or when blocked. Before integrating, re-check both open issues and the latest `main` for newly overlapping work.
+- When issue access is readily available, add concise progress notes when useful: scope changes, meaningful checkpoints during long work, blockers, or findings another agent may need. Do not interrupt straightforward work merely to report routine progress.
+- Before integrating, re-check open issues, relevant recently closed issues, and the latest `main` for newly overlapping work.
 - If another active issue overlaps, preserve its work and avoid competing edits; coordinate or split scope before proceeding.
-- After integration, add a concise result with the relevant commit(s), note any remaining work, and close the issue. If the task is abandoned or superseded, record that and close it rather than leaving a misleading active claim.
+- After integration, record the relevant commit(s), key findings or handover notes, and any remaining work, then close the issue. If the task is abandoned or superseded, record the findings/state needed for handoff and close it rather than leaving a misleading active claim.
 
 ## Automation
 
