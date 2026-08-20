@@ -14,10 +14,10 @@
   \draw[line width=.9pt] (1.55,2.05) .. controls (3.15,2.00) and (4.15,2.32) .. (4.95,2.98)
        .. controls (5.95,3.60) and (7.15,3.05) .. (O);
   \draw[line width=.8pt] (O)--(7.35,4.35);
-  \draw[line width=.8pt] (O)--(7.62,3.18);
   \node[anchor=east] at (2.1,1.30) {Continental Shelf Wave};
   \node[anchor=east] at (2.15,2.14) {Coastal-Trapped Wave};
   \node[anchor=west,align=left] at (8.22,3.55) {Baroclinic\\Kelvin Wave};
+  \draw[->,line width=.5pt] (8.15,3.55)--(7.55,3.58);
   \node at (5.35,2.50) {$n=1$};
   \node at (5.28,3.38) {$n=1$};
   \node at (7.15,4.03) {$n=1$};
