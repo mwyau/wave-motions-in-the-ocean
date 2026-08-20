@@ -98,7 +98,7 @@ prepare_html() {
 }
 
 build_epub() {
-  for cmd in pandoc rsvg-convert; do need "$cmd"; done
+  need pandoc
   python3 "$ROOT/scripts/build-epub.py"
 }
 
@@ -128,7 +128,6 @@ if [[ "$TARGET" == all ]]; then
 elif [[ "$TARGET" == pdf ]]; then
   build_pdf
 else
-  # EPUB is built with the canonical HTML transformation/assets, and HTML is
-  # finalized with the same shared publication navigation.
+  # EPUB is built from the same transformed canonical LaTeX/assets prepared for HTML.
   build_digital
 fi

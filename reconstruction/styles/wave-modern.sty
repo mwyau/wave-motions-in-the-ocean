@@ -5,6 +5,12 @@
 \RequirePackage{newtxtext,newtxmath}
 \RequirePackage[scaled=0.94]{sourcesanspro}
 \RequirePackage{titlesec}
+\RequirePackage{comment}
+
+% PDF-only and generated-web-only front-matter branches share one canonical
+% source file. HTML generation unwraps wavewebonly and removes wavepdfonly.
+\includecomment{wavepdfonly}
+\excludecomment{wavewebonly}
 
 \definecolor{WaveAccent}{HTML}{245A73}
 \setlength{\parindent}{1.25em}

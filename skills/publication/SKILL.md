@@ -4,6 +4,7 @@ Use this skill for modern/facsimile presentation, front matter, README/HTML sync
 
 ## Canonical publication sources
 
+- Shared modern PDF/EPUB cover: `reconstruction/cover-modern.tex`
 - Modern front matter: `reconstruction/frontmatter-modern.tex`
 - Facsimile front matter: `reconstruction/frontmatter-facsimile.tex`
 - Shared body: `reconstruction/chapter1.tex` … `chapter6.tex`
@@ -11,23 +12,32 @@ Use this skill for modern/facsimile presentation, front matter, README/HTML sync
 
 README, HTML, and EPUB are generated publication views; none is a separate prose source.
 
-## Modern front matter
+## Modern cover and front matter
 
-Preserve this hierarchy unless explicitly redesigned:
+The modern PDF and EPUB use the **same cover design**. The cover is generated from `cover-modern.tex`; EPUB rasterizes that exact TeX cover rather than maintaining a second cover source.
 
-1. `WAVE MOTIONS IN THE OCEAN` is dominant.
-2. `Myrl's View` is a substantial italic subtitle.
-3. `Presented to` **Myrl C. Hendershott** is a distinct dedication block.
-4. **David C. Chapman and Paola Malanotte-Rizzoli** are the original authors; `August 1989` is a separate regular-weight line.
-5. `Digital edition by` **Albert M. W. Yau** is smaller and clearly separated; `August 2026` is a separate regular-weight line.
+Cover invariants:
 
-Do not make the digital editor look like a third author. The Editor's note keeps `\wavesignature{Albert M. W. Yau}{Stony Brook}{2026}`, while its contents entry is simply `Editor's note`.
+1. `WAVE MOTIONS IN THE OCEAN` is dominant, very large, dark ocean blue.
+2. `Myrl's View` is an italic subtitle at roughly half the title's visual size.
+3. The full rectangular Met image of Hokusai's *Under the Wave off Kanagawa* is reproduced without color correction and with only a thin frame.
+4. `Presented to Myrl C. Hendershott` appears **below the image and above the authors**.
+5. **David C. Chapman and Paola Malanotte-Rizzoli** appear prominently on two lines.
+6. Do not put years, the digital editor's name, license marks, museum credit, or badges on the front cover.
 
-The modern title page is unnumbered. Front matter then uses lower-case Roman numerals starting at `i`; Chapter 1 resets to Arabic `1`. Modern contents use Chapter → Section only (`tocdepth=1`).
+The cover text/frame color `#213E5E` is derived from the dark blue in the supplied Met image; the cover paper is warm ivory `#FBF7EC`.
 
-Keep the CC BY-NC-SA 4.0 statement in the Editor's note. Do not add a CC badge/logo/raw URL to the PDF or EPUB cover merely for branding.
+The Met image is committed as `reconstruction/figures/frontmatter/great-wave-met-dp130155.jpg`. Preserve it as the source image; do not color-correct, crop away the original composition, or replace it with AI-generated art. Keep the full scholarly attribution in the Editor's note.
 
-The historical Lake Como photograph remains unnumbered and uses the established caption identifying Rick Salmon (left) and Myrl Hendershott at Villa Carlotta during the International School of Physics “Enrico Fermi,” Course LXXX, *Topics in Ocean Physics*, July 1980. Do not add unsupported photographer attribution.
+The generated web/README title block may continue to state original/digital dates and the digital editor even though those details are deliberately absent from the front cover. In `frontmatter-modern.tex`, `wavepdfonly` contains the modern cover and `wavewebonly` retains the web/README title metadata. Do not let the two branches diverge in authorship/title facts.
+
+The Editor's note keeps `\wavesignature{Albert M. W. Yau}{Stony Brook}{2026}`, while its contents entry is simply `Editor's note`.
+
+The modern cover page is unnumbered. Front matter then uses lower-case Roman numerals starting at `i`; Chapter 1 resets to Arabic `1`. Modern contents use Chapter → Section only (`tocdepth=1`).
+
+Keep the CC BY-NC-SA 4.0 statement in the Editor's note. The cover-image attribution belongs on the Editor's-note page, not on the front cover.
+
+The historical Lake Como photograph remains unnumbered and uses the established caption identifying Rick Salmon (left) and Myrl Hendershott at Villa Carlotta during the International School of Physics “Enrico Fermi,” Course LXXX, *Topics in Ocean Physics*, July 1980. Do not add unsupported photographer attribution or apply speculative color correction.
 
 ## README and HTML synchronization
 
@@ -45,7 +55,7 @@ Shared Downloads are:
 - `wave-motions-facsimile.pdf` — Facsimile PDF
 - `wave-motions.epub` — EPUB
 
-README badges are **Read | Online**, **Read | PDF**, **Read | EPUB**, **License | CC BY-NC-SA 4.0**, and **Build | status**. Keep the badge row after the complete title/dedication/authorship block so it does not interrupt the book attribution hierarchy. Do not add a facsimile badge unless explicitly requested.
+README badges are **Read | Online**, **Read | PDF**, **Read | EPUB**, **License | CC BY-NC-SA 4.0**, and **Build | status**. Keep the badge row after the complete title/dedication/authorship block. Do not add a facsimile badge unless explicitly requested.
 
 Section anchors are public links; keep them stable.
 
@@ -59,13 +69,11 @@ The HTML edition is the browser reading/preview experience.
 
 ## EPUB
 
-The EPUB is reflowable and generated from the same canonical material, using the transformed HTML/assets pipeline rather than a parallel content tree.
+Build EPUB from the transformed canonical LaTeX prepared by the HTML pipeline, not by reparsing MathJax HTML. This preserves mathematical structure for MathML output and avoids a parallel content tree.
 
-Use the dedicated EPUB cover source `reconstruction/figures/frontmatter/epub-cover.svg`. It should match the modern edition's restrained visual language while being legible as an e-reader thumbnail; do not use a screenshot of the PDF title page. Rasterize the committed SVG during the build for broad reader compatibility.
+The EPUB metadata title must remain `Wave Motions in the Ocean: Myrl's View`, with David C. Chapman and Paola Malanotte-Rizzoli as authors and Albert M. W. Yau identified as digital editor/contributor. Validation must confirm package metadata and the presence of MathML.
 
-Keep original authors prominent and the digital-editor role secondary. Do not put CC logos/badges on the cover.
-
-EPUB TOC depth is Chapter → Section. Check metadata, cover, navigation, math, figures, tables, links, and reflow in representative readers as iteration proceeds.
+EPUB TOC depth is Chapter → Section. Check metadata, shared cover, navigation, math, figures, tables, links, and reflow in representative readers as iteration proceeds.
 
 Publish EPUB as a direct download. Browsers do not provide a consistent native EPUB reader, and the existing HTML edition already serves the web-reading use case. Do not add epub.js or another embedded EPUB reader unless explicitly requested.
 

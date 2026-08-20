@@ -48,8 +48,8 @@ LOCAL_RASTER_RE = re.compile(
     r"\\includegraphics(?:\[[^]]*\])?\{figures/(?P<name>[^}]+\.(?:png|jpe?g))\}",
     re.I,
 )
-IF_PHOTO_RE = re.compile(
-    r"\\IfFileExists\{figures/frontmatter/salmon-hendershott-como-1980\.jpeg\}\{%.*?\n\}\{%.*?\n\}\n",
+PDF_ONLY_RE = re.compile(
+    r"\\begin\{wavepdfonly\}.*?\\end\{wavepdfonly\}",
     re.S,
 )
 
@@ -189,6 +189,12 @@ def prepare_vector_assets() -> None:
 
 
 def transform_tex(text: str) -> str:
+    # Keep the PDF cover out of flowing outputs while preserving the web title
+    # block used by HTML/README and the EPUB interior title page.
+    text = PDF_ONLY_RE.sub("", text)
+    text = text.replace(r"\begin{wavewebonly}", "").replace(r"\end{wavewebonly}", "")
+    text = text.replace(r"\nopagecolor", "")
+
     # Source-compatible pagination has no meaning in flowing HTML.
     text = text.replace(r"\sourcepagebreak", "")
     text = re.sub(r"\\setcounter\{page\}\{[^}]+\}", "", text)
@@ -259,18 +265,6 @@ def make_nav(index: int | None = None) -> str:
 
 def build_index(temp: Path) -> None:
     text = (RECON / "frontmatter-modern.tex").read_text()
-    photo = RECON / "figures" / "frontmatter" / "salmon-hendershott-como-1980.jpeg"
-    if photo.exists():
-        photo_dest = ASSETS / photo.name
-        shutil.copy2(photo, photo_dest)
-        replacement = (
-            r"\includegraphics{assets/salmon-hendershott-como-1980.jpeg}" + "\n\n"
-            + "Rick Salmon (left) and Myrl Hendershott, Summer School on Lake Como, 1980, "
-              "on solitons and predictability. Photograph by George.\n"
-        )
-        text = IF_PHOTO_RE.sub(lambda _: replacement, text)
-    else:
-        text = IF_PHOTO_RE.sub("", text)
     text = text.replace(r"\tableofcontents", "")
     src = temp / "frontmatter.tex"
     src.write_text(transform_tex(text))

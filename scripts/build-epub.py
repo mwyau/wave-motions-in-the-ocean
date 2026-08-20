@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Build the reflowable EPUB edition from the generated canonical HTML view."""
+"""Build the reflowable EPUB edition from transformed canonical LaTeX."""
 from __future__ import annotations
 
-import re
+import html
+import os
 import shutil
 import subprocess
 import zipfile
@@ -11,86 +12,100 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "dist"
 BUILD = ROOT / "build" / "epub"
-INPUT = BUILD / "input"
+HTML_SOURCE = ROOT / "build" / "html-pandoc" / "source"
 RECON = ROOT / "reconstruction"
-COVER_SVG = RECON / "figures" / "frontmatter" / "epub-cover.svg"
-COVER_PNG = BUILD / "cover.png"
 CSS = RECON / "styles" / "wave-epub.css"
 EPUB = OUT / "wave-motions.epub"
+COVER_DIR = BUILD / "cover"
+COVER_PDF = COVER_DIR / "cover.pdf"
+COVER_PNG = COVER_DIR / "cover.png"
 
-PAGES = ["index.html", *(f"chapter{i}.html" for i in range(1, 7)), "references.html"]
-NAV_RE = re.compile(r'<nav class="book-nav"[^>]*>.*?</nav>', re.S | re.I)
-TOC_RE = re.compile(r'<section class="book-toc">.*?</section>', re.S | re.I)
-LICENSE_RE = re.compile(r'<p class="license">.*?</p>', re.S | re.I)
-BODY_RE = re.compile(r"<body[^>]*>(?P<body>.*?)</body>", re.S | re.I)
-
-
-def run(cmd: list[str]) -> None:
-    subprocess.run(cmd, check=True)
+TITLE = "Wave Motions in the Ocean: Myrl's View"
+AUTHORS = ("David C. Chapman", "Paola Malanotte-Rizzoli")
 
 
-def cleaned_html(path: Path) -> str:
-    text = path.read_text(errors="replace")
-    match = BODY_RE.search(text)
-    if not match:
-        raise RuntimeError(f"missing body in {path}")
-    body = NAV_RE.sub("", match.group("body"))
-    if path.name == "index.html":
-        body = TOC_RE.sub("", body)
-        body = LICENSE_RE.sub("", body)
-    return (
-        '<!doctype html><html lang="en"><head><meta charset="utf-8">'
-        f"<title>{path.stem}</title></head><body>{body}</body></html>\n"
-    )
+def run(
+    cmd: list[str],
+    *,
+    cwd: Path | None = None,
+    env: dict[str, str] | None = None,
+) -> None:
+    subprocess.run(cmd, cwd=cwd, env=env, check=True)
 
 
-def prepare_inputs() -> list[Path]:
-    if BUILD.exists():
-        shutil.rmtree(BUILD)
-    INPUT.mkdir(parents=True)
-
-    assets = OUT / "assets"
-    if not assets.is_dir():
-        raise SystemExit("missing generated HTML assets; run build-html.py first")
-    shutil.copytree(assets, INPUT / "assets")
-
-    inputs: list[Path] = []
-    for name in PAGES:
-        source = OUT / name
-        if not source.is_file():
-            raise SystemExit(f"missing generated HTML page: {source}")
-        dest = INPUT / name
-        dest.write_text(cleaned_html(source))
-        inputs.append(dest)
-    return inputs
+def canonical_inputs() -> list[Path]:
+    paths = [HTML_SOURCE / "frontmatter.tex"] + [
+        HTML_SOURCE / f"chapter{i}.tex" for i in range(1, 7)
+    ]
+    missing = [str(path) for path in paths if not path.is_file()]
+    if missing:
+        raise SystemExit(
+            "missing transformed canonical EPUB input(s): " + ", ".join(missing)
+        )
+    return paths
 
 
 def render_cover() -> None:
-    if not COVER_SVG.is_file():
-        raise SystemExit(f"missing EPUB cover source: {COVER_SVG}")
-    run([
-        "rsvg-convert",
-        "-w", "1600",
-        "-h", "2560",
-        "-o", str(COVER_PNG),
-        str(COVER_SVG),
-    ])
+    COVER_DIR.mkdir(parents=True, exist_ok=True)
+    wrapper = COVER_DIR / "cover.tex"
+    wrapper.write_text(
+        r"""\documentclass[11pt,oneside]{report}
+\usepackage{styles/wave-modern}
+\begin{document}
+\input{cover-modern}
+\WaveModernCover
+\clearpage
+\nopagecolor
+\end{document}
+"""
+    )
+    env = os.environ.copy()
+    texinputs = str(RECON) + "//:"
+    if env.get("TEXINPUTS"):
+        texinputs += env["TEXINPUTS"]
+    env["TEXINPUTS"] = texinputs
+    run(
+        [
+            "pdflatex",
+            "-interaction=nonstopmode",
+            "-halt-on-error",
+            "-jobname=cover",
+            str(wrapper),
+        ],
+        cwd=COVER_DIR,
+        env=env,
+    )
+    if not COVER_PDF.is_file() or COVER_PDF.stat().st_size == 0:
+        raise SystemExit("shared PDF/EPUB cover rendering failed")
+    run(
+        [
+            "pdftoppm",
+            "-f", "1",
+            "-l", "1",
+            "-singlefile",
+            "-r", "200",
+            "-png",
+            str(COVER_PDF),
+            str(COVER_PNG.with_suffix("")),
+        ]
+    )
     if not COVER_PNG.is_file() or COVER_PNG.stat().st_size == 0:
-        raise SystemExit("EPUB cover rendering failed")
+        raise SystemExit("EPUB cover rasterization failed")
 
 
 def write_metadata() -> Path:
     path = BUILD / "metadata.yaml"
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         "---\n"
-        "title: \"Wave Motions in the Ocean: Myrl's View\"\n"
+        f"title: \"{TITLE}\"\n"
         "author:\n"
-        "  - David C. Chapman\n"
-        "  - Paola Malanotte-Rizzoli\n"
-        "date: \"1989\"\n"
+        + "".join(f"  - {author}\n" for author in AUTHORS)
+        + "date: \"1989\"\n"
         "lang: en-US\n"
         "rights: \"CC BY-NC-SA 4.0\"\n"
         "identifier: \"https://mwyau.github.io/wave-motions-in-the-ocean/\"\n"
+        "contributor: \"Albert M. W. Yau (digital editor)\"\n"
         "---\n"
     )
     return path
@@ -99,21 +114,28 @@ def write_metadata() -> Path:
 def build_epub(inputs: list[Path], metadata: Path) -> None:
     EPUB.parent.mkdir(parents=True, exist_ok=True)
     EPUB.unlink(missing_ok=True)
-    run([
-        "pandoc",
-        *(str(path) for path in inputs),
-        "-f", "html",
-        "-t", "epub3",
-        "--toc",
-        "--toc-depth=2",
-        "--split-level=1",
-        "--mathml",
-        "--metadata-file", str(metadata),
-        "--css", str(CSS),
-        "--epub-cover-image", str(COVER_PNG),
-        "--resource-path", str(INPUT),
-        "-o", str(EPUB),
-    ])
+    resource_path = os.pathsep.join((str(OUT), str(HTML_SOURCE), str(RECON)))
+    run(
+        [
+            "pandoc",
+            *(str(path) for path in inputs),
+            "-f", "latex",
+            "-t", "epub3",
+            "--toc",
+            "--toc-depth=2",
+            "--split-level=1",
+            "--mathml",
+            "--citeproc",
+            f"--bibliography={RECON / 'references.bib'}",
+            "--metadata", "nocite=@*",
+            "--metadata-file", str(metadata),
+            "--metadata", f"title={TITLE}",
+            "--css", str(CSS),
+            "--epub-cover-image", str(COVER_PNG),
+            "--resource-path", resource_path,
+            "-o", str(EPUB),
+        ]
+    )
 
 
 def validate_epub() -> None:
@@ -130,16 +152,38 @@ def validate_epub() -> None:
         bad = archive.testzip()
         if bad is not None:
             raise SystemExit(f"corrupt EPUB member: {bad}")
+
+        opf_names = [name for name in names if name.lower().endswith(".opf")]
+        if len(opf_names) != 1:
+            raise SystemExit(f"expected one EPUB package document, found {len(opf_names)}")
+        opf = archive.read(opf_names[0]).decode("utf-8", errors="replace")
+        if TITLE not in html.unescape(opf):
+            raise SystemExit("EPUB metadata title is missing or incorrect")
+        if not all(author in opf for author in AUTHORS):
+            raise SystemExit("EPUB author metadata is incomplete")
+
+        xhtml = b"\n".join(
+            archive.read(name)
+            for name in names
+            if name.lower().endswith((".xhtml", ".html"))
+        )
+        if b"<math" not in xhtml:
+            raise SystemExit("EPUB contains no MathML; mathematical rendering regressed")
+        if b"David C. Chapman" not in xhtml or b"Paola Malanotte-Rizzoli" not in xhtml:
+            raise SystemExit("EPUB text sentinel is missing")
+
     print(f"EPUB build OK: {EPUB.relative_to(ROOT)} ({EPUB.stat().st_size} bytes)")
 
 
 def main() -> int:
-    for command in ("pandoc", "rsvg-convert"):
+    for command in ("pandoc", "pdflatex", "pdftoppm"):
         if shutil.which(command) is None:
             raise SystemExit(f"missing required command: {command}")
     if not CSS.is_file():
         raise SystemExit(f"missing EPUB stylesheet: {CSS}")
-    inputs = prepare_inputs()
+    shutil.rmtree(BUILD, ignore_errors=True)
+    BUILD.mkdir(parents=True)
+    inputs = canonical_inputs()
     render_cover()
     metadata = write_metadata()
     build_epub(inputs, metadata)

@@ -2,6 +2,7 @@ amsfonts
 amsmath
 bibtex
 carlisle
+comment
 enumitem
 etoolbox
 fancyhdr
