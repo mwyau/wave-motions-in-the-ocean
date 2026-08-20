@@ -17,7 +17,7 @@ Equation-validation states are tracked independently of representation status:
 - **Pending** — equation validation materially applies but has not yet been independently completed and recorded.
 - **N/A** — no meaningful equation-defined quantity or relation controls the figure; visual, geometric, source-fidelity, and provenance checks still apply.
 
-The initial 2026-08-20 backfill is conservative: `Validated` is used only where the existing audit record supports an independent equation/constraint check, not merely because a vector was generated from a formula. Current snapshot across the 105 tracked body/front-matter assets and direct source placements: **24 Validated, 6 Partial, 62 Pending, 13 N/A**.
+The initial 2026-08-20 backfill is conservative: `Validated` is used only where the existing audit record supports an independent equation/constraint check, not merely because a vector was generated from a formula. Current snapshot across the 105 tracked body/front-matter assets and direct source placements: **27 Validated, 6 Partial, 59 Pending, 13 N/A**.
 
 Every `.tikz` file carries a `wave-source` comment naming the source PDF, physical page, and crop. `scripts/compare-figures.py` regenerates temporary side-by-side comparisons under `build/comparisons/`; comparison outputs are never committed.
 
@@ -43,6 +43,9 @@ Chapter 1 has no direct source-PDF crop placements in the book body.
 |---|---:|---|---|---|
 | `ch02-p021-solid-boundary-reflection.tikz` | 21 | **vector-complete** | **Pending** | Boundary, incident crest orientation, and reflected propagation are source-faithful. |
 | `ch02-p022-specular-reflection.tikz` | 22 | **vector-complete** | **Pending** | Boundary normal is exactly perpendicular to the wall and incident/reflected `k` are exact mirrors, enforcing equal angles. |
+| `ch02-p023-waveguide-boundary-problem.tikz` | 23 | **vector-complete** | **Validated** | The channel walls are at `z=0,-D` with `p_z=0`; independently substituting `P=cos(n pi z/D)` gives zero normal derivative at both walls for integer `n` and satisfies the separated acoustic field equation. Wall thickness is schematic. |
+| `ch02-p024-waveguide-dispersion.tikz` | 24 | **vector-complete** | **Validated** | Branches are generated from normalized `S_n=sqrt(K^2+n^2)`. Independent evaluation confirms the `n=0` linear branch, `n=1,2` cutoffs at `S=1,2`, branch ordering, and common large-`K` slope. |
+| `ch02-p026-interface-scattering.tikz` | 26 | **vector-complete** | **Validated** | Incident/reflected rays are exact mirrors about the interface normal. For the declared illustrative ratio `c_2/c_1=1.25`, the transmitted angle is independently calculated from Snell’s law; ray lengths remain schematic. |
 
 ### Chapter 3
 
@@ -120,7 +123,7 @@ Chapter 5 was re-audited first on 2026-08-20. Four previously accepted drawings 
 
 ## Direct source-PDF crop placements — complete inventory
 
-These 48 placements are real figures even though no separate image file is committed. They are rendered directly from the source PDFs. Retaining a source crop is a positive scientific decision when vectorization would add interpretation risk; it is not an incomplete reconstruction by itself.
+These 45 placements are real figures even though no separate image file is committed. They are rendered directly from the source PDFs. Retaining a source crop is a positive scientific decision when vectorization would add interpretation risk; it is not an incomplete reconstruction by itself.
 
 The 2026-08-20 source-art pass also treats crop isolation as part of acceptance: surrounding prose/equations must not be embedded in a figure, and no scientific label or line may be cut by the trim. Eight Chapter 4 crops (printed pp. 69--76) failed or were unnecessarily fragile under that criterion and were replaced by isolated vectors. The remaining direct crops below are classified explicitly as vector candidates or deliberate source-art retentions.
 
@@ -128,9 +131,6 @@ Chapter 5 p.97 is a particularly important example: the sphere drawing was revie
 
 | Chapter | Printed page | Source PDF | Physical page | Equation validation | Status / vectorization disposition |
 |---|---:|---|---:|---|---|
-| 2 | 23 | `ChapmanRizzoli0_2.pdf` | 33 | **Pending** | **vector-candidate** — simple analytic acoustic-wave geometry/dispersion; suitable for a constrained TikZ redraw; source crop remains authoritative until replacement is compared. |
-| 2 | 24 | `ChapmanRizzoli0_2.pdf` | 34 | **Pending** | **vector-candidate** — simple analytic acoustic-wave geometry/dispersion; suitable for a constrained TikZ redraw; source crop remains authoritative until replacement is compared. |
-| 2 | 26 | `ChapmanRizzoli0_2.pdf` | 36 | **Pending** | **vector-candidate** — simple analytic acoustic-wave geometry/dispersion; suitable for a constrained TikZ redraw; source crop remains authoritative until replacement is compared. |
 | 2 | 28 | `ChapmanRizzoli0_2.pdf` | 38 | **Pending** | **vector-candidate** — simple analytic acoustic-wave geometry/dispersion; suitable for a constrained TikZ redraw; source crop remains authoritative until replacement is compared. |
 | 2 | 32 | `ChapmanRizzoli0_2.pdf` | 42 | **Pending** | **vector-candidate** — simple analytic acoustic-wave geometry/dispersion; suitable for a constrained TikZ redraw; source crop remains authoritative until replacement is compared. |
 | 2 | 34 | `ChapmanRizzoli0_2.pdf` | 44 | **N/A** | **source-pdf** — retain the source-specific sound-speed profile; generic smoothing would invent profile detail. |

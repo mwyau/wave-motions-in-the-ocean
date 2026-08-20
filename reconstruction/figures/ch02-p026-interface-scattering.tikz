@@ -1,0 +1,46 @@
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=36; trim=80bp 515bp 75bp 55bp
+% Source: Wave Motions in the Ocean, printed p.26 (physical p.36).
+% Equation-constrained acoustic scattering at a horizontal interface.  In each panel
+% theta_R=theta_I exactly.  The displayed transmitted angle is chosen to satisfy
+% sin(theta_I)/c_1=sin(theta_T)/c_2 for the display ratio c_2/c_1=1.25; this ratio
+% is illustrative because the source specifies no numerical medium properties.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \def\thi{30}
+  \def\tht{38.682}
+  \coordinate (L) at (2.65,1.95);
+  \draw[line width=0.65pt] (0.45,1.95) -- (4.85,1.95);
+  \draw[line width=0.45pt] (2.65,0.15) -- (2.65,3.75);
+  \draw[->,line width=0.78pt] ($(L)+(240:2.05)$) -- (L);
+  \draw[->,line width=0.78pt] (L) -- ($(L)+(300:2.05)$);
+  \draw[->,line width=0.78pt] (L) -- ($(L)+(90-\tht:2.05)$);
+  \node[anchor=north east] at ($(L)+(240:2.10)$) {$p_I$};
+  \node[anchor=north west] at ($(L)+(300:2.10)$) {$p_R$};
+  \node[anchor=south west] at ($(L)+(90-\tht:2.10)$) {$p_T$};
+  \node[anchor=west] at (3.25,2.55) {$\rho_2,c_2$};
+  \node[anchor=west] at (3.25,1.35) {$\rho_1,c_1$};
+  \node[anchor=west] at (4.90,1.95) {$z=0$};
+  \draw[line width=0.40pt] ($(L)+(240:0.73)$) arc[start angle=240,end angle=270,radius=0.73];
+  \draw[line width=0.40pt] ($(L)+(270:0.73)$) arc[start angle=270,end angle=300,radius=0.73];
+  \draw[line width=0.40pt] ($(L)+(90:0.75)$) arc[start angle=90,end angle=90-\tht,radius=0.75];
+  \node at ($(L)+(255:1.02)$) {$\theta_I$};
+  \node at ($(L)+(285:1.02)$) {$\theta_R$};
+  \node at ($(L)+(70:1.03)$) {$\theta_T$};
+  \coordinate (R) at (8.20,1.95);
+  \draw[line width=0.65pt] (6.00,1.95) -- (10.40,1.95);
+  \draw[line width=0.45pt] (8.20,0.15) -- (8.20,3.75);
+  \draw[->,line width=0.78pt] ($(R)+(120:2.05)$) -- (R);
+  \draw[->,line width=0.78pt] (R) -- ($(R)+(60:2.05)$);
+  \draw[->,line width=0.78pt] (R) -- ($(R)+(270+\tht:2.05)$);
+  \node[anchor=south east] at ($(R)+(120:2.10)$) {$p_I$};
+  \node[anchor=south west] at ($(R)+(60:2.10)$) {$p_R$};
+  \node[anchor=north west] at ($(R)+(270+\tht:2.10)$) {$p_T$};
+  \node[anchor=west] at (8.85,2.55) {$\rho_1,c_1$};
+  \node[anchor=west] at (8.85,1.35) {$\rho_2,c_2$};
+  \node[anchor=east] at (5.95,1.95) {$z=0$};
+  \draw[line width=0.40pt] ($(R)+(90:0.73)$) arc[start angle=90,end angle=120,radius=0.73];
+  \draw[line width=0.40pt] ($(R)+(60:0.73)$) arc[start angle=60,end angle=90,radius=0.73];
+  \draw[line width=0.40pt] ($(R)+(270:0.75)$) arc[start angle=270,end angle=270+\tht,radius=0.75];
+  \node at ($(R)+(105:1.02)$) {$\theta_I$};
+  \node at ($(R)+(75:1.02)$) {$\theta_R$};
+  \node at ($(R)+(290:1.03)$) {$\theta_T$};
+\end{tikzpicture}
