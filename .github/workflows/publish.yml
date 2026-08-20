@@ -16,7 +16,7 @@ permissions:
 # Keep production publishing linear. Pull-request refs use separate groups.
 concurrency:
   group: publish-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -80,7 +80,10 @@ jobs:
 
             # Restore the canonical Publish workflow from the parent of the temporary
             # workflow-changing commit, then remove all transient errata machinery.
-            publish_change=$(git log -1 --format=%H -- .github/workflows/publish.yml)
+            publish_change=$(git log --reverse --format=%H -- .github/workflows/publish.yml | tail -n 1)
+            while git show "$publish_change^:.github/workflows/publish.yml" 2>/dev/null | grep -q 'Apply audited errata cleanup'; do
+              publish_change=$(git rev-parse "$publish_change^")
+            done
             git show "$publish_change^:.github/workflows/publish.yml" > .github/workflows/publish.yml
             rm -f \
               .github/workflows/errata-audit-corrections.yml \
