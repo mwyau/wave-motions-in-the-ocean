@@ -278,8 +278,16 @@ def build_index(temp: Path) -> None:
     toc = '<section class="book-toc"><h2>Contents</h2><ol>' + "".join(
         f'<li><a href="chapter{i}.html">Chapter {i}</a></li>' for i in range(1, 7)
     ) + '</ol><p><a href="references.html">References</a></p>' + download_html + '</section>'
+    license_html = (
+        '<p class="license">This work is licensed under '
+        '<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>'
+        '<img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">'
+        '<img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">'
+        '<img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">'
+        '<img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"></p>'
+    )
     html_text = page.read_text(errors="replace")
-    html_text = html_text.replace("</body>", toc + "\n</body>")
+    html_text = html_text.replace("</body>", toc + "\n" + license_html + "\n</body>")
     page.write_text(html_text)
     inject_css_and_nav(page, make_nav(None))
 
@@ -302,7 +310,7 @@ def validate() -> None:
     if missing:
         raise SystemExit("missing HTML outputs: " + ", ".join(missing))
     combined = "\n".join(p.read_text(errors="replace") for p in required)
-    for sentinel in ("David C. Chapman", "Paola Malanotte-Rizzoli", "Creative Commons", "Apel"):
+    for sentinel in ("David C. Chapman", "Paola Malanotte-Rizzoli", "CC BY-NC-SA 4.0", "Apel"):
         if sentinel not in combined:
             raise SystemExit(f"HTML sentinel missing: {sentinel}")
     broken: list[tuple[str, str]] = []
@@ -348,6 +356,7 @@ h1,h2,h3,nav { font-family: system-ui, sans-serif; }
 img, svg { display: block; max-width: min(100%, 58rem); height: auto; margin: 1.1rem auto; }
 .math.display { overflow-x: auto; overflow-y: hidden; padding: .2rem 0; }
 .references { font-size: .96rem; }
+.license img { display: inline; width: 1em; height: 1em; margin: 0 0 0 .2em; vertical-align: -.12em; }
 a { overflow-wrap: anywhere; }
 @media (max-width: 700px) { body { padding: 1rem 1rem 3rem; } .book-nav { font-size: .92rem; } }
 """
