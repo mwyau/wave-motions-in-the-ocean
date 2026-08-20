@@ -23,13 +23,13 @@ waves is the fluid's resistance to compression (i.e., its compressibility).
 
 When viscous dissipation, rotation and gravitational forces are neglected, the
 momentum and continuity equations are
-\begin{wavealign}
+\begin{align*}
  \frac{\partial\vec u^{\,*}}{\partial t}
  +\vec u^{\,*}\cdot\nabla\vec u^{\,*}
  &=-\frac{1}{\rho^*}\nabla p^*,\\
  \frac{\partial\rho^*}{\partial t}
  +\nabla\cdot(\rho^*\vec u^{\,*})&=0.
-\end{wavealign}
+\end{align*}
 
 \sourcepagebreak
 
@@ -68,9 +68,9 @@ where
  c^2=\left(\frac{\partial\rho^*}{\partial p^*}\right)_S^{-1}.
 \]
 After eliminating $\vec u$ and $\rho$ in favor of $p$, we obtain
-\[
+\begin{waveequation}
  \frac{\partial^2p}{\partial t^2}-c^2\nabla^2p=0.
-\]
+\end{waveequation}
 We recognize this as a wave equation which was listed in Chapter 1. It is easy to show
 that the other variables $\rho,u,v,w$ each satisfy a similar equation.
 
@@ -92,11 +92,11 @@ $\vec k=k\hat i+\ell\hat j+m\hat k$ extending from the center of this sphere to 
 surface are allowed. In a given plane wave, phases propagate along the wavenumber
 vector at speed $c_0$; that is, $\sigma/|\vec k|=c_0$, so the waves are nondispersive.
 The group velocity $\vec c_g$ is defined by
-\begin{waveequation}
+\[
  c_{gx}=\frac{\partial\sigma}{\partial k};\qquad
  c_{gy}=\frac{\partial\sigma}{\partial\ell};\qquad
  c_{gz}=\frac{\partial\sigma}{\partial m}
-\end{waveequation}
+\]
 and it is easy to show that $|\vec c_g|=c_0$.
 
 If $p=a e^{i(\vec k\cdot\vec x-\sigma t)}$, then the momentum equations say
@@ -124,17 +124,17 @@ Suppose a plane wave of the form
 is incident upon a solid boundary. At the solid boundary, the normal velocity must
 vanish; $\vec u\cdot\hat n=0$ which means that $\nabla p\cdot\hat n=0$. If the solid
 boundary is at $z=0$, then the boundary condition is
-\begin{waveequation}
+\[
  p_z=0\qquad\text{at }z=0.
-\end{waveequation}
+\]
 
 % Vector reconstruction; source PDF ChapmanRizzoli0_2.pdf, physical page 31, trim=105bp 405bp 100bp 125bp.
 \wavevectorart[0.72]{ch02-p021-solid-boundary-reflection}
 
 To satisfy this boundary condition, we must add a reflected wave
-\begin{waveequation}
+\[
  p_{ref}=p_0e^{-i\sigma t+ikx+i\ell y+imz}
-\end{waveequation}
+\]
 to the incident wave. The solution is
 \[
  p=p_{inc}+p_{ref}=2p_0e^{-i\sigma t+ikx+i\ell y}\cos mz.
@@ -189,21 +189,21 @@ cross-channel dependence is unknown.
 \]
 This is substituted into the field equation to obtain an equation for the cross-channel
 structure
-\begin{waveequation}
+\[
  P_{zz}+(\sigma^2/c_0^2-k^2-\ell^2)P=0
-\end{waveequation}
-\begin{waveequation}
+\]
+\[
  P_z=0\qquad\text{at }z=0,-D.
-\end{waveequation}
+\]
 This equation has the solution
 \[
  P(z)=\cos n\pi z/D
 \]
 provided that
-\[
+\begin{waveequation}
  \sigma^2/c_0^2=k^2+\ell^2+n^2\pi^2/D^2,
  \qquad n=0,1,2,\ldots
-\]
+\end{waveequation}
 
 \sourcepagebreak
 
@@ -228,11 +228,11 @@ two-dimensional plane wave restricted to the channel direction is dispersive!
  =\pm c_0\left[1+\frac{n^2\pi^2}{(k^2+\ell^2)D^2}\right]^{1/2}.
 \]
 The horizontal group velocity $\partial\sigma/\partial k$, $\partial\sigma/\partial\ell$ is
-\begin{waveequation}
+\[
  \vec c_g
  =c_0\frac{k\hat i+\ell\hat j}
  {(k^2+\ell^2+n^2\pi^2/D^2)^{1/2}}.
-\end{waveequation}
+\]
 It is parallel to the horizontal wavenumber $k\hat i+\ell\hat j$ but not equal to the
 phase velocity.
 
@@ -321,19 +321,19 @@ Now, substituting the expressions for $p_I,p_R$ and $p_T$, we obtain
 \end{align*}
 From the dispersion relation, $m=\sigma\cos\theta/c$ which changes the second matching
 condition to
-\begin{waveequation}
+\[
  \frac{1}{\rho_1c_1}(1-R)\cos\theta_I
  =\frac{1}{\rho_2c_2}T\cos\theta_T.
-\end{waveequation}
+\]
 These can be combined to yield
-\[
+\begin{waveequation}
  R=\frac{\rho_2c_2\cos\theta_I-\rho_1c_1\cos\theta_T}
         {\rho_2c_2\cos\theta_I+\rho_1c_1\cos\theta_T}
-\]
-\[
+\end{waveequation}
+\begin{waveequation}
  T=\frac{2\rho_2c_2\cos\theta_I}
         {\rho_2c_2\cos\theta_I+\rho_1c_1\cos\theta_T}.
-\]
+\end{waveequation}
 Identical expressions for $R$ and $T$ result for the downward propagating incident wave.
 
 We see from these expressions that if the density times the phase speed of the
@@ -354,9 +354,9 @@ the atmosphere is actually amplified upon encountering the ocean. That is, if me
 so slowly relative to the ocean that its energy flux is generally fairly small, so the
 amplification is a rather small effect as well. In either case, the energy flux in the $z$
 direction is conserved because
-\begin{waveequation}
+\[
  |p_Iw_I|=|p_Rw_R|+|p_Tw_T|.
-\end{waveequation}
+\]
 
 To complete the calculation, we must find the angle of the transmitted wave, $\theta_T$.
 This is found by writing the frequency on both sides of the discontinuity as
@@ -364,14 +364,14 @@ This is found by writing the frequency on both sides of the discontinuity as
  \sigma=c_1(k^2+m_1^2)^{1/2}=c_2(k^2+m_2^2)^{1/2}.
 \]
 We can write this in terms of the wave angles since $(k^2+m^2)^{1/2}=k/\sin\theta$. Thus,
-\[
+\begin{waveequation}
  \frac{\sin\theta_I}{c_1}=\frac{\sin\theta_T}{c_2}
-\]
+\end{waveequation}
 which is known as \emph{Snell's Law}. From this we see that, if $c_1<c_2$, then there exists a
 critical angle of incidence
-\[
+\begin{waveequation}
  \theta_{Ic}=\sin^{-1}(c_1/c_2)
-\]
+\end{waveequation}
 beyond which there is total reflection of the incident wave despite the fact that the
 second medium can support sound waves. The boundary is then effectively solid.
 
@@ -395,9 +395,9 @@ the medium, they can be modelled by body forces $\vec F/\rho_0$ and mass sources
  \rho_t+\rho_0\nabla\cdot\vec u&=Q.
 \end{align*}
 Combining these with $p_t=c^2\rho_t$ yields
-\[
+\begin{waveequation}
  p_{tt}-c^2\nabla^2p=c^2(Q_t-\nabla\cdot\vec F).
-\]
+\end{waveequation}
 We can now consider two types of problems: initial value problems and those forced
 from rest. In both types we solve the homogeneous wave equation while satisfying
 $\partial p/\partial n=0$ on the solid boundaries and requiring outgoing waves at infinity, i.e. a
@@ -497,10 +497,10 @@ where $q(t)=q_t(t)=0$ for $t<0$ and $q_t$ is finite. Now we solve
  p(x,0)=p_t(x,0)=0\qquad\text{at }t=0.
 \]
 We may put the forcing into the boundary condition by
-\begin{waveequation}
+\[
  \int_{0^-}^{0^+}(p_{tt}-c^2p_{xx})\,dx
  =-c^2p_x\big|_{0^-}^{0^+}=c^2q_t(t).
-\end{waveequation}
+\]
 That is, $p_x(x=0+,t)-p_x(x=0-,t)=-q_t(t)$ so that the forcing at $x=0$ is
 interpretable as a specified discontinuity there. So we must solve
 
@@ -630,17 +630,17 @@ are much less than the scale over which the sound speed changes. That is, the
 wavelength must be small compared to the total ocean depth. We will consider only
 two dimensions, the vertical and one horizontal. Recalling our discussion of ray theory,
 we write the dispersion relation as
-\begin{waveequation}
+\[
  \sigma=\Omega(k,m;z).
-\end{waveequation}
+\]
 Since the medium varies only in $z$, we have $\partial\Omega/\partial x=0$,
 $\partial\Omega/\partial t=0$ but $\partial\Omega/\partial z\ne0$.
 Thus, the ray equations become
-\begin{wavealign}
+\begin{align*}
  \frac{dN}{dt}&=0,\\
  \frac{dk}{dt}&=0,\\
  \frac{dm}{dt}&=-\frac{\partial\Omega}{\partial z}.
-\end{wavealign}
+\end{align*}
 These say that the component of the wavenumber in the $x$ direction remains constant
 in time (which makes sense since the medium varies only in $z$), and that the frequency
 remains fixed at the initial frequency. We could integrate these following along a ray
@@ -654,9 +654,9 @@ with the group velocity, but we will examine the qualitative behavior by conside
 Snell's Law which can be derived in the same manner as for the case of scattering at
 the discontinuity. The frequency can be written in terms of the angle that the
 wavenumber makes with the vertical to obtain
-\[
+\begin{waveequation}
  \frac{\sin\theta_0}{c_0}=\frac{\sin\theta}{c(z)}
-\]
+\end{waveequation}
 or
 \[
  \sin\theta=\frac{c(z)}{c_0}\sin\theta_0
