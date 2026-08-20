@@ -34,6 +34,8 @@ Check more than visual resemblance. Verify:
 - boundary and matching conditions represented by the drawing;
 - any normalized/display-only geometry versus physically constrained geometry.
 
+If a curve, surface, dispersion diagram, mode shape, or other plotted quantity is defined by an equation in the notes, independently evaluate or plot that equation whenever practical and compare the result with both the historical source and the vector reconstruction. Do not accept a freehand vector curve merely because it resembles the scan when the mathematical curve can be checked directly.
+
 If a redraw is schematic, state which geometric properties are schematic and which are enforced by the equations.
 
 ## Vector verification workflow
@@ -42,16 +44,17 @@ For each new or materially changed vector:
 
 1. Inspect the full source page at high resolution.
 2. Reproduce all scientifically meaningful geometry and labels.
-3. Compile the TikZ independently.
-4. Inspect at final publication scale for label/line collisions and legibility.
-5. Regenerate the source/reconstruction comparison:
+3. For equation-defined charts or curves, independently generate numerical/analytic reference values or a reference plot from the stated equation when practical, and verify branches, roots, extrema, slopes, asymptotes, cutoffs, intersections, and relative scale against the vector reconstruction.
+4. Compile the TikZ independently.
+5. Inspect at final publication scale for label/line collisions and legibility.
+6. Regenerate the source/reconstruction comparison:
 
 ```bash
 python3 scripts/compare-figures.py <figure-name>
 ```
 
-6. Inspect the affected full PDF/HTML/EPUB output as appropriate.
-7. Record the result in `FIGURES.md`; record substantive corrections in `ERRATA.md`.
+7. Inspect the affected full PDF/HTML/EPUB output as appropriate.
+8. Record the result in `FIGURES.md`; record substantive corrections in `ERRATA.md`.
 
 Use `python3 scripts/compare-figures.py --all` for a deliberate whole-ledger comparison pass, not routinely for every small edit.
 
