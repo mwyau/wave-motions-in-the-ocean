@@ -98,7 +98,9 @@ build_pdf() {
 build_html() {
   for cmd in pandoc pdftocairo; do need "$cmd"; done
   python3 "$ROOT/scripts/build-html.py"
+  python3 "$ROOT/scripts/sync-views.py" --html
   python3 "$ROOT/scripts/enhance-html.py"
+  python3 "$ROOT/scripts/sync-views.py" --check-readme
   echo "HTML build OK"
 }
 
