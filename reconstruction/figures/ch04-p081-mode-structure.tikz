@@ -1,0 +1,18 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=18; trim=115bp 430bp 100bp 95bp
+% Source: Wave Motions in the Ocean, printed p.81 (physical p.18).
+% Exact n=1 vertical factors: w~sin(pi(z+D)/D), u~cos(pi(z+D)/D).
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
+  \draw[->] (2.15,0.45)--(2.15,4.75) node[above] {$z$};
+  \draw (2.02,0.80)--(2.28,0.80) node[left=4pt] {$-D$};
+  \draw (2.02,4.30)--(2.28,4.30) node[left=4pt] {$0$};
+  \draw[densely dashed] (0.55,0.80)--(5.95,0.80);
+  \draw[densely dashed] (0.55,4.30)--(5.95,4.30);
+  \draw[->] (0.55,2.55)--(6.15,2.55);
+  \draw[line width=.8pt,domain=0:1,samples=90,smooth,variable=\s]
+    plot ({2.15+2.10*sin(180*\s)},{0.80+3.50*\s});
+  \node[anchor=west] at (4.35,2.65) {$w/w_0$};
+  \draw[line width=.75pt,dashed,domain=0:1,samples=90,smooth,variable=\s]
+    plot ({2.15+1.55*cos(180*\s)},{0.80+3.50*\s});
+  \node[anchor=west] at (3.65,4.05) {$-u/(Rw_0\sin\chi)$};
+  \node[anchor=west] at (0.55,0.35) {$\chi=k_1x-\sigma t$ fixes only the instantaneous horizontal factor$.$};
+\end{tikzpicture}
