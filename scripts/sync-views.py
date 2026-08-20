@@ -39,6 +39,8 @@ DEFAULT_BADGES = (
     "(https://mwyau.github.io/wave-motions-in-the-ocean/) "
     "[![Read PDF](https://img.shields.io/badge/Read-PDF-b31b1b)]"
     "(https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.pdf) "
+    "[![Read EPUB](https://img.shields.io/badge/Read-EPUB-f15a24)]"
+    "(https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.epub) "
     "[![CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-007ec6)]"
     "(https://creativecommons.org/licenses/by-nc-sa/4.0/) "
     "[![Build](https://img.shields.io/github/check-runs/mwyau/wave-motions-in-the-ocean/main?"

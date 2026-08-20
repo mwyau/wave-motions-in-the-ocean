@@ -45,7 +45,7 @@ Shared Downloads are:
 - `wave-motions-facsimile.pdf` — Facsimile PDF
 - `wave-motions.epub` — EPUB
 
-README badges remain **Read | Online**, **Read | PDF**, **License | CC BY-NC-SA 4.0**, and **Build | status**. Do not add facsimile or EPUB badges unless explicitly requested.
+README badges are **Read | Online**, **Read | PDF**, **Read | EPUB**, **License | CC BY-NC-SA 4.0**, and **Build | status**. Keep the badge row after the complete title/dedication/authorship block so it does not interrupt the book attribution hierarchy. Do not add a facsimile badge unless explicitly requested.
 
 Section anchors are public links; keep them stable.
 
