@@ -1,0 +1,88 @@
+name: Fix MathML validator
+
+on:
+  push:
+    paths:
+      - .github/workflows/fix-mathml-validator.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.event.head_commit.message == 'Apply MathML validator fix'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Rebase onto latest main
+        run: |
+          git fetch origin main
+          git rebase origin/main
+
+      - name: Correct named-function MathML validation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/validate-math.py')
+          text = path.read_text()
+          old = '''        for operator in EPUB_OPERATOR_SENTINELS:\n            if operator not in mo_text:\n                fail(f"EPUB named operator {operator!r} is not represented as <mo>")\n'''
+          new = '''        # Pandoc/texmath follows the MathML convention for named functions:\n        # the function name is an <mi> token followed by an <mo> U+2061\n        # FUNCTION APPLICATION marker.  Requiring the text "sin"/"cos"/etc.\n        # inside <mo> confuses the function token with the application operator.\n        def has_function_application(name: str) -> bool:\n            for math in math_elements:\n                for parent in math.iter():\n                    children = list(parent)\n                    for index, child in enumerate(children[:-1]):\n                        if (\n                            child.tag == f"{ns}mi"\n                            and "".join(child.itertext()).strip() == name\n                            and children[index + 1].tag == f"{ns}mo"\n                            and "".join(children[index + 1].itertext()).strip() == "\\u2061"\n                        ):\n                            return True\n            return False\n\n        for operator in EPUB_OPERATOR_SENTINELS:\n            if not has_function_application(operator):\n                fail(\n                    f"EPUB named function {operator!r} lacks an explicit "\n                    "MathML function-application operator"\n                )\n'''
+          if old in text:
+              path.write_text(text.replace(old, new, 1))
+          elif 'def has_function_application(name: str) -> bool:' in text:
+              print('MathML named-function validation is already corrected')
+          else:
+              raise SystemExit('expected named-operator validation block changed; refusing blind edit')
+          PY
+
+          python3 -m py_compile scripts/validate-math.py
+
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+
+          ns = '{http://www.w3.org/1998/Math/MathML}'
+          root = ET.fromstring(
+              '<math xmlns="http://www.w3.org/1998/Math/MathML">'
+              '<mrow><mi>sin</mi><mo>&#x2061;</mo><mi>x</mi></mrow></math>'
+          )
+          found = False
+          for parent in root.iter():
+              children = list(parent)
+              for index, child in enumerate(children[:-1]):
+                  if (
+                      child.tag == f'{ns}mi'
+                      and ''.join(child.itertext()).strip() == 'sin'
+                      and children[index + 1].tag == f'{ns}mo'
+                      and ''.join(children[index + 1].itertext()).strip() == '\u2061'
+                  ):
+                      found = True
+          if not found:
+              raise SystemExit('synthetic MathML named-function validation failed')
+          print('Synthetic MathML named-function validation OK')
+          PY
+
+      - name: Remove one-shot workflow and commit
+        run: |
+          git config user.name 'Albert Yau'
+          git config user.email '5298134+mwyau@users.noreply.github.com'
+          git rm .github/workflows/fix-mathml-validator.yml
+          git add scripts/validate-math.py
+          git commit -m 'Fix EPUB named-function validation'
+
+      - name: Push without overwriting concurrent work
+        run: |
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            git fetch origin main
+            git rebase origin/main
+            sleep 2
+          done
+          exit 1
