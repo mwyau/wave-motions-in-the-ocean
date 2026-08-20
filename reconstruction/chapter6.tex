@@ -397,12 +397,16 @@ coast on their right in the northern hemisphere. The dispersion diagram looks li
 
 \sourceart[0.58]{ChapmanRizzoli6.pdf}{12}{135bp 265bp 120bp 350bp}
 
-Each mode is constrained to be below some maximum frequency where
-$\partial\sigma/\partial\ell=0$. This occurs at
+Each mode is constrained to be below some maximum frequency where the alongshore
+group velocity $d\sigma_n/d\ell$ vanishes along that matched mode. Because the matching
+condition makes $k=k_n(\ell)$, differentiating the dispersion relation along a branch gives
 \[
- \ell\big|_{\sigma_{\max}}=-(k^2+b^2)^{1/2}.
+ k^2+b^2-\ell^2=2\ell k\frac{dk_n}{d\ell}.
 \]
-At the maximum frequency, the group velocity is zero meaning that energy does not
+The source obtains $\ell=-(k^2+b^2)^{1/2}$ by differentiating at fixed $k$; that is not
+the stationarity condition along a matched modal branch and is recorded in
+\texttt{ERRATA.md}.
+At the maximum frequency, the alongshore group velocity is zero, meaning that energy does not
 propagate even though phases still do. For waves that are longer than this wavelength
 (smaller $|\ell|$), the wave energy propagates with the phase. For very long waves
 $\ell\to0$, the dispersion relation becomes
