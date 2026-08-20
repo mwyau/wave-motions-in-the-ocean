@@ -1,6 +1,6 @@
 \begin{wavepdfonly}
 \input{cover-modern}
-\WaveModernCover
+\input{frontmatter-modern-book}
 \end{wavepdfonly}
 \begin{wavewebonly}
 \thispagestyle{empty}
@@ -23,8 +23,6 @@
 \end{wavewebonly}
 \clearpage
 \nopagecolor
-
-\wavepagenumbering{roman}
 
 \chapter*{Preface — David C. Chapman}
 \addcontentsline{toc}{chapter}{Preface — David C. Chapman}
@@ -104,9 +102,11 @@ The reconstruction is a work in progress, with assistance from OpenAI's GPT-5.6 
 
 \wavesignature{Albert M. W. Yau}{Stony Brook}{2026}
 
-% Keep the historical photograph with the Editor's note. The non-floating H
-% placement guarantees that the cover credit which follows is the final item on
-% this page rather than being separated from the photograph by float movement.
+% The paged modern edition uses this photograph as a frontispiece and places the
+% cover credit on the edition-notice verso. Flowing outputs retain the historical
+% photo here and expand the cover-credit marker for EPUB.
+\ifdefined\WaveModernBookFrontMatter
+\else
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.82\linewidth]{figures/frontmatter/salmon-hendershott-como-1980.jpeg}
@@ -117,6 +117,7 @@ The reconstruction is a work in progress, with assistance from OpenAI's GPT-5.6 
 \end{figure}
 
 \wavecovercredit
+\fi
 
 \clearpage
 
