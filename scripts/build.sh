@@ -105,6 +105,9 @@ build_epub() {
 finish_html() {
   python3 "$ROOT/scripts/sync-views.py" --html
   python3 "$ROOT/scripts/enhance-html.py"
+}
+
+check_readme_sync() {
   python3 "$ROOT/scripts/sync-views.py" --check-readme
 }
 
@@ -143,9 +146,10 @@ case "$TARGET" in
     finish_html
     stamp_html
     stamp_epub
-    check_epub_accessibility
     write_checksums
     if [[ "$SKIP_VALIDATION" != "1" ]]; then
+      check_readme_sync
+      check_epub_accessibility
       bash "$ROOT/scripts/validate-publication.sh" publish-root
       bash "$ROOT/scripts/validate-publication.sh" build-identity
       bash "$ROOT/scripts/validate-publication.sh" checksums
@@ -160,13 +164,18 @@ case "$TARGET" in
     prepare_html
     finish_html
     stamp_html
+    if [[ "$SKIP_VALIDATION" != "1" ]]; then
+      check_readme_sync
+    fi
     ;;
   epub)
     reset_generated
     prepare_html
     build_epub
     stamp_epub
-    check_epub_accessibility
+    if [[ "$SKIP_VALIDATION" != "1" ]]; then
+      check_epub_accessibility
+    fi
     clean_html_outputs
     ;;
 esac
