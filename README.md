@@ -1,10 +1,12 @@
 # Wave Motions in the Ocean: Myrl's View
 
-**David C. Chapman and Paola Malanotte-Rizzoli — August 1989**
+*Presented to* **Myrl C. Hendershott**
 
-Presented to **Myrl C. Hendershott**.
+**David C. Chapman and Paola Malanotte-Rizzoli** — August 1989
 
-**Digital edition by Albert M. W. Yau — August 2026**
+Digital edition by **Albert M. W. Yau** — August 2026
+
+[![Read online](https://img.shields.io/badge/read-online-0969da?logo=githubpages&logoColor=white)](https://mwyau.github.io/wave-motions-in-the-ocean/) [![Deploy Pages](https://github.com/mwyau/wave-motions-in-the-ocean/actions/workflows/pages.yml/badge.svg)](https://github.com/mwyau/wave-motions-in-the-ocean/actions/workflows/pages.yml) [![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-lightgrey)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
 [Read online](https://mwyau.github.io/wave-motions-in-the-ocean/) · [PDF](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.pdf) · [Facsimile PDF](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions-facsimile.pdf)
 
