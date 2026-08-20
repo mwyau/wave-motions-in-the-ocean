@@ -255,7 +255,7 @@ def build_index(temp: Path) -> None:
             + "Rick Salmon (left) and Myrl Hendershott, Summer School on Lake Como, 1980, "
               "on solitons and predictability. Photograph by George.\n"
         )
-        text = IF_PHOTO_RE.sub(replacement, text)
+        text = IF_PHOTO_RE.sub(lambda _: replacement, text)
     else:
         text = IF_PHOTO_RE.sub("", text)
     text = text.replace(r"\tableofcontents", "")
@@ -329,9 +329,13 @@ def main() -> int:
     BUILD.mkdir(parents=True)
     FIG_ASSETS.mkdir(parents=True)
     prepare_vector_assets()
-    # Intentionally edited raster figures are committed once, without source/edited duplicates.
-    for raster in FIGURES.glob("*.png"):
-        shutil.copy2(raster, FIG_ASSETS / raster.name)
+    # Intentionally edited raster figures and front-matter photos are committed once.
+    for raster in FIGURES.rglob("*"):
+        if not raster.is_file() or raster.suffix.lower() not in {".png", ".jpg", ".jpeg"}:
+            continue
+        dest = FIG_ASSETS / raster.relative_to(FIGURES)
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(raster, dest)
 
     css = ASSETS / "wave.css"
     css.write_text(
