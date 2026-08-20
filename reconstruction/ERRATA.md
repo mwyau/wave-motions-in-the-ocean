@@ -656,14 +656,15 @@ provenance belong in `FIGURES.md`.
 ### Printed page 159 — modal maximum differentiated at fixed cross-shelf wavenumber
 
 - **Category:** `equation`
-- **Status:** `pending-review`
+- **Status:** `accepted`
 - **Location:** Chapter 6, printed page 159
 - **Original:** The maximum of each continental-shelf-wave dispersion branch is found by
   setting $\partial\sigma/\partial\ell=0$ in
   $\sigma=-2bf\ell/(\ell^2+k^2+b^2)$ while treating $k$ as fixed, giving
   $\ell=-(k^2+b^2)^{1/2}$.
-- **Reconstruction:** Unchanged pending canonical correction; issue #9 independently
-  identified the same source error from the figure-equation audit.
+- **Reconstruction:** The canonical chapter differentiates along the matched modal branch,
+  giving $k^2+b^2-\ell^2=2\ell k\,dk_n/d\ell$ and identifying
+  $d\sigma_n/d\ell$ as the alongshore group velocity.
 - **Reason/evidence:** Along a discrete shelf-wave mode, $k=k_n(\ell)$ is constrained by
   $\tan(kL)=k/(\ell-b)$, so the modal derivative must include $dk_n/d\ell$. The
   correct extremum condition is
