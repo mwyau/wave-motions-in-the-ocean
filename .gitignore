@@ -3,6 +3,8 @@
 /.cache/
 /.venv/
 /_pages/
+__pycache__/
+*.py[cod]
 
 *.aux
 *.bbl
