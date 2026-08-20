@@ -47,7 +47,8 @@ The repository publishes four reader outputs from one corrected canonical body:
 - Modern title page: unnumbered. Front matter then uses lower-case Roman numerals beginning at `i`; Chapter 1 resets to Arabic page `1`.
 - Modern contents stop at **Chapter → Section**. Do not include subsections or deeper headings in the modern PDF, README, HTML index, or EPUB TOC.
 - The Editor's note is listed as `Editor's note` without the editor's name. Its signature remains in the note itself.
-- Keep original authorship visually distinct from the digital-editor credit; the editor must not appear to be a third author.
+- Keep original authorship visually distinct from the digital-editor credit; the editor must not appear to be a third author. On modern page iii, keep the digital-edition credit at the bottom in the same serif family as the authors but at lower visual prominence.
+- Use plain publication wording. Prefer `Digital edition by` to `Digital edition prepared by` and `original source scan` to `historical source scan`; avoid inflated editorial terminology when simpler wording is precise.
 - Preserve the established Lake Como photograph provenance/caption. Do not reintroduce unsupported attribution such as “Photograph by George.”
 - README and `index.html` must present the same front-matter/publication content apart from URL relativity, web controls, and README-only badges.
 - Shared Downloads list **PDF**, **Facsimile PDF**, and **EPUB**.
