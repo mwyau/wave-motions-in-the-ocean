@@ -1,1 +1,1 @@
-One-time trigger for the final source-figure vectorization completion gate. The workflow removes this file after a successful full build.
+One-time trigger for the minimal final source-figure vectorization state reconciliation. The repository Publish workflow performs the authoritative full publication build after this finalizer commits.
