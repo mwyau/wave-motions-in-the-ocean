@@ -1,8 +1,8 @@
 name: Run final errata audit
 
 on:
-  issues:
-    types: [opened, reopened]
+  issue_comment:
+    types: [created]
 
 permissions:
   actions: write
@@ -10,12 +10,12 @@ permissions:
   issues: write
 
 concurrency:
-  group: finalize-audited-source-errata
+  group: finalize-audited-source-errata-comment
   cancel-in-progress: false
 
 jobs:
   finalize:
-    if: github.event.issue.title == '[internal] finalize audited source errata'
+    if: github.event.issue.number == 7 && github.event.comment.body == '/finalize-audited-source-errata'
     runs-on: ubuntu-26.04
     steps:
       - name: Check out newest main
@@ -49,27 +49,19 @@ jobs:
           for attempt in $(seq 1 20); do
             git fetch origin main
             git reset --hard origin/main
-
             python3 /tmp/apply_errata.py
             python3 scripts/sync-views.py --readme
             python3 scripts/sync-views.py --check-readme
-
-            rm -f \
-              .github/workflows/finalize-errata-audit.yml \
-              .github/workflows/run-finalize-errata-audit.yml
-
+            rm -f .github/workflows/finalize-errata-audit.yml .github/workflows/run-finalize-errata-audit.yml
             git diff --check
             git add -A
             git diff --cached --check
-
             if git diff --cached --quiet; then
-              echo "No remaining errata delta"
               final_sha=$(git rev-parse HEAD)
               echo "FINAL_SHA=$final_sha" >> "$GITHUB_ENV"
               success=true
               break
             fi
-
             git commit -m "Resolve audited source errata"
             if git push origin HEAD:main; then
               final_sha=$(git rev-parse HEAD)
@@ -89,7 +81,7 @@ jobs:
           set -euo pipefail
           gh workflow run publish.yml --ref main
           run_id=""
-          for _ in $(seq 1 60); do
+          for _ in $(seq 1 90); do
             run_id=$(gh run list --workflow publish.yml --branch main --event workflow_dispatch --limit 30 \
               --json databaseId,headSha,createdAt \
               --jq ".[] | select(.headSha == \"$FINAL_SHA\") | .databaseId" | head -n1)
@@ -97,7 +89,6 @@ jobs:
             sleep 2
           done
           test -n "$run_id"
-          echo "PUBLISH_RUN_ID=$run_id" >> "$GITHUB_ENV"
           gh run watch "$run_id" --exit-status
 
       - name: Close internal trigger issue
