@@ -17,7 +17,7 @@
 - Continue empirical facsimile typography comparison while preserving the accepted 184-page edition.
 - Complete modern PDF/HTML typography and accessibility review.
 - Iterate the EPUB across representative readers, especially cover, navigation, math, figures, tables, metadata, and reflow behavior.
-- Decide in a later focused pass whether semantic figure numbering and chapter-based equation numbering improve the edition.
+- Add selective equation/figure cross-references and hyperlinks after the new chapter-based numbering is stable.
 
 ## Release
 

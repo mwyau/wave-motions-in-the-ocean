@@ -112,6 +112,14 @@ EPUB TOC depth is Chapter → Section. Check metadata, shared cover, navigation,
 
 Publish EPUB as a direct download. Browsers do not provide a consistent native EPUB reader, and the existing HTML edition already serves the web-reading use case. Do not add epub.js or another embedded EPUB reader unless explicitly requested.
 
+## Figure and equation numbering
+
+The modern PDF, HTML, and EPUB use chapter-based figure and equation numbers. The facsimile suppresses these added editorial numbers so its historical source-page presentation remains unchanged.
+
+Number every scientific body figure, but number displayed equations selectively. An equation is important enough to number when it has a durable identity in the exposition: a governing equation/system, boundary or eigenvalue problem, dispersion or modal/root relation, conservation law, ray equation, or named physical definition/result such as phase speed, group velocity, sound speed, wave action, or energy flux. Keep transient algebra, intermediate substitutions/rearrangements, generic parameter-definition lists, and one-off evaluation steps unnumbered. A multi-line governing system normally receives one number unless its component equations have independent roles.
+
+Do not add equation/figure cross-references or hyperlinks merely because numbers exist. Add those later, selectively, after numbering is stable across formats.
+
 ## Build interface and outputs
 
 Use:

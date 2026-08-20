@@ -23,13 +23,13 @@ waves is the fluid's resistance to compression (i.e., its compressibility).
 
 When viscous dissipation, rotation and gravitational forces are neglected, the
 momentum and continuity equations are
-\begin{align*}
+\begin{wavealign}
  \frac{\partial\vec u^{\,*}}{\partial t}
  +\vec u^{\,*}\cdot\nabla\vec u^{\,*}
  &=-\frac{1}{\rho^*}\nabla p^*,\\
  \frac{\partial\rho^*}{\partial t}
  +\nabla\cdot(\rho^*\vec u^{\,*})&=0.
-\end{align*}
+\end{wavealign}
 
 \sourcepagebreak
 
@@ -83,20 +83,20 @@ that the other variables $\rho,u,v,w$ each satisfy a similar equation.
 
 Consider a homogeneous medium; $c(\vec x,t)=c_0$. Then
 $p=a e^{-i\sigma t+ikx+i\ell y+imz}$ solves the wave equation provided
-\[
+\begin{waveequation}
  \sigma^2=c_0^2(k^2+\ell^2+m^2)
-\]
+\end{waveequation}
 which is the dispersion relation. For fixed $\sigma$, the locus of allowed wavenumbers in
 $k,\ell,m$ space is a sphere of radius $\sigma/c_0$. All wavenumbers
 $\vec k=k\hat i+\ell\hat j+m\hat k$ extending from the center of this sphere to its
 surface are allowed. In a given plane wave, phases propagate along the wavenumber
 vector at speed $c_0$; that is, $\sigma/|\vec k|=c_0$, so the waves are nondispersive.
 The group velocity $\vec c_g$ is defined by
-\[
+\begin{waveequation}
  c_{gx}=\frac{\partial\sigma}{\partial k};\qquad
  c_{gy}=\frac{\partial\sigma}{\partial\ell};\qquad
  c_{gz}=\frac{\partial\sigma}{\partial m}
-\]
+\end{waveequation}
 and it is easy to show that $|\vec c_g|=c_0$.
 
 If $p=a e^{i(\vec k\cdot\vec x-\sigma t)}$, then the momentum equations say
@@ -124,17 +124,17 @@ Suppose a plane wave of the form
 is incident upon a solid boundary. At the solid boundary, the normal velocity must
 vanish; $\vec u\cdot\hat n=0$ which means that $\nabla p\cdot\hat n=0$. If the solid
 boundary is at $z=0$, then the boundary condition is
-\[
+\begin{waveequation}
  p_z=0\qquad\text{at }z=0.
-\]
+\end{waveequation}
 
 % Vector reconstruction; source PDF ChapmanRizzoli0_2.pdf, physical page 31, trim=105bp 405bp 100bp 125bp.
 \wavevectorart[0.72]{ch02-p021-solid-boundary-reflection}
 
 To satisfy this boundary condition, we must add a reflected wave
-\[
+\begin{waveequation}
  p_{ref}=p_0e^{-i\sigma t+ikx+i\ell y+imz}
-\]
+\end{waveequation}
 to the incident wave. The solution is
 \[
  p=p_{inc}+p_{ref}=2p_0e^{-i\sigma t+ikx+i\ell y}\cos mz.
@@ -189,12 +189,12 @@ cross-channel dependence is unknown.
 \]
 This is substituted into the field equation to obtain an equation for the cross-channel
 structure
-\[
+\begin{waveequation}
  P_{zz}+(\sigma^2/c_0^2-k^2-\ell^2)P=0
-\]
-\[
+\end{waveequation}
+\begin{waveequation}
  P_z=0\qquad\text{at }z=0,-D.
-\]
+\end{waveequation}
 This equation has the solution
 \[
  P(z)=\cos n\pi z/D
@@ -228,11 +228,11 @@ two-dimensional plane wave restricted to the channel direction is dispersive!
  =\pm c_0\left[1+\frac{n^2\pi^2}{(k^2+\ell^2)D^2}\right]^{1/2}.
 \]
 The horizontal group velocity $\partial\sigma/\partial k$, $\partial\sigma/\partial\ell$ is
-\[
+\begin{waveequation}
  \vec c_g
  =c_0\frac{k\hat i+\ell\hat j}
  {(k^2+\ell^2+n^2\pi^2/D^2)^{1/2}}.
-\]
+\end{waveequation}
 It is parallel to the horizontal wavenumber $k\hat i+\ell\hat j$ but not equal to the
 phase velocity.
 
@@ -321,10 +321,10 @@ Now, substituting the expressions for $p_I,p_R$ and $p_T$, we obtain
 \end{align*}
 From the dispersion relation, $m=\sigma\cos\theta/c$ which changes the second matching
 condition to
-\[
+\begin{waveequation}
  \frac{1}{\rho_1c_1}(1-R)\cos\theta_I
  =\frac{1}{\rho_2c_2}T\cos\theta_T.
-\]
+\end{waveequation}
 These can be combined to yield
 \[
  R=\frac{\rho_2c_2\cos\theta_I-\rho_1c_1\cos\theta_T}
@@ -354,9 +354,9 @@ the atmosphere is actually amplified upon encountering the ocean. That is, if me
 so slowly relative to the ocean that its energy flux is generally fairly small, so the
 amplification is a rather small effect as well. In either case, the energy flux in the $z$
 direction is conserved because
-\[
+\begin{waveequation}
  |p_Iw_I|=|p_Rw_R|+|p_Tw_T|.
-\]
+\end{waveequation}
 
 To complete the calculation, we must find the angle of the transmitted wave, $\theta_T$.
 This is found by writing the frequency on both sides of the discontinuity as
@@ -497,10 +497,10 @@ where $q(t)=q_t(t)=0$ for $t<0$ and $q_t$ is finite. Now we solve
  p(x,0)=p_t(x,0)=0\qquad\text{at }t=0.
 \]
 We may put the forcing into the boundary condition by
-\[
+\begin{waveequation}
  \int_{0^-}^{0^+}(p_{tt}-c^2p_{xx})\,dx
  =-c^2p_x\big|_{0^-}^{0^+}=c^2q_t(t).
-\]
+\end{waveequation}
 That is, $p_x(x=0+,t)-p_x(x=0-,t)=-q_t(t)$ so that the forcing at $x=0$ is
 interpretable as a specified discontinuity there. So we must solve
 
@@ -630,17 +630,17 @@ are much less than the scale over which the sound speed changes. That is, the
 wavelength must be small compared to the total ocean depth. We will consider only
 two dimensions, the vertical and one horizontal. Recalling our discussion of ray theory,
 we write the dispersion relation as
-\[
+\begin{waveequation}
  \sigma=\Omega(k,m;z).
-\]
+\end{waveequation}
 Since the medium varies only in $z$, we have $\partial\Omega/\partial x=0$,
 $\partial\Omega/\partial t=0$ but $\partial\Omega/\partial z\ne0$.
 Thus, the ray equations become
-\begin{align*}
+\begin{wavealign}
  \frac{dN}{dt}&=0,\\
  \frac{dk}{dt}&=0,\\
  \frac{dm}{dt}&=-\frac{\partial\Omega}{\partial z}.
-\end{align*}
+\end{wavealign}
 These say that the component of the wavenumber in the $x$ direction remains constant
 in time (which makes sense since the medium varies only in $z$), and that the frequency
 remains fixed at the initial frequency. We could integrate these following along a ray

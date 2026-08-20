@@ -61,3 +61,12 @@ blockquote {
   margin-left: 1.25em;
   margin-right: 1.25em;
 }
+
+div.center {
+  text-align: center;
+}
+
+div.flushright {
+  text-align: right;
+  margin-top: -0.85em;
+}

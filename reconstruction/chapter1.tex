@@ -102,13 +102,14 @@ In two dimensions we have
 \par\smallskip
 \begin{center}
 \input{figures/ch01-p004-phase-speed.tikz}
+\wavefiguremark
 \end{center}
 \smallskip
 
 The speed at which phase planes move along $\vec{k}$ is the \emph{phase speed}
-\[
+\begin{waveequation}
  c=\sigma/|\vec{k}|=\lambda/T.
-\]
+\end{waveequation}
 It is directed along $\vec{k}$. Note that the speed of phase plane intersection with the
 $x$-axis is not $c\cos\theta$ but rather is
 \[
@@ -141,9 +142,9 @@ different wavenumbers.
 
 All of the foregoing is kinematics, true for any given $\sigma,\vec{k}$ with no physics.
 The physics are contained in the \emph{dispersion relation}
-\[
+\begin{waveequation}
  \sigma=\Omega(\vec{k})
-\]
+\end{waveequation}
 which is obtained by requiring the plane waves to be solutions of the linearized,
 dissipationless equations of motion. The following table contains some examples of wave
 equations (all of which we will encounter later) with their respective dispersion
@@ -209,9 +210,9 @@ equations.
 In a homogeneous medium, initial value problems are solvable as Fourier integrals which
 amounts to summing an infinite number of plane wave solutions. If the dispersion
 relation has $n$ branches
-\[
+\begin{waveequation}
  \sigma=\Omega_j(\vec{k}),\qquad j=1,\ldots,n
-\]
+\end{waveequation}
 
 \sourcepagebreak
 
@@ -270,6 +271,7 @@ special initial condition $\phi(x,0)=a(x)e^{ik_0x}$.
 \par\smallskip
 \begin{center}
 \input{figures/ch01-p008-wave-packet.tikz}
+\wavefiguremark
 \end{center}
 \smallskip
 
@@ -296,6 +298,7 @@ this special choice of $\phi(x,0)$.
 \par\smallskip
 \begin{center}
 \input{figures/ch01-p008-spectrum.tikz}
+\wavefiguremark
 \end{center}
 \smallskip
 
@@ -327,9 +330,9 @@ That is
 The modulating envelope moves at a velocity
 $\left.\partial\Omega/\partial k\right|_{k=k_0}$, defined by the dispersion relation
 $\sigma=\Omega(k)$. This velocity is called the \emph{group velocity}
-\[
+\begin{waveequation}
  c_g=\left.\frac{\partial\Omega}{\partial k}\right|_{k=k_0}
-\]
+\end{waveequation}
 and is not, in general, equal to the phase speed $c=\sigma/k$ of the modulated plane
 wave. Therefore, the dominant wavelength $\lambda=2\pi/k_0$ has two speeds associated
 with it. They are the phase speed $c=\sigma/k_0=\Omega(k_0)/k_0$ and the group
@@ -516,18 +519,18 @@ arbitrary recipe.
 
 Now this assertion and the definitions of $\vec{k}$ and $N$ allow us to introduce the
 group velocity in another way.
-\[
+\begin{waveequation}
  \left.\frac{\partial N}{\partial t}\right|_{\vec{x}}
  =\left.\frac{\partial\Omega}{\partial t}\right|_{\vec{k},\vec{x}}
  +\left.\frac{\partial\Omega}{\partial k_i}\right|_{\vec{x},t}
   \left.\frac{\partial k_i}{\partial t}\right|_{\vec{x}}
  =\left.\frac{\partial\Omega}{\partial t}\right|_{\vec{k},\vec{x}}
  -c_{g_i}\left.\frac{\partial N}{\partial x_i}\right|_t
-\]
+\end{waveequation}
 in which the group velocity has been defined as
-\[
+\begin{waveequation}
  c_{g_i}=\frac{\partial N}{\partial k_i}=\frac{\partial\Omega}{\partial k_i}.
-\]
+\end{waveequation}
 
 \sourcepagebreak
 

@@ -7,6 +7,13 @@
 \RequirePackage[letterpaper,top=0.80in,bottom=0.50in,left=0.95in,right=0.95in]{geometry}
 \RequirePackage{lmodern}
 
+% Preserve the historical source-page edition: the canonical source carries
+% modern editorial numbering semantics, but the facsimile renders the original
+% unnumbered display/figure presentation. `wavealign` restores align* exactly.
+\renewenvironment{waveequation}{\begin{equation*}}{\end{equation*}}
+\renewenvironment{wavealign}{\begin{align*}}{\end{align*}}
+\renewcommand{\wavefiguremark}{}
+
 \setlength{\parindent}{1.75em}
 \setlength{\parskip}{0pt}
 \setlength{\jot}{6pt}

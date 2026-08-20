@@ -66,16 +66,16 @@ used. A brief discussion of this case is presented by Gill (1982, pp. 169--175).
 % -----------------------------------------------------------------------------
 The momentum, mass and continuity equations for a rotating, incompressible
 fluid are
-\[
+\begin{waveequation}
  \frac{D\vec u^{\,*}}{Dt}+f\hat k\times\vec u^{\,*}
  =-\frac{\nabla p^*}{\rho^*}-g\hat k
-\]
-\[
+\end{waveequation}
+\begin{waveequation}
  \frac{\partial\rho^*}{\partial t}+\nabla\cdot\rho^*\vec u^{\,*}=0
-\]
-\[
+\end{waveequation}
+\begin{waveequation}
  \frac{D\rho^*}{Dt}=0\ \Rightarrow\ \nabla\cdot\vec u^{\,*}=0.
-\]
+\end{waveequation}
 One solution to these equations is a motionless, hydrostatic balance, i.e.
 $\vec u_0=0$; $0=-p_{0z}-g\rho_0(z)$. Each dynamic variable may then be separated into a
 hydrostatic part and a small departure from it
@@ -174,17 +174,17 @@ So we have to solve
 We suppose for the moment that $N^2(z)=\text{constant}$. We also assume that the
 coordinates rotate around the $z$ axis at $\Omega$ so that $f=2\Omega=\text{constant}$ which is the
 $f$-plane approximation. The field equation is
-\[
+\begin{waveequation}
  w_{zz}-\left(\frac{N^2-\sigma^2}{\sigma^2-f^2}\right)(w_{xx}+w_{yy})=0.
-\]
+\end{waveequation}
 Since $N,f$ are constants, exact solutions are
-\[
+\begin{waveequation}
  w=e^{-i\sigma t+ikx+i\ell y+imz}
-\]
+\end{waveequation}
 from which
-\[
+\begin{waveequation}
  m^2=\left(\frac{N^2-\sigma^2}{\sigma^2-f^2}\right)(k^2+\ell^2)
-\]
+\end{waveequation}
 is the dispersion relation. In $k,\ell,m$ space, the dispersion relation is a cone if
 $f^2<\sigma^2<N^2$ or $f^2>\sigma^2>N^2$.
 
@@ -203,13 +203,13 @@ $K=(k^2+\ell^2+m^2)^{1/2}$, we can write
  m=K\cos\theta\ ;\qquad (k^2+\ell^2)^{1/2}=K\sin\theta
 \]
 and the dispersion relation may be rewritten as
-\[
+\begin{waveequation}
  \sigma^2=N^2\sin^2\theta+f^2\cos^2\theta
-\]
+\end{waveequation}
 or
-\[
+\begin{waveequation}
  \sigma^2K^2=N^2(k^2+\ell^2)+f^2m^2.
-\]
+\end{waveequation}
 These waves are of the form
 $(\vec u,p,\rho)=(\vec u_0,p_0,\rho_0)e^{-i\sigma t+i\vec k\cdot\vec x}$. By continuity,
 $\nabla\cdot\vec u$ leads to $\vec k\cdot\vec u_0=0$ which means that the fluid motion occurs in planes \emph{normal} to the
@@ -252,10 +252,10 @@ becomes
 Thus the motion occurs in inertial circles at $\sigma^2=f^2\cos^2\theta$.
 
 We can examine the group velocity by defining
-\[
+\begin{waveequation}
  W(k,\ell,m,\sigma)
  =m^2-\frac{N^2-\sigma^2}{\sigma^2-f^2}(k^2+\ell^2)=0.
-\]
+\end{waveequation}
 Now
 \[
  dW\big|_{\ell,m}
@@ -315,7 +315,7 @@ This allows us to visualize the direction of $\vec c_g$.
 \wavevectorart[0.76]{ch04-p072-phase-energy-theta}
 
 Finally, using the dispersion relation,
-\begin{align*}
+\begin{wavealign}
  |\vec c_g|
  &=\left(c_{gx}^2+c_{gy}^2+c_{gz}^2\right)^{1/2}\\
  &=\frac{[k^2(N^2-\sigma^2)^2+\ell^2(N^2-\sigma^2)^2
@@ -325,7 +325,7 @@ Finally, using the dispersion relation,
  &=\frac{[(N^2-f^2)^2\sin^4\theta\cos^2\theta
  +(N^2-f^2)^2\cos^4\theta\sin^2\theta]^{1/2}}{\sigma K}\\
  &=\frac{|N^2-f^2|\sin\theta\cos\theta}{\sigma K}.
-\end{align*}
+\end{wavealign}
 An alternative is to define $\phi$ as the angle of energy propagation such that
 \[
  \sigma^2=N^2\cos^2\phi+f^2\sin^2\phi
@@ -431,15 +431,15 @@ the cone whose sides lie at $\phi$ to the vertical.
 
 What happens if the source frequency is outside the range of $f$ to $N$? In that
 case the field equation can be written
-\[
+\begin{waveequation}
  w_{zz}+\frac{\sigma^2-N^2}{\sigma^2-f^2}(w_{xx}+w_{yy})=0
-\]
+\end{waveequation}
 and we see that the very nature of the equation has changed from a hyperbolic (or
 wave-type) equation to an elliptic (or potential flow type) equation because the sign of
 the coefficient has changed. Our free-wave dispersion relation now becomes
-\[
+\begin{waveequation}
  m^2=-\frac{\sigma^2-N^2}{\sigma^2-f^2}(k^2+\ell^2).
-\]
+\end{waveequation}
 
 \setcounter{page}{76}
 
@@ -497,9 +497,9 @@ Solutions are
  w=e^{-i\sigma t+ikx}\sinh[kR_1(z+D)]
 \]
 and they satisfy the top ($z=0$) boundary condition only if
-\[
+\begin{waveequation}
  \frac{R_1(\sigma^2-f^2)}{gk}=\tanh(kR_1D).
-\]
+\end{waveequation}
 This last relation is effectively the dispersion relation; its solution is $\sigma=\sigma(k)$ or, as we
 have done the problem, $k=k(\sigma)$. To see what solutions exist, plot the left-hand side
 and the right-hand side versus $k$.
@@ -565,13 +565,13 @@ In both cases there is now an infinite set of oppositely travelling modes $n=1,2
 case $\sigma^2>f^2$ has an additional pair of small-$k$ modes not present in the case $\sigma^2<f^2$.
 
 For large $k$, the $n=1,2,\ldots$ modes have the approximate dispersion relation
-\[
+\begin{waveequation}
  k_nRD=\pm n\pi,
-\]
+\end{waveequation}
 or
-\[
+\begin{waveequation}
  k_nD\left(\frac{N^2-\sigma^2}{\sigma^2-f^2}\right)^{1/2}=\pm n\pi.
-\]
+\end{waveequation}
 This does not hold for the small $k$ ($n=0$) modes. For them, if $kRD\ll1$, then we
 obtain
 \[
@@ -622,10 +622,10 @@ From continuity ($u_x+w_z=0$)
 % Source printed page 81 / physical page 18
 % -----------------------------------------------------------------------------
 Consider the lowest mode $n=1$. Then from the dispersion relation $k_1\simeq\pi/RD$ and
-\[
+\begin{waveequation}
  w=w_0\cos(k_1x-\sigma t)\sin[\pi(z+D)/D]\ ;\qquad
  u=-Rw_0\sin(k_1x-\sigma t)\cos[\pi(z+D)/D]
-\]
+\end{waveequation}
 after taking the real part. The vertical structure looks like
 
 % Equation-generated n=1 vertical mode structure.
@@ -765,9 +765,9 @@ must follow, to some extent, the undulations of the boundary. So,
  \qquad\text{on}\qquad z=0.
 \]
 This says that $w_0=Ukh_0$. The field equation for the region above the boundary is
-\[
+\begin{waveequation}
  w_{zz}-\frac{N^2-\sigma^2}{\sigma^2}w_{xx}=0.
-\]
+\end{waveequation}
 A solution is
 \[
  w=w_0e^{-i\sigma t+ikx+imz}
@@ -1080,10 +1080,10 @@ Thus, in this case, both evanescent and travelling modes are present simultaneou
 
 The effect of the appearance of $k^2$ in the surface boundary condition manifests
 itself as
-\[
+\begin{waveequation}
  \int_{-D}^{0}\omega_i\omega_jR^2(z)\,dz
  =-\omega_i(0)\omega_j(0)g/(\sigma^2-f^2).
-\]
+\end{waveequation}
 This says that the eigenfunctions $\omega_i$ are not orthogonal unless the surface boundary is
 the rigid lid, i.e. $\omega_i(0)=0$.
 

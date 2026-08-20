@@ -20,6 +20,19 @@
 \setlength{\emergencystretch}{1.5em}
 \raggedbottom
 
+% Editorial numbering in the modern PDF and flowing reader editions. Only
+% durable equations are wrapped in these environments; transient algebra remains
+% unnumbered. The facsimile style suppresses these added editorial numbers.
+\numberwithin{equation}{chapter}
+\newenvironment{waveequation}{\begin{equation}}{\end{equation}}
+\newenvironment{wavealign}{\begin{equation}\begin{aligned}}{\end{aligned}\end{equation}}
+\newcommand{\wavefiguremark}{%
+  \refstepcounter{figure}%
+  \par\nobreak\smallskip
+  \noindent\hfill{\small\sffamily Figure \thefigure}\hfill\null\par
+  \smallskip
+}
+
 % Build identity is generated under build/ so source files remain stable. A
 % direct TeX compile without the repository build wrapper falls back cleanly.
 \IfFileExists{../build/build-info.tex}{%
@@ -55,6 +68,7 @@
   \begin{center}
     \includegraphics[page=#3,trim=#4,clip,width=#1\linewidth]{../source/#2}%
   \end{center}
+  \wavefiguremark
   \smallskip
 }
 
@@ -71,6 +85,7 @@
       \resizebox{#1\linewidth}{!}{\input{figures/#2.tikz}}%
     \endgroup
   \end{center}
+  \wavefiguremark
   \smallskip
 }
 

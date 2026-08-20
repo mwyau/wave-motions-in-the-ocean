@@ -34,7 +34,7 @@ coordinates.
 % -----------------------------------------------------------------------------
 For rotating, stratified flow on a gravitating sphere, the linearized equations of
 motion are
-\begin{align*}
+\begin{wavealign}
  u_t-2\Omega\sin\theta\,v+2\Omega\cos\theta\,w
  &=-\frac{p_\phi}{\rho_0a\cos\theta},\\
  v_t+2\Omega\sin\theta\,u
@@ -43,7 +43,7 @@ motion are
  &=-\frac{p_z}{\rho_0}-\frac{g\rho}{\rho_0}+\Omega^2a\cos^2\theta,\\
  \rho_t+w\rho_{0z}&=0,\\
  u_\phi+(v\cos\theta)_\theta+a\cos\theta\,w_z&=0.
-\end{align*}
+\end{wavealign}
 The spherical system is sketched as
 
 \sourceart[0.52]{ChapmanRizzoli5.pdf}{2}{190bp 405bp 175bp 265bp}
@@ -93,9 +93,9 @@ paraboloid:
  h=h_0+\frac{\Omega^2}{2g}(x^2+y^2).
 \]
 If the bottom ($z=0$) is flat, then we must write the continuity equation as
-\[
+\begin{waveequation}
  h_t+\nabla\cdot\left\{\vec u\left[h_0+\frac{\Omega^2}{2g}(x^2+y^2)\right]\right\}=0.
-\]
+\end{waveequation}
 In this case, the neglect of the centrifugal terms produces the standard shallow water
 equations which we have already seen. However, depending on the rotation rate and
 
@@ -150,10 +150,10 @@ Having neglected the horizontal components of rotation, $(2\Omega\cos\theta)$, w
  u_\phi+(v\cos\theta)_\theta+a\cos\theta\,w_z&=0,
 \end{align*}
 with boundary conditions
-\begin{align*}
+\begin{wavealign}
  p_t+w p_{0z}=p_t-gw\rho_0&=0 &&\text{at }z=0,\\
  w&=0 &&\text{at }z=-D.
-\end{align*}
+\end{wavealign}
 We can separate variables as follows
 \begin{align*}
  u&=e^{-i\sigma t}U(\phi,\theta)F(z),\\
@@ -162,7 +162,7 @@ We can separate variables as follows
  p&=e^{-i\sigma t}P(\phi,\theta)H(z).
 \end{align*}
 The equations of motion become
-\begin{align*}
+\begin{wavealign}
  (-i\sigma U-2\Omega\sin\theta\,V)F
  &=-\frac{P_\phi H}{\rho_0a\cos\theta},\\
  (-i\sigma V+2\Omega\sin\theta\,U)F
@@ -171,7 +171,7 @@ The equations of motion become
  U_\phi F+(V\cos\theta)_\theta F+a\cos\theta\,WG_z&=0,\\
  -i\sigma PH-g\rho_0WG&=0 &&\text{at }z=0,\\
  WG&=0 &&\text{at }z=-D,
-\end{align*}
+\end{wavealign}
 where the density equation has been combined with the radial momentum equation.
 The separation is completed by choosing
 \[
@@ -229,13 +229,13 @@ If we neglect the centrifugal acceleration terms, make the traditional approxima
 and consider motions with horizontal and vertical scales which are small compared to
 the earth's radius, then the equations of motion may be written in Cartesian
 coordinates as
-\begin{align*}
+\begin{wavealign}
  u_t-fv&=-\frac{1}{\rho_0}p_x,\\
  v_t+fu&=-\frac{1}{\rho_0}p_y,\\
  0&=-\frac{1}{\rho_0}p_z-\frac{g\rho}{\rho_0},\\
  \rho_t+w\rho_{0z}&=0,\\
  u_x+v_y+w_z&=0,
-\end{align*}
+\end{wavealign}
 where the flow has been assumed hydrostatic, i.e. $w_t$ has been neglected, and
 $f=2\Omega\sin\theta$. Remember also that the density has been separated into a background
 part which varies in $z$ only and a perturbation, $\rho^*=\rho_0(z)+\rho(x,y,z,t)$ where
@@ -268,11 +268,11 @@ We shall assume that the atmospheric pressure is zero, so
 \]
 We see that the horizontal pressure gradient is independent of $z$, so the equations of
 motion can be written
-\begin{align*}
+\begin{wavealign}
  u_t-fv&=-g\eta_x,\\
  v_t+fu&=-g\eta_y,\\
  u_x+v_y+w_z&=0.
-\end{align*}
+\end{wavealign}
 Integrating continuity from $z=-D$ to $z=\eta$ yields
 \[
  \int_{-D}^{\eta}(u_x+v_y)\,dz+w|_{z=\eta}-w|_{z=-D}=0.
@@ -282,11 +282,11 @@ Since $u$ and $v$ are not functions of $z$, then this becomes
  (u_x+v_y)(\eta+D)+w|_{z=\eta}-w|_{z=-D}=0.
 \]
 The top and bottom boundary conditions are
-\[
+\begin{waveequation}
  w=\frac{D\eta}{Dt}\quad\text{at }z=\eta
  \ ;\qquad
  w=-uD_x-vD_y\quad\text{at }z=-D.
-\]
+\end{waveequation}
 Combining these with continuity yields
 \[
  \eta_t+[u(\eta+D)]_x+[v(\eta+D)]_y=0.
@@ -299,11 +299,11 @@ Combining these with continuity yields
 % -----------------------------------------------------------------------------
 If we assume that the surface deviations are much smaller than the water depth, i.e.
 $\eta\ll D$, then the final linearized set of equations is
-\begin{align*}
+\begin{wavealign}
  u_t-fv&=-g\eta_x,\\
  v_t+fu&=-g\eta_y,\\
  \eta_t+[uD]_x+[vD]_y&=0.
-\end{align*}
+\end{wavealign}
 These are the linear shallow water equations with rotation. We derived the
 nonrotating version with constant depth in the chapter on surface gravity waves.
 Notice that, for constant depth $D$, they have the same form as LTE but written in
@@ -431,9 +431,9 @@ Free wave solutions have the form $\eta=e^{-i\sigma t+ikx+i\ell y}$ which leads 
  v=\frac{g\ell}{\sigma}\eta.
 \]
 Substitution into continuity gives the dispersion relation
-\[
+\begin{waveequation}
  \sigma^2=gD(k^2+\ell^2)=gDK^2.
-\]
+\end{waveequation}
 These are nothing more than surface gravity waves in shallow water which are
 nondispersive with
 \[
@@ -451,6 +451,7 @@ Suppose the wave is incident upon a solid wall at $x=0$.
 
 % Vector redraw of the incident/reflected-wave sketch at the vertical wall.
 \input{figures/ch05-p108-wall-reflection.tikz}
+\wavefiguremark
 
 The velocity normal to the wall must vanish, i.e. $u=0$ at $x=0$. The total solution
 may be constructed by adding a reflected wave with the same amplitude and no phase
@@ -469,6 +470,7 @@ Now consider a domain bounded by four solid walls.
 
 % Vector redraw of the rectangular-basin geometry.
 \input{figures/ch05-p108-rectangular-basin.tikz}
+\wavefiguremark
 
 We assume a periodic time dependence of $e^{-i\sigma t}$ so that the equations become
 \begin{align*}
@@ -549,6 +551,7 @@ Consider a free wave encountering a step change in depth.
 
 % Vector redraw of the source's depth-step section and ray diagram.
 \input{figures/ch05-p110-depth-step-rays.tikz}
+\wavefiguremark
 
 This can be thought of as a shelf of infinite width. At the step, there are two new
 waves which can be generated. One is a reflected wave and one is a transmitted wave.
@@ -653,9 +656,9 @@ $\alpha_I'$, is reached where $\alpha_T=90^\circ$.
 The source's printed labels in the following critical-angle algebra are inconsistent
 with the reversed incidence direction. Using the same Snell relation with
 $D_1<D_2$ gives the corrected result
-\[
+\begin{waveequation}
  \boxed{\sin\alpha_I'=\left(\frac{D_1}{D_2}\right)^{1/2}}.
-\]
+\end{waveequation}
 For $\alpha_I=\alpha_I'$,
 \[
  \ell=K_I\sin\alpha_I'
@@ -685,6 +688,7 @@ slope is reduced to a step change in depth dropping down to a flat-bottom deep o
 This is the classic step shelf.
 
 \input{figures/ch05-p114-step-shelf.tikz}
+\wavefiguremark
 
 We anticipate from the foregoing that two kinds of solutions exist. They are (A) waves
 trapped on the shelf by critical internal reflection at the shelf edge, and (B) waves
@@ -692,6 +696,7 @@ arriving from the deep sea, traversing the shelf, being reflected at the coast a
 finally returning to the deep sea. Ray paths for the two cases are
 
 \input{figures/ch05-p114-ray-paths.tikz}
+\wavefiguremark
 
 In each region, the elevation satisfies
 \[
@@ -713,6 +718,7 @@ which satisfies $u=0$ at $x=0$ and assumes internal reflection at the shelf edge
 cross-shelf structure looks like
 
 \input{figures/ch05-p115-edge-wave-profile.tikz}
+\wavefiguremark
 
 Thus, we must have
 \[
@@ -749,6 +755,7 @@ wave modes which can occur between the lines
 $\sigma=(gD_2)^{1/2}\ell$ and $\sigma=(gD_1)^{1/2}\ell$.
 
 \input{figures/ch05-p116-edge-wave-dispersion.tikz}
+\wavefiguremark
 
 Each mode has its own `dispersion relation'. For large $\ell$,
 $k_1\simeq(n\pi+\pi/2)/L$, i.e. the elevation profile looks like that sketched above
@@ -772,6 +779,7 @@ ocean waves. The cross-shelf structure looks like
 % Source printed page 117 / source physical page 22
 % -----------------------------------------------------------------------------
 \input{figures/ch05-p117-forced-shelf-profile.tikz}
+\wavefiguremark
 
 Now we must have
 \[
@@ -824,6 +832,7 @@ These are the so-called quarter-wave resonances or, in the present context,
 the cross-shelf direction, but they have a node in elevation at the shelf break.
 
 \input{figures/ch05-p118-coastal-seiche-modes.tikz}
+\wavefiguremark
 
 If they were forced by a wind stress, however, they would damp out rather quickly
 because of the loss of energy to the deep ocean. They are, therefore, sometimes called
@@ -843,9 +852,9 @@ which is analogous to the previous equations for the non-rotating case.
 
 In the infinite domain, a plane wave has the form $\eta=e^{ikx+i\ell y}$ which gives
 the dispersion relation
-\[
+\begin{waveequation}
  \sigma^2=gD(k^2+\ell^2)+f^2.
-\]
+\end{waveequation}
 These are long gravity waves modified by rotation, and are sometimes called
 \emph{Sverdrup waves}. If we orient the axes so that the $x$ direction is along the
 total wavenumber, then
@@ -866,6 +875,7 @@ wavenumber vector, but are ellipses rotating in the clockwise direction in the n
 hemisphere. The ratio of major to minor axes is $\sigma/f$.
 
 \input{figures/ch05-p119-particle-motion.tikz}
+\wavefiguremark
 
 Rotation makes the waves dispersive with
 \[
@@ -881,11 +891,11 @@ at $\sigma=f$ towards an upper limit given by the non-rotating, shallow water
 dispersion relation. If $\sigma\ll f$, then we can neglect $\sigma$ with respect to $f$.
 The time variation is so small that the system is quasi-steady. If
 $\partial/\partial t\sim0$, then the equations of motion become
-\[
+\begin{waveequation}
  -fv=-g\eta_x
  \ ;\qquad
  fu=-g\eta_y
-\]
+\end{waveequation}
 which represents steady, geostrophic motion. If $\sigma=f$, then from
 $\sigma^2-f^2=0$ it follows that $k=0$ and $\ell=0$, so we have
 \[
@@ -921,13 +931,13 @@ may have different amplitudes. We write
  \eta=a_i e^{ikx+i\ell y}+a_r e^{-ikx+i\ell y}
 \]
 which satisfies the boundary condition provided that
-\[
+\begin{waveequation}
  -i\sigma(ika_i-ika_r)+f(i\ell a_i+i\ell a_r)=0
-\]
+\end{waveequation}
 from which
-\[
+\begin{waveequation}
  \boxed{\frac{a_r}{a_i}=\frac{\sigma k+i f\ell}{\sigma k-i f\ell}}.
-\]
+\end{waveequation}
 The typeset source has the fraction inverted; a handwritten correction on the source
 page gives the expression above, which also follows directly from the boundary
 condition. See \texttt{ERRATA.md}.
@@ -955,11 +965,11 @@ basically a gravity wave modified by rotation. It has the peculiar property that
 velocity normal to the wall is identically zero \emph{everywhere}, not just at the wall.
 Let's consider the wall at $x=0$ as before. The Kelvin wave has $u\equiv0$ which reduces
 the equations of motion to
-\begin{align*}
+\begin{wavealign}
  -fv&=-g\eta_x,
  &v_t&=-g\eta_y,\\
  \eta_t+Dv_y&=0.
-\end{align*}
+\end{wavealign}
 The velocity along the wall, $v$, is in geostrophic balance while the $y$ momentum
 equation gives the acceleration along the wall. Physically, this means that the pressure
 gradient along the wall created by the sea-level fluctuation produces an acceleration
@@ -976,9 +986,9 @@ Choosing
  \eta=a(x)e^{i\ell y}
 \]
 where $a(x)$ is still of unknown form, the dispersion relation is
-\[
+\begin{waveequation}
  \sigma^2=gD\ell^2
-\]
+\end{waveequation}
 which is identical to the gravity wave dispersion relation in the \emph{absence} of
 rotation! The function $a(x)$ is found by combining the two momentum equations to find
 \[
@@ -1023,6 +1033,7 @@ Consider an infinitely long channel in the $x$ direction with sides at $y=0$, $y
 % Source printed page 123 / source physical page 28
 % -----------------------------------------------------------------------------
 \input{figures/ch05-p123-waveguide-channel.tikz}
+\wavefiguremark
 
 We seek to determine the kinds of waves which may propagate subject to $v=0$ at
 $y=0,a$. We must solve
@@ -1040,9 +1051,9 @@ Look for solutions of the form
  \right).
 \]
 This satisfies the field equation if
-\[
+\begin{waveequation}
  k^2=\frac{\sigma^2-f^2}{gD}-\left(\frac{m\pi}{a}\right)^2.
-\]
+\end{waveequation}
 The boundary conditions are
 \begin{multline*}
  i\sigma\frac{m\pi}{a}
@@ -1093,7 +1104,8 @@ standing wave, but rather to motion in which the wave crests appear to rotate ab
 % Intentionally edited raster; native source image deskewed as documented in FIGURES.md.
 \par\smallskip
 \begin{center}
-  \includegraphics[width=0.78\linewidth]{figures/ch05-p124-amphidromic-pattern.png}%
+  \includegraphics[width=0.78\linewidth]{figures/ch05-p124-amphidromic-pattern.png}
+\wavefiguremark%
 \end{center}
 \smallskip
 
@@ -1112,6 +1124,7 @@ The case of a channel closed at one end is interesting, for we see how Kelvin wa
 reflected.
 
 \input{figures/ch05-p125-closed-channel.tikz}
+\wavefiguremark
 
 The idea is to have an incident plus an outgoing Kelvin wave. Nowhere is $u=0$ for
 such a combination although $v=0$ everywhere. We now include an infinite series of
@@ -1146,7 +1159,8 @@ like
 % Intentionally edited raster; native source image deskewed as documented in FIGURES.md.
 \par\smallskip
 \begin{center}
-  \includegraphics[width=0.62\linewidth]{figures/ch05-p126-kelvin-turning-corner.png}%
+  \includegraphics[width=0.62\linewidth]{figures/ch05-p126-kelvin-turning-corner.png}
+\wavefiguremark%
 \end{center}
 \smallskip
 
@@ -1205,11 +1219,11 @@ constant everywhere except where it is differentiated with respect to $y$.
 
 Before launching into the new wave types, consider momentarily the shallow water
 equations with variable depth
-\[
+\begin{waveequation}
  u_t-fv=-g\eta_x
  \ ;\qquad
  v_t+fu=-g\eta_y.
-\]
+\end{waveequation}
 
 \sourcepagebreak
 
@@ -1222,14 +1236,14 @@ equations with variable depth
 We can form a vorticity equation by differentiating the $x$ momentum equation with
 respect to $y$ and subtracting this from the derivative of the $y$ momentum equation
 with respect to $x$.
-\[
+\begin{waveequation}
  (v_x-u_y)_t=-\beta v+\frac{f}{D}\vec u\cdot\nabla D+\frac{f}{D}\eta_t.
-\]
+\end{waveequation}
 Take, for example, $D=e^{-By/f}$, i.e. depth decreasing toward the north. Then the
 vorticity equation becomes
-\[
+\begin{waveequation}
  (v_x-u_y)_t=-\beta v-Bv+\frac{f}{D}\eta_t.
-\]
+\end{waveequation}
 This immediately shows that a variable relief which decreases toward the north has the
 same dynamical effect on the motion as the variation of rotation with latitude. Thus,
 the type of planetary motions we shall now study will have an analogous counterpart
@@ -1247,9 +1261,9 @@ nondivergent ocean.
  u_x+v_y&=0.
 \end{align*}
 The vorticity equation is
-\[
+\begin{waveequation}
  (v_x-u_y)_t+\beta v=0.
-\]
+\end{waveequation}
 The local rate of change of the relative vorticity balances the change in planetary
 vorticity. Since the flow is nondivergent, we can introduce a streamfunction
 \[
@@ -1272,9 +1286,9 @@ This has a plane wave solution of
  \psi=e^{-i\sigma t+ikx+i\ell y}
 \]
 with the dispersion relation
-\[
+\begin{waveequation}
  \sigma=-\frac{\beta k}{k^2+\ell^2}.
-\]
+\end{waveequation}
 This can be rewritten as
 \[
  \left(k+\frac{\beta}{2\sigma}\right)^2+\ell^2
@@ -1283,6 +1297,7 @@ This can be rewritten as
 which is easy to plot on the $(k,\ell)$ plane.
 
 \input{figures/ch05-p129-rossby-dispersion.tikz}
+\wavefiguremark
 
 The allowed loci of wavenumbers $(k,\ell)$ form circles in the $(k,\ell)$ plane with
 the center at $(-\beta/2\sigma,0)$ and with radius $\beta/2\sigma$. If $\ell=0$, then
@@ -1304,18 +1319,19 @@ These waves are called \emph{Rossby waves}.
 The physical mechanism which makes Rossby waves propagate westward is most easily seen
 for nearly zonal waves $\partial/\partial y\ll\partial/\partial x$. Then the vorticity
 equation is simply
-\[
+\begin{waveequation}
  (v_x)_t+\beta v=0.
-\]
+\end{waveequation}
 North-south motions $v$ result in changes in the local vorticity. When the north-south
 motion is periodic in $x$, then the additional north-south motion generated by the
 vorticity resulting from the initial pattern combines with this pattern to shift it
 westward.
 
 \input{figures/ch05-p130-rossby-mechanism.tikz}
+\wavefiguremark
 
 The group velocity components are
-\begin{align*}
+\begin{wavealign}
  c_{gx}=\frac{\partial\sigma}{\partial k}
  &=-\frac{\beta}{K^2}+\frac{2\beta k^2}{K^4}
  =\frac{\beta(-K^2\sin^2\gamma+K^2\cos^2\gamma)}{K^4}
@@ -1323,12 +1339,12 @@ The group velocity components are
  c_{gy}=\frac{\partial\sigma}{\partial\ell}
  &=\frac{2\beta k\ell}{K^4}
  =-\frac{\beta\sin(2\gamma)}{K^2},
-\end{align*}
+\end{wavealign}
 so the total group velocity vector is
-\[
+\begin{waveequation}
  \vec c_g=\frac{\beta}{K^2}
  [\hat i\cos(2\gamma)-\hat j\sin(2\gamma)].
-\]
+\end{waveequation}
 The situation is as depicted in the dispersion diagram. That is,
 \[
  \vec c_g
@@ -1376,18 +1392,18 @@ Combining these into a single equation yields
  \eta_t-\frac{g\beta D}{f^2}\eta_x=0.
 \]
 This is a simple first order wave equation which has the general solution
-\[
+\begin{waveequation}
  \eta=F\left(x+\frac{g\beta D}{f^2}t\right)
-\]
+\end{waveequation}
 where $F$ is any function. Thus, a sea-surface elevation of any shape will propagate
 unaltered in this dynamical system. Looking for a plane wave solution of the form
 \[
  \eta=e^{-i\sigma t+ikx+i\ell y}
 \]
 we find the dispersion relation
-\[
+\begin{waveequation}
  \sigma=-\frac{g\beta D}{f^2}k.
-\]
+\end{waveequation}
 
 \sourcepagebreak
 
@@ -1395,19 +1411,20 @@ we find the dispersion relation
 % Source printed page 132 / source physical page 37
 % -----------------------------------------------------------------------------
 The phase speed is again westward
-\[
+\begin{waveequation}
  c=-g\beta D/f^2
-\]
+\end{waveequation}
 and the group velocity is
-\[
+\begin{waveequation}
  \vec c_g=\hat i c_{gx}=\hat i\frac{\partial\sigma}{\partial k}
  =-\frac{g\beta D}{f^2}\hat i.
-\]
+\end{waveequation}
 These waves are divergent, nondispersive planetary waves in contrast to the previous
 Rossby waves which are nondivergent but dispersive. The north-south wavenumber is
 arbitrary and the dispersion relation on the $(k,\ell)$ plane is
 
 \input{figures/ch05-p132-divergent-dispersion.tikz}
+\wavefiguremark
 
 The locus of acceptable wavenumbers forms a straight line.
 
@@ -1416,6 +1433,7 @@ different from that for Rossby waves. Remember that the flow is totally geostrop
 but divergent. Consider a region of high pressure
 
 \input{figures/ch05-p132-pressure-high.tikz}
+\wavefiguremark
 
 The flow at A converges because the transport (geostrophic) between a pair of isobars
 south of $H$ is greater than that between the same pair north of $H$ because $f$ varies.
@@ -1447,11 +1465,11 @@ equations to form a single equation for $v$ in this case.
 Notice that the first two terms are the same as those in the nondivergent Rossby wave
 balance. Now $f$ is not really constant, but we consider it fixed in order to look for
 plane wave solutions $v=e^{ikx+i\ell y}$. The dispersion relation is
-\[
+\begin{waveequation}
  \left(k+\frac{\beta}{2\sigma}\right)^2+\ell^2
  =\left(\frac{\beta}{2\sigma}\right)^2
   +\frac{\sigma^2-f^2}{gD}
-\]
+\end{waveequation}
 which can be drawn on the $(k,\ell)$ plane as
 
 \sourcepagebreak
@@ -1465,20 +1483,20 @@ which can be drawn on the $(k,\ell)$ plane as
 Notice the following limits
 
 \noindent a) $\sigma\ll f$ and $k,\ell$ small. The dispersion relation becomes
-\[
+\begin{waveequation}
  \beta k/\sigma+f^2/gD\simeq0
  \quad\Rightarrow\quad
  \sigma=-\frac{g\beta D}{f^2}k.
-\]
+\end{waveequation}
 This is the limit of geostrophic, divergent long waves.
 
 \noindent b) $\sigma\ll f$ and $k$ large, $\ell$ arbitrary. The dispersion relation
 becomes
-\[
+\begin{waveequation}
  (k^2+\ell^2)+\beta k/\sigma\simeq0
  \quad\Rightarrow\quad
  \sigma=-\frac{\beta k}{k^2+\ell^2}.
-\]
+\end{waveequation}
 This is the limit of ageostrophic, nondivergent short Rossby waves.
 
 Notice that for the waves to exist, the radius of the circle must be positive
@@ -1523,10 +1541,10 @@ linearized dynamics on the $\beta$-plane are very simplified and the dynamics of
 low frequency motions may need a more complete treatment.
 
 The dispersion relation is usually written (for $\sigma\ll f$) as
-\[
+\begin{waveequation}
  \sigma=-\frac{\beta k}
  {k^2+\ell^2+f^2/gD}.
-\]
+\end{waveequation}
 
 \sourcepagebreak
 
@@ -1680,11 +1698,11 @@ $\beta$-plane in which the variation in rotation is small compared to the basic
 rotation, i.e. $\beta y<f_0$. The dynamics change considerably if we go to the
 equatorial region where $f_0\to0$. Then we can approximate $f$ by $\beta y$ and
 ignore $f_0$. The equations of motion become
-\begin{align*}
+\begin{wavealign}
  u_t-\beta yv&=-g\eta_x,
  &v_t+\beta yu&=-g\eta_y,\\
  \eta_t+D(u_x+v_y)&=0.
-\end{align*}
+\end{wavealign}
 This is called the \emph{equatorial $\beta$-plane} because we have approximated the
 sphere by a plane tangent to the equator. If we assume time dependence of
 $e^{-i\sigma t}$ and solve for $v$ as we did for the mid-latitude planetary waves, we
@@ -1712,9 +1730,9 @@ The equation for $v$ becomes
  \right)v=0
 \]
 with boundary conditions of
-\[
+\begin{waveequation}
  \lim_{y\to\pm\infty}v=0
-\]
+\end{waveequation}
 to preserve internal consistency in the equatorial approximation, since we cannot move
 to regions where $f$ becomes large.
 
@@ -1742,11 +1760,11 @@ The solutions are
  H_m\!\left[\beta^{1/2}y/(gD)^{1/4}\right]
 \]
 with a dispersion relation of
-\[
+\begin{waveequation}
  \frac{(gD)^{1/2}}{\beta}
  \left(\frac{\sigma^2}{gD}-k^2-\frac{\beta k}{\sigma}\right)
  =2m+1.
-\]
+\end{waveequation}
 The $H_m$ are the Hermite polynomials
 \[
  H_0=1;\qquad H_1=2\xi;\qquad H_2=-2+4\xi^2\ldots
@@ -1771,18 +1789,18 @@ To explore the possible wave solutions, we make the following transformations
 \]
 where $\omega$ is the dimensionless frequency and $\lambda$ is the dimensionless
 east-west wavenumber. The dispersion relation becomes
-\[
+\begin{waveequation}
  \omega^2-\lambda^2-\lambda/\omega=2m+1.
-\]
+\end{waveequation}
 This is a cubic in $\omega$. For given mode number $m$ and wavenumber $k$, three
 frequencies are generally specified. To see their connection with previous work,
 consider the following limiting cases.
 
 \noindent a) Limit of short waves $\lambda\to\pm\infty$ with high frequency
 $\omega\to\infty$. Then $\lambda/\omega$ is constant and the dispersion relation is
-\[
+\begin{waveequation}
  \omega^2=\lambda^2+2m+1
-\]
+\end{waveequation}
 
 \sourcepagebreak
 
@@ -1799,25 +1817,25 @@ $\sigma\to\infty$. They are trapped at the equator and move eastward and westwar
 
 \noindent b) Limit of short waves $\lambda\to\pm\infty$ with low frequency
 $\omega\to0$. The dispersion relation becomes
-\[
+\begin{waveequation}
  \omega=-1/\lambda
-\]
+\end{waveequation}
 which, in dimensional form, is
-\[
+\begin{waveequation}
  \sigma=-\beta/k.
-\]
+\end{waveequation}
 This is the Rossby wave limiting case of the dispersion relation for short planetary
 waves which are trapped at the equator and move energy eastward.
 
 \noindent c) Limit of long waves $\lambda\to0$ with low frequency $\omega\to0$.
 The dispersion relation becomes
-\[
+\begin{waveequation}
  \omega=-\frac{\lambda}{2m+1}
-\]
+\end{waveequation}
 which, in dimensional form, is
-\[
+\begin{waveequation}
  \sigma=-\frac{(gD)^{1/2}k}{2m+1}.
-\]
+\end{waveequation}
 These are Rossby wave modes with long wavelengths which asymptotically approach the
 previous Rossby wave limiting case as the wavelength decreases. The above cases are
 the limiting forms of the three roots for $m\ge1$ which exist for the general
@@ -1826,9 +1844,9 @@ waves plus a westward (phase) planetary wave solution.
 
 \noindent d) For the case $m=0$, we have the \emph{Yanai} or mixed gravity-Rossby wave
 solution. We can write the dispersion relation as
-\[
+\begin{waveequation}
  (\lambda+\omega)[\lambda-(\omega-1/\omega)]=0.
-\]
+\end{waveequation}
 
 % -----------------------------------------------------------------------------
 % Source printed page 144 / source physical page 49
@@ -1867,9 +1885,9 @@ i.e. $e^{ikx}$, we find a solution of the form
 Notice that these waves exist only if $k>0$ to satisfy the requirement of decaying away
 from the equator. They are trapped at the equator and move only eastward. Substituting
 the solution into the continuity equation gives a dispersion relation of
-\[
+\begin{waveequation}
  \sigma=(gD)^{1/2}k.
-\]
+\end{waveequation}
 
 \sourcepagebreak
 
@@ -1909,10 +1927,10 @@ for $v$
 \]
 Then the dispersion relation becomes (provided $v_0$ varies slowly so that $v_{0yy}$ is
 always small)
-\[
+\begin{waveequation}
  \ell^2(y)=\frac{\sigma^2}{gD}-k^2-\frac{\beta k}{\sigma}
  -\frac{\beta^2y^2}{gD}.
-\]
+\end{waveequation}
 Now the ray path is defined by
 \[
  \frac{dy}{dx}=\frac{\ell}{k}
@@ -1957,11 +1975,11 @@ refracted by the varying $f=\beta y$, which models the curvature of the earth.
 
 We can find the trapping latitudes $\pm y_T$ where the rays are totally reflected. They
 are simply the maxima of $y$
-\[
+\begin{waveequation}
  \boxed{
  \pm y_T=\pm\frac{(gD)^{1/2}k}{\beta}\tan\theta_0
  }.
-\]
+\end{waveequation}
 The source denotes this quantity by $\theta_T$ even though the right-hand side and the
 following bounds are in the meridional distance coordinate $y$; see
 \texttt{ERRATA.md}.

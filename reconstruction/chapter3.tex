@@ -85,9 +85,9 @@ calling $z=\eta$ an interface.
 The interface is massless. In the absence of surface tension, therefore, it
 supports no pressure differences across it. The appropriate \emph{dynamical} boundary
 condition is
-\[
+\begin{waveequation}
  p(x,y,\eta,t)=p_{\rm atmosphere}.
-\]
+\end{waveequation}
 To write this in terms of $\phi,\eta$ return to
 \[
  \vec u_t+(\vec u\cdot\nabla)\vec u=-\nabla p/\rho-g\hat k.
@@ -166,17 +166,17 @@ $\phi=Ae^{-i\sigma t+ikx}Z(z)$. The interior equation gives
 $-k^2Z+Z_{zz}=0$ which has the solutions $Z(z)=e^{\pm kz}$. The linear combination of these
 that satisfies the bottom boundary condition is $Z(z)=\cosh k(z+D)$. The free surface
 conditions may be combined into
-\[
+\begin{waveequation}
  \phi_{tt}+g\phi_z=0\qquad\text{at}\qquad z=0.
-\]
+\end{waveequation}
 The solution
-\[
+\begin{waveequation}
  \phi=Ae^{-i\sigma t+ikx}\cosh k(z+D)
-\]
+\end{waveequation}
 satisfies this provided
-\[
+\begin{waveequation}
  \sigma^2=gk\tanh kD
-\]
+\end{waveequation}
 which is the dispersion relation.
 
 % Vector reconstruction; source PDF ChapmanRizzoli3.pdf, physical page 7, trim=225bp 250bp 225bp 475bp.
@@ -479,9 +479,9 @@ Therefore
  \phi=\phi_0(x,y,t)-(z+1)^2\delta^2(\phi_{0xx}+\phi_{0yy})/2.
 \]
 This expression is now substituted into the surface boundary conditions to obtain
-\[
+\begin{waveequation}
  \phi_{0t}+\frac12(\phi_{0x}^2+\phi_{0y}^2)+O(\delta^2)+\eta=0.
-\]
+\end{waveequation}
 
 \setcounter{page}{50}
 
@@ -838,6 +838,7 @@ For
 \centering
 \includegraphics[page=22,trim=410bp 95bp 45bp 580bp,clip,width=\linewidth]
  {../source/ChapmanRizzoli3.pdf}
+\wavefiguremark
 \end{minipage}
 
 \sourcepagebreak
@@ -851,7 +852,7 @@ we find that
 \]
 so that the total energy is $\overline E=\frac12\rho ga^2$. Finally, after some algebra, the energy flux can
 be written
-\begin{align*}
+\begin{wavealign}
  \overline{Eflux}
  &=\int_{-D}^{0}\overline{up}\,dz\\
  &=\frac12\rho ga^2
@@ -859,7 +860,7 @@ be written
  \frac{\sigma}{2k}
  \left(1+\frac{2kD}{\sinh2kD}\right)\\
  &=\overline E\,\frac{\partial\sigma}{\partial k}.
-\end{align*}
+\end{wavealign}
 That is
 \[
  \overline{Eflux}=\overline E\,\vec c_g.
@@ -934,20 +935,20 @@ and noting that $P_t+UP_x+VP_y+WP_z=0$, we arrive at
 \]
 Finally $w^*=u^*D_x+v^*D_y$ at $z=-D$, which becomes $w=0$ at $z=-D$. If we assume
 a plane wave solution $\eta=ae^{-i\sigma t+ikx+i\ell y}$ etc. then we obtain a dispersion relation of
-\[
+\begin{waveequation}
  \sigma=kU+\ell V+
  \left[g(k^2+\ell^2)^{1/2}\tanh D(k^2+\ell^2)^{1/2}\right]^{1/2}
-\]
+\end{waveequation}
 which is simply that for surface gravity waves but Doppler shifted by the background
 current.
 
 Using this dispersion relation, the ray theory recipe says that we can carry the
 slow space and time variation of $U$ and $D$ parametrically to find
 $N=\Omega(\vec k;x,y,t)$ or
-\[
+\begin{waveequation}
  \sigma=\vec k\cdot\vec U(x,y,t)
  +[g|\vec k|\tanh|\vec k|D(x,y,t)]^{1/2}.
-\]
+\end{waveequation}
 We may write this as $\sigma=\vec k\cdot\vec U+\sigma'$ where
 $\sigma'=(g|\vec k|\tanh|\vec k|D)^{1/2}$ is the frequency seen
 by an observer moving at $\vec U$. Then

@@ -75,6 +75,12 @@ PDF_ONLY_RE = re.compile(
     r"\\begin\{wavepdfonly\}.*?\\end\{wavepdfonly\}",
     re.S,
 )
+WAVE_NUMBERED_RE = re.compile(
+    r"\\begin\{(?P<env>waveequation|wavealign)\}(?P<body>.*?)"
+    r"\\end\{(?P=env)\}",
+    re.S,
+)
+FIGURE_MARK_RE = re.compile(r"\\wavefiguremark")
 
 
 def run(cmd: list[str], *, cwd: Path | None = None, quiet: bool = True) -> None:
@@ -227,7 +233,7 @@ def prepare_vector_assets() -> None:
         raise SystemExit(f"{len(failures)} TikZ figure render(s) failed")
 
 
-def transform_tex(text: str) -> str:
+def transform_tex(text: str, chapter_number: int | None = None) -> str:
     # Keep the PDF cover out of flowing outputs while preserving the web title
     # block used by HTML/README and the EPUB interior title page.
     text = PDF_ONLY_RE.sub("", text)
@@ -249,14 +255,14 @@ def transform_tex(text: str) -> str:
     text = SIGNATURE_RE.sub(signature_sub, text)
 
     def vector_sub(m: re.Match[str]) -> str:
-        return rf"\includegraphics{{assets/figures/{m.group('stem')}.svg}}"
+        return rf"\includegraphics{{assets/figures/{m.group('stem')}.svg}}" + "\n\\wavefiguremark"
 
     text = VECTOR_RE.sub(vector_sub, text)
     text = TIKZ_INPUT_RE.sub(lambda m: rf"\includegraphics{{assets/figures/{m.group('stem')}.svg}}", text)
 
     def source_sub(m: re.Match[str]) -> str:
         rel = source_crop(m.group("pdf"), int(m.group("page")), m.group("trim"))
-        return rf"\includegraphics{{{rel}}}"
+        return rf"\includegraphics{{{rel}}}" + "\n\\wavefiguremark"
 
     text = SOURCEART_RE.sub(source_sub, text)
 
@@ -271,6 +277,42 @@ def transform_tex(text: str) -> str:
     text = LOCAL_RASTER_RE.sub(
         lambda m: rf"\includegraphics{{assets/figures/{m.group('name')}}}", text
     )
+
+    if chapter_number is None:
+        # Front matter has no numbered body figures/equations.
+        text = WAVE_NUMBERED_RE.sub(lambda m: rf"\[{m.group('body')}\]", text)
+        return FIGURE_MARK_RE.sub("", text)
+
+    equation_number = 0
+    def numbered_equation_sub(m: re.Match[str]) -> str:
+        nonlocal equation_number
+        equation_number += 1
+        body = m.group("body").strip()
+        if m.group("env") == "wavealign":
+            body = r"\begin{aligned}" + body + r"\end{aligned}"
+        label = f"({chapter_number}.{equation_number})"
+        return (
+            "\\[\n" + body + "\n\\]\n"
+            "\\begin{flushright}\n\\textit{" + label + "}\n\\end{flushright}"
+        )
+
+    text = WAVE_NUMBERED_RE.sub(numbered_equation_sub, text)
+
+    figure_number = 0
+    def figure_mark_sub(_: re.Match[str]) -> str:
+        nonlocal figure_number
+        figure_number += 1
+        return (
+            "\\begin{center}\n"
+            f"\\textit{{Figure {chapter_number}.{figure_number}}}\n"
+            "\\end{center}"
+        )
+
+    text = FIGURE_MARK_RE.sub(figure_mark_sub, text)
+    if figure_number != {1:7, 2:10, 3:12, 4:30, 5:31, 6:14}[chapter_number]:
+        raise SystemExit(
+            f"chapter {chapter_number}: expected canonical figure count, got {figure_number}"
+        )
     return text
 
 
@@ -395,6 +437,8 @@ def main() -> int:
 body { max-width: 72rem; margin: 0 auto; padding: 1.5rem 2rem 4rem; line-height: 1.58; font-family: Georgia, 'Times New Roman', serif; }
 h1,h2,h3,nav { font-family: system-ui, sans-serif; }
 main { min-width: 0; }
+div.center { text-align: center; }
+div.flushright { text-align: right; margin-top: -0.85em; }
 .skip-link { position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
 .skip-link:focus { left: 1rem; top: 1rem; width: auto; height: auto; z-index: 1000; padding: .5rem .75rem; background: white; color: black; border: 2px solid currentColor; }
 .book-nav { margin: 0 0 2rem; padding: .75rem 0; border-bottom: 1px solid #bbb; }
@@ -415,7 +459,7 @@ a { overflow-wrap: anywhere; }
     build_index(temp)
     for i in range(1, 7):
         src = temp / f"chapter{i}.tex"
-        src.write_text(transform_tex((RECON / f"chapter{i}.tex").read_text()))
+        src.write_text(transform_tex((RECON / f"chapter{i}.tex").read_text(), chapter_number=i))
         page = OUT / f"chapter{i}.html"
         pandoc_page(src, page, f"Wave Motions in the Ocean — Chapter {i}")
         inject_css_and_nav(page, make_nav(i))
