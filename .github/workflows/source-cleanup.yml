@@ -2,20 +2,20 @@
 name: One-time source cleanup
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - .github/workflows/source-cleanup.yml
+  issues:
+    types: [opened]
 
 permissions:
   contents: write
 
 jobs:
   cleanup:
+    if: github.event.issue.title == '[internal] one-time source cleanup'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
 
       - name: Normalize errata and source comments
@@ -25,17 +25,15 @@ jobs:
           import re
 
           root = Path("reconstruction")
-
-          # Normalize the remaining migrated audit notes into the ERRATA schema and
-          # place them with the chapters/pages they describe.
           errata_path = root / "ERRATA.md"
           errata = errata_path.read_text()
           migrated_heading = "## Migrated audit notes still requiring explicit schema normalization"
-          if migrated_heading not in errata:
-              raise SystemExit("migrated audit-note section not found")
-          errata = errata.split(migrated_heading, 1)[0].rstrip() + "\n"
 
-          ch2 = r'''### Printed page 19 - adiabatic entropy derivative
+          if migrated_heading in errata:
+              errata = errata.split(migrated_heading, 1)[0].rstrip() + "\n"
+
+              entries = {
+                  "## Chapter 2\n\n": r'''### Printed page 19 - adiabatic entropy derivative
 
 - **Category:** `equation`
 - **Status:** `accepted`
@@ -53,13 +51,8 @@ jobs:
 - **Reconstruction:** "infinitesimal"
 - **Reason/evidence:** Straightforward spelling correction; no scientific meaning is changed.
 
-'''
-          anchor = "## Chapter 2\n\n"
-          if anchor not in errata:
-              raise SystemExit("Chapter 2 ERRATA anchor missing")
-          errata = errata.replace(anchor, anchor + ch2, 1)
-
-          ch3 = r'''### Printed page 54 - shorthand late-time envelope
+''',
+                  "## Chapter 3\n\n": r'''### Printed page 54 - shorthand late-time envelope
 
 - **Category:** `editorial`
 - **Status:** `accepted`
@@ -68,13 +61,8 @@ jobs:
 - **Reconstruction:** The late-time envelope is stated as $O(t)$ growth rather than as a literal equality to $t$.
 - **Reason/evidence:** The source notation is dimensional shorthand for the asymptotic envelope scaling. Writing the growth as $O(t)$ preserves that intended statement without asserting the dimensionally incomplete equality $\eta=t$.
 
-'''
-          anchor = "## Chapter 3\n\n"
-          if anchor not in errata:
-              raise SystemExit("Chapter 3 ERRATA anchor missing")
-          errata = errata.replace(anchor, anchor + ch3, 1)
-
-          ch4 = r'''### Printed page 68 - "f-plane approrimation"
+''',
+                  "## Chapter 4\n\n": r'''### Printed page 68 - "f-plane approrimation"
 
 - **Category:** `typographical`
 - **Status:** `accepted`
@@ -92,13 +80,8 @@ jobs:
 - **Reconstruction:** $\rho_0 w_{zt}=p_{xx}$
 - **Reason/evidence:** Reinspection of the high-resolution historical scan shows $\rho_0 w_{zt}=p_{xx}$. The earlier $w_{xtt}$ reading was a transcription error, not a source erratum.
 
-'''
-          anchor = "## Chapter 4\n\n"
-          if anchor not in errata:
-              raise SystemExit("Chapter 4 ERRATA anchor missing")
-          errata = errata.replace(anchor, anchor + ch4, 1)
-
-          ch5 = r'''### Printed page 102 - "Bousinesq"
+''',
+                  "## Chapter 5\n\n": r'''### Printed page 102 - "Bousinesq"
 
 - **Category:** `typographical`
 - **Status:** `accepted`
@@ -107,28 +90,57 @@ jobs:
 - **Reconstruction:** "Boussinesq"
 - **Reason/evidence:** Straightforward spelling correction of the standard Boussinesq approximation name; no scientific meaning is changed.
 
-'''
-          anchor = "## Chapter 5\n\n"
-          if anchor not in errata:
-              raise SystemExit("Chapter 5 ERRATA anchor missing")
-          errata = errata.replace(anchor, anchor + ch5, 1)
-          errata_path.write_text(errata)
+''',
+              }
+              for anchor, addition in entries.items():
+                  if anchor not in errata:
+                      raise SystemExit(f"ERRATA anchor missing: {anchor!r}")
+                  errata = errata.replace(anchor, anchor + addition, 1)
+              errata_path.write_text(errata)
 
-          # The chapter files were assembled from page-range fragments. Remove those
-          # obsolete assembly headers and retain one concise, current provenance header
-          # per canonical chapter. Source-page boundary comments remain untouched.
+          # Remove obsolete headers from the page-range fragments that were merged into
+          # each canonical chapter. Keep source-page boundary comments and current
+          # figure provenance comments.
           merged_block = re.compile(
               r"(?m)^% ===== merged from [^\n]+ =====\n(?:%[^\n]*\n)+\n"
           )
+          stale_comment = re.compile(
+              r"merged from|chapter0[1-6]-p\d|CHAPTER\d+_AUDIT\.md|"
+              r"FIGURE_AUDIT\.md|verification\.tsv|pre-merge",
+              re.I,
+          )
+
           for number in range(1, 7):
               path = root / f"chapter{number}.tex"
               text = path.read_text()
               authority = re.search(r"^% Source authority: ([^,\n]+\.pdf)", text, re.M)
-              source_pdf = authority.group(1) if authority else "historical source scan"
+              source_pdf = authority.group(1) if authority else None
               text, removed = merged_block.subn("", text)
-              if removed == 0:
-                  raise SystemExit(f"no obsolete merged-source headers found in {path}")
-              text = text.lstrip("\n")
+
+              # Drop any isolated stale comment that was not part of a former fragment header.
+              lines = [
+                  line for line in text.splitlines()
+                  if not (line.lstrip().startswith("%") and stale_comment.search(line))
+              ]
+              text = "\n".join(lines).lstrip("\n") + "\n"
+
+              # Replace any old top-level provenance header with one concise current header.
+              text = re.sub(
+                  r"\A(?:% Wave Motions in the Ocean: Myrl's [Vv]iew\n"
+                  r"(?:%[^\n]*\n){0,6}\n?)?",
+                  "",
+                  text,
+              )
+              if source_pdf is None:
+                  # Current source mapping if the old authority header was already removed.
+                  source_pdf = {
+                      1: "ChapmanRizzoli0_2.pdf",
+                      2: "ChapmanRizzoli0_2.pdf",
+                      3: "ChapmanRizzoli3.pdf",
+                      4: "ChapmanRizzoli4.pdf",
+                      5: "ChapmanRizzoli5.pdf",
+                      6: "ChapmanRizzoli6.pdf",
+                  }[number]
               header = (
                   "% Wave Motions in the Ocean: Myrl's View\n"
                   f"% Chapter {number}; historical source: source/{source_pdf}.\n"
@@ -138,28 +150,25 @@ jobs:
               path.write_text(header + text)
               print(f"{path}: removed {removed} obsolete fragment header(s)")
 
-          # No canonical TeX source should retain names of retired fragment/audit files.
-          stale = re.compile(
-              r"merged from|chapter0[1-6]-p\d|CHAPTER\d+_AUDIT\.md|"
-              r"FIGURE_AUDIT\.md|verification\.tsv|pre-merge",
-              re.I,
-          )
+          # Final guard: retired fragment/audit names must not remain in canonical TeX.
           failures = []
           for path in sorted(root.rglob("*.tex")):
               for lineno, line in enumerate(path.read_text().splitlines(), 1):
-                  if stale.search(line):
+                  if stale_comment.search(line):
                       failures.append(f"{path}:{lineno}: {line}")
           if failures:
-              raise SystemExit("stale TeX-source comments remain:\n" + "\n".join(failures))
+              raise SystemExit("stale TeX-source references remain:\n" + "\n".join(failures))
           PY
 
-      - name: Check and commit cleanup
+      - name: Commit cleanup
         run: |
           git diff --check
-          git diff -- reconstruction/ERRATA.md reconstruction/chapter1.tex reconstruction/chapter2.tex reconstruction/chapter3.tex reconstruction/chapter4.tex reconstruction/chapter5.tex reconstruction/chapter6.tex
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add reconstruction/ERRATA.md reconstruction/chapter*.tex
-          git diff --cached --quiet && { echo "No cleanup changes produced"; exit 1; }
+          if git diff --cached --quiet; then
+            echo "No cleanup changes produced"
+            exit 0
+          fi
           git commit -m "Normalize errata and clean reconstruction comments"
-          git push
+          git push origin HEAD:main
