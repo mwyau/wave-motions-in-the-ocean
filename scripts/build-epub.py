@@ -131,6 +131,7 @@ def write_metadata() -> Path:
         "rights: \"CC BY-NC-SA 4.0\"\n"
         "identifier: \"https://mwyau.github.io/wave-motions-in-the-ocean/\"\n"
         f"contributor: \"{EDITOR}\"\n"
+        "reference-section-title: \"References\"\n"
         "---\n"
     )
     return path
