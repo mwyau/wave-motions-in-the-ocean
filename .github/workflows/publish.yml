@@ -6,7 +6,11 @@ on:
     tags:
       - "v[0-9]*.[0-9]*.[0-9]*"
     paths:
-      - "reconstruction/**"
+      - "reconstruction/*.tex"
+      - "reconstruction/*.bib"
+      - "reconstruction/styles/**"
+      - "reconstruction/figures/**"
+      - "source/**"
       - "scripts/**"
       - ".python-version"
       - "requirements.txt"
@@ -35,6 +39,30 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v7.0.1
 
+      - name: Verify release tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="$GITHUB_REF_NAME"
+          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release blocked: tag must be a stable semantic version such as v1.0.0; got $tag." >&2
+            exit 1
+          fi
+
+          status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$GITHUB_SHA...main" --jq .status)
+          case "$status" in
+            identical|ahead)
+              echo "Release tag $tag points to a commit reachable from main ($status)."
+              ;;
+            *)
+              echo "Release blocked: tag commit $GITHUB_SHA is not reachable from main (compare status: $status)." >&2
+              exit 1
+              ;;
+          esac
+
       - name: Set up uv
         uses: astral-sh/setup-uv@v9.0.0
         with:
@@ -57,7 +85,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo -E apt-get install -y --no-install-recommends \
-            qpdf poppler-utils imagemagick ghostscript pandoc librsvg2-bin texinfo xz-utils
+            qpdf poppler-utils pandoc xz-utils
 
       - name: Cache TinyTeX
         id: tinytex-cache
@@ -165,7 +193,7 @@ jobs:
           path: dist/
           if-no-files-found: error
           retention-days: 14
-          compression-level: 6
+          compression-level: 1
 
       # GitHub Pages is temporarily disabled while the repository is private.
       - name: Configure Pages
@@ -182,6 +210,9 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: ubuntu-26.04
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
     permissions:
       actions: read
       contents: write
@@ -201,12 +232,56 @@ jobs:
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
           set -euo pipefail
           tag="$GITHUB_REF_NAME"
-          assets=(release/wave-motions.pdf release/wave-motions-facsimile.pdf release/wave-motions.epub release/wave-motions-html.zip release/SHA256SUMS)
-          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$tag" "${assets[@]}" --clobber --repo "$GITHUB_REPOSITORY"
+          release_names=(
+            wave-motions.pdf
+            wave-motions-facsimile.pdf
+            wave-motions.epub
+            wave-motions-html.zip
+          )
+          assets=(
+            release/wave-motions.pdf
+            release/wave-motions-facsimile.pdf
+            release/wave-motions.epub
+            release/wave-motions-html.zip
+            release/SHA256SUMS
+          )
+          expected_assets=$(printf '%s\n' "${release_names[@]}" SHA256SUMS | sort)
+
+          if is_draft=$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft 2>/dev/null); then
+            actual_assets=$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" \
+              --json assets --jq '.assets[].name' | sort)
+
+            if [[ "$is_draft" == "true" ]]; then
+              while IFS= read -r name; do
+                [[ -z "$name" ]] && continue
+                if ! grep -Fxq "$name" <<< "$expected_assets"; then
+                  echo "Draft release $tag contains unexpected asset $name; refusing to publish it." >&2
+                  exit 1
+                fi
+              done <<< "$actual_assets"
+
+              echo "Resuming draft release $tag."
+              gh release upload "$tag" "${assets[@]}" --clobber --repo "$GITHUB_REPOSITORY"
+              gh release edit "$tag" --draft=false --repo "$GITHUB_REPOSITORY"
+            else
+              if [[ "$actual_assets" != "$expected_assets" ]]; then
+                echo "Release $tag is already published with a different asset set; refusing to mutate it." >&2
+                exit 1
+              fi
+
+              verify_dir=$(mktemp -d)
+              gh release download "$tag" --repo "$GITHUB_REPOSITORY" --dir "$verify_dir"
+              python3 scripts/checksums.py --root "$verify_dir" --check "${release_names[@]}"
+              if ! cmp -s release/SHA256SUMS "$verify_dir/SHA256SUMS"; then
+                echo "Release $tag is already published with a different checksum manifest; refusing to mutate it." >&2
+                exit 1
+              fi
+              echo "Release $tag is already published with the expected assets; leaving it unchanged."
+            fi
           else
             gh release create "$tag" "${assets[@]}" \
               --repo "$GITHUB_REPOSITORY" \
