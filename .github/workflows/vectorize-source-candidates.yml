@@ -1,0 +1,364 @@
+name: One-time source figure vectorization
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  vectorize:
+    if: github.event.head_commit.message == 'Run source figure vectorization task'
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Check out current main
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Configure Git
+        shell: bash
+        run: |
+          git config user.name 'wave-motions-figure-audit'
+          git config user.email '5298134+mwyau@users.noreply.github.com'
+
+      - name: Reconstruct first Chapter 2 batch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git rebase origin/main
+
+          cat > reconstruction/figures/ch02-p023-waveguide-boundary-problem.tikz <<'EOF'
+          % wave-source: pdf=ChapmanRizzoli0_2.pdf; page=33; trim=100bp 420bp 90bp 95bp
+          % Source: Wave Motions in the Ocean, printed p.23 (physical p.33).
+          % Equation-constrained waveguide boundary-value problem.  The two horizontal walls
+          % are z=0 and z=-D; p_z=0 is imposed at each wall and the acoustic wave equation
+          % holds in the interior.  Geometry is schematic; the boundary conditions are exact.
+          \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+            \def\xl{0.65}
+            \def\xr{9.15}
+            \def\yt{3.15}
+            \def\yb{0.45}
+            \draw[line width=1.05pt] (\xl,\yt) -- (\xr,\yt);
+            \draw[line width=0.35pt] (\xl,\yt-0.09) -- (\xr,\yt-0.09);
+            \draw[line width=1.05pt] (\xl,\yb) -- (\xr,\yb);
+            \draw[line width=0.35pt] (\xl,\yb+0.09) -- (\xr,\yb+0.09);
+            \node[anchor=east] at (\xl-0.12,\yt) {$z=0$};
+            \node[anchor=east] at (\xl-0.12,\yb) {$z=-D$};
+            \coordinate (T) at (5.25,\yt);
+            \coordinate (B) at (5.25,\yb);
+            \draw[->,line width=0.55pt] (5.90,3.88) -- (T);
+            \node[anchor=west] at (5.95,3.88) {$p_z=0$};
+            \draw[->,line width=0.55pt] (5.90,-0.25) -- (B);
+            \node[anchor=west] at (5.95,-0.25) {$p_z=0$};
+            \node at (4.90,1.80) {$p_{tt}-c_0^2\nabla^2p=0$};
+          \end{tikzpicture}
+          EOF
+
+          cat > reconstruction/figures/ch02-p024-waveguide-dispersion.tikz <<'EOF'
+          % wave-source: pdf=ChapmanRizzoli0_2.pdf; page=34; trim=145bp 125bp 170bp 455bp
+          % Source: Wave Motions in the Ocean, printed p.24 (physical p.34).
+          % Equation-defined redraw using normalized variables K=(k^2+l^2)^{1/2}D/pi and
+          % S=sigma D/(pi c_0), for which S_n=sqrt(K^2+n^2).  The n=0 branch is linear;
+          % n=1,2 have cutoffs at S=1,2 and approach parallel slope asymptotically.
+          \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+            \draw[->,line width=0.65pt] (0.7,0.55) -- (7.65,0.55) node[below left=1pt] {$(k^2+\ell^2)^{1/2}$};
+            \draw[->,line width=0.65pt] (0.7,0.55) -- (0.7,4.75) node[left=2pt] {$\sigma$};
+            \draw[line width=0.80pt,domain=0:5.2,samples=80,smooth,variable=\x]
+              plot ({0.7+1.22*\x},{0.55+0.70*sqrt(\x*\x)});
+            \draw[line width=0.80pt,domain=0:5.2,samples=80,smooth,variable=\x]
+              plot ({0.7+1.22*\x},{0.55+0.70*sqrt(\x*\x+1)});
+            \draw[line width=0.80pt,domain=0:5.2,samples=80,smooth,variable=\x]
+              plot ({0.7+1.22*\x},{0.55+0.70*sqrt(\x*\x+4)});
+            \node[anchor=west] at (2.70,0.95) {$n=0$};
+            \node[anchor=west] at (0.90,1.34) {$n=1$};
+            \node[anchor=west] at (0.90,2.03) {$n=2$};
+          \end{tikzpicture}
+          EOF
+
+          cat > reconstruction/figures/ch02-p026-interface-scattering.tikz <<'EOF'
+          % wave-source: pdf=ChapmanRizzoli0_2.pdf; page=36; trim=80bp 515bp 75bp 55bp
+          % Source: Wave Motions in the Ocean, printed p.26 (physical p.36).
+          % Equation-constrained acoustic scattering at a horizontal interface.  In each panel
+          % theta_R=theta_I exactly.  The displayed transmitted angle is chosen to satisfy
+          % sin(theta_I)/c_1=sin(theta_T)/c_2 for the display ratio c_2/c_1=1.25; this ratio
+          % is illustrative because the source specifies no numerical medium properties.
+          \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+            \def\thi{30}
+            \def\tht{38.682}
+            \coordinate (L) at (2.65,1.95);
+            \draw[line width=0.65pt] (0.45,1.95) -- (4.85,1.95);
+            \draw[line width=0.45pt] (2.65,0.15) -- (2.65,3.75);
+            \draw[->,line width=0.78pt] ($(L)+(240:2.05)$) -- (L);
+            \draw[->,line width=0.78pt] (L) -- ($(L)+(300:2.05)$);
+            \draw[->,line width=0.78pt] (L) -- ($(L)+(90-\tht:2.05)$);
+            \node[anchor=north east] at ($(L)+(240:2.10)$) {$p_I$};
+            \node[anchor=north west] at ($(L)+(300:2.10)$) {$p_R$};
+            \node[anchor=south west] at ($(L)+(90-\tht:2.10)$) {$p_T$};
+            \node[anchor=west] at (3.25,2.55) {$\rho_2,c_2$};
+            \node[anchor=west] at (3.25,1.35) {$\rho_1,c_1$};
+            \node[anchor=west] at (4.90,1.95) {$z=0$};
+            \draw[line width=0.40pt] ($(L)+(240:0.73)$) arc[start angle=240,end angle=270,radius=0.73];
+            \draw[line width=0.40pt] ($(L)+(270:0.73)$) arc[start angle=270,end angle=300,radius=0.73];
+            \draw[line width=0.40pt] ($(L)+(90:0.75)$) arc[start angle=90,end angle=90-\tht,radius=0.75];
+            \node at ($(L)+(255:1.02)$) {$\theta_I$};
+            \node at ($(L)+(285:1.02)$) {$\theta_R$};
+            \node at ($(L)+(70:1.03)$) {$\theta_T$};
+            \coordinate (R) at (8.20,1.95);
+            \draw[line width=0.65pt] (6.00,1.95) -- (10.40,1.95);
+            \draw[line width=0.45pt] (8.20,0.15) -- (8.20,3.75);
+            \draw[->,line width=0.78pt] ($(R)+(120:2.05)$) -- (R);
+            \draw[->,line width=0.78pt] (R) -- ($(R)+(60:2.05)$);
+            \draw[->,line width=0.78pt] (R) -- ($(R)+(270+\tht:2.05)$);
+            \node[anchor=south east] at ($(R)+(120:2.10)$) {$p_I$};
+            \node[anchor=south west] at ($(R)+(60:2.10)$) {$p_R$};
+            \node[anchor=north west] at ($(R)+(270+\tht:2.10)$) {$p_T$};
+            \node[anchor=west] at (8.85,2.55) {$\rho_1,c_1$};
+            \node[anchor=west] at (8.85,1.35) {$\rho_2,c_2$};
+            \node[anchor=east] at (5.95,1.95) {$z=0$};
+            \draw[line width=0.40pt] ($(R)+(90:0.73)$) arc[start angle=90,end angle=120,radius=0.73];
+            \draw[line width=0.40pt] ($(R)+(60:0.73)$) arc[start angle=60,end angle=90,radius=0.73];
+            \draw[line width=0.40pt] ($(R)+(270:0.75)$) arc[start angle=270,end angle=270+\tht,radius=0.75];
+            \node at ($(R)+(105:1.02)$) {$\theta_I$};
+            \node at ($(R)+(75:1.02)$) {$\theta_R$};
+            \node at ($(R)+(290:1.03)$) {$\theta_T$};
+          \end{tikzpicture}
+          EOF
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          chapter = Path('reconstruction/chapter2.tex')
+          text = chapter.read_text()
+          replacements = [
+              (r'\sourceart[0.70]{ChapmanRizzoli0_2.pdf}{33}{100bp 420bp 90bp 95bp}',
+               r'% Vector reconstruction; source PDF ChapmanRizzoli0_2.pdf, physical page 33, trim=100bp 420bp 90bp 95bp.\n\wavevectorart[0.70]{ch02-p023-waveguide-boundary-problem}'),
+              (r'\sourceart[0.46]{ChapmanRizzoli0_2.pdf}{34}{145bp 125bp 170bp 455bp}',
+               r'% Vector reconstruction; source PDF ChapmanRizzoli0_2.pdf, physical page 34, trim=145bp 125bp 170bp 455bp.\n\wavevectorart[0.58]{ch02-p024-waveguide-dispersion}'),
+              (r'\sourceart[0.84]{ChapmanRizzoli0_2.pdf}{36}{80bp 515bp 75bp 55bp}',
+               r'% Vector reconstruction; source PDF ChapmanRizzoli0_2.pdf, physical page 36, trim=80bp 515bp 75bp 55bp.\n\wavevectorart[0.84]{ch02-p026-interface-scattering}'),
+          ]
+          for old, new in replacements:
+              if old not in text:
+                  raise SystemExit(f'missing chapter anchor: {old}')
+              text = text.replace(old, new, 1)
+          chapter.write_text(text)
+
+          ledger = Path('reconstruction/FIGURES.md')
+          text = ledger.read_text()
+          anchor = '| `ch02-p022-specular-reflection.tikz` | 22 | **vector-complete** | **Pending** | Boundary normal is exactly perpendicular to the wall and incident/reflected `k` are exact mirrors, enforcing equal angles. |'
+          rows = [
+              '| `ch02-p023-waveguide-boundary-problem.tikz` | 23 | **vector-complete** | **Validated** | The channel walls are at `z=0,-D` with `p_z=0`; independently substituting `P=cos(n pi z/D)` gives zero normal derivative at both walls for integer `n` and satisfies the separated acoustic field equation. Wall thickness is schematic. |',
+              '| `ch02-p024-waveguide-dispersion.tikz` | 24 | **vector-complete** | **Validated** | Branches are generated from normalized `S_n=sqrt(K^2+n^2)`. Independent evaluation confirms the `n=0` linear branch, `n=1,2` cutoffs at `S=1,2`, branch ordering, and common large-`K` slope. |',
+              '| `ch02-p026-interface-scattering.tikz` | 26 | **vector-complete** | **Validated** | Incident/reflected rays are exact mirrors about the interface normal. For the declared illustrative ratio `c_2/c_1=1.25`, the transmitted angle is independently calculated from Snell’s law; ray lengths remain schematic. |',
+          ]
+          if rows[0] not in text:
+              if anchor not in text:
+                  raise SystemExit('missing Chapter 2 ledger insertion anchor')
+              text = text.replace(anchor, anchor + '\n' + '\n'.join(rows), 1)
+          for page, physical in [(23,33),(24,34),(26,36)]:
+              pat = rf'^\| 2 \| {page} \| `ChapmanRizzoli0_2\.pdf` \| {physical} \|.*\n'
+              text, n = re.subn(pat, '', text, count=1, flags=re.M)
+              if n != 1:
+                  raise SystemExit(f'expected one direct-placement row for Chapter 2 p.{page}, found {n}')
+
+          def refresh_counts(s: str) -> str:
+              states = ('Validated', 'Partial', 'Pending', 'N/A')
+              counts = {state: sum(1 for line in s.splitlines() if line.startswith('|') and f'**{state}**' in line) for state in states}
+              total = sum(counts.values())
+              repl = (f'Current snapshot across the {total} tracked body/front-matter assets and direct source placements: '
+                      f'**{counts["Validated"]} Validated, {counts["Partial"]} Partial, '
+                      f'{counts["Pending"]} Pending, {counts["N/A"]} N/A**.')
+              s, n = re.subn(r'Current snapshot across the \d+ tracked body/front-matter assets and direct source placements: \*\*\d+ Validated, \d+ Partial, \d+ Pending, \d+ N/A\*\*\.', repl, s, count=1)
+              if n != 1:
+                  raise SystemExit('could not refresh equation-validation snapshot')
+              sec = s.split('## Direct source-PDF crop placements — complete inventory', 1)[1].split('## Sizing and acceptance rules', 1)[0]
+              direct = sum(1 for line in sec.splitlines() if re.match(r'^\| [1-6] \|', line))
+              s, n = re.subn(r'These \d+ placements are real figures', f'These {direct} placements are real figures', s, count=1)
+              if n != 1:
+                  raise SystemExit('could not refresh direct-placement count')
+              return s
+
+          ledger.write_text(refresh_counts(text))
+          PY
+
+          git diff --check
+          git add -- reconstruction/chapter2.tex reconstruction/FIGURES.md \
+            reconstruction/figures/ch02-p023-waveguide-boundary-problem.tikz \
+            reconstruction/figures/ch02-p024-waveguide-dispersion.tikz \
+            reconstruction/figures/ch02-p026-interface-scattering.tikz
+          git diff --cached --stat
+          git commit -m 'Reconstruct Chapter 2 waveguide and interface figures'
+          git push origin HEAD:main
+
+      - name: Reconstruct second Chapter 2 batch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git rebase origin/main
+
+          cat > reconstruction/figures/ch02-p028-total-internal-reflection.tikz <<'EOF'
+          % wave-source: pdf=ChapmanRizzoli0_2.pdf; page=38; trim=80bp 95bp 75bp 535bp
+          % Source: Wave Motions in the Ocean, printed p.28 (physical p.38).
+          % Equation-defined total-internal-reflection sequence.  For the illustrative ratio
+          % c_1/c_2=0.75, theta_Ic=asin(0.75)=48.590 deg.  The subcritical panel uses
+          % theta_I=32 deg and theta_T=asin[(c_2/c_1)sin(theta_I)]=44.956 deg; the critical
+          % transmitted ray is tangent to the interface, and the supercritical panel has no
+          % propagating transmitted ray.  Reflection satisfies theta_R=theta_I throughout.
+          \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+            \def\thsub{32}
+            \def\thtrans{44.956}
+            \def\thcrit{48.590}
+            \def\thsup{60}
+            \coordinate (A) at (2.15,2.05);
+            \draw[line width=0.60pt] (0.35,2.05) -- (3.95,2.05);
+            \draw[line width=0.40pt] (2.15,0.25) -- (2.15,3.65);
+            \draw[->,line width=0.78pt] ($(A)+(270-\thsub:1.85)$) -- (A);
+            \draw[->,line width=0.78pt] (A) -- ($(A)+(270+\thsub:1.85)$);
+            \draw[->,line width=0.78pt] (A) -- ($(A)+(90-\thtrans:1.85)$);
+            \node[anchor=north east] at ($(A)+(270-\thsub:1.90)$) {$p_I$};
+            \node[anchor=north west] at ($(A)+(270+\thsub:1.90)$) {$p_R$};
+            \node[anchor=south west] at ($(A)+(90-\thtrans:1.90)$) {$p_T$};
+            \draw[line width=0.40pt] ($(A)+(270:0.68)$) arc[start angle=270,end angle=270-\thsub,radius=0.68];
+            \node at ($(A)+(252:0.96)$) {$\theta_I$};
+            \node at (2.15,0.02) {$\theta_I<\theta_{Ic}$};
+            \coordinate (B) at (6.15,2.05);
+            \draw[line width=0.60pt] (4.35,2.05) -- (7.95,2.05);
+            \draw[line width=0.40pt] (6.15,0.25) -- (6.15,3.65);
+            \draw[->,line width=0.78pt] ($(B)+(270-\thcrit:1.85)$) -- (B);
+            \draw[->,line width=0.78pt] (B) -- ($(B)+(270+\thcrit:1.85)$);
+            \draw[->,line width=0.78pt] (B) -- ++(1.70,0);
+            \node[anchor=north east] at ($(B)+(270-\thcrit:1.90)$) {$p_I$};
+            \node[anchor=north west] at ($(B)+(270+\thcrit:1.90)$) {$p_R$};
+            \node[anchor=south] at ($(B)+(1.35,0.12)$) {$p_T$};
+            \node at (6.15,0.02) {$\theta_I=\theta_{Ic}$};
+            \coordinate (C) at (10.15,2.05);
+            \draw[line width=0.60pt] (8.35,2.05) -- (11.95,2.05);
+            \draw[line width=0.40pt] (10.15,0.25) -- (10.15,3.65);
+            \draw[->,line width=0.78pt] ($(C)+(270-\thsup:1.85)$) -- (C);
+            \draw[->,line width=0.78pt] (C) -- ($(C)+(270+\thsup:1.85)$);
+            \node[anchor=north east] at ($(C)+(270-\thsup:1.90)$) {$p_I$};
+            \node[anchor=north west] at ($(C)+(270+\thsup:1.90)$) {$p_R$};
+            \node at (10.15,0.02) {$\theta_I>\theta_{Ic}$};
+          \end{tikzpicture}
+          EOF
+
+          cat > reconstruction/figures/ch02-p032-forced-source-jump.tikz <<'EOF'
+          % wave-source: pdf=ChapmanRizzoli0_2.pdf; page=42; trim=90bp 485bp 80bp 90bp
+          % Source: Wave Motions in the Ocean, printed p.32 (physical p.42).
+          % Equation-constrained redraw of a delta-forced one-dimensional acoustic source.
+          % Integrating p_tt-c^2 p_xx=c^2 delta(x) q_t(t) across x=0 gives exactly
+          % p_x^R(0,t)-p_x^L(0,t)=-q_t(t), while each side satisfies the homogeneous wave equation.
+          \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+            \draw[->,line width=0.68pt] (0.55,1.82) -- (10.20,1.82) node[right] {$x$};
+            \fill (5.25,1.82) circle (1.7pt);
+            \node[below=3pt] at (5.25,1.82) {$x=0$};
+            \node[align=center] at (2.65,1.15) {$p^L_{tt}-c^2p^L_{xx}=0$};
+            \node[align=center] at (7.85,1.15) {$p^R_{tt}-c^2p^R_{xx}=0$};
+            \draw[line width=0.50pt] (3.30,3.12) .. controls (4.10,3.00) and (4.80,2.78) .. (5.25,2.15);
+            \draw[line width=0.50pt] (7.20,3.12) .. controls (6.40,3.00) and (5.70,2.78) .. (5.25,2.15);
+            \node[align=center] at (5.25,3.35) {$p_x^R(0,t)-p_x^L(0,t)=-q_t(t)$};
+          \end{tikzpicture}
+          EOF
+
+          cat > reconstruction/figures/ch02-p036-sound-ray-turning.tikz <<'EOF'
+          % wave-source: pdf=ChapmanRizzoli0_2.pdf; page=46; trim=80bp 250bp 70bp 465bp
+          % Source: Wave Motions in the Ocean, printed p.36 (physical p.46).
+          % Equation-constrained ray-theory redraw for c increasing upward.  k is constant,
+          % m decreases as the ray rises, and the plotted ray is generated from
+          % dz/dx=m/k=sqrt[sigma^2/(c(z)^2 k^2)-1] with a linear c(z).  Display parameters
+          % are normalized (u=c k/sigma from 0.55 toward 1); the turning limit m->0 gives
+          % a horizontal tangent.  Numeric values are illustrative, not source measurements.
+          \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+            \draw[->,line width=0.60pt] (0.45,0.45) -- (0.45,3.15) node[above] {$z$};
+            \draw[->,line width=0.60pt] (0.45,3.15) -- (3.00,3.15) node[right] {$c$};
+            \draw[line width=0.80pt] (0.92,0.72) -- (2.28,2.78);
+            \draw[->,line width=0.60pt] (3.55,3.15) -- (6.85,3.15) node[right] {$t$};
+            \draw[line width=0.55pt] (3.55,0.45) -- (3.55,3.15);
+            \draw[line width=0.55pt] (5.25,0.45) -- (5.25,3.15);
+            \draw[->,line width=0.75pt] (3.55,1.65) -- ++(0.82,1.05);
+            \draw[->,line width=0.75pt] (5.25,1.65) -- ++(0.82,0.66);
+            \node[anchor=south] at (4.20,2.67) {$k_0$};
+            \node[anchor=south] at (5.93,2.31) {$k_0$};
+            \node[anchor=east] at (3.48,1.88) {$m_0$};
+            \node[anchor=east] at (5.18,1.82) {$m_1$};
+            \draw[->,line width=0.60pt] (7.55,0.45) -- (7.55,3.15);
+            \draw[->,line width=0.60pt] (7.55,3.15) -- (11.55,3.15) node[right] {$x$};
+            \draw[->,line width=0.88pt,domain=0.55:0.985,samples=90,smooth,variable=\u]
+              plot ({7.65 + 3.55*(sqrt(1-0.55*0.55)-sqrt(1-\u*\u))/sqrt(1-0.55*0.55)},
+                    {0.75 + 2.10*(\u-0.55)/(0.985-0.55)});
+            \node[anchor=west] at (8.12,1.48) {\textit{ray path}};
+          \end{tikzpicture}
+          EOF
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          chapter = Path('reconstruction/chapter2.tex')
+          text = chapter.read_text()
+          replacements = [
+              (r'\sourceart[0.82]{ChapmanRizzoli0_2.pdf}{38}{80bp 95bp 75bp 535bp}',
+               r'% Vector reconstruction; source PDF ChapmanRizzoli0_2.pdf, physical page 38, trim=80bp 95bp 75bp 535bp.\n\wavevectorart[0.82]{ch02-p028-total-internal-reflection}'),
+              (r'\sourceart[0.78]{ChapmanRizzoli0_2.pdf}{42}{90bp 485bp 80bp 90bp}',
+               r'% Vector reconstruction; source PDF ChapmanRizzoli0_2.pdf, physical page 42, trim=90bp 485bp 80bp 90bp.\n\wavevectorart[0.78]{ch02-p032-forced-source-jump}'),
+              (r'\sourceart[0.82]{ChapmanRizzoli0_2.pdf}{46}{80bp 250bp 70bp 465bp}',
+               r'% Vector reconstruction; source PDF ChapmanRizzoli0_2.pdf, physical page 46, trim=80bp 250bp 70bp 465bp.\n\wavevectorart[0.82]{ch02-p036-sound-ray-turning}'),
+          ]
+          for old, new in replacements:
+              if old not in text:
+                  raise SystemExit(f'missing chapter anchor: {old}')
+              text = text.replace(old, new, 1)
+          chapter.write_text(text)
+
+          ledger = Path('reconstruction/FIGURES.md')
+          text = ledger.read_text()
+          anchor = '| `ch02-p026-interface-scattering.tikz` | 26 | **vector-complete** | **Validated** | Incident/reflected rays are exact mirrors about the interface normal. For the declared illustrative ratio `c_2/c_1=1.25`, the transmitted angle is independently calculated from Snell’s law; ray lengths remain schematic. |'
+          rows = [
+              '| `ch02-p028-total-internal-reflection.tikz` | 28 | **vector-complete** | **Validated** | With the declared illustrative `c_1/c_2=0.75`, independent calculation gives `theta_Ic=48.590 deg`; the subcritical transmitted ray satisfies Snell’s law, the critical ray is tangent to the interface, and the supercritical panel has no propagating transmitted ray. |',
+              '| `ch02-p032-forced-source-jump.tikz` | 32 | **vector-complete** | **Validated** | Independently integrating the delta-forced one-dimensional wave equation across `x=0` gives `p_x^R-p_x^L=-q_t`; each side obeys the homogeneous acoustic wave equation. |',
+              '| `ch02-p036-sound-ray-turning.tikz` | 36 | **vector-complete** | **Validated** | For `c(z)` increasing upward, `k` remains fixed while `m` decreases. The ray is generated from `dz/dx=m/k=sqrt(sigma^2/(c^2 k^2)-1)` and independently checked to approach a horizontal tangent as `m` tends to zero; normalized display values are schematic. |',
+          ]
+          if rows[0] not in text:
+              if anchor not in text:
+                  raise SystemExit('missing second Chapter 2 ledger insertion anchor')
+              text = text.replace(anchor, anchor + '\n' + '\n'.join(rows), 1)
+          for page, physical in [(28,38),(32,42),(36,46)]:
+              pat = rf'^\| 2 \| {page} \| `ChapmanRizzoli0_2\.pdf` \| {physical} \|.*\n'
+              text, n = re.subn(pat, '', text, count=1, flags=re.M)
+              if n != 1:
+                  raise SystemExit(f'expected one direct-placement row for Chapter 2 p.{page}, found {n}')
+
+          def refresh_counts(s: str) -> str:
+              states = ('Validated', 'Partial', 'Pending', 'N/A')
+              counts = {state: sum(1 for line in s.splitlines() if line.startswith('|') and f'**{state}**' in line) for state in states}
+              total = sum(counts.values())
+              repl = (f'Current snapshot across the {total} tracked body/front-matter assets and direct source placements: '
+                      f'**{counts["Validated"]} Validated, {counts["Partial"]} Partial, '
+                      f'{counts["Pending"]} Pending, {counts["N/A"]} N/A**.')
+              s, n = re.subn(r'Current snapshot across the \d+ tracked body/front-matter assets and direct source placements: \*\*\d+ Validated, \d+ Partial, \d+ Pending, \d+ N/A\*\*\.', repl, s, count=1)
+              if n != 1:
+                  raise SystemExit('could not refresh equation-validation snapshot')
+              sec = s.split('## Direct source-PDF crop placements — complete inventory', 1)[1].split('## Sizing and acceptance rules', 1)[0]
+              direct = sum(1 for line in sec.splitlines() if re.match(r'^\| [1-6] \|', line))
+              s, n = re.subn(r'These \d+ placements are real figures', f'These {direct} placements are real figures', s, count=1)
+              if n != 1:
+                  raise SystemExit('could not refresh direct-placement count')
+              return s
+
+          ledger.write_text(refresh_counts(text))
+          PY
+
+          git diff --check
+          git add -- reconstruction/chapter2.tex reconstruction/FIGURES.md \
+            reconstruction/figures/ch02-p028-total-internal-reflection.tikz \
+            reconstruction/figures/ch02-p032-forced-source-jump.tikz \
+            reconstruction/figures/ch02-p036-sound-ray-turning.tikz
+          git diff --cached --stat
+          git commit -m 'Reconstruct Chapter 2 reflection and ray figures'
+          git push origin HEAD:main
