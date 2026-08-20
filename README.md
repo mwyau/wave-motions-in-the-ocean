@@ -70,8 +70,8 @@ $\ell$ was supremely unimportant to me. On the positive side, Myrl was absolutel
 best teacher I had in the various courses I took at Scripps. His lectures were always
 interesting, imaginative and full of physical insight. Looking back, I realize that a
 great deal of the important oceanographic concepts and ideas I learned over the years
-go back to my long association with Myrl as teacher, advisor, colleague and, last but not
-least, dear friend. I hope I absorbed from him some of the positive qualities too.
+go back to my long association with Myrl as teacher, advisor, colleague and, last but
+not least, dear friend. I hope I absorbed from him some of the positive qualities too.
 
 *Woods Hole — Paola Malanotte-Rizzoli, 1989*
 
