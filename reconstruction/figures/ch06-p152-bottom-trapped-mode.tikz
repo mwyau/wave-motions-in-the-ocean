@@ -1,0 +1,18 @@
+% wave-source: pdf=ChapmanRizzoli6.pdf; page=5; trim=175bp 145bp 185bp 470bp
+% Source: Wave Motions in the Ocean, printed p.152 (physical p.5).
+% Equation-generated vertical structure from p~cosh(mu z), -1<=z<=0, normalized
+% by cosh(mu) so the bottom amplitude is one. Display uses mu=2.3 only to show trapping.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
+  \def\mu{2.3}
+  \draw[->] (1.0,0.55)--(1.0,5.15) node[above] {$z$};
+  \draw[->] (0.75,4.55)--(7.7,4.55) node[right] {$p$};
+  \node[left] at (0.88,4.55) {$0$};
+  \node[left] at (0.88,0.85) {$-1$};
+  \draw[densely dashed] (1.0,0.85)--(7.1,0.85) node[right] {bottom};
+  \draw[densely dashed] (1.0,4.55)--(7.1,4.55) node[right] {surface};
+  \draw[line width=.95pt,domain=0:1,samples=120,smooth,variable=\s]
+    plot ({1.0+5.7*cosh(\mu*(1-\s))/cosh(\mu)},{0.85+3.70*\s});
+  \draw[<->] (6.7,0.85)--(6.7,4.55);
+  \node[anchor=west,align=left] at (6.85,2.65) {$p\propto\cosh(\mu z)$\\$\mu^2=S^2(n^2\pi^2+k^2)$};
+  \node[anchor=west] at (2.05,1.25) {bottom-trapped};
+\end{tikzpicture}
