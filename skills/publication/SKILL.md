@@ -157,7 +157,7 @@ After any reconstruction `.tex` change, regenerate the README before committing:
 python3 scripts/sync-views.py --readme
 ```
 
-Include any resulting README update with the source change. A full validation is `./scripts/build.sh all`.
+Include any resulting README update with the source change. A full local validation is `./scripts/build.sh all`. Canonical CI deliberately separates artifact generation from QA: `Build publication` uses `WAVE_SKIP_VALIDATION=1`, then runs the QA categories as explicit steps so development artifacts can still be produced when an audit check warns.
 
 ## Publish workflow
 
@@ -173,7 +173,7 @@ During periods of frequent direct pushes, do **not** cancel the active publicati
 
 An exact TinyTeX cache hit is a complete, pinned TeX environment for the matching TinyTeX version, runner OS, and `tex-packages.txt` hash. Skip `tlmgr update --self` and package installation on that exact hit. A cache miss or prefix restore must run dependency installation before building.
 
-CI should surface build/validation categories as separate named steps where practical so failures are visible without reading a monolithic log. Facsimile pagination drift is warning-only during active figure work; compilation, PDF integrity, destination collisions, content sentinels, render smoke checks, publish-root/download checks, build-identity checks, and checksum verification remain fatal.
+CI should surface build/validation categories as separate named steps where practical so findings are visible without reading a monolithic log. On ordinary `main`, pull-request, and manual builds, QA findings are **advisory**: README synchronization, EPUB accessibility/standards/math checks, PDF integrity/pagination/destination/text/render checks, publish-root checks, build-identity checks, and checksum verification may warn without failing the Build job. The build script may likewise retain a complete generated HTML set or nonempty EPUB when an embedded post-generation self-check reports an error during development CI. Missing/incomplete artifacts, dependency failures, LaTeX/Pandoc generation failures that do not produce the expected outputs, and checksum generation remain fatal. On stable `vX.Y.Z` tag builds, the same QA and embedded checks are strict, the facsimile must be exactly 184 pages, and the release gate is fatal.
 
 Build once and promote that exact validated output. Pages and GitHub Releases must consume the `wave-motions-editions` artifact from the successful Build job rather than rebuilding the book. A release tag must be an exact stable `vX.Y.Z` semantic version and its commit must be reachable from `main`; reject malformed or off-main tags before expensive environment setup. The release gate additionally requires the exact semantic version/commit build identity and exactly 184 facsimile pages. The release publishes `wave-motions.pdf`, `wave-motions-facsimile.pdf`, and `wave-motions.epub` as direct assets plus `wave-motions-html.zip` and `SHA256SUMS`. Do not manufacture short-SHA Git tags.
 
