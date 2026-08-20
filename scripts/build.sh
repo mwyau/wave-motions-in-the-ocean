@@ -99,6 +99,7 @@ prepare_html() {
 build_epub() {
   need pandoc
   python3 "$ROOT/scripts/build-epub.py"
+  python3 "$ROOT/scripts/set-epub-accessibility.py"
 }
 
 finish_html() {
