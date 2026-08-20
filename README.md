@@ -151,6 +151,7 @@ during the International School of Physics “Enrico Fermi,” Course LXXX,
    - [Wind-forced, long waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter6.html#wind-forced-long-waves)
 
 [References](https://mwyau.github.io/wave-motions-in-the-ocean/references.html)
+[Original online source](https://oxbow.sr.unh.edu/ChapmanRizzoli/Wave_Motions_in_the_Ocean.html)
 
 ## Downloads
 

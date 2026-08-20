@@ -51,6 +51,7 @@ The repository publishes four reader outputs from one corrected canonical body:
 - Use plain publication wording. Prefer `Digital edition by` to `Digital edition prepared by` and `original source scan` to `historical source scan`; avoid inflated editorial terminology when simpler wording is precise.
 - Preserve the established Lake Como photograph provenance/caption. Do not reintroduce unsupported attribution such as “Photograph by George.”
 - README and `index.html` must present the same front-matter/publication content apart from URL relativity, web controls, and README-only badges.
+- Link the historical UNH page `https://oxbow.sr.unh.edu/ChapmanRizzoli/Wave_Motions_in_the_Ocean.html` as **Original online source** in README and HTML only. Do not add that web-navigation link to either PDF or the EPUB unless the owner requests it.
 - Shared Downloads list **PDF**, **Facsimile PDF**, and **EPUB**.
 - HTML is the browser reading/preview experience. EPUB is published as a download; do not add an embedded EPUB reader unless explicitly requested.
 
@@ -76,6 +77,8 @@ Use the single interface:
 ```
 
 `build/` is temporary. `dist/` is the flat publish root and contains the HTML site plus `wave-motions.pdf`, `wave-motions-facsimile.pdf`, and `wave-motions.epub`. Generated outputs and comparison images are not committed.
+
+After every change to any reconstruction `.tex` source, run `python3 scripts/sync-views.py --readme` before committing. Include any resulting `README.md` update in the same commit; do not hand-maintain synchronized README content separately from its source.
 
 GitHub Pages deploys `dist/`. Keep production Pages deployment concurrency with `cancel-in-progress: false` so an active deployment is not interrupted by a newer push.
 

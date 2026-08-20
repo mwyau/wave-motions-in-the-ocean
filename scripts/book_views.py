@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 RECON = ROOT / "reconstruction"
 SITE_URL = "https://mwyau.github.io/wave-motions-in-the-ocean"
+ORIGINAL_SOURCE_URL = "https://oxbow.sr.unh.edu/ChapmanRizzoli/Wave_Motions_in_the_Ocean.html"
 LICENSE_URL = "https://creativecommons.org/licenses/by-nc-sa/4.0/"
 DOWNLOADS = (
     ("wave-motions.pdf", "PDF"),
@@ -117,7 +118,8 @@ def html_contents(*, downloads: tuple[tuple[str, str], ...] = DOWNLOADS) -> str:
     return (
         '<section class="book-toc"><h2>Contents</h2><ol>'
         + "".join(items)
-        + '</ol><p><a href="references.html">References</a></p>'
+        + '</ol><p><a href="references.html">References</a> · '
+        + f'<a href="{ORIGINAL_SOURCE_URL}">Original online source</a></p>'
         + download_html
         + "</section>"
     )
@@ -132,7 +134,16 @@ def markdown_contents() -> str:
             lines.append(
                 f"   - [{section}]({chapter_url}#{section_slug(section)})"
             )
-    lines.extend(["", f"[References]({SITE_URL}/references.html)", "", "## Downloads", ""])
+    lines.extend(
+        [
+            "",
+            f"[References]({SITE_URL}/references.html)",
+            f"[Original online source]({ORIGINAL_SOURCE_URL})",
+            "",
+            "## Downloads",
+            "",
+        ]
+    )
     for filename, label in DOWNLOADS:
         lines.append(f"- [{label}]({SITE_URL}/{filename})")
     return "\n".join(lines)
