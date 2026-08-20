@@ -1,0 +1,194 @@
+name: One-time vectorization completion gate
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.event.head_commit.message == 'Run final vectorization checks'
+    runs-on: ubuntu-26.04
+    env:
+      TINYTEX_VERSION: "2026.08"
+    steps:
+      - name: Check out current main
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Reconcile and apply final figure decisions
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'wave-motions-figure-audit'
+          git config user.email '5298134+mwyau@users.noreply.github.com'
+          git fetch origin main
+          git rebase origin/main
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          ch=Path('reconstruction/chapter6.tex')
+          text=ch.read_text()
+          bad=r'\n\wavevectorart'
+          n=text.count(bad)
+          if n:
+              text=text.replace(bad,'\n\\wavevectorart')
+          # All seven newly integrated Chapter 6 vectors must now be live inclusions.
+          stems=[
+            'ch06-p151-sloping-channel','ch06-p152-bottom-trapped-mode','ch06-p154-effective-slope',
+            'ch06-p157-continental-shelf','ch06-p159-shelf-root-condition',
+            'ch06-p167-mode-transition','ch06-p168-wind-forced-shelf',
+          ]
+          for stem in stems:
+              if f'\\wavevectorart' not in text or stem not in text:
+                  raise SystemExit(f'missing live Chapter 6 vector inclusion: {stem}')
+          if bad in text:
+              raise SystemExit('literal Chapter 6 vector newline escape remains')
+          ch.write_text(text)
+
+          ledger=Path('reconstruction/FIGURES.md')
+          fig=ledger.read_text()
+          p97=(
+            '| 5 | 97 | `ChapmanRizzoli5.pdf` | 2 | **N/A** | **source-pdf** — deliberately retained after full-page review. '
+            'The local `u/v/z` tangencies, latitude/longitude construction, point `P`, rotation axis, and `theta/phi` geometry are scientifically meaningful, '
+            'but the historical drawing’s viewing projection and hidden-line construction are not specified by the notes. A vector redraw would therefore require choosing projection details rather than deriving them. |'
+          )
+          pat=re.compile(r'^\| 5 \| 97 \| `ChapmanRizzoli5\.pdf` \| 2 \| .*$',re.M)
+          fig,n=pat.subn(p97,fig,count=1)
+          if n!=1 and p97 not in fig:
+              raise SystemExit('Chapter 5 p.97 direct-source row not found')
+          fig=fig.replace(
+            'Chapter 5 p.97 is a particularly important example: the sphere drawing was reviewed as a vector candidate and retained as source art because the local `u/v/z` tangencies, latitude/longitude circles, point `P`, rotation axis, and projected angle geometry are exactly the sort of subtle relationships that a cleaner redraw can accidentally change.',
+            'Chapter 5 p.97 is a particularly important example: the sphere drawing was reviewed at full-page scale and deliberately resolved as retained source art because its local `u/v/z` tangencies, latitude/longitude circles, point `P`, rotation axis, and projected angle geometry depend on a historical viewing projection that the notes do not define uniquely.'
+          )
+          sec=fig.split('## Direct source-PDF crop placements — complete inventory',1)[1].split('## Sizing and acceptance rules',1)[0]
+          candidates=[line for line in sec.splitlines() if line.startswith('| ') and 'vector-candidate' in line]
+          if candidates:
+              raise SystemExit('unresolved direct vector candidates remain: '+repr(candidates))
+          ledger.write_text(fig)
+          print(f'repaired {n} p.97 row; Chapter 6 escaped inclusions repaired={7 if bad not in text else 0}')
+          PY
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          version: "0.12.1"
+          enable-cache: true
+          cache-dependency-glob: requirements.txt
+
+      - name: Set up Python environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv python install "$(cat .python-version)"
+          uv venv --python "$(cat .python-version)"
+          uv pip sync requirements.txt
+          echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Install system tools
+        env:
+          NEEDRESTART_MODE: a
+        run: |
+          sudo apt-get update
+          sudo -E apt-get install -y --no-install-recommends \
+            qpdf poppler-utils imagemagick ghostscript pandoc librsvg2-bin texinfo xz-utils
+
+      - name: Cache TinyTeX
+        id: tinytex-cache
+        uses: actions/cache@v6.1.0
+        with:
+          path: ~/.TinyTeX
+          key: wave-motions-tinytex-2026.08-${{ runner.os }}-${{ hashFiles('tex-packages.txt') }}
+          restore-keys: |
+            wave-motions-tinytex-2026.08-${{ runner.os }}-
+
+      - name: Detect restored TinyTeX
+        id: tinytex-state
+        shell: bash
+        run: |
+          if [ -d "$HOME/.TinyTeX/bin" ] && find "$HOME/.TinyTeX/bin" -mindepth 1 -maxdepth 1 -type d | grep -q .; then
+            echo "installed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "installed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install TinyTeX if absent
+        if: steps.tinytex-state.outputs.installed != 'true'
+        uses: r-lib/actions/setup-tinytex@v2.12.1
+
+      - name: Add TinyTeX to PATH
+        shell: bash
+        run: |
+          set -euo pipefail
+          TEXBIN=$(find "$HOME/.TinyTeX/bin" -mindepth 1 -maxdepth 1 -type d | head -n 1)
+          test -n "$TEXBIN"
+          echo "$TEXBIN" >> "$GITHUB_PATH"
+          echo "TEXBIN=$TEXBIN" >> "$GITHUB_ENV"
+
+      - name: Install TeX dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="$TEXBIN:$PATH"
+          tlmgr update --self
+          mapfile -t PACKAGES < <(grep -Ev '^\s*(#|$)' tex-packages.txt)
+          tlmgr install "${PACKAGES[@]}"
+
+      - name: Synchronize and verify all affected figures
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/sync-views.py --readme
+          for stem in \
+            ch06-p151-sloping-channel ch06-p152-bottom-trapped-mode ch06-p154-effective-slope \
+            ch06-p157-continental-shelf ch06-p159-shelf-root-condition \
+            ch06-p167-mode-transition ch06-p168-wind-forced-shelf; do
+            python3 scripts/compare-figures.py "$stem"
+          done
+          git diff --check
+
+      - name: Build and validate all publication formats
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./scripts/build.sh all
+          test -s dist/index.html
+          test -s dist/wave-motions.pdf
+          test -s dist/wave-motions-facsimile.pdf
+          test -s dist/wave-motions.epub
+          pages=$(pdfinfo dist/wave-motions-facsimile.pdf | awk '/^Pages:/ {print $2}')
+          test "$pages" = 184
+          test ! -e build/comparisons-do-not-commit
+
+      - name: Commit reconciled completion state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- reconstruction/chapter6.tex reconstruction/FIGURES.md README.md
+          if ! git diff --cached --quiet; then
+            git commit -m 'Finalize source figure vectorization'
+          fi
+          git fetch origin main
+          if [ "$(git rev-parse origin/main)" != "$(git merge-base HEAD origin/main)" ]; then
+            git rebase origin/main
+            python3 scripts/sync-views.py --readme
+            ./scripts/build.sh all
+            pages=$(pdfinfo dist/wave-motions-facsimile.pdf | awk '/^Pages:/ {print $2}')
+            test "$pages" = 184
+          fi
+          git push origin HEAD:main
+
+      - name: Remove completion helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git rebase origin/main
+          git rm -- .github/workflows/finalize-vectorization.yml .github/finalize-vectorization-trigger.txt
+          git commit -m 'Remove vectorization completion helper'
+          git push origin HEAD:main
