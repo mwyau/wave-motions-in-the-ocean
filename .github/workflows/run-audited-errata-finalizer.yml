@@ -15,7 +15,6 @@ concurrency:
 
 jobs:
   finalize:
-    if: github.event.head_commit.message == 'Run audited source errata finalization'
     runs-on: ubuntu-26.04
     steps:
       - name: Check out newest main
@@ -28,8 +27,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y pandoc
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends pandoc
 
       - name: Apply reviewed issue 7 patch in checkpoints
         shell: bash
@@ -55,10 +54,63 @@ jobs:
           for attempt in $(seq 1 20); do
             git fetch origin main
             git reset --hard origin/main
+
+            # Fail closed if another session changed any #7-owned source/record base.
+            test "$(git hash-object reconstruction/chapter4.tex)" = da72ea0b34bb0fca3d51533baf5fc6a2405a5c62
+            test "$(git hash-object reconstruction/chapter5.tex)" = 16c2a70197c1b011719e9600a8ca66f12240bd80
+            test "$(git hash-object reconstruction/ERRATA.md)" = 8c2bba779f240556f9f6c6413938e0b8bc466be0
+            test "$(git hash-object reconstruction/PLAN.md)" = 63f2afc1fd0b414e3b525d7554e2af22e1a24c97
+
             python3 /tmp/apply_errata.py
 
-            # Issue #9 owns FIGURES.md reconciliation after #7 releases ERRATA.md.
+            # #9 owns FIGURES.md after #7 releases ERRATA.md.
             git restore -- reconstruction/FIGURES.md
+
+            # #14 numbered the local-dispersion and turning-point results before #7
+            # landed. Preserve those two existing numbering decisions after applying
+            # the older reviewed source patch.
+            python3 - <<'PY'
+            from pathlib import Path
+
+            path = Path('reconstruction/chapter5.tex')
+            text = path.read_text()
+
+            old = r'''\[
+             \ell^2(y)=\frac{\sigma^2}{c^2}-k^2-\frac{\beta k}{\sigma}
+             -\frac{\beta^2y^2}{c^2}.
+            \]'''
+            new = r'''\begin{waveequation}
+             \ell^2(y)=\frac{\sigma^2}{c^2}-k^2-\frac{\beta k}{\sigma}
+             -\frac{\beta^2y^2}{c^2}.
+            \end{waveequation}'''
+            if text.count(old) != 1:
+                raise SystemExit(f'numbered p146 dispersion anchor count: {text.count(old)}')
+            text = text.replace(old, new, 1)
+
+            old = r'''\[
+             \boxed{
+             y_T=\frac{c}{\beta}
+             \left(\frac{\sigma^2}{c^2}-k^2-\frac{\beta k}{\sigma}\right)^{1/2}
+             =\frac{c}{\beta}|k_*\tan\theta_0|
+             }.
+            \]'''
+            new = r'''\begin{waveequation}
+             \boxed{
+             y_T=\frac{c}{\beta}
+             \left(\frac{\sigma^2}{c^2}-k^2-\frac{\beta k}{\sigma}\right)^{1/2}
+             =\frac{c}{\beta}|k_*\tan\theta_0|
+             }.
+            \end{waveequation}'''
+            if text.count(old) != 1:
+                raise SystemExit(f'numbered p147 turning anchor count: {text.count(old)}')
+            path.write_text(text.replace(old, new, 1))
+            PY
+
+            # Byte-level gates against the locally reconstructed, reviewed numbered files.
+            test "$(git hash-object reconstruction/chapter4.tex)" = 603c50a5a83a61fc38280ff9ca03dc0b554ab03a
+            test "$(git hash-object reconstruction/chapter5.tex)" = 04538177bdf45e3ef16b41ae614f6e38247bea83
+            test "$(git hash-object reconstruction/ERRATA.md)" = b4c698dbad45b845bc922ea7f00403505dcda62a
+            test "$(git hash-object reconstruction/PLAN.md)" = 6c6d9c05e8615baab6ec6f634517d0d1ec138fea
 
             python3 scripts/sync-views.py --readme
             python3 scripts/sync-views.py --check-readme
@@ -71,7 +123,7 @@ jobs:
               git commit -m "Correct audited wave relations"
             fi
 
-            # Checkpoint 2: reviewed records and every #7-owned temporary helper.
+            # Checkpoint 2: records and every #7-owned temporary helper.
             rm -f \
               .github/workflows/finalize-errata-audit.yml \
               .github/workflows/run-finalize-errata-audit.yml \
@@ -117,11 +169,12 @@ jobs:
           echo "PUBLISH_RUN_ID=$run_id" >> "$GITHUB_ENV"
           gh run watch "$run_id" --exit-status
 
-      - name: Record completion and close issue 7
+      - name: Record completion and hand off
         if: success()
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          gh issue comment 7 --body "Completed #7 at $FINAL_SHA. Canonical Publish run $PUBLISH_RUN_ID passed. The scientific source corrections and ERRATA/PLAN cleanup were committed as separate checkpoints; all #7 temporary automation self-deleted, and FIGURES.md remained owned by #9."
+          gh issue comment 7 --body "Completed #7 at $FINAL_SHA. Canonical Publish run $PUBLISH_RUN_ID passed. Scientific source corrections and ERRATA/PLAN cleanup landed as separate checkpoints; all #7 temporary automation self-deleted; FIGURES.md remained owned by #9."
+          gh issue comment 9 --body "Issue #7 released ERRATA.md at $FINAL_SHA with the p.90 and Ch.5 source errata resolved. You can now proceed with the held p.91/p.159 FIGURES/ERRATA reconciliation on latest main."
           gh issue close 7 --reason completed
