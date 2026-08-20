@@ -1,125 +1,76 @@
 # Repository instructions
 
-This file is the technical guide for working on the repository. Keep `README.md` reader-facing: it is the Markdown publication view of the modern front matter plus shared contents/download/license material, with README-only Shields badges.
+This is the technical guide for work on the repository. Keep it focused on durable invariants and review requirements, not transient implementation details.
 
-## Core invariants
+## Canonical sources and editorial authority
 
 - `source/*.pdf` is the immutable historical authority. Never edit, recompress, replace, or rewrite a source PDF.
-- The facsimile PDF, modern PDF, HTML edition, and README publication view are derived from the canonical reconstruction sources. Do not maintain duplicate prose or chapter/section metadata by hand.
-- `reconstruction/frontmatter-modern.tex` is the canonical modern front matter for the modern PDF, HTML index, and README. `reconstruction/frontmatter-facsimile.tex` remains source-faithful for the facsimile edition.
-- `reconstruction/chapter1.tex` through `chapter6.tex` are the canonical chapter bodies and heading structure for all editions.
-- Correct shared content once. Record every substantive deviation from the scan in `reconstruction/ERRATA.md`.
-- Facsimile and modern editions differ only where explicitly intended: front matter, typography, spacing, navigation, and pagination/page-break behavior.
-- Generated PDFs, HTML, comparison images, LaTeX auxiliaries, and other build products are not committed.
-- Do not add source hashes, source manifests, verification TSVs, or generated build-status ledgers.
-
-## Published-view synchronization
-
-README and Pages must stay synchronized from canonical LaTeX rather than being sources for one another.
-
-- `scripts/book_views.py` extracts chapter titles and `\section{}` headings from the canonical chapter files and defines the shared Contents, Downloads, and CC-license presentation data.
-- `scripts/sync-views.py --readme` regenerates the README front matter, chapter/section Contents, both PDF download links, and CC statement from canonical sources.
-- The block between `README_BADGES_START` and `README_BADGES_END` is intentionally README-only and is preserved verbatim by the generator.
-- `scripts/sync-views.py --html` installs the same chapter/section Contents, Downloads, and CC statement into generated `dist/index.html` and assigns stable section anchors to chapter HTML pages.
-- `scripts/sync-views.py --check-readme` must pass in a successful HTML/full build. If it fails, regenerate the README and review the diff rather than editing duplicated content separately.
-- Both README and HTML must list both `wave-motions.pdf` and `wave-motions-facsimile.pdf` under Downloads. The HTML index does not contain the README Shields badges.
-
-When canonical front matter or chapter headings change, run:
-
-```bash
-python3 scripts/sync-views.py --readme
-./scripts/build.sh all
-```
-
-Review the README diff because Pandoc performs the LaTeX-to-GitHub-Markdown rendering of the front matter.
-
-## Repository layout and entry points
-
-The maintained source layout is intentionally small:
-
-```text
-source/
-    ChapmanRizzoli0_2.pdf
-    ChapmanRizzoli3.pdf
-    ChapmanRizzoli4.pdf
-    ChapmanRizzoli5.pdf
-    ChapmanRizzoli6.pdf
-
-reconstruction/
-    main-facsimile.tex
-    main-modern.tex
-    frontmatter-facsimile.tex
-    frontmatter-modern.tex
-    chapter1.tex ... chapter6.tex
-    references.bib
-    styles/
-    figures/
-    ERRATA.md
-    FIGURE_AUDIT.md
-    PLAN.md
-
-scripts/
-    book_views.py
-    sync-views.py
-    build.sh
-    build-html.py
-    enhance-html.py
-    compare-figures.py
-```
-
-Do not recreate compatibility entry points, duplicate chapter trees, figure registries, replacement manifests, or a separately maintained HTML/Markdown prose tree.
-
-The canonical PDF entry points are:
-
-- `reconstruction/main-facsimile.tex`
-- `reconstruction/main-modern.tex`
-
-The HTML edition is generated from the same modern front matter, chapters, bibliography, TikZ sources, committed raster figures, and source-PDF crops.
+- `reconstruction/frontmatter-modern.tex` is the canonical modern front matter for the modern PDF, HTML index, and README publication view.
+- `reconstruction/frontmatter-facsimile.tex` remains source-faithful for the facsimile edition.
+- `reconstruction/chapter1.tex` through `chapter6.tex` are the canonical chapter bodies and heading structure for every edition.
+- `reconstruction/references.bib` is the canonical bibliography. Use BibTeX/citations rather than duplicating bibliography entries manually, and verify new or changed metadata against a primary publisher or equivalent authoritative source.
+- Correct shared content once. Record every substantive correction or suspected source error in `reconstruction/ERRATA.md`.
+- Do not maintain duplicate prose, equations, chapter names, section names, figure registries, or a separate HTML/Markdown source tree.
+- The authorized license is CC BY-NC-SA 4.0. Do not weaken or change licensing without explicit instruction.
 
 ## Editions
 
-The repository produces three reader-facing editions from one canonical body:
+The repository publishes three editions from one canonical body:
 
-- **Facsimile PDF:** reconstructed LaTeX with source-compatible page boundaries and typography tuned toward the 1989 notes. Accepted pagination is 184 pages.
-- **Modern PDF:** the same body with modern typography, continuous pagination, generated table of contents, editor material, and more generous spacing. Its page count is not fixed.
-- **Modern HTML:** chapter-split HTML generated from the same LaTeX for GitHub Pages. EPUB remains future work.
+- **Facsimile PDF:** source-compatible page boundaries and typography tuned toward the 1989 notes. Accepted pagination is 184 pages.
+- **Modern PDF:** the same corrected body with modern typography, continuous pagination, modern front matter, and generated contents.
+- **Modern HTML:** chapter-split Pages edition generated from the same LaTeX sources.
 
-`README.md` is not a fourth independent edition; it is a synchronized repository-facing Markdown view of the modern front matter and publication navigation.
+`README.md` is not an independent edition. It is a synchronized Markdown publication view of the modern front matter and publication navigation.
 
-The modern front matter may include `reconstruction/figures/frontmatter/salmon-hendershott-como-1980.jpeg`. Do not recompress that historical photograph merely for the build.
+Facsimile and modern editions may differ only where intentionally required by presentation: front matter, typography, spacing, navigation, and pagination/page-break behavior. Scientific/textual content and errata remain shared.
 
-## Local build requirements
+## Modern front matter
 
-The reproducible CI route uses TinyTeX plus packages listed in `tex-packages.txt`.
+Preserve the current hierarchy unless explicitly asked to redesign it:
 
-With TinyTeX/TeX Live managed by `tlmgr`:
+1. `WAVE MOTIONS IN THE OCEAN`
+2. `Myrl's View`
+3. `Presented to` **Myrl C. Hendershott**
+4. **David C. Chapman and Paola Malanotte-Rizzoli** — August 1989
+5. Digital edition by **Albert M. W. Yau** — August 2026
 
-```bash
-mapfile -t PACKAGES < <(grep -Ev '^\s*(#|$)' tex-packages.txt)
-tlmgr install "${PACKAGES[@]}"
-```
+Modern attribution blocks use the shared `\wavesignature` presentation. Do not normalize the facsimile front matter to the modern style.
 
-The modern edition currently requires, among other packages, `newtx` and Source Sans. If a local build reports a missing font package, verify the TeX installation directly:
+The historical photograph `reconstruction/figures/frontmatter/salmon-hendershott-como-1980.jpeg` is part of the modern front matter. Keep it unnumbered and preserve the established provenance/caption identifying Rick Salmon and Myrl Hendershott at Villa Carlotta, Lake Como, during the International School of Physics “Enrico Fermi,” Course LXXX, *Topics in Ocean Physics*, July 1980. Do not reintroduce unsupported wording such as “Photograph by George” unless independently established. Do not recompress the photograph merely for the build.
 
-```bash
-kpsewhich newtxtext.sty
-kpsewhich newtxmath.sty
-kpsewhich sourcesanspro.sty
-kpsewhich titlesec.sty
-```
+## README, HTML, and contents synchronization
 
-A local full build also requires:
+README and Pages are generated views of the canonical LaTeX; neither is the source of the other.
 
-- `latexmk`, `pdflatex`, and BibTeX
-- Pandoc
-- Poppler tools: `pdfinfo`, `pdftoppm`, `pdftotext`, `pdftocairo`
-- Python 3 with Pillow
-- Ghostscript where available
-- `qpdf` where available; CI installs it
+- `scripts/book_views.py` extracts canonical chapter titles and `\section{}` headings and defines shared Contents, Downloads, and license presentation data.
+- `scripts/sync-views.py --readme` regenerates the README publication content while preserving the README-only badge block.
+- `scripts/sync-views.py --html` applies the same Contents, Downloads, and license data to generated HTML and supplies stable section anchors.
+- `scripts/sync-views.py --check-readme` must pass in a successful HTML/full build.
+- README and `index.html` must have the same publication content apart from URL relativity, HTML presentation controls, and README-only badges.
+- Both README and HTML list **PDF** and **Facsimile PDF** under Downloads.
 
-Do not work around a genuinely missing `.sty` with `latexmk -f`; install the missing TeX package.
+### Contents depth
 
-## Build interface and outputs
+Published contents stop at **Chapter → Section**.
+
+- Include `\chapter{}` and `\section{}` headings.
+- Exclude `\subsection{}` and deeper levels from README, HTML index, and modern PDF contents.
+- Keep the modern PDF TOC depth at `tocdepth=1` for the `report` class.
+- Do not impose this modern TOC policy on the source-faithful facsimile unless explicitly requested.
+
+### README badge contract
+
+The README-only badge row is intentionally not copied into `index.html`:
+
+- **Read | Online**
+- **Read | PDF**
+- **License | CC BY-NC-SA 4.0**
+- **Build | status**
+
+Do not add a facsimile badge; the facsimile remains available in the synchronized Downloads section. The Build badge should represent the actual `build` check, not the overall Pages deployment result, because a superseded/cancelled deployment is not a build failure.
+
+## Build and outputs
 
 Use the single build interface:
 
@@ -129,46 +80,32 @@ Use the single build interface:
 ./scripts/build.sh all
 ```
 
-`build/` is temporary/intermediate output. `dist/` is the complete publish root:
+`build/` is temporary/intermediate output. `dist/` is the complete publish root and contains `index.html`, six chapter pages, `references.html`, assets, `wave-motions.pdf`, and `wave-motions-facsimile.pdf`.
 
-```text
-dist/
-├── index.html
-├── chapter1.html
-├── ...
-├── chapter6.html
-├── references.html
-├── assets/
-├── wave-motions.pdf
-└── wave-motions-facsimile.pdf
-```
+Generated PDFs, HTML, comparison images, LaTeX auxiliaries, and other build products are not committed. Do not restore the old nested `dist/html/` layout or old `wave-motions-1989-*.pdf` public names.
 
-Do not restore the old nested `dist/html/` layout or old `wave-motions-1989-*.pdf` public filenames.
+A full local build requires the declared TeX packages plus Pandoc, Python/Pillow, and Poppler tools. Install genuinely missing TeX packages rather than forcing `latexmk` through missing dependencies.
 
-## HTML generation
+## HTML presentation
 
-`scripts/build-html.py` is a generated-view pipeline, not a second source tree.
+The HTML edition must remain a generated view of the canonical sources. Preserve these reader-facing behaviors unless explicitly redesigned:
 
-It must:
+- responsive/mobile layout;
+- Auto / Light / Dark theme selection;
+- source navigation back to the GitHub repository;
+- stable chapter/section anchors used by README links;
+- horizontally scrollable wide equations/tables on small screens;
+- theme-aware generated diagrams.
 
-- derive the Pages front page from `reconstruction/frontmatter-modern.tex`;
-- generate one HTML page per canonical chapter plus references;
-- render committed TikZ sources to SVG only as generated web assets;
-- generate source-PDF crops only in build output;
-- copy intentionally retained raster assets recursively while preserving subdirectories;
-- include the historical front-matter photograph when present;
-- place both built PDFs at the publish root;
-- validate local `src`/`href` references before success.
+Do not apply dark-mode inversion/filtering to the historical front-matter JPEG. Generated black-on-white scientific figures may be theme-adjusted when needed for legibility.
 
-After base HTML generation, `scripts/sync-views.py --html` applies shared Contents/Downloads/license data and stable section anchors; `scripts/enhance-html.py` applies responsive navigation, source links, and light/dark/auto theming.
+## GitHub Pages and CI
 
-When using `re.sub`, use a callable replacement for generated LaTeX strings containing backslashes. A plain replacement string such as `\includegraphics...` can be misinterpreted by Python's regular-expression replacement parser.
+`.github/workflows/pages.yml` is the production deployment workflow. It must build all editions, verify the publish root and both PDFs, upload `dist/`, and deploy Pages.
 
-## GitHub Pages
+Keep Pages deployment concurrency configured so an in-progress production deployment is not cancelled by a newer push (`cancel-in-progress: false`). A newer run may supersede queued deployment work, but that must not be interpreted as a failed build.
 
-`.github/workflows/pages.yml` is the only deployment workflow. On pushes to `main` it must build all editions, verify `dist/index.html` and both public PDFs, upload `dist/` as the Pages artifact, and deploy it.
-
-Intended public URLs:
+Public URLs are:
 
 ```text
 https://mwyau.github.io/wave-motions-in-the-ocean/
@@ -180,60 +117,53 @@ Do not deploy the repository root or render `README.md` as the Pages homepage.
 
 ## Figure policy
 
-- Use direct crops from committed source PDFs for untouched complex/historical art; do not commit an intermediate PNG.
+- Use direct crops from committed source PDFs for untouched complex/historical art; do not commit an intermediate source raster.
 - Use TikZ/vector source for simple analytic diagrams when scientific meaning can be preserved exactly.
-- If source art genuinely requires deskewing, cleaning, manual repair, contrast correction, or another intentional raster edit, commit only the final edited raster. Extract at the PDF's native embedded resolution where possible; avoid screenshots and repeated lossy recompression.
-- Each retained TikZ file carries a `wave-source` provenance comment used by `scripts/compare-figures.py` to regenerate comparisons on demand.
-- Each intentionally edited raster carries equivalent `wave-source-*` PNG metadata so comparisons can be regenerated without keeping a duplicate source raster.
-- Record figure status and decisions in `reconstruction/FIGURE_AUDIT.md`.
+- If a figure genuinely requires deskewing, cleaning, repair, contrast correction, or another intentional raster edit, commit only the final edited raster. Prefer native embedded resolution and avoid screenshots or repeated lossy recompression.
+- Keep figure provenance sufficient to regenerate source/reconstruction comparisons with `scripts/compare-figures.py`.
+- Record vectorization/edit decisions and scientific review status in `reconstruction/FIGURE_AUDIT.md`.
+- Do not keep duplicate “before/after” raster stages merely for tracking.
 
-To regenerate temporary source/reconstruction comparisons:
+## Text, equation, and scientific audit
 
-```bash
-python3 scripts/compare-figures.py <figure-name>
-python3 scripts/compare-figures.py --all
-```
+Reconstruction is not complete merely because the files build. Continue auditing in small reviewable batches.
 
-Comparisons belong under `build/comparisons/`; do not commit them.
-
-## Text and scientific audit
-
-Work in small reviewable batches. Distinguish these checks:
-
-1. **Text fidelity:** compare scan ↔ LaTeX for wording, punctuation, capitalization, symbols, subscripts/superscripts, references, footnotes, page order, and figure labels. Do not modernize prose merely because it sounds old.
-2. **Equation transcription:** compare every mathematical symbol and sign directly with the scan.
-3. **Scientific equation audit:** independently check dimensions, signs, factors (`2`, `pi`, `g`, `f`, `H`, etc.), definitions, coordinate conventions, derivation steps, boundary conditions, limiting cases, and consistency with surrounding prose. Verify standard results against the cited original paper, Hendershott/Myrl material where relevant, and another authoritative physical-oceanography source when practical.
+1. **Text fidelity:** compare scan ↔ LaTeX for wording, punctuation, capitalization, symbols, references, footnotes, page order, and figure labels. Do not modernize historical prose casually.
+2. **Equation transcription:** compare every mathematical symbol, sign, factor, subscript, and superscript directly with the scan.
+3. **Scientific equation audit:** independently check dimensions, signs, factors, definitions, coordinate conventions, derivation steps, boundary conditions, limiting cases, and consistency with surrounding prose.
 4. **Scientific figure audit:** check axes, units, signs, propagation direction, orientation, node/antinode placement, dispersion relationships, phase arrows, boundary conditions, and agreement with nearby equations/prose.
 
-Do not silently alter a scientifically questionable historical equation or figure. Record the suspected source error, evidence, and review status in `ERRATA.md`. Preserve the historical derivation style and logic rather than rewriting it as a modern textbook.
+For scientific verification, consult the cited original paper where applicable, Hendershott/Myrl material when relevant, and another authoritative physical-oceanography source when practical. Do not silently “fix” a scientifically questionable historical equation or figure: document the suspected source error, evidence, and review status in `ERRATA.md` first.
 
-## Tracking and editorial records
+Preserve the historical derivation style and physical reasoning rather than rewriting the notes as a modern textbook.
 
-- `reconstruction/ERRATA.md`: actual deviations, corrections, suspected source errors, and review status.
-- `reconstruction/FIGURE_AUDIT.md`: figure provenance, vectorization/edit decisions, and scientific figure review.
-- `reconstruction/PLAN.md`: audit coverage, current status, and future work.
+## Tracking files
 
-Do not create a separate `verification.tsv` or duplicate these responsibilities in generated manifests.
+- `reconstruction/ERRATA.md`: actual corrections, suspected source errors, evidence, and review status.
+- `reconstruction/FIGURE_AUDIT.md`: figure provenance, conversion decisions, and scientific figure review.
+- `reconstruction/PLAN.md`: audit coverage, current status, and remaining work.
+
+Do not create a separate verification TSV, source manifest, hash ledger, generated status ledger, or other duplicate tracking system.
 
 ## Completion gate
 
-Before considering repository work complete, run:
+Before considering repository work complete:
 
 ```bash
 python3 scripts/sync-views.py --readme
 ./scripts/build.sh all
 ```
 
-For figure work, also run `python3 scripts/compare-figures.py <figure>` for affected figures.
+For affected figures, also run the relevant `scripts/compare-figures.py` checks.
 
-Check at minimum:
+Verify at minimum:
 
-- facsimile remains 184 pages unless an explicitly reviewed change requires otherwise;
-- PDFs parse/render successfully;
-- no unresolved LaTeX references remain;
-- `dist/index.html`, six chapter pages, references, assets, and both downloadable PDFs exist;
-- README sync check passes;
-- HTML Contents include canonical chapter names and section links with working anchors;
-- README and HTML list the same Contents, Downloads, and CC-license statement, aside from README-only badges and URL relativity;
+- facsimile pagination remains 184 pages unless an explicitly reviewed change requires otherwise;
+- PDFs parse/render successfully and LaTeX references resolve;
+- `dist/` contains the complete HTML site and both PDFs;
+- README synchronization passes;
+- README and HTML share chapter/section Contents, both Downloads, and the CC statement;
+- section anchors work;
+- modern contents contain chapters and sections only;
 - Pages artifact root is `dist/`;
-- `PLAN.md`, `ERRATA.md`, and `FIGURE_AUDIT.md` are updated when work changes their scope.
+- `PLAN.md`, `ERRATA.md`, and `FIGURE_AUDIT.md` are updated when the work changes their scope.
