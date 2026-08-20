@@ -1,0 +1,4 @@
+issue=14
+purpose=manual-equation-numbering-fallback
+session=Meridian
+prepared=b586a27640a54042d50a13f07fe49d852f5572ca
