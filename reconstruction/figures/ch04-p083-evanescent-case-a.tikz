@@ -1,0 +1,14 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=20; trim=85bp 420bp 75bp 80bp
+% Source: Wave Motions in the Ocean, printed p.83 (physical p.20).
+% Normalized exact plot C/x=-tan x. C=+0.7 (A) and C=-0.7 (A1); A1 has the additional small-|k| pair.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\scriptsize,line cap=round]
+\foreach \dx/\sgn/\title in {0/1/{A},4.75/-1/{A1}}{
+  \begin{scope}[xshift=\dx cm]
+    \draw[->] (0.45,2.35)--(4.25,2.35) node[right] {$x=kR_1D$};
+    \draw[->] (0.60,0.25)--(0.60,4.35); \node at (2.2,4.45) {case \title};
+    \foreach \p in {1.5708,4.7124,7.8540}{\pgfmathsetmacro{\xx}{0.60+0.40*\p}\draw[densely dashed] (\xx,0.35)--(\xx,4.10);}
+    \foreach \a/\b in {0.08/1.48,1.66/4.62,4.80/7.76,7.94/9.0}{\draw[line width=.65pt,domain=\a:\b,samples=60,smooth,variable=\x] plot ({0.60+0.40*\x},{2.35-0.48*tan(deg(\x))});}
+    \draw[line width=.75pt,domain=.18:9.0,samples=80,smooth,variable=\x] plot ({0.60+0.40*\x},{2.35+0.48*(\sgn*0.7/\x)});
+    \ifnum\sgn=1 \foreach \r in {2.9051,6.1702}{\fill ({0.60+0.40*\r},{2.35+0.48*(0.7/\r)}) circle(1.5pt);}\else \foreach \r in {0.7506,3.3477,6.3923}{\fill ({0.60+0.40*\r},{2.35+0.48*(-0.7/\r)}) circle(1.5pt);}\fi
+  \end{scope}}
+\end{tikzpicture}
