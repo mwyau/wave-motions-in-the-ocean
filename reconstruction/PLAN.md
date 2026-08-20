@@ -29,4 +29,3 @@ Complete the independent scan-to-LaTeX and scientific equation audit chapter by 
 ## Release
 
 - Run a final full-build and audit gate after the reconstruction stabilizes.
-- Add release/version automation only after publication formats and audit status are stable.
