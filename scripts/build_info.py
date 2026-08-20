@@ -41,12 +41,19 @@ class BuildInfo:
     sha: str
     short_sha: str
     version: str | None
+    dirty: bool = False
+
+    @property
+    def revision_label(self) -> str:
+        if self.dirty and self.short_sha != "unknown":
+            return f"{self.short_sha}+dirty"
+        return self.short_sha
 
     @property
     def label(self) -> str:
         if self.version:
-            return f"{self.version} ({self.short_sha})"
-        return self.short_sha
+            return f"{self.version} ({self.revision_label})"
+        return self.revision_label
 
     @property
     def commit_url(self) -> str:
@@ -56,13 +63,15 @@ class BuildInfo:
 
 
 def current_build() -> BuildInfo:
-    sha = (
-        os.environ.get("WAVE_BUILD_SHA")
-        or os.environ.get("GITHUB_SHA")
-        or _git("rev-parse", "HEAD")
-        or "unknown"
-    ).strip()
+    explicit_sha = os.environ.get("WAVE_BUILD_SHA") or os.environ.get("GITHUB_SHA")
+    sha = (explicit_sha or _git("rev-parse", "HEAD") or "unknown").strip()
     short_sha = sha[:7] if re.fullmatch(r"[0-9a-fA-F]{7,40}", sha) else "unknown"
+
+    # CI/explicit build identities are authoritative. For local builds, make
+    # uncommitted source changes visible instead of claiming a clean HEAD.
+    dirty = False
+    if not explicit_sha and sha != "unknown":
+        dirty = _git("status", "--porcelain") is not None
 
     version = os.environ.get("WAVE_BUILD_VERSION")
     if not version and os.environ.get("GITHUB_REF_TYPE") == "tag":
@@ -72,7 +81,7 @@ def current_build() -> BuildInfo:
     if version:
         version = version.strip()
 
-    return BuildInfo(sha=sha, short_sha=short_sha, version=version or None)
+    return BuildInfo(sha=sha, short_sha=short_sha, version=version or None, dirty=dirty)
 
 
 def write_tex(path: Path, info: BuildInfo) -> None:
