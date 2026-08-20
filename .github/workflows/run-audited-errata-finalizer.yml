@@ -22,7 +22,14 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Apply reviewed issue 7 patch
+      - name: Install README sync dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+
+      - name: Apply reviewed issue 7 patch in checkpoints
         shell: bash
         run: |
           set -euo pipefail
@@ -48,34 +55,47 @@ jobs:
             git reset --hard origin/main
             python3 /tmp/apply_errata.py
 
+            # FIGURES.md is owned by issue #9; leave its current checkpoint untouched.
+            git restore -- reconstruction/FIGURES.md
+
+            # Required after reconstruction source changes. These chapter-body edits do
+            # not alter generated README structure, but run the canonical sync gate.
+            python3 scripts/sync-views.py --readme
+            python3 scripts/sync-views.py --check-readme
+
+            git diff --check
+
+            # Checkpoint 1: canonical scientific text only (plus README if sync changed it).
+            git add -- reconstruction/chapter4.tex reconstruction/chapter5.tex README.md
+            git diff --cached --check
+            if ! git diff --cached --quiet; then
+              git commit -m "Correct audited wave relations"
+            fi
+
+            # Checkpoint 2: reviewed records and #7-owned temporary automation cleanup.
             rm -f \
               .github/workflows/finalize-errata-audit.yml \
               .github/workflows/run-finalize-errata-audit.yml \
               .github/workflows/run-audited-errata-finalizer.yml \
               .github/errata-audit-finalize.trigger
 
-            git diff --check
             git add -- \
-              reconstruction/chapter4.tex \
-              reconstruction/chapter5.tex \
               reconstruction/ERRATA.md \
-              reconstruction/FIGURES.md \
               reconstruction/PLAN.md \
               .github/workflows/finalize-errata-audit.yml \
               .github/workflows/run-finalize-errata-audit.yml \
               .github/workflows/run-audited-errata-finalizer.yml \
               .github/errata-audit-finalize.trigger
             git diff --cached --check
-
-            if git diff --cached --quiet; then
-              success=true
-              break
+            if ! git diff --cached --quiet; then
+              git commit -m "Resolve audited source errata records"
             fi
 
-            git commit -m "Resolve audited source errata"
-            if git push origin HEAD:main; then
-              success=true
-              break
+            if git diff --quiet && git diff --cached --quiet; then
+              if git push origin HEAD:main; then
+                success=true
+                break
+              fi
             fi
           done
           test "$success" = true
