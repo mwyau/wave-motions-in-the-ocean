@@ -1,0 +1,71 @@
+name: Verify source figure publication
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  actions: write
+  contents: write
+  issues: write
+
+concurrency:
+  group: verify-source-figure-publication
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.event.head_commit.message == 'Run final figure publication validation'
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Dispatch and verify canonical Publish workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run publish.yml --ref main
+          run_id=""
+          for _ in $(seq 1 60); do
+            run_id=$(gh run list --workflow publish.yml --branch main --event workflow_dispatch --limit 1 \
+              --json databaseId --jq '.[0].databaseId')
+            [ -n "$run_id" ] && break
+            sleep 2
+          done
+          test -n "$run_id"
+          echo "Publish validation run: $run_id"
+          gh run watch "$run_id" --exit-status
+
+      - name: Remove verifier and close coordination issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          success=false
+          for attempt in $(seq 1 20); do
+            git fetch origin main
+            git reset --hard origin/main
+            rm -f .github/workflows/verify-vectorization-publication.yml .github/verify-vectorization-publication.trigger
+            git add -A
+            if git diff --cached --quiet; then
+              success=true
+              break
+            fi
+            git commit -m 'Remove figure publication validation helper'
+            if git push origin HEAD:main; then
+              success=true
+              break
+            fi
+          done
+          test "$success" = true
+          gh issue comment 6 --body 'Source-figure vectorization integrated in ec0292d6 and e6a61cb0. Canonical Publish workflow validation completed successfully; temporary vectorization automation removed.'
+          gh issue close 6 --reason completed
