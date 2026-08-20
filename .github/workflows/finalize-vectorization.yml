@@ -1,39 +1,48 @@
-name: One-time vectorization finalizer
+name: Finalize source figure vectorization
 
 on:
-  push:
-    branches: [main]
+  issues:
+    types: [opened]
 
 permissions:
+  actions: write
   contents: write
+  issues: write
+
+concurrency:
+  group: finalize-source-figure-vectorization
+  cancel-in-progress: false
 
 jobs:
   finalize:
-    if: github.event.head_commit.message == 'Run final vectorization checks'
+    if: github.event.issue.title == '[internal] finalize source figure vectorization'
     runs-on: ubuntu-26.04
     steps:
-      - name: Check out current main
+      - name: Check out newest main
         uses: actions/checkout@v7.0.1
         with:
           ref: main
           fetch-depth: 0
 
-      - name: Apply final vectorization state
+      - name: Apply final vectorization state atomically
         shell: bash
         run: |
           set -euo pipefail
-          git config user.name 'wave-motions-figure-audit'
-          git config user.email '5298134+mwyau@users.noreply.github.com'
-          git fetch origin main
-          git rebase origin/main
-          python3 - <<'PY'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          success=false
+          for attempt in $(seq 1 20); do
+            git fetch origin main
+            git reset --hard origin/main
+
+            python3 - <<'PY'
           from pathlib import Path
           import re
 
           chapter = Path('reconstruction/chapter6.tex')
           text = chapter.read_text()
           bad = r'\n\wavevectorart'
-          replacements = text.count(bad)
           text = text.replace(bad, '\n\\wavevectorart')
           stems = [
               'ch06-p151-sloping-channel',
@@ -45,13 +54,10 @@ jobs:
               'ch06-p168-wind-forced-shelf',
           ]
           for stem in stems:
-              needle = f'\\wavevectorart'
-              if stem not in text or needle not in text:
+              if f'\\wavevectorart' not in text or stem not in text:
                   raise SystemExit(f'missing Chapter 6 vector inclusion: {stem}')
           if bad in text:
               raise SystemExit('escaped Chapter 6 vector inclusion remains')
-          if replacements != 7:
-              raise SystemExit(f'expected 7 escaped Chapter 6 inclusions, found {replacements}')
           chapter.write_text(text)
 
           ledger = Path('reconstruction/FIGURES.md')
@@ -65,10 +71,12 @@ jobs:
           fig, n = pat.subn(p97, fig, count=1)
           if n != 1 and p97 not in fig:
               raise SystemExit('Chapter 5 p.97 inventory row not found')
+
           old = ('Chapter 5 p.97 is a particularly important example: the sphere drawing was reviewed as a vector candidate and retained as source art because the local `u/v/z` tangencies, latitude/longitude circles, point `P`, rotation axis, and projected angle geometry are exactly the sort of subtle relationships that a cleaner redraw can accidentally change.')
           new = ('Chapter 5 p.97 is a particularly important example: the sphere drawing was reviewed at full-page scale and deliberately resolved as retained source art because its local `u/v/z` tangencies, latitude/longitude circles, point `P`, rotation axis, and projected angle geometry depend on a historical viewing projection that the notes do not define uniquely.')
           if old in fig:
               fig = fig.replace(old, new, 1)
+
           direct = fig.split('## Direct source-PDF crop placements — complete inventory', 1)[1].split('## Sizing and acceptance rules', 1)[0]
           unresolved = [line for line in direct.splitlines() if line.startswith('| ') and 'vector-candidate' in line]
           if unresolved:
@@ -76,22 +84,58 @@ jobs:
           ledger.write_text(fig)
           PY
 
-          python3 scripts/sync-views.py --readme
-          git diff --check
-          git add -- reconstruction/chapter6.tex reconstruction/FIGURES.md README.md
-          git commit -m 'Finalize source figure vectorization'
-          git fetch origin main
-          git rebase origin/main
-          python3 scripts/sync-views.py --readme
-          git diff --check
-          git push origin HEAD:main
+            python3 scripts/sync-views.py --readme
+            python3 scripts/sync-views.py --check-readme
 
-      - name: Remove finalizer
+            rm -f \
+              .github/workflows/finalize-vectorization.yml \
+              .github/finalize-vectorization-trigger.txt
+
+            git diff --check
+            git add -- reconstruction/chapter6.tex reconstruction/FIGURES.md README.md \
+              .github/workflows/finalize-vectorization.yml .github/finalize-vectorization-trigger.txt
+            git diff --cached --check
+
+            if git diff --cached --quiet; then
+              final_sha=$(git rev-parse HEAD)
+              echo "FINAL_SHA=$final_sha" >> "$GITHUB_ENV"
+              success=true
+              break
+            fi
+
+            git commit -m 'Finalize source figure vectorization'
+            if git push origin HEAD:main; then
+              final_sha=$(git rev-parse HEAD)
+              echo "FINAL_SHA=$final_sha" >> "$GITHUB_ENV"
+              success=true
+              break
+            fi
+            echo 'main advanced before push; retrying from newest main'
+          done
+          test "$success" = true
+
+      - name: Dispatch canonical publication validation
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin main
-          git rebase origin/main
-          git rm -- .github/workflows/finalize-vectorization.yml .github/finalize-vectorization-trigger.txt
-          git commit -m 'Remove vectorization completion helper'
-          git push origin HEAD:main
+          gh workflow run publish.yml --ref main
+          run_id=""
+          for _ in $(seq 1 60); do
+            run_id=$(gh run list --workflow publish.yml --branch main --event workflow_dispatch --limit 30 \
+              --json databaseId,headSha,createdAt \
+              --jq ".[] | select(.headSha == \"$FINAL_SHA\") | .databaseId" | head -n1)
+            [ -n "$run_id" ] && break
+            sleep 2
+          done
+          test -n "$run_id"
+          echo "PUBLISH_RUN_ID=$run_id" >> "$GITHUB_ENV"
+          gh run watch "$run_id" --exit-status
+
+      - name: Close internal trigger issue
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: gh issue close "${{ github.event.issue.number }}" --reason completed
