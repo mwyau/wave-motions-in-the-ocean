@@ -17,21 +17,32 @@
 
   % q=-ell >=0. Each curve starts at zero, overshoots, and relaxes to the same
   % short-wave asymptote. Coefficients are display-only and preserve mode ordering.
-  \foreach \h/\lab in {1.85/1,1.36/2,1.02/3,0.72/4} {
+  \foreach \h in {1.85,1.36,1.02,0.72} {
     \draw[line width=0.78pt,samples=150,domain=0:4.75,variable=\q]
       plot ({-\q},{\asym*(1-exp(-1.35*\q))+\h*\q*exp(-0.78*\q)});
-    \pgfmathsetmacro{\qx}{1.95}
-    \pgfmathsetmacro{\qy}{\asym*(1-exp(-1.35*\qx))+\h*\qx*exp(-0.78*\qx)}
-    \node[font=\footnotesize,anchor=south] at (-\qx,\qy+0.03) {$\lab$};
   }
-  \node[font=\footnotesize,anchor=east] at (-2.00,2.82) {$n=1$};
+
+  % Keep mode labels at the common figure size. Leaders terminate on the
+  % corresponding schematic branches rather than shrinking labels onto curves.
+  \pgfmathsetmacro{\yone}{\asym*(1-exp(-1.35*2.55))+1.85*2.55*exp(-0.78*2.55)}
+  \pgfmathsetmacro{\ytwo}{\asym*(1-exp(-1.35*1.95))+1.36*1.95*exp(-0.78*1.95)}
+  \pgfmathsetmacro{\ythree}{\asym*(1-exp(-1.35*1.35))+1.02*1.35*exp(-0.78*1.35)}
+  \pgfmathsetmacro{\yfour}{\asym*(1-exp(-1.35*0.78))+0.72*0.78*exp(-0.78*0.78)}
+  \node[anchor=south] at (-2.82,2.42) {$n=1$};
+  \draw[->,line width=0.48pt] (-2.60,2.31) -- (-2.55,{\yone+0.04});
+  \node[anchor=south] at (-2.08,2.20) {$2$};
+  \draw[->,line width=0.48pt] (-2.02,2.09) -- (-1.95,{\ytwo+0.04});
+  \node[anchor=south] at (-1.43,1.92) {$3$};
+  \draw[->,line width=0.48pt] (-1.39,1.81) -- (-1.35,{\ythree+0.04});
+  \node[anchor=south] at (-0.82,1.60) {$4$};
+  \draw[->,line width=0.48pt] (-0.80,1.49) -- (-0.78,{\yfour+0.04});
   \node at (-2.05,0.48) {$\vdots$};
 
   % Free-surface Kelvin branch shown in the source only for comparison.
   \draw[dashed,line width=0.62pt] (-0.14,0) -- (-0.38,3.20);
-  \node[anchor=west,align=left,font=\footnotesize] at (0.34,2.38)
+  \node[anchor=west,align=left] at (0.38,2.32)
     {Kelvin wave\\(if free surface)};
-  \draw[->,line width=0.48pt] (0.28,2.31) -- (-0.24,2.44);
+  \draw[->,line width=0.48pt] (0.30,2.25) -- (-0.24,2.44);
   \node[anchor=west] at (0.12,2.96) {$1\ (\sigma=f)$};
 \end{tikzpicture}
 \end{center}
