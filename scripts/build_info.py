@@ -45,8 +45,8 @@ class BuildInfo:
 
     @property
     def revision_label(self) -> str:
-        if self.dirty and self.short_sha != "unknown":
-            return f"{self.short_sha}+dirty"
+        # Reader-facing build identity is the source commit. Local working-tree
+        # state must not change the label shown in the digital editions.
         return self.short_sha
 
     @property
@@ -67,8 +67,8 @@ def current_build() -> BuildInfo:
     sha = (explicit_sha or _git("rev-parse", "HEAD") or "unknown").strip()
     short_sha = sha[:7] if re.fullmatch(r"[0-9a-fA-F]{7,40}", sha) else "unknown"
 
-    # CI/explicit build identities are authoritative. For local builds, make
-    # uncommitted source changes visible instead of claiming a clean HEAD.
+    # Keep local dirty state available internally, but do not encode it in the
+    # reader-facing build label.
     dirty = False
     if not explicit_sha and sha != "unknown":
         dirty = _git("status", "--porcelain") is not None
