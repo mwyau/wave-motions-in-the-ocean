@@ -17,7 +17,7 @@ Equation-validation states are tracked independently of representation status:
 - **Pending** — equation validation materially applies but has not yet been independently completed and recorded.
 - **N/A** — no meaningful equation-defined quantity or relation controls the figure; visual, geometric, source-fidelity, and provenance checks still apply.
 
-The initial 2026-08-20 backfill is conservative: `Validated` is used only where the existing audit record supports an independent equation/constraint check, not merely because a vector was generated from a formula. Current snapshot across the 105 tracked body/front-matter assets and direct source placements: **51 Validated, 7 Partial, 34 Pending, 13 N/A**.
+The initial 2026-08-20 backfill is conservative: `Validated` is used only where the existing audit record supports an independent equation/constraint check, not merely because a vector was generated from a formula. Current snapshot across the 105 tracked body/front-matter assets and direct source placements: **52 Validated, 10 Partial, 29 Pending, 14 N/A**.
 
 Every `.tikz` file carries a `wave-source` comment naming the source PDF, physical page, and crop. `scripts/compare-figures.py` regenerates temporary side-by-side comparisons under `build/comparisons/`; comparison outputs are never committed.
 
@@ -98,6 +98,11 @@ Chapter 1 has no direct source-PDF crop placements in the book body.
 | `ch04-p089-slope-reflection.tikz` | 89 | **vector-complete** | **Validated** | Incident and reflected energy are constrained to the two characteristic slopes `+-1/R`, not specular mirrors about the wall normal; the fixed-frequency direction constraint was independently checked. |
 | `ch04-p089-wavenumber-projection.tikz` | 89 | **vector-complete** | **Validated** | For an explicit subcritical display case, `m_i=Rk_i`, `m_r=-Rk_r`, and the reflected magnitude factor is solved from equal phase projection along `z=ax`; the vector is constructed from that exact relation. |
 
+| `ch04-p090-wavenumber-triangle.tikz` | 90 | **vector-complete** | **Partial** | The angle/projection triangle is an exact subcritical `aR<1` construction of the stated wavenumber ratio. The source magnitude formula is ambiguous beyond critical slope, so no supercritical magnitude claim is encoded. |
+| `ch04-p090-velocity-reflection.tikz` | 90 | **vector-complete** | **Partial** | The displayed subcritical velocity vectors exactly satisfy zero normal velocity at the wall and the checked factor `(1+aR)/(1-aR)`. The historical supercritical signed-versus-magnitude convention remains outside the vector claim. |
+| `ch04-p093-turning-profile.tikz` | 93 | **vector-complete** | **Partial** | The sign change `R^2=0` and oscillatory (`R^2>0`) versus evanescent (`R^2<0`) regions are equation-constrained; the smooth profile shape is explicitly schematic. |
+| `ch04-p094-eigenvalue-spectrum.tikz` | 94 | **vector-complete** | **Validated** | The generalized Sturm--Liouville ordering is reconstructed directly from the stated sequence: negative `k^2` evanescent modes are unbounded below and positive `k^2` travelling modes are unbounded above. |
+
 ### Chapter 5
 
 Chapter 5 was re-audited first on 2026-08-20. Four previously accepted drawings required scientific geometry corrections; those corrections are now encoded in the vector construction rather than left to visual approximation.
@@ -152,7 +157,7 @@ Chapter 5 was re-audited first on 2026-08-20. Four previously accepted drawings 
 
 ## Direct source-PDF crop placements — complete inventory
 
-These 20 placements are real figures even though no separate image file is committed. They are rendered directly from the source PDFs. Retaining a source crop is a positive scientific decision when vectorization would add interpretation risk; it is not an incomplete reconstruction by itself.
+These 16 placements are real figures even though no separate image file is committed. They are rendered directly from the source PDFs. Retaining a source crop is a positive scientific decision when vectorization would add interpretation risk; it is not an incomplete reconstruction by itself.
 
 The 2026-08-20 source-art pass also treats crop isolation as part of acceptance: surrounding prose/equations must not be embedded in a figure, and no scientific label or line may be cut by the trim. Eight Chapter 4 crops (printed pp. 69--76) failed or were unnecessarily fragile under that criterion and were replaced by isolated vectors. The remaining direct crops below are classified explicitly as vector candidates or deliberate source-art retentions.
 
@@ -162,12 +167,8 @@ Chapter 5 p.97 is a particularly important example: the sphere drawing was revie
 |---|---:|---|---:|---|---|
 | 2 | 34 | `ChapmanRizzoli0_2.pdf` | 44 | **N/A** | **source-pdf** — retain the source-specific sound-speed profile; generic smoothing would invent profile detail. |
 | 2 | 35 | `ChapmanRizzoli0_2.pdf` | 45 | **N/A** | **source-pdf** — retain the source-specific sound-speed profile; generic smoothing would invent profile detail. The p.35 crop was already tightened specifically to exclude duplicated prose. |
-| 4 | 90 | `ChapmanRizzoli4.pdf` | 27 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
-| 4 | 90 | `ChapmanRizzoli4.pdf` | 27 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
-| 4 | 91 | `ChapmanRizzoli4.pdf` | 28 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
-| 4 | 92 | `ChapmanRizzoli4.pdf` | 29 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
-| 4 | 93 | `ChapmanRizzoli4.pdf` | 30 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
-| 4 | 94 | `ChapmanRizzoli4.pdf` | 31 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
+| 4 | 91 | `ChapmanRizzoli4.pdf` | 28 | **Pending** | **source-pdf** — deliberately retain the multi-slope reflection sketch while the documented signed-versus-magnitude convention across `aR=1` remains unresolved; redrawing it would silently choose a supercritical interpretation. |
+| 4 | 92 | `ChapmanRizzoli4.pdf` | 29 | **N/A** | **source-pdf** — deliberately retain the source-specific typical density and `N^2(z)` profiles; smoothing or redrawing them would invent empirical profile detail not fixed by the chapter equations. |
 | 5 | 97 | `ChapmanRizzoli5.pdf` | 2 | **N/A** | **vector-candidate (high-risk)** — feasible only with exact spherical projection/tangency construction for longitude/latitude circles and local `u/v/z`; keep source art until then. Its acceptance is primarily geometric rather than an equation-defined plot audit. |
 | 5 | 113 | `ChapmanRizzoli5.pdf` | 18 | **Validated** | **source-pdf** — retain the historical labels because this figure participates in the documented source erratum; the disagreement with the nearby equations has been checked and is intentionally preserved as historical evidence. |
 | 5 | 113 | `ChapmanRizzoli5.pdf` | 18 | **Validated** | **source-pdf** — same disposition; the source/equation mismatch is documented rather than silently corrected in the historical art. |
