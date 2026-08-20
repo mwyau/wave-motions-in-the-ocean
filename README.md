@@ -6,7 +6,7 @@
 
 Digital edition by **Albert M. W. Yau** — August 2026
 
-[![Read Online](https://img.shields.io/badge/Read%20Online-0969da)](https://mwyau.github.io/wave-motions-in-the-ocean/) [![Read PDF](https://img.shields.io/badge/Read%20PDF-b31b1b)](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.pdf) [![CC BY-NC-SA 4.0](https://img.shields.io/badge/CC%20BY--NC--SA%204.0-lightgrey)](https://creativecommons.org/licenses/by-nc-sa/4.0/) [![Build](https://img.shields.io/github/check-runs/mwyau/wave-motions-in-the-ocean/main?nameFilter=build&label=Build)](https://github.com/mwyau/wave-motions-in-the-ocean/actions/workflows/pages.yml)
+[![Read Online](https://img.shields.io/badge/Read-Online-0969da)](https://mwyau.github.io/wave-motions-in-the-ocean/) [![Read PDF](https://img.shields.io/badge/Read-PDF-b31b1b)](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.pdf) [![CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-007ec6)](https://creativecommons.org/licenses/by-nc-sa/4.0/) [![Build](https://img.shields.io/github/check-runs/mwyau/wave-motions-in-the-ocean/main?nameFilter=build&label=Build)](https://github.com/mwyau/wave-motions-in-the-ocean/actions/workflows/pages.yml)
 
 ## Preface — David C. Chapman
 
