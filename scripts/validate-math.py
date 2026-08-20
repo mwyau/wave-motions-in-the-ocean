@@ -276,9 +276,30 @@ def check_epub_mathml() -> None:
             if symbol in mo_text:
                 fail(f"EPUB variable {symbol!r} is incorrectly represented as operator <mo>")
 
+        # Pandoc/texmath follows the MathML convention for named functions:
+        # the function name is an <mi> token followed by an <mo> U+2061
+        # FUNCTION APPLICATION marker.  Requiring the text "sin"/"cos"/etc.
+        # inside <mo> confuses the function token with the application operator.
+        def has_function_application(name: str) -> bool:
+            for math in math_elements:
+                for parent in math.iter():
+                    children = list(parent)
+                    for index, child in enumerate(children[:-1]):
+                        if (
+                            child.tag == f"{ns}mi"
+                            and "".join(child.itertext()).strip() == name
+                            and children[index + 1].tag == f"{ns}mo"
+                            and "".join(children[index + 1].itertext()).strip() == "\u2061"
+                        ):
+                            return True
+            return False
+
         for operator in EPUB_OPERATOR_SENTINELS:
-            if operator not in mo_text:
-                fail(f"EPUB named operator {operator!r} is not represented as <mo>")
+            if not has_function_application(operator):
+                fail(
+                    f"EPUB named function {operator!r} lacks an explicit "
+                    "MathML function-application operator"
+                )
 
         atmosphere_math = [
             math
