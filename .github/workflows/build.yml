@@ -61,12 +61,15 @@ jobs:
         run: |
           sudo apt-get update
           sudo -E apt-get install -y --no-install-recommends \
-            qpdf poppler-utils imagemagick ghostscript python3-pil pandoc
+            qpdf poppler-utils imagemagick ghostscript python3-pil pandoc librsvg2-bin
 
       - name: Build and validate
         run: ./scripts/build.sh all
 
-      - name: Upload PDFs and HTML
+      - name: Verify EPUB output
+        run: test -s dist/wave-motions.epub
+
+      - name: Upload PDFs, EPUB, and HTML
         uses: actions/upload-artifact@v6
         with:
           name: wave-motions-editions

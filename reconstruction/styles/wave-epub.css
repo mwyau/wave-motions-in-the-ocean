@@ -1,0 +1,59 @@
+body {
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 1.5;
+  margin: 5%;
+  color: #202124;
+}
+
+h1, h2, h3 {
+  color: #245A73;
+  line-height: 1.2;
+}
+
+h1 {
+  page-break-before: always;
+  break-before: page;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+h2, h3 {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+p {
+  orphans: 3;
+  widows: 3;
+}
+
+a {
+  color: #245A73;
+}
+
+figure {
+  margin: 1.2em auto;
+  text-align: center;
+}
+
+img, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+figcaption {
+  font-size: 0.9em;
+}
+
+.math.display {
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+pre, table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+blockquote {
+  margin-left: 1.25em;
+  margin-right: 1.25em;
+}

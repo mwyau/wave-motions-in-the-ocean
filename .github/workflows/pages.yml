@@ -10,9 +10,8 @@ permissions:
   pages: write
   id-token: write
 
-# GitHub recommends allowing an in-progress production Pages deployment to
-# finish. New pushes may replace a queued run, but must not interrupt the
-# deployment that is already publishing the site.
+# Let an in-progress production deployment finish. A newer push may supersede
+# queued work but must not interrupt the deployment already publishing.
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -70,9 +69,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo -E apt-get install -y --no-install-recommends \
-            qpdf poppler-utils imagemagick ghostscript python3-pil pandoc
+            qpdf poppler-utils imagemagick ghostscript python3-pil pandoc librsvg2-bin
 
-      - name: Build PDFs and generated HTML site
+      - name: Build PDFs, EPUB, and generated HTML site
         run: ./scripts/build.sh all
 
       - name: Verify Pages root and downloads
@@ -82,8 +81,10 @@ jobs:
           test -s dist/index.html
           test -s dist/wave-motions.pdf
           test -s dist/wave-motions-facsimile.pdf
+          test -s dist/wave-motions.epub
           grep -q 'wave-motions.pdf' dist/index.html
           grep -q 'wave-motions-facsimile.pdf' dist/index.html
+          grep -q 'wave-motions.epub' dist/index.html
           test ! -e dist/html
 
       - name: Configure Pages
@@ -101,6 +102,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy generated HTML site
+      - name: Deploy generated site
         id: deployment
         uses: actions/deploy-pages@v5

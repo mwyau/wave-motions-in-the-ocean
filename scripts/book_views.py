@@ -15,6 +15,7 @@ LICENSE_URL = "https://creativecommons.org/licenses/by-nc-sa/4.0/"
 DOWNLOADS = (
     ("wave-motions.pdf", "PDF"),
     ("wave-motions-facsimile.pdf", "Facsimile PDF"),
+    ("wave-motions.epub", "EPUB"),
 )
 CC_ICONS = ("cc", "by", "nc", "sa")
 

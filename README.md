@@ -156,5 +156,6 @@ during the International School of Physics “Enrico Fermi,” Course LXXX,
 
 - [PDF](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.pdf)
 - [Facsimile PDF](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions-facsimile.pdf)
+- [EPUB](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.epub)
 
 This work is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" width="16" height="16"> <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" width="16" height="16"> <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" width="16" height="16"> <img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" width="16" height="16">

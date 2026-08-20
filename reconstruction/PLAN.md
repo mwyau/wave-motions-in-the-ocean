@@ -1,53 +1,25 @@
-# Reconstruction plan
+# Remaining work
 
-The first full transcription is present. Ongoing work is audit, scientific verification, typography refinement, figure review, and publication-format improvement—not a second parallel content tree.
+## Source audit
 
-## Current baseline
+- Complete an independent scan-to-LaTeX text and symbol pass for Chapters 1–6.
+- Complete the independent scientific equation audit: dimensions, signs, factors, conventions, boundary conditions, limiting cases, and cited-source checks.
+- Resolve or normalize remaining `pending-review` items in `ERRATA.md`.
 
-- [x] Five historical source PDFs committed under `source/`.
-- [x] Historical title page, both prefaces, and original contents transcribed.
-- [x] Chapters 1--6 present as one canonical file per chapter.
-- [x] Printed pp. 1--174 represented in the logical reconstruction.
-- [x] One shared BibTeX database for both editions and HTML.
-- [x] Vector replacement registry removed; chapters now name TikZ/direct-source art explicitly.
-- [x] Source-capture/vector-preview PNG audit copies removed; comparisons regenerate on demand.
-- [ ] Lake Como photograph: add `figures/frontmatter/salmon-hendershott-como-1980.jpeg` when supplied, then verify PDF and HTML placement.
+## Figures
 
-## Text/equation audit coverage
+- Re-review existing vectors for scientific meaning, not only visual resemblance.
+- Vectorize remaining candidates only where all scientific information can be preserved; retain dense/source-specific art as direct source-PDF crops when better.
+- Complete provenance and review status in `FIGURES.md` as figures are touched.
 
-A first transcription pass exists for the whole work. The old per-chapter audit files were consolidated during repository cleanup; their substantive deviations remain or should be migrated into `ERRATA.md` as review proceeds.
+## Publication
 
-- [x] Front matter: direct source read completed; compiled visual tuning still continues.
-- [x] Chapter 1 (pp. 1--17): first fidelity pass present.
-- [x] Chapter 2 (pp. 18--37): verbatim restoration and targeted scientific checks completed; independent final pass still required.
-- [x] Chapter 3 (pp. 38--63): verbatim restoration and targeted checks completed; independent final pass still required.
-- [x] Chapter 4 (pp. 64--95): verbatim restoration and targeted checks completed; independent final pass still required.
-- [x] Chapter 5 (pp. 96--148): verbatim restoration present; numerous source errata already documented.
-- [x] Chapter 6 + references (pp. 149--174): transcription present; targeted source errata documented.
-- [ ] Continue scan-to-LaTeX lexical/symbol audit chapter by chapter in small batches.
-- [ ] Continue independent scientific equation audit: dimensions, signs, factors, conventions, boundary conditions, limiting cases, and cited-source checks.
-- [ ] Record uncertain scientific issues as `pending-review`; do not silently rewrite them.
+- Continue empirical facsimile typography comparison while preserving the accepted 184-page edition.
+- Complete modern PDF/HTML typography and accessibility review.
+- Iterate the EPUB across representative readers, especially cover, navigation, math, figures, tables, metadata, and reflow behavior.
+- Decide in a later focused pass whether semantic figure numbering and chapter-based equation numbering improve the edition.
 
-## Figure audit/vector work
+## Release
 
-- [x] Existing simple analytic diagrams retained as TikZ with source provenance embedded in each `.tikz` file.
-- [x] Untouched complex historical figures are built directly from the committed source PDFs.
-- [x] `scripts/compare-figures.py` regenerates source/vector or source/edited-raster comparisons without committed intermediates.
-- [ ] Re-review existing vectors for scientific meaning, not just visual resemblance.
-- [ ] Continue vectorization only where it preserves all scientific content; leave dense/source-specific art as direct PDF crops.
-- [x] Current deskewed pp. 124/126 figures retain only final lossless PNGs extracted from native embedded source images; provenance/edit metadata is recorded in the PNGs and `FIGURE_AUDIT.md`.
-- [ ] For any future edited raster, keep only the final book image and log native-image provenance/edit details in `FIGURE_AUDIT.md`.
-
-## Typography and semantic structure
-
-- [ ] Continue empirical facsimile typography comparison on representative dense, sparse, equation-heavy, figure-heavy, chapter-opening, and bibliography pages while preserving the accepted 184-page logical edition.
-- [ ] Continue modern typography/accessibility refinements without changing shared content.
-- [ ] Introduce semantic figure numbering/labels (`Figure 5.1`, etc.) in a later focused pass.
-- [ ] Introduce stable chapter-based equation numbering/labels in a later focused pass.
-
-## HTML / publication
-
-- [x] Initial chapter-split HTML build from the modern LaTeX source.
-- [ ] Continue MathJax/Pandoc compatibility and mobile styling improvements as needed.
-- [ ] EPUB after HTML is stable.
-- [ ] GitHub Release automation only after reconstruction/versioning is stable; do not add tag automation yet.
+- Run a final full-build and audit gate after the reconstruction stabilizes.
+- Add release/version automation only after publication formats and audit status are stable.

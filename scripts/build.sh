@@ -8,8 +8,8 @@ DIST="$ROOT/dist"
 TARGET=${1:-all}
 
 case "$TARGET" in
-  pdf|html|all) ;;
-  *) echo "usage: $0 [pdf|html|all]" >&2; exit 2 ;;
+  pdf|html|epub|all) ;;
+  *) echo "usage: $0 [pdf|html|epub|all]" >&2; exit 2 ;;
 esac
 
 need() {
@@ -38,8 +38,6 @@ validate_pdf() {
   if command -v qpdf >/dev/null 2>&1; then
     qpdf --check "$pdf" >/dev/null
   else
-    # Poppler parse is the local fallback; CI installs qpdf and performs the
-    # stronger structural check.
     pdfinfo "$pdf" >/dev/null
   fi
 }
@@ -80,7 +78,6 @@ build_pdf() {
     grep -Fq "These notes have been collected and assembled" "$txt"
   done
 
-  # Renderer sentinels catch gross corruption without producing tracked output.
   for spec in "facsimile:$fac_pages:$DIST/wave-motions-facsimile.pdf" "modern:$mod_pages:$DIST/wave-motions.pdf"; do
     IFS=: read -r kind pages pdf <<< "$spec"
     local middle=$((pages / 2))
@@ -95,28 +92,43 @@ build_pdf() {
   printf 'PDF build OK: facsimile=%s pages, modern=%s pages\n' "$fac_pages" "$mod_pages"
 }
 
-build_html() {
+prepare_html() {
   for cmd in pandoc pdftocairo; do need "$cmd"; done
   python3 "$ROOT/scripts/build-html.py"
+}
+
+build_epub() {
+  for cmd in pandoc rsvg-convert; do need "$cmd"; done
+  python3 "$ROOT/scripts/build-epub.py"
+}
+
+finish_html() {
   python3 "$ROOT/scripts/sync-views.py" --html
   python3 "$ROOT/scripts/enhance-html.py"
   python3 "$ROOT/scripts/sync-views.py" --check-readme
-  echo "HTML build OK"
+}
+
+build_digital() {
+  prepare_html
+  build_epub
+  finish_html
+  echo "HTML/EPUB build OK"
 }
 
 if [[ "$TARGET" == all ]]; then
   rm -rf "$BUILD" "$DIST"
   mkdir -p "$BUILD" "$DIST"
-  # Recreate tool shim after clean.
   TOOLBIN="$BUILD/toolbin"; mkdir -p "$TOOLBIN"
   if ! command -v bibtex >/dev/null 2>&1 && command -v bibtex8 >/dev/null 2>&1; then
     ln -sf "$(command -v bibtex8)" "$TOOLBIN/bibtex"
     export PATH="$TOOLBIN:$PATH"
   fi
   build_pdf
-  build_html
+  build_digital
 elif [[ "$TARGET" == pdf ]]; then
   build_pdf
 else
-  build_html
+  # EPUB is built with the canonical HTML transformation/assets, and HTML is
+  # finalized with the same shared publication navigation.
+  build_digital
 fi
