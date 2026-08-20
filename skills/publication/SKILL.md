@@ -1,11 +1,12 @@
 # Publication skill
 
-Use this skill for modern/facsimile presentation, front matter, README/HTML synchronization, EPUB, build outputs, and GitHub Pages/CI.
+Use this skill for modern/facsimile presentation, front matter, README/HTML synchronization, EPUB, builds, and GitHub Pages/CI.
 
 ## Canonical publication sources
 
 - Shared modern PDF/EPUB cover: `reconstruction/cover-modern.tex`
 - Modern front matter: `reconstruction/frontmatter-modern.tex`
+- PDF-only modern book preliminaries: `reconstruction/frontmatter-modern-book.tex`
 - Facsimile front matter: `reconstruction/frontmatter-facsimile.tex`
 - Shared body: `reconstruction/chapter1.tex` … `chapter6.tex`
 - Bibliography: `reconstruction/references.bib`
@@ -27,17 +28,33 @@ Cover invariants:
 
 The cover text/frame color `#213E5E` is derived from the dark blue in the supplied Met image; the cover paper is warm ivory `#FBF7EC`.
 
-The Met image is committed as `reconstruction/figures/frontmatter/great-wave-met-dp130155.jpg`. Preserve it as the source image; do not color-correct, crop away the original composition, or replace it with AI-generated art. Keep a concise cover credit at the bottom of the Editor's-note page; omit museum-catalog detail from reader-facing front matter.
+The Met image is committed as `reconstruction/figures/frontmatter/great-wave-met-dp130155.jpg`. Preserve it as the source image; do not color-correct, crop away the original composition, or replace it with AI-generated art.
 
-The generated web/README title block may continue to state original/digital dates and the digital editor even though those details are deliberately absent from the front cover. In `frontmatter-modern.tex`, `wavepdfonly` contains the modern cover and `wavewebonly` retains the web/README title metadata. Do not let the two branches diverge in authorship/title facts.
+The paged modern PDF uses conventional book preliminaries after the exterior cover:
 
-The Editor's note keeps `\wavesignature{Albert M. W. Yau}{Stony Brook}{2026}`, while its contents entry is simply `Editor's note`.
+1. half-title,
+2. Lake Como frontispiece,
+3. full title page,
+4. copyright / edition-notice verso,
+5. Contents,
+6. Preface — David C. Chapman,
+7. Preface — Paola Malanotte-Rizzoli,
+8. Editor's note,
+9. Chapter 1.
 
-The modern cover page is unnumbered. Front matter then uses lower-case Roman numerals starting at `i`; Chapter 1 resets to Arabic `1`. Modern contents use Chapter → Section only (`tocdepth=1`).
+`frontmatter-modern-book.tex` owns that PDF-only sequence. The half-title, frontispiece, title, and edition-notice leaves are counted as Roman preliminary pages but suppress their folios; Contents is the first visibly numbered preliminary page and begins at **v**. Chapter 1 resets to Arabic page `1`.
 
-Keep the CC BY-NC-SA 4.0 statement in the Editor's note. The concise cover credit belongs at the bottom of the Editor's-note page in the modern PDF and EPUB only; omit it from README and HTML because those views do not display the Hokusai cover.
+The edition-notice verso records historical authorship, presentation date, digital-editor provenance, the authorized CC BY-NC-SA 4.0 release, source-scan provenance, and the concise Hokusai cover credit. Do not assert that the digital editor owns copyright in the historical lecture notes. Keep the page bibliographic/legal rather than repeating the GPT assistance statement there.
 
-The historical Lake Como photograph remains unnumbered and uses the established caption identifying Rick Salmon (left) and Myrl Hendershott at Villa Carlotta during the International School of Physics “Enrico Fermi,” Course LXXX, *Topics in Ocean Physics*, July 1980. Do not add unsupported photographer attribution or apply speculative color correction.
+The generated web/README title block may continue to state original/digital dates and the digital editor even though those details are deliberately absent from the front cover. In `frontmatter-modern.tex`, `wavepdfonly` selects the paged book preliminaries and `wavewebonly` retains the web/README title metadata. Do not let the two branches diverge in authorship/title facts.
+
+The Editor's note keeps `\wavesignature{Albert M. W. Yau}{Stony Brook}{2026}`, while its contents entry is simply `Editor's note`. Keep the CC BY-NC-SA 4.0 statement and the brief GPT-5.6 Sol reconstruction-assistance sentence in the Editor's note.
+
+The concise Hokusai cover credit belongs on the PDF edition-notice verso. The EPUB builder expands the same credit marker in its flowing front matter because the EPUB includes the shared Hokusai cover. README and HTML may omit the cover credit because they do not display that cover.
+
+The historical Lake Como photograph is the modern PDF **frontispiece**, unnumbered, with the established caption identifying Rick Salmon (left) and Myrl Hendershott at Villa Carlotta during the International School of Physics “Enrico Fermi,” Course LXXX, *Topics in Ocean Physics*, July 1980. In flowing README/HTML/EPUB output, retain the same photograph with the Editor's note rather than forcing print page geometry into a reflowable format. Preserve the committed JPEG as the source image; do not add unsupported photographer attribution such as “Photograph by George,” perform speculative color correction, generatively reconstruct faces/details, or replace it with an AI-generated image.
+
+Modern contents use Chapter → Section only (`tocdepth=1`).
 
 ## Facsimile PDF
 
