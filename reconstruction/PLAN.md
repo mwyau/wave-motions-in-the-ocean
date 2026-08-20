@@ -22,11 +22,7 @@ Complete the independent scan-to-LaTeX and scientific equation audit chapter by 
 ## Publication
 
 - Continue empirical facsimile typography comparison while preserving the accepted 184-page edition.
-- Complete modern PDF/HTML typography and render review.
-- Keep accessibility practical and limited for v1.0: preserve EPUB language metadata, MathML, TOC/bodymatter navigation, accessible cover/frontispiece names, and conservative accessibility metadata.
-- After scientific figures stabilize, add concise figure descriptions only where they can be accurate and useful; do not pursue exhaustive descriptions merely for a conformance claim.
-- On a final artifact, run EPUBCheck plus an accessibility checker and do a small representative reader/screen-reader and HTML keyboard/structure spot check.
-- Defer tagged/PDF-UA production PDF, facsimile remediation, formal WCAG/EPUB Accessibility conformance, and broad assistive-technology compatibility testing.
+- Complete modern PDF/HTML typography and accessibility review.
 - Iterate the EPUB across representative readers, especially cover, navigation, math, figures, tables, metadata, and reflow behavior.
 - Add selective equation/figure cross-references and hyperlinks after the new chapter-based numbering is stable.
 
