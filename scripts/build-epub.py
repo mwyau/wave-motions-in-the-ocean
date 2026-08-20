@@ -34,15 +34,26 @@ def run(
 
 
 def canonical_inputs() -> list[Path]:
-    paths = [HTML_SOURCE / "frontmatter.tex"] + [
-        HTML_SOURCE / f"chapter{i}.tex" for i in range(1, 7)
-    ]
+    frontmatter = HTML_SOURCE / "frontmatter.tex"
+    chapters = [HTML_SOURCE / f"chapter{i}.tex" for i in range(1, 7)]
+    paths = [frontmatter, *chapters]
     missing = [str(path) for path in paths if not path.is_file()]
     if missing:
         raise SystemExit(
             "missing transformed canonical EPUB input(s): " + ", ".join(missing)
         )
-    return paths
+
+    credit_source = RECON / "cover-credit.tex"
+    if not credit_source.is_file():
+        raise SystemExit(f"missing cover credit source: {credit_source}")
+    epub_frontmatter = BUILD / "frontmatter.tex"
+    text = frontmatter.read_text()
+    marker = r"\wavecovercredit"
+    if marker not in text:
+        raise SystemExit("EPUB front matter is missing the cover-credit marker")
+    text = text.replace(marker, credit_source.read_text().strip(), 1)
+    epub_frontmatter.write_text(text)
+    return [epub_frontmatter, *chapters]
 
 
 def render_cover() -> None:
