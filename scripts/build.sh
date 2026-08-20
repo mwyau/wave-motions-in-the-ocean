@@ -49,6 +49,32 @@ epub_output_exists() {
   [[ -s "$DIST/wave-motions.epub" ]]
 }
 
+run_html_stage() {
+  local title=$1 message=$2
+  shift 2
+  if "$@"; then
+    return
+  fi
+  if development_qa_is_advisory && html_outputs_exist; then
+    warn "$title" "$message"
+    return
+  fi
+  return 1
+}
+
+run_epub_stage() {
+  local title=$1 message=$2
+  shift 2
+  if "$@"; then
+    return
+  fi
+  if development_qa_is_advisory && epub_output_exists; then
+    warn "$title" "$message"
+    return
+  fi
+  return 1
+}
+
 prepare_bibtex() {
   # Some minimal TeX installations expose bibtex8 but not a `bibtex` executable.
   # latexmk expects `bibtex`, so provide a temporary compatibility command only
@@ -122,38 +148,35 @@ build_pdf() {
 
 prepare_html() {
   for cmd in pandoc pdftocairo; do need "$cmd"; done
-  if python3 "$ROOT/scripts/build-html.py"; then
-    return
-  fi
-  if development_qa_is_advisory && html_outputs_exist; then
-    warn "Embedded HTML QA" "build-html.py reported a post-generation validation failure; complete HTML outputs were retained for development QA."
-    return
-  fi
-  return 1
+  run_html_stage \
+    "Embedded HTML QA" \
+    "build-html.py reported a post-generation validation failure; complete HTML outputs were retained for development QA." \
+    python3 "$ROOT/scripts/build-html.py"
 }
 
 build_epub() {
   need pandoc
-  if ! python3 "$ROOT/scripts/build-epub.py"; then
-    if development_qa_is_advisory && epub_output_exists; then
-      warn "Embedded EPUB QA" "build-epub.py reported a post-generation validation failure; the generated EPUB was retained for development QA."
-    else
-      return 1
-    fi
-  fi
+  run_epub_stage \
+    "Embedded EPUB QA" \
+    "build-epub.py reported a post-generation validation failure; the generated EPUB was retained for development QA." \
+    python3 "$ROOT/scripts/build-epub.py"
 
-  if ! python3 "$ROOT/scripts/set-epub-accessibility.py"; then
-    if development_qa_is_advisory && epub_output_exists; then
-      warn "EPUB accessibility post-processing" "accessibility post-processing reported a validation failure; the generated EPUB was retained for development QA."
-    else
-      return 1
-    fi
-  fi
+  run_epub_stage \
+    "EPUB accessibility post-processing" \
+    "accessibility post-processing reported a validation failure; the generated EPUB was retained for development QA." \
+    python3 "$ROOT/scripts/set-epub-accessibility.py"
 }
 
 finish_html() {
-  python3 "$ROOT/scripts/sync-views.py" --html
-  python3 "$ROOT/scripts/enhance-html.py"
+  run_html_stage \
+    "HTML synchronization QA" \
+    "HTML synchronization reported a structural validation failure; generated pages were retained for development QA." \
+    python3 "$ROOT/scripts/sync-views.py" --html
+
+  run_html_stage \
+    "HTML enhancement QA" \
+    "responsive/navigation enhancement reported a post-processing validation failure; generated pages were retained for development QA." \
+    python3 "$ROOT/scripts/enhance-html.py"
 }
 
 check_readme_sync() {
@@ -161,11 +184,17 @@ check_readme_sync() {
 }
 
 stamp_html() {
-  python3 "$ROOT/scripts/stamp-build-info.py" --html
+  run_html_stage \
+    "HTML build identity" \
+    "HTML build-identity stamping failed; generated pages were retained for development QA." \
+    python3 "$ROOT/scripts/stamp-build-info.py" --html
 }
 
 stamp_epub() {
-  python3 "$ROOT/scripts/stamp-build-info.py" --epub
+  run_epub_stage \
+    "EPUB build identity" \
+    "EPUB build-identity stamping failed; the generated EPUB was retained for development QA." \
+    python3 "$ROOT/scripts/stamp-build-info.py" --epub
 }
 
 check_epub_accessibility() {
