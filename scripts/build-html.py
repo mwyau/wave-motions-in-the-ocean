@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the chapter-split modern HTML edition from the canonical LaTeX sources.
+"""Build the chapter-split modern HTML edition from the LaTeX sources.
 
 Pandoc is used after a temporary, generated compatibility transform. Chapter
 prose/equations are never duplicated or maintained as HTML. TikZ sources are
@@ -436,7 +436,7 @@ a { overflow-wrap: anywhere; }
         inject_css_and_nav(page, make_nav(i))
     build_references(temp)
     validate()
-    print("HTML build OK: index + 6 chapters + references; generated from canonical LaTeX")
+    print("HTML build OK: index + 6 chapters + references")
     return 0
 
 

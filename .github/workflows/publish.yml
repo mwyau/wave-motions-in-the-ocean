@@ -43,6 +43,14 @@ jobs:
           uv pip sync requirements.txt
           echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
 
+      - name: Install system tools
+        env:
+          NEEDRESTART_MODE: a
+        run: |
+          sudo apt-get update
+          sudo -E apt-get install -y --no-install-recommends \
+            qpdf poppler-utils imagemagick ghostscript pandoc librsvg2-bin texinfo xz-utils
+
       - name: Cache TinyTeX
         id: tinytex-cache
         uses: actions/cache@v6.1.0
@@ -90,14 +98,6 @@ jobs:
           export PATH="$TEXBIN:$PATH"
           mapfile -t PACKAGES < <(grep -Ev '^\s*(#|$)' tex-packages.txt)
           tlmgr install "${PACKAGES[@]}"
-
-      - name: Install system validation tools
-        env:
-          NEEDRESTART_MODE: a
-        run: |
-          sudo apt-get update
-          sudo -E apt-get install -y --no-install-recommends \
-            qpdf poppler-utils imagemagick ghostscript pandoc librsvg2-bin
 
       - name: Build and validate publication
         run: ./scripts/build.sh all

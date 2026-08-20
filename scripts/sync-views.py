@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Keep README and HTML publication views synchronized with canonical LaTeX.
+"""Keep README and HTML publication views synchronized with the LaTeX sources.
 
-The LaTeX sources remain authoritative. README-only Shields badges are preserved
+The LaTeX sources drive these views. README-only Shields badges are preserved
 verbatim; front matter, contents, downloads, and license text are regenerated from
-canonical sources. The HTML operation installs the same contents/download/license
+the LaTeX sources. The HTML operation installs the same contents/download/license
 model and stable section anchors into the already generated Pages files.
 """
 from __future__ import annotations
@@ -198,7 +198,7 @@ def write_readme(*, check: bool) -> None:
         print("README sync OK")
         return
     README.write_text(expected)
-    print("README.md synchronized from canonical LaTeX")
+    print("README.md synchronized from LaTeX sources")
 
 
 def install_stable_section_ids() -> None:
@@ -243,7 +243,7 @@ def sync_html() -> None:
     if count != 1:
         raise SystemExit("could not locate generated Contents/Downloads/license block in index.html")
     index.write_text(text)
-    print("HTML contents/downloads/license synchronized from canonical LaTeX")
+    print("HTML contents/downloads/license synchronized from LaTeX sources")
 
 
 def main() -> int:

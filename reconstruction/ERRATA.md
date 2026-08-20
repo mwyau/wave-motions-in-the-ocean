@@ -5,7 +5,7 @@ shared reconstructed content. The scans remain the historical authority.
 
 Each item has one status:
 
-- **`accepted`** — the reconstruction intentionally differs from the source.
+- **`accepted`** — a reviewed correction differs from the source.
 - **`pending-review`** — a likely source problem has been identified, but the reconstruction
   remains unchanged pending a final editorial decision.
 - **`reverted`** — an earlier reconstruction/audit finding was checked and restored to, or
@@ -154,7 +154,7 @@ provenance belong in `FIGURES.md`.
   literature specifically cites Lamb (1932) for the long-wave step result. The current
   bibliography cites the 1945 Dover reprint of the same sixth edition. Resolve whether
   the intended in-text citation should be 1932 or should match the cited 1945 reprint
-  before changing the canonical text.
+  before changing the text.
 
 ### Printed page 113 — reversed depth and cross-step-wavenumber labels
 
@@ -256,8 +256,8 @@ provenance belong in `FIGURES.md`.
   $u=-i\ell\psi=0$.
 - **Reconstruction:** “Thus, in a westward propagating wave with $\ell=0$,”
   followed by the same velocity relations.
-- **Reason/evidence:** The equality $u=0$ requires $\ell=0$. The added qualifier makes
-  explicit the purely zonal example already used in the nearby discussion without
+- **Reason/evidence:** The equality $u=0$ requires $\ell=0$. The added qualifier clarifies
+  the purely zonal example already used in the nearby discussion without
   changing the derivation.
 
 ### Printed page 140 — “equations of motions”

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Shared publication metadata and navigation derived from canonical LaTeX."""
+"""Shared publication metadata and navigation derived from the LaTeX sources."""
 from __future__ import annotations
 
 import html
@@ -44,7 +44,7 @@ def _balanced_command_args(text: str, command: str) -> list[str]:
                 depth -= 1
             i += 1
         if depth:
-            raise ValueError(f"unbalanced \\{command} in canonical source")
+            raise ValueError(f"unbalanced \\{command} in source")
         out.append(text[start + len(marker) : i - 1])
         pos = i
     return out

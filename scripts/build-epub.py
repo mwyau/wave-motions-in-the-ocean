@@ -47,14 +47,14 @@ def run(
     subprocess.run(cmd, cwd=cwd, env=env, check=True)
 
 
-def canonical_inputs() -> list[Path]:
+def epub_inputs() -> list[Path]:
     frontmatter = HTML_SOURCE / "frontmatter.tex"
     chapters = [HTML_SOURCE / f"chapter{i}.tex" for i in range(1, 7)]
     paths = [frontmatter, *chapters]
     missing = [str(path) for path in paths if not path.is_file()]
     if missing:
         raise SystemExit(
-            "missing transformed canonical EPUB input(s): " + ", ".join(missing)
+            "missing transformed EPUB input(s): " + ", ".join(missing)
         )
 
     credit_source = RECON / "cover-credit.tex"
@@ -69,7 +69,7 @@ def canonical_inputs() -> list[Path]:
     text = text.replace(marker, credit_source.read_text().strip(), 1)
     epub_frontmatter.write_text(text)
 
-    # Keep EPUB-specific compatibility normalization generated-only. Pandoc's
+    # Apply EPUB-specific compatibility changes only to generated files. Pandoc's
     # TeX-math reader rejects the legacy declaration form used by the source in
     # p_{\rm atmosphere}; the equivalent \mathrm form preserves the notation.
     epub_chapters: list[Path] = []
@@ -345,7 +345,7 @@ def main() -> int:
         raise SystemExit(f"missing EPUB stylesheet: {CSS}")
     shutil.rmtree(BUILD, ignore_errors=True)
     BUILD.mkdir(parents=True)
-    inputs = canonical_inputs()
+    inputs = epub_inputs()
     render_cover()
     metadata = write_metadata()
     build_epub(inputs, metadata)

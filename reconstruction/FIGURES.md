@@ -1,11 +1,11 @@
 # Figure audit
 
-This is the canonical image ledger for the reconstructed book. The committed PDFs in `../source/` are the visual and scientific authority. A figure is not accepted merely because it looks cleaner: direction, magnitude relationships, wavelength, nodes, tangencies, boundary contact, coordinate orientation, and consistency with the nearby equations must also survive review.
+This file tracks figures used in the reconstructed book. The PDFs in `../source/` are the visual and scientific reference. A figure is not accepted merely because it looks cleaner: direction, magnitude relationships, wavelength, nodes, tangencies, boundary contact, coordinate orientation, and consistency with the nearby equations must also survive review.
 
 Statuses:
 
-- `source-pdf` — intentionally kept as an untouched crop from a committed source PDF;
-- `edited-raster` — intentionally edited raster retained as the final book image;
+- `source-pdf` — untouched crop from a source PDF;
+- `edited-raster` — edited raster retained as the final book image;
 - `vector-complete` — TikZ/vector reconstruction rechecked against source and nearby physics;
 - `vector-review-needed` — vector exists but an identified issue still needs resolution;
 - `vector-candidate` — a source crop may be worth redrawing later.
@@ -57,9 +57,9 @@ Chapter 5 was re-audited first on 2026-08-20. Four previously accepted drawings 
 |---|---:|---|---|
 | `ch05-p108-wall-reflection.tikz` | 108 | **vector-complete** | Re-audited 2026-08-20: reflected endpoint is the exact mirror of the incident endpoint about the wall normal, so `alpha_R=alpha_I` and displayed ray magnitudes are equal. Enlarged from the earlier undersized redraw. |
 | `ch05-p108-rectangular-basin.tikz` | 108 | **vector-complete** | Four walls and `x=0,a`, `y=0,b` geometry reproduce the source. |
-| `ch05-p110-depth-step-rays.tikz` | 110 | **vector-complete** | Re-audited 2026-08-20: reflected ray is an exact mirror of the incident ray; transmitted ray remains explicitly schematic but bends toward the normal for the stated depth ordering. Figure scale increased. |
+| `ch05-p110-depth-step-rays.tikz` | 110 | **vector-complete** | Re-audited 2026-08-20: reflected ray is an exact mirror of the incident ray; transmitted ray remains schematic but bends toward the normal for the stated depth ordering. Figure scale increased. |
 | `ch05-p114-step-shelf.tikz` | 114 | **vector-complete** | Coast, shelf width `L`, and `D_1/D_2` step geometry reproduce the source. |
-| `ch05-p114-ray-paths.tikz` | 114 | **vector-complete** | Re-audited 2026-08-20: coast and shelf-edge bounces are built from mirrored ray segments; source arrow traversal is preserved; refraction at `x=L` is explicitly schematic rather than a quantitative Snell construction. |
+| `ch05-p114-ray-paths.tikz` | 114 | **vector-complete** | Re-audited 2026-08-20: coast and shelf-edge bounces are built from mirrored ray segments; source arrow traversal is preserved; refraction at `x=L` is schematic rather than a quantitative Snell construction. |
 | `ch05-p115-edge-wave-profile.tikz` | 115 | **vector-complete** | Re-audited 2026-08-20: shelf cosine and offshore exponential now satisfy both `eta` continuity and `D eta_x` continuity at `x=L`; display-only parameters are identified in comments and are not presented as source data. Figure enlarged. |
 | `ch05-p116-edge-wave-dispersion.tikz` | 116 | **vector-complete** | First three branches are generated from the stated matching relation; branch cutoffs/asymptotes come from the dispersion relation. |
 | `ch05-p117-forced-shelf-profile.tikz` | 117 | **vector-complete** | Preserves `A cos(k_1 x)` on the shelf and a longer-wavelength deep-ocean oscillation; it is a qualitative forced-profile sketch, not a generic derivative-matched free mode. |
@@ -89,7 +89,7 @@ Chapter 5 was re-audited first on 2026-08-20. Four previously accepted drawings 
 | Asset | Printed page | Status | Scientific audit |
 |---|---:|---|---|
 | `ch06-p156-bottom-slope-trapping.tikz` | 156 | **vector-complete** | Preserves `omega<S` propagation and `omega>S` evanescence/reflection, including the trapped segment. |
-| `ch06-p162-coastal-geometry.tikz` | 162 | **vector-complete** | Re-audited 2026-08-20: `z=-H` is now attached to the actual flat deep-ocean bottom; the lower shaded closure is explicitly distinguished from the physical bottom. Figure slightly enlarged. |
+| `ch06-p162-coastal-geometry.tikz` | 162 | **vector-complete** | Re-audited 2026-08-20: `z=-H` is now attached to the actual flat deep-ocean bottom; the lower shaded closure is distinguished from the physical bottom. Figure slightly enlarged. |
 | `ch06-p164-ctw-dispersion-family.tikz` | 164 | **vector-complete** | Schematic branches obey the derived origin, ordering, and common short-wave asymptote constraints. |
 | `ch06-p164-stratification-effect.tikz` | 164 | **vector-complete** | Increasing stratification raises the schematic branch toward the inertial cutoff as stated. |
 | `ch06-p165-scattering-by-stratification.tikz` | 165 | **vector-complete** | Weak-stratification panel has incident/reflected/transmitted branches; strong-stratification panel omits the reflected branch. |
@@ -103,9 +103,9 @@ Chapter 5 was re-audited first on 2026-08-20. Four previously accepted drawings 
 
 ## Direct source-PDF crop placements — complete inventory
 
-These 56 placements are real figures even though no separate image file is committed. They are intentionally rendered from the authoritative source PDFs. Retaining a source crop is a positive scientific decision when vectorization would add interpretation risk; it is not an incomplete reconstruction by itself.
+These 56 placements are real figures even though no separate image file is committed. They are rendered directly from the source PDFs. Retaining a source crop is a positive scientific decision when vectorization would add interpretation risk; it is not an incomplete reconstruction by itself.
 
-Chapter 5 p.97 is a particularly important example: the sphere drawing was explicitly reviewed as a vector candidate and retained as source art because the local `u/v/z` tangencies, latitude/longitude circles, point `P`, rotation axis, and projected angle geometry are exactly the sort of subtle relationships that a cleaner redraw can accidentally change.
+Chapter 5 p.97 is a particularly important example: the sphere drawing was reviewed as a vector candidate and retained as source art because the local `u/v/z` tangencies, latitude/longitude circles, point `P`, rotation axis, and projected angle geometry are exactly the sort of subtle relationships that a cleaner redraw can accidentally change.
 
 | Chapter | Printed page | Source PDF | Physical page | Status / vectorization disposition |
 |---|---:|---|---:|---|
@@ -153,8 +153,8 @@ Chapter 5 p.97 is a particularly important example: the sphere drawing was expli
 | 4 | 92 | `ChapmanRizzoli4.pdf` | 29 | **source-pdf** — retained after review. |
 | 4 | 93 | `ChapmanRizzoli4.pdf` | 30 | **source-pdf** — retained after review. |
 | 4 | 94 | `ChapmanRizzoli4.pdf` | 31 | **source-pdf** — retained after review. |
-| 5 | 97 | `ChapmanRizzoli5.pdf` | 2 | **source-pdf** — vectorization reviewed and deliberately deferred because the sphere/tangent/longitude-latitude geometry is scientifically dense. |
-| 5 | 113 | `ChapmanRizzoli5.pdf` | 18 | **source-pdf 1/2** — historical labels intentionally retained beside corrected text; do not silently redraw the erratum away. |
+| 5 | 97 | `ChapmanRizzoli5.pdf` | 2 | **source-pdf** — vectorization reviewed and deferred because the sphere/tangent/longitude-latitude geometry is scientifically dense. |
+| 5 | 113 | `ChapmanRizzoli5.pdf` | 18 | **source-pdf 1/2** — historical labels retained beside corrected text; do not silently redraw the erratum away. |
 | 5 | 113 | `ChapmanRizzoli5.pdf` | 18 | **source-pdf 2/2** — same disposition. |
 | 6 | 151 | `ChapmanRizzoli6.pdf` | 4 | **source-pdf** — retained after review. |
 | 6 | 152 | `ChapmanRizzoli6.pdf` | 5 | **source-pdf** — retained after review. |
