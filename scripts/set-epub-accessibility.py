@@ -91,7 +91,12 @@ def manifest_member(opf_name: str, item: ET.Element) -> str:
     return posixpath.normpath(posixpath.join(posixpath.dirname(opf_name), href))
 
 
-def navigation_member(opf_name: str, opf_root: ET.Element) -> str:
+def navigation_member(
+    opf_name: str,
+    opf_root: ET.Element,
+    *,
+    required: bool = True,
+) -> str | None:
     manifest = opf_root.find("{*}manifest")
     if manifest is None:
         raise SystemExit("EPUB manifest is missing")
@@ -101,7 +106,9 @@ def navigation_member(opf_name: str, opf_root: ET.Element) -> str:
         if "nav" in (item.get("properties") or "").split()
     ]
     if len(items) != 1 or not items[0].get("href"):
-        raise SystemExit("EPUB navigation document is missing or ambiguous")
+        if required:
+            raise SystemExit("EPUB navigation document is missing or ambiguous")
+        return None
     return manifest_member(opf_name, items[0])
 
 
@@ -109,11 +116,15 @@ def first_bodymatter_member(
     source: zipfile.ZipFile,
     opf_name: str,
     opf_root: ET.Element,
-) -> str:
+    *,
+    required: bool = True,
+) -> str | None:
     manifest = opf_root.find("{*}manifest")
     spine = opf_root.find("{*}spine")
     if manifest is None or spine is None:
-        raise SystemExit("EPUB manifest/spine is incomplete")
+        if required:
+            raise SystemExit("EPUB manifest/spine is incomplete")
+        return None
     by_id = {
         item.get("id"): item
         for item in manifest.findall("{*}item")
@@ -135,10 +146,16 @@ def first_bodymatter_member(
         body = root.find(".//{*}body")
         if body is not None and "bodymatter" in (body.get(EPUB_TYPE) or "").split():
             return member
-    raise SystemExit("EPUB spine has no bodymatter content document")
+    if required:
+        raise SystemExit("EPUB spine has no bodymatter content document")
+    return None
 
 
-def cover_image_basename(opf_root: ET.Element) -> str:
+def cover_image_basename(
+    opf_root: ET.Element,
+    *,
+    required: bool = True,
+) -> str | None:
     manifest = opf_root.find("{*}manifest")
     if manifest is None:
         raise SystemExit("EPUB manifest is missing")
@@ -148,9 +165,11 @@ def cover_image_basename(opf_root: ET.Element) -> str:
         if "cover-image" in (item.get("properties") or "").split()
     ]
     if len(cover_items) != 1 or not cover_items[0].get("href"):
-        raise SystemExit(
-            f"expected one EPUB cover image, found {len(cover_items)}"
-        )
+        if required:
+            raise SystemExit(
+                f"expected one EPUB cover image, found {len(cover_items)}"
+            )
+        return None
     href = urllib.parse.unquote(cover_items[0].get("href") or "")
     return posixpath.basename(urllib.parse.urlsplit(href).path)
 
@@ -181,6 +200,8 @@ def ensure_bodymatter_landmark(
     root: ET.Element,
     nav_member: str,
     bodymatter_member: str,
+    *,
+    required: bool = True,
 ) -> bool:
     landmarks = [
         nav
@@ -188,9 +209,11 @@ def ensure_bodymatter_landmark(
         if "landmarks" in (nav.get(EPUB_TYPE) or "").split()
     ]
     if len(landmarks) != 1:
-        raise SystemExit(
-            f"expected one EPUB landmarks navigation element, found {len(landmarks)}"
-        )
+        if required:
+            raise SystemExit(
+                f"expected one EPUB landmarks navigation element, found {len(landmarks)}"
+            )
+        return False
     landmark = landmarks[0]
     existing = [
         link
@@ -203,7 +226,9 @@ def ensure_bodymatter_landmark(
     )
     if existing:
         if len(existing) != 1:
-            raise SystemExit("EPUB landmarks contain multiple bodymatter entries")
+            if required:
+                raise SystemExit("EPUB landmarks contain multiple bodymatter entries")
+            return False
         target = urllib.parse.unquote(
             urllib.parse.urlsplit(existing[0].get("href") or "").path
         )
@@ -211,14 +236,18 @@ def ensure_bodymatter_landmark(
             posixpath.join(posixpath.dirname(nav_member), target)
         )
         if resolved != bodymatter_member:
-            raise SystemExit(
-                "EPUB bodymatter landmark points to the wrong content document"
-            )
+            if required:
+                raise SystemExit(
+                    "EPUB bodymatter landmark points to the wrong content document"
+                )
+            return False
         return False
 
     ordered_list = landmark.find("./{*}ol")
     if ordered_list is None:
-        raise SystemExit("EPUB landmarks navigation has no ordered list")
+        if required:
+            raise SystemExit("EPUB landmarks navigation has no ordered list")
+        return False
     item = ET.SubElement(ordered_list, f"{{{XHTML_NS}}}li")
     link = ET.SubElement(
         item,
@@ -234,13 +263,16 @@ def set_known_accessibility(
     opf_name: str,
     opf_root: ET.Element,
 ) -> dict[str, bytes]:
-    """Add only semantics whose content is already authoritative in the book."""
-    cover_basename = cover_image_basename(opf_root)
-    nav_member = navigation_member(opf_name, opf_root)
-    bodymatter_member = first_bodymatter_member(source, opf_name, opf_root)
+    """Best-effort additions whose meaning is already authoritative in the book."""
+    cover_basename = cover_image_basename(opf_root, required=False)
+    nav_member = navigation_member(opf_name, opf_root, required=False)
+    bodymatter_member = first_bodymatter_member(
+        source,
+        opf_name,
+        opf_root,
+        required=False,
+    )
     rewritten: dict[str, bytes] = {}
-    frontispiece_found = False
-    cover_found = False
 
     ET.register_namespace("", XHTML_NS)
     ET.register_namespace("epub", EPUB_NS)
@@ -258,31 +290,30 @@ def set_known_accessibility(
             basename = ref_basename(image.get("src"))
             if basename == FRONTISPIECE_BASENAME:
                 image.set("alt", FRONTISPIECE_ALTERNATIVE)
-                frontispiece_found = True
                 changed = True
-            if basename == cover_basename:
+            if cover_basename and basename == cover_basename:
                 image.set("alt", COVER_ALTERNATIVE)
-                cover_found = True
                 changed = True
 
         # Pandoc commonly wraps the EPUB cover raster in an inline SVG. Name
         # the outer SVG through both ARIA and its native <title>; EPUB reading
         # systems vary in which accessibility mapping they expose.
-        for svg in root.findall(".//{*}svg"):
-            if not any(
-                ref_basename(svg_image_ref(image)) == cover_basename
-                for image in svg.findall(".//{*}image")
-            ):
-                continue
-            set_svg_accessible_name(svg, COVER_ALTERNATIVE)
-            cover_found = True
-            changed = True
+        if cover_basename:
+            for svg in root.findall(".//{*}svg"):
+                if not any(
+                    ref_basename(svg_image_ref(image)) == cover_basename
+                    for image in svg.findall(".//{*}image")
+                ):
+                    continue
+                set_svg_accessible_name(svg, COVER_ALTERNATIVE)
+                changed = True
 
-        if member == nav_member:
+        if member == nav_member and bodymatter_member:
             changed = ensure_bodymatter_landmark(
                 root,
                 nav_member,
                 bodymatter_member,
+                required=False,
             ) or changed
 
         if changed:
@@ -292,14 +323,6 @@ def set_known_accessibility(
                 xml_declaration=True,
             )
 
-    if not frontispiece_found:
-        raise SystemExit(
-            "EPUB frontispiece image was not found while adding its known alternative text"
-        )
-    if not cover_found:
-        raise SystemExit(
-            "EPUB cover presentation was not found while adding its accessible name"
-        )
     return rewritten
 
 
@@ -393,6 +416,60 @@ def apply_metadata(epub: Path) -> None:
         shutil.move(tmp, epub)
     finally:
         tmp.unlink(missing_ok=True)
+
+
+def accessibility_metadata(opf_root: ET.Element) -> dict[str, list[str]]:
+    metadata = opf_root.find("{*}metadata")
+    if metadata is None:
+        raise SystemExit("EPUB package metadata is missing")
+    actual: dict[str, list[str]] = {}
+    for element in metadata.findall("{*}meta"):
+        property_name = element.get("property")
+        if property_name:
+            actual.setdefault(property_name, []).append(
+                (element.text or "").strip()
+            )
+    return actual
+
+
+def validate_rewrite_integrity(epub: Path) -> None:
+    """Fail the generation path only for corrupt output or failed OPF rewriting."""
+    if not epub.is_file() or epub.stat().st_size == 0:
+        raise SystemExit(f"EPUB output is missing or empty: {epub}")
+    try:
+        archive = zipfile.ZipFile(epub, "r")
+    except zipfile.BadZipFile as exc:
+        raise SystemExit(f"EPUB became invalid after accessibility rewrite: {exc}") from exc
+    with archive:
+        if archive.testzip() is not None:
+            raise SystemExit(
+                "EPUB became corrupt while adding accessibility metadata"
+            )
+        if (
+            not archive.namelist()
+            or archive.namelist()[0] != "mimetype"
+            or archive.getinfo("mimetype").compress_type != zipfile.ZIP_STORED
+            or archive.read("mimetype") != b"application/epub+zip"
+        ):
+            raise SystemExit(
+                "EPUB mimetype entry is invalid after accessibility metadata update"
+            )
+        _, opf_root = package_document(archive)
+        if opf_root.get(f"{{{XML_NS}}}lang") != LANGUAGE:
+            raise SystemExit(
+                f"EPUB package text language rewrite did not preserve {LANGUAGE}"
+            )
+        actual = accessibility_metadata(opf_root)
+        expected: dict[str, list[str]] = {}
+        for property_name, value in ACCESSIBILITY_METADATA:
+            expected.setdefault(property_name, []).append(value)
+        for property_name, values in expected.items():
+            if actual.get(property_name) != values:
+                raise SystemExit(
+                    f"EPUB accessibility metadata rewrite failed for {property_name!r}: "
+                    f"{actual.get(property_name)!r}"
+                )
+    print("EPUB accessibility rewrite integrity OK")
 
 
 def alternative_bucket(value: str | None) -> str:
@@ -489,6 +566,7 @@ def validate_bodymatter_landmark(
 ) -> None:
     nav_member = navigation_member(opf_name, opf_root)
     expected = first_bodymatter_member(archive, opf_name, opf_root)
+    assert nav_member is not None and expected is not None
     root = ET.fromstring(archive.read(nav_member))
     landmarks = [
         nav
@@ -553,18 +631,11 @@ def validate_metadata(epub: Path) -> None:
         validate_document_languages(archive, opf_name, opf_root)
         validate_bodymatter_landmark(archive, opf_name, opf_root)
 
-        actual: dict[str, list[str]] = {}
-        for element in metadata.findall("{*}meta"):
-            property_name = element.get("property")
-            if property_name:
-                actual.setdefault(property_name, []).append(
-                    (element.text or "").strip()
-                )
-
-        expected: dict[str, list[str]] = {}
+        actual = accessibility_metadata(opf_root)
+        expected_metadata: dict[str, list[str]] = {}
         for property_name, value in ACCESSIBILITY_METADATA:
-            expected.setdefault(property_name, []).append(value)
-        for property_name, values in expected.items():
+            expected_metadata.setdefault(property_name, []).append(value)
+        for property_name, values in expected_metadata.items():
             if actual.get(property_name) != values:
                 raise SystemExit(
                     f"EPUB accessibility metadata {property_name!r} is "
@@ -612,6 +683,7 @@ def validate_metadata(epub: Path) -> None:
         # well as its ARIA name. Other Pandoc versions may emit a normal <img>,
         # whose required alt text is already checked above.
         cover_basename = cover_image_basename(opf_root)
+        assert cover_basename is not None
         cover_svg_seen = False
         cover_title_found = False
         for member in manifest_xhtml_members(opf_name, opf_root):
@@ -656,9 +728,11 @@ def main() -> int:
     )
     args = parser.parse_args()
     epub = args.epub.resolve()
-    if not args.check:
+    if args.check:
+        validate_metadata(epub)
+    else:
         apply_metadata(epub)
-    validate_metadata(epub)
+        validate_rewrite_integrity(epub)
     return 0
 
 
