@@ -17,7 +17,7 @@ Equation-validation states are tracked independently of representation status:
 - **Pending** — equation validation materially applies but has not yet been independently completed and recorded.
 - **N/A** — no meaningful equation-defined quantity or relation controls the figure; visual, geometric, source-fidelity, and provenance checks still apply.
 
-The initial 2026-08-20 backfill is conservative: `Validated` is used only where the existing audit record supports an independent equation/constraint check, not merely because a vector was generated from a formula. Current snapshot across the 105 tracked body/front-matter assets and direct source placements: **55 Validated, 10 Partial, 26 Pending, 14 N/A**.
+The initial 2026-08-20 backfill is conservative: `Validated` is used only where the existing audit record supports an independent equation/constraint check, not merely because a vector was generated from a formula. Current snapshot across the 105 tracked body/front-matter assets and direct source placements: **57 Validated, 10 Partial, 24 Pending, 14 N/A**.
 
 Every `.tikz` file carries a `wave-source` comment naming the source PDF, physical page, and crop. `scripts/compare-figures.py` regenerates temporary side-by-side comparisons under `build/comparisons/`; comparison outputs are never committed.
 
@@ -152,6 +152,9 @@ Chapter 5 was re-audited first on 2026-08-20. Four previously accepted drawings 
 | `ch06-p152-bottom-trapped-mode.tikz` | 152 | **vector-complete** | **Validated** | The plotted vertical structure is generated from normalized `cosh(mu z)` with `mu^2=S^2(n^2 pi^2+k^2)`. Independent evaluation confirms amplitude increases monotonically toward the bottom and trapping strengthens with increasing `mu`. |
 | `ch06-p154-effective-slope.tikz` | 154 | **vector-complete** | **Validated** | The scaled bottom is exactly `z prime=R alpha x`, with `theta=atan(R alpha)` and `R alpha=S/sqrt(1-omega^2)`; tangent `k` and normal decay `m` are constructed perpendicular to each other. |
 
+| `ch06-p157-continental-shelf.tikz` | 157 | **vector-complete** | **Validated** | The shelf profile is generated from `D=D_0 exp(2bx)` for `0<x<L` and matched to constant depth offshore; the coast, shelf edge, and alongshore/offshore axes obey the chapter definition. |
+| `ch06-p159-shelf-root-condition.tikz` | 159 | **vector-complete** | **Validated** | The root plot is independently generated from `tan(kL)=k/(ell-b)`. For the declared normalized display `(ell-b)L=-1.5`, numerical roots are `2.1746260`, `5.0036453`, and `8.0384628`, approaching half-integer-pi asymptotes as stated. |
+
 ### Front matter
 
 | Asset | Use | Status | Equation validation | Audit |
@@ -161,7 +164,7 @@ Chapter 5 was re-audited first on 2026-08-20. Four previously accepted drawings 
 
 ## Direct source-PDF crop placements — complete inventory
 
-These 13 placements are real figures even though no separate image file is committed. They are rendered directly from the source PDFs. Retaining a source crop is a positive scientific decision when vectorization would add interpretation risk; it is not an incomplete reconstruction by itself.
+These 11 placements are real figures even though no separate image file is committed. They are rendered directly from the source PDFs. Retaining a source crop is a positive scientific decision when vectorization would add interpretation risk; it is not an incomplete reconstruction by itself.
 
 The 2026-08-20 source-art pass also treats crop isolation as part of acceptance: surrounding prose/equations must not be embedded in a figure, and no scientific label or line may be cut by the trim. Eight Chapter 4 crops (printed pp. 69--76) failed or were unnecessarily fragile under that criterion and were replaced by isolated vectors. The remaining direct crops below are classified explicitly as vector candidates or deliberate source-art retentions.
 
@@ -176,9 +179,7 @@ Chapter 5 p.97 is a particularly important example: the sphere drawing was revie
 | 5 | 97 | `ChapmanRizzoli5.pdf` | 2 | **N/A** | **vector-candidate (high-risk)** — feasible only with exact spherical projection/tangency construction for longitude/latitude circles and local `u/v/z`; keep source art until then. Its acceptance is primarily geometric rather than an equation-defined plot audit. |
 | 5 | 113 | `ChapmanRizzoli5.pdf` | 18 | **Validated** | **source-pdf** — retain the historical labels because this figure participates in the documented source erratum; the disagreement with the nearby equations has been checked and is intentionally preserved as historical evidence. |
 | 5 | 113 | `ChapmanRizzoli5.pdf` | 18 | **Validated** | **source-pdf** — same disposition; the source/equation mismatch is documented rather than silently corrected in the historical art. |
-| 6 | 157 | `ChapmanRizzoli6.pdf` | 10 | **Pending** | **vector-candidate** — analytic topographic/coastal-wave geometry or dispersion sketch; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
-| 6 | 159 | `ChapmanRizzoli6.pdf` | 12 | **Pending** | **vector-candidate** — analytic topographic/coastal-wave geometry or dispersion sketch; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
-| 6 | 159 | `ChapmanRizzoli6.pdf` | 12 | **Pending** | **vector-candidate** — analytic topographic/coastal-wave geometry or dispersion sketch; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
+| 6 | 159 | `ChapmanRizzoli6.pdf` | 12 | **Pending** | **source-pdf** — deliberately retain the full modal dispersion diagram: `k` is implicitly tied to `ell` by the shelf/deep-ocean matching relation, while the nearby stated maximum-frequency condition does not by itself fix a unique equation-generated branch reconstruction. Retain historical art until that coupled derivative/branch convention is resolved. |
 | 6 | 161 | `ChapmanRizzoli6.pdf` | 15 | **Pending** | **source-pdf** — retain the information-dense full coastal-wave spectrum until every branch/cutoff is independently checked and reconstructed equation-by-equation. |
 | 6 | 167 | `ChapmanRizzoli6.pdf` | 21 | **Pending** | **vector-candidate** — analytic topographic/coastal-wave geometry or dispersion sketch; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
 | 6 | 168 | `ChapmanRizzoli6.pdf` | 22 | **Pending** | **vector-candidate** — analytic topographic/coastal-wave geometry or dispersion sketch; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
