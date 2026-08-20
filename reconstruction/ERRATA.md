@@ -35,43 +35,47 @@ provenance belong in `FIGURES.md`.
 ### Printed page 3 — complex-amplitude phase from a one-argument arctangent
 
 - **Category:** `equation`
-- **Status:** `pending-review`
+- **Status:** `accepted`
 - **Location:** Chapter 1, printed page 3
-- **Original:** The current reconstruction, believed to follow the historical text, defines
-  the phase of a complex amplitude with $\tan^{-1}(\operatorname{Im}A/\operatorname{Re}A)$.
-- **Reconstruction:** Unchanged pending direct scan confirmation and canonical edit.
+- **Original:** The historical source writes the phase of a complex amplitude as
+  $\tan^{-1}(\operatorname{Im}A/\operatorname{Re}A)$.
+- **Reconstruction:** The phase is written as $\arg A$.
 - **Reason/evidence:** A one-argument arctangent loses quadrant information and is undefined
-  when $\operatorname{Re}A=0$. The phase is $\arg A$, equivalently an `atan2` convention.
-  The scientific correction is clear; the remaining review is classification against the
-  exact 1989 scan wording.
+  when $\operatorname{Re}A=0$. The complex argument preserves the quadrant and is defined
+  with the usual branch convention. Direct inspection of physical page 13 confirms the
+  one-argument arctangent is present in the 1989 source.
 
 ### Printed page 4 — scalar phase speed described as directed
 
 - **Category:** `editorial`
-- **Status:** `pending-review`
+- **Status:** `accepted`
 - **Location:** Chapter 1, printed page 4
-- **Original:** The scalar phase speed $c=\sigma/|\vec k|$ is described as being
-  directed along $\vec k$.
-- **Reconstruction:** Unchanged pending direct scan confirmation and canonical edit.
-- **Reason/evidence:** A scalar speed has no direction. The normal phase-velocity vector is
-  $\vec c_p=\sigma\vec k/|\vec k|^2$. Later successor notes explicitly distinguish
-  the scalar phase speed from a vector velocity.
+- **Original:** After defining the scalar phase speed $c=\sigma/|\vec k|=\lambda/T$,
+  the historical source says, “It is directed along $\vec k$.”
+- **Reconstruction:** The text identifies $c$ as the normal phase speed and, for the
+  stated $\sigma>0$ convention, gives the associated phase-velocity vector
+  $\vec c_p=c\hat{\vec k}=\sigma\vec k/|\vec k|^2$.
+- **Reason/evidence:** A scalar speed has no direction; direction belongs to the velocity
+  vector. This distinction also preserves the following discussion that $\sigma/k$ is
+  the speed at which a phase plane intersects the $x$ axis, not a vector component.
+  Direct inspection of physical page 14 confirms the historical wording.
 
 ### Printed pages 11--12 — WKB scale separation of phase and amplitude
 
 - **Category:** `equation`
-- **Status:** `pending-review`
+- **Status:** `accepted`
 - **Location:** Chapter 1, printed pages 11--12
-- **Original:** The current reconstruction, believed to follow the source, describes both
-  the amplitude and phase $\Theta$ as slowly varying and uses a fractional phase-change
-  criterion.
-- **Reconstruction:** Unchanged pending direct scan confirmation and canonical edit.
-- **Reason/evidence:** In WKB theory the phase varies on the wave scale; the slowly varying
-  quantities are the amplitude and local wave parameters such as
-  $\vec k=\nabla\Theta$ and $N=-\Theta_t$. The phase itself is also arbitrary up to an
-  additive constant, so a criterion based on $\Delta\Theta/\Theta$ is not invariant.
-
-## Chapter 2
+- **Original:** The historical source says both the amplitude $a$ and phase $\Theta$ are
+  slowly varying and states $\Delta\Theta/\Theta\ll1$ over a local wave scale.
+- **Reconstruction:** The amplitude and local wave parameters are stated to vary slowly,
+  while the phase itself varies on the wave scale. The small-variation condition is
+  applied to $a$, $\vec k=\nabla\Theta$, and $N=-\Theta_t$, not to
+  $\Delta\Theta/\Theta$.
+- **Reason/evidence:** WKB scale separation requires the envelope and local phase gradients
+  to vary on the medium scale while the phase accumulates on the wavelength/time scale.
+  Moreover, $\Theta$ is arbitrary up to an additive constant, so a fractional criterion
+  $\Delta\Theta/\Theta$ is not invariant. Direct inspection of physical pages 21--22
+  confirms the historical wording and criterion.
 
 ### Printed page 19 — adiabatic entropy derivative
 
