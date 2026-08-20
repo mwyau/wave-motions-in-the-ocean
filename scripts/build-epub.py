@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""Build the reflowable EPUB edition from transformed canonical LaTeX."""
+"""Build and structurally validate the reflowable EPUB edition."""
 from __future__ import annotations
 
 import html
 import os
+import posixpath
+import re
 import shutil
 import subprocess
+import urllib.parse
+import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 
@@ -22,6 +26,16 @@ COVER_PNG = COVER_DIR / "cover.png"
 
 TITLE = "Wave Motions in the Ocean: Myrl's View"
 AUTHORS = ("David C. Chapman", "Paola Malanotte-Rizzoli")
+EDITOR = "Albert M. W. Yau (digital editor)"
+NAV_SENTINELS = (
+    "Basic concepts",
+    "Acoustic waves",
+    "Surface gravity waves",
+    "Internal gravity waves",
+    "Shallow water dynamics",
+    "Topographic effects",
+    "References",
+)
 
 
 def run(
@@ -116,7 +130,7 @@ def write_metadata() -> Path:
         "lang: en-US\n"
         "rights: \"CC BY-NC-SA 4.0\"\n"
         "identifier: \"https://mwyau.github.io/wave-motions-in-the-ocean/\"\n"
-        "contributor: \"Albert M. W. Yau (digital editor)\"\n"
+        f"contributor: \"{EDITOR}\"\n"
         "---\n"
     )
     return path
@@ -149,39 +163,156 @@ def build_epub(inputs: list[Path], metadata: Path) -> None:
     )
 
 
+def text_content(element: ET.Element) -> str:
+    return " ".join("".join(element.itertext()).split())
+
+
+def resolved_member(base: str, ref: str) -> str | None:
+    parsed = urllib.parse.urlsplit(ref)
+    if parsed.scheme or parsed.netloc or not parsed.path:
+        return None
+    path = urllib.parse.unquote(parsed.path)
+    return posixpath.normpath(posixpath.join(posixpath.dirname(base), path))
+
+
+def validate_internal_refs(archive: zipfile.ZipFile, xhtml_names: list[str]) -> None:
+    names = set(archive.namelist())
+    broken: list[tuple[str, str]] = []
+    ref_re = re.compile(rb'(?:href|src)=["\']([^"\']+)["\']', re.I)
+    for name in xhtml_names:
+        content = archive.read(name)
+        for raw_ref in ref_re.findall(content):
+            ref = html.unescape(raw_ref.decode("utf-8", errors="replace"))
+            member = resolved_member(name, ref)
+            if member is not None and member not in names:
+                broken.append((name, ref))
+    if broken:
+        for name, ref in broken[:20]:
+            print(f"broken EPUB reference: {name}: {ref}")
+        raise SystemExit(f"EPUB contains {len(broken)} broken internal reference(s)")
+
+
 def validate_epub() -> None:
     if not EPUB.is_file() or EPUB.stat().st_size == 0:
         raise SystemExit("EPUB output is missing or empty")
+
     with zipfile.ZipFile(EPUB) as archive:
         names = archive.namelist()
+        name_set = set(names)
         if not names or names[0] != "mimetype":
             raise SystemExit("EPUB mimetype entry is not first")
         if archive.read("mimetype") != b"application/epub+zip":
             raise SystemExit("invalid EPUB mimetype")
-        if "META-INF/container.xml" not in names:
+        if "META-INF/container.xml" not in name_set:
             raise SystemExit("EPUB container.xml is missing")
         bad = archive.testzip()
         if bad is not None:
             raise SystemExit(f"corrupt EPUB member: {bad}")
 
-        opf_names = [name for name in names if name.lower().endswith(".opf")]
-        if len(opf_names) != 1:
-            raise SystemExit(f"expected one EPUB package document, found {len(opf_names)}")
-        opf = archive.read(opf_names[0]).decode("utf-8", errors="replace")
-        if TITLE not in html.unescape(opf):
-            raise SystemExit("EPUB metadata title is missing or incorrect")
-        if not all(author in opf for author in AUTHORS):
-            raise SystemExit("EPUB author metadata is incomplete")
+        container = ET.fromstring(archive.read("META-INF/container.xml"))
+        rootfile = container.find(".//{*}rootfile")
+        if rootfile is None or not rootfile.get("full-path"):
+            raise SystemExit("EPUB container has no package rootfile")
+        opf_name = rootfile.get("full-path")
+        assert opf_name is not None
+        if opf_name not in name_set:
+            raise SystemExit(f"EPUB package document is missing: {opf_name}")
 
-        xhtml = b"\n".join(
-            archive.read(name)
-            for name in names
-            if name.lower().endswith((".xhtml", ".html"))
+        opf_root = ET.fromstring(archive.read(opf_name))
+        metadata = opf_root.find("{*}metadata")
+        manifest = opf_root.find("{*}manifest")
+        spine = opf_root.find("{*}spine")
+        if metadata is None or manifest is None or spine is None:
+            raise SystemExit("EPUB package metadata/manifest/spine is incomplete")
+
+        title = metadata.find("{http://purl.org/dc/elements/1.1/}title")
+        if title is None or text_content(title) != TITLE:
+            got = text_content(title) if title is not None else "<missing>"
+            raise SystemExit(f"EPUB metadata title is incorrect: {got!r}")
+
+        creators = [
+            text_content(item)
+            for item in metadata.findall("{http://purl.org/dc/elements/1.1/}creator")
+        ]
+        if not all(author in creators for author in AUTHORS):
+            raise SystemExit(f"EPUB author metadata is incomplete: {creators!r}")
+        contributors = [
+            text_content(item)
+            for item in metadata.findall("{http://purl.org/dc/elements/1.1/}contributor")
+        ]
+        if EDITOR not in contributors:
+            raise SystemExit(f"EPUB editor metadata is missing: {contributors!r}")
+
+        package_dir = posixpath.dirname(opf_name)
+        manifest_items = list(manifest.findall("{*}item"))
+        by_id = {item.get("id"): item for item in manifest_items if item.get("id")}
+        cover_items = [
+            item for item in manifest_items
+            if "cover-image" in (item.get("properties") or "").split()
+        ]
+        if len(cover_items) != 1:
+            raise SystemExit(f"expected one EPUB cover image, found {len(cover_items)}")
+        cover_href = cover_items[0].get("href")
+        if not cover_href:
+            raise SystemExit("EPUB cover image has no href")
+        cover_member = posixpath.normpath(
+            posixpath.join(package_dir, urllib.parse.unquote(cover_href))
         )
-        if b"<math" not in xhtml:
-            raise SystemExit("EPUB contains no MathML; mathematical rendering regressed")
+        if cover_member not in name_set:
+            raise SystemExit(f"EPUB cover image member is missing: {cover_member}")
+
+        nav_items = [
+            item for item in manifest_items
+            if "nav" in (item.get("properties") or "").split()
+        ]
+        if len(nav_items) != 1 or not nav_items[0].get("href"):
+            raise SystemExit("EPUB navigation document is missing or ambiguous")
+        nav_name = posixpath.normpath(
+            posixpath.join(package_dir, urllib.parse.unquote(nav_items[0].get("href") or ""))
+        )
+        if nav_name not in name_set:
+            raise SystemExit(f"EPUB navigation member is missing: {nav_name}")
+        nav_root = ET.fromstring(archive.read(nav_name))
+        nav_text = " ".join(text_content(a) for a in nav_root.findall(".//{*}a"))
+        for sentinel in NAV_SENTINELS:
+            if sentinel not in nav_text:
+                raise SystemExit(f"EPUB navigation is missing: {sentinel}")
+        if nav_text.strip() == "References":
+            raise SystemExit("EPUB navigation regressed to a References-only title")
+
+        spine_ids = [item.get("idref") for item in spine.findall("{*}itemref")]
+        if len(spine_ids) < 8 or any(item_id not in by_id for item_id in spine_ids):
+            raise SystemExit("EPUB spine is unexpectedly short or references missing manifest items")
+
+        xhtml_names = [
+            posixpath.normpath(
+                posixpath.join(package_dir, urllib.parse.unquote(item.get("href") or ""))
+            )
+            for item in manifest_items
+            if item.get("media-type") == "application/xhtml+xml" and item.get("href")
+        ]
+        if not xhtml_names or any(name not in name_set for name in xhtml_names):
+            raise SystemExit("EPUB XHTML manifest is incomplete")
+        validate_internal_refs(archive, xhtml_names)
+
+        xhtml = b"\n".join(archive.read(name) for name in xhtml_names)
+        math_count = len(re.findall(rb"<math(?:\s|>)", xhtml))
+        if math_count < 50:
+            raise SystemExit(
+                f"EPUB contains only {math_count} MathML element(s); math rendering regressed"
+            )
         if b"David C. Chapman" not in xhtml or b"Paola Malanotte-Rizzoli" not in xhtml:
             raise SystemExit("EPUB text sentinel is missing")
+        if b"JP1847" not in xhtml:
+            raise SystemExit("EPUB cover credit is missing")
+        if b"<table" not in xhtml:
+            raise SystemExit("EPUB contains no table markup")
+
+        image_count = sum(
+            1 for item in manifest_items if (item.get("media-type") or "").startswith("image/")
+        )
+        if image_count < 5:
+            raise SystemExit(f"EPUB contains only {image_count} image asset(s)")
 
     print(f"EPUB build OK: {EPUB.relative_to(ROOT)} ({EPUB.stat().st_size} bytes)")
 

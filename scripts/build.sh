@@ -127,26 +127,34 @@ finish_html() {
   python3 "$ROOT/scripts/sync-views.py" --check-readme
 }
 
-build_digital() {
-  prepare_html
-  build_epub
-  finish_html
-  echo "HTML/EPUB build OK"
-}
-
-if [[ "$TARGET" == all ]]; then
+reset_generated() {
   rm -rf "$BUILD" "$DIST"
   mkdir -p "$BUILD" "$DIST"
-  TOOLBIN="$BUILD/toolbin"; mkdir -p "$TOOLBIN"
+  TOOLBIN="$BUILD/toolbin"
+  mkdir -p "$TOOLBIN"
   if ! command -v bibtex >/dev/null 2>&1 && command -v bibtex8 >/dev/null 2>&1; then
     ln -sf "$(command -v bibtex8)" "$TOOLBIN/bibtex"
     export PATH="$TOOLBIN:$PATH"
   fi
-  build_pdf
-  build_digital
-elif [[ "$TARGET" == pdf ]]; then
-  build_pdf
-else
-  # EPUB is built from the same transformed canonical LaTeX/assets prepared for HTML.
-  build_digital
-fi
+}
+
+case "$TARGET" in
+  all)
+    reset_generated
+    build_pdf
+    prepare_html
+    build_epub
+    finish_html
+    ;;
+  pdf)
+    build_pdf
+    ;;
+  html)
+    prepare_html
+    finish_html
+    ;;
+  epub)
+    prepare_html
+    build_epub
+    ;;
+esac

@@ -6,6 +6,7 @@ comment
 enumitem
 etoolbox
 fancyhdr
+float
 fontaxes
 geometry
 hyperref
