@@ -1,0 +1,14 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=21; trim=95bp 470bp 75bp 65bp
+% Source: Wave Motions in the Ocean, printed p.84 (physical p.21).
+% Exact normalized plot C/x=-tanh x. Positive C has no root; negative C has one positive root (and its -k partner).
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
+\foreach \dx/\sgn/\title in {0/1/{$S^2>0$},4.8/-1/{$S^2<0$}}{
+ \begin{scope}[xshift=\dx cm]
+  \draw[->] (0.55,2.25)--(4.25,2.25) node[right] {$x=kRD$};
+  \draw[->] (0.70,0.40)--(0.70,4.05); \node at (2.30,4.18) {\title};
+  \draw[line width=.75pt,domain=.05:6,samples=100,smooth,variable=\x] plot ({0.70+0.55*\x},{2.25-1.15*tanh(\x)});
+  \draw[line width=.75pt,domain=.18:6,samples=100,smooth,variable=\x] plot ({0.70+0.55*\x},{2.25+1.15*(\sgn*0.7/\x)});
+  \node[anchor=west] at (2.75,1.22) {$-\tanh x$};
+  \ifnum\sgn=-1 \fill ({0.70+0.55*0.94761},{2.25-1.15*tanh(0.94761)}) circle(1.7pt);\node[anchor=west] at (1.35,1.35) {root};\else \node at (2.45,3.20) {no intersection};\fi
+ \end{scope}}
+\end{tikzpicture}
