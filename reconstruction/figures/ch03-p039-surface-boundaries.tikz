@@ -1,0 +1,15 @@
+% wave-source: pdf=ChapmanRizzoli3.pdf; page=3; trim=150bp 505bp 125bp 80bp
+% Source: Wave Motions in the Ocean, printed p.39 (physical p.3).
+% Equation-constrained geometry: the free surface is z=eta near z=0 and the rigid
+% flat bottom is z=-D. The wave profile is schematic; boundary locations and eta are exact.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \draw[densely dashed,line width=0.35pt] (0.6,3.10) -- (8.8,3.10);
+  \draw[line width=0.75pt,smooth,domain=0.6:8.8,samples=100,variable=\x]
+    plot ({\x},{3.10+0.14*sin(145*\x)});
+  \node[anchor=west] at (8.95,3.10) {$z=0$};
+  \draw[<->,line width=0.55pt] (4.60,3.10) -- (4.60,3.24);
+  \node[anchor=west] at (4.72,3.24) {$\eta$};
+  \draw[line width=1.00pt] (0.75,0.65) -- (8.75,0.65);
+  \draw[line width=0.35pt] (0.75,0.56) -- (8.75,0.56);
+  \node[anchor=west] at (8.95,0.65) {$z=-D$};
+\end{tikzpicture}
