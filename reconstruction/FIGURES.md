@@ -17,7 +17,7 @@ Equation-validation states are tracked independently of representation status:
 - **Pending** — equation validation materially applies but has not yet been independently completed and recorded.
 - **N/A** — no meaningful equation-defined quantity or relation controls the figure; visual, geometric, source-fidelity, and provenance checks still apply.
 
-The initial 2026-08-20 backfill is conservative: `Validated` is used only where the existing audit record supports an independent equation/constraint check, not merely because a vector was generated from a formula. Current snapshot across the 105 tracked body/front-matter assets and direct source placements: **38 Validated, 6 Partial, 48 Pending, 13 N/A**.
+The initial 2026-08-20 backfill is conservative: `Validated` is used only where the existing audit record supports an independent equation/constraint check, not merely because a vector was generated from a formula. Current snapshot across the 105 tracked body/front-matter assets and direct source placements: **41 Validated, 6 Partial, 45 Pending, 13 N/A**.
 
 Every `.tikz` file carries a `wave-source` comment naming the source PDF, physical page, and crop. `scripts/compare-figures.py` regenerates temporary side-by-side comparisons under `build/comparisons/`; comparison outputs are never committed.
 
@@ -62,6 +62,9 @@ Chapter 1 has no direct source-PDF crop placements in the book body.
 | `ch03-p055-ship-wave-geometry.tikz` | 55 | **vector-complete** | **Validated** | Triangle components are constructed exactly so `rho(t)^2=r^2+V^2t^2+2Vtr cos(theta)` for `t<0`; horizontal and vertical projections reproduce the source labels rather than tracing the scan. |
 | `ch03-p056-kelvin-wake.tikz` | 56 | **vector-complete** | **Validated** | Both crest families are generated from constant `P(t_+)` and `P(t_-)` after substituting the stationary times. The independently evaluated cusp condition `cos^2(theta)=8/9` gives `theta=19 deg 28 min`; phase constants only set crest spacing. |
 | `ch03-p056-shallow-mach-cone.tikz` | 56 | **vector-complete** | **Validated** | Wave circles have radius `c|t|` and centers displaced by `V|t|`; common tangency therefore gives the exact cone relation `sin(theta)=c/V`. The displayed `c/V=0.4` is illustrative. |
+| `ch03-p061-following-current-dispersion.tikz` | 61 | **vector-complete** | **Validated** | Curves and marked roots independently solve normalized `sqrt(k tanh k)=1-Uk`; increasing following current shifts the physical root to smaller `k`, and the upper wave is generated from those local roots so its wavelength lengthens. |
+| `ch03-p062-opposing-current-blocking.tikz` | 62 | **vector-complete** | **Validated** | Curves solve `sqrt(k tanh k)=1+|U|k`. Independent tangency calculation gives the blocking limit from `f(k)-k fprime(k)=1`; the small-`k` root moves to larger `k` as the opposing current strengthens. |
+| `ch03-p063-shear-current-refraction.tikz` | 63 | **vector-complete** | **Validated** | Deep-water ray is integrated from the absolute group velocity while enforcing constant `sigma` and `ell`, `k^2=(sigma-ell V)^4/g^2-ell^2`, and `ell=K sin(theta)`. The component triangle terminates exactly at the wavevector tip; the chosen smooth `V(x)` profile is illustrative. |
 
 ### Chapter 4
 
@@ -135,7 +138,7 @@ Chapter 5 was re-audited first on 2026-08-20. Four previously accepted drawings 
 
 ## Direct source-PDF crop placements — complete inventory
 
-These 34 placements are real figures even though no separate image file is committed. They are rendered directly from the source PDFs. Retaining a source crop is a positive scientific decision when vectorization would add interpretation risk; it is not an incomplete reconstruction by itself.
+These 31 placements are real figures even though no separate image file is committed. They are rendered directly from the source PDFs. Retaining a source crop is a positive scientific decision when vectorization would add interpretation risk; it is not an incomplete reconstruction by itself.
 
 The 2026-08-20 source-art pass also treats crop isolation as part of acceptance: surrounding prose/equations must not be embedded in a figure, and no scientific label or line may be cut by the trim. Eight Chapter 4 crops (printed pp. 69--76) failed or were unnecessarily fragile under that criterion and were replaced by isolated vectors. The remaining direct crops below are classified explicitly as vector candidates or deliberate source-art retentions.
 
@@ -145,9 +148,6 @@ Chapter 5 p.97 is a particularly important example: the sphere drawing was revie
 |---|---:|---|---:|---|---|
 | 2 | 34 | `ChapmanRizzoli0_2.pdf` | 44 | **N/A** | **source-pdf** — retain the source-specific sound-speed profile; generic smoothing would invent profile detail. |
 | 2 | 35 | `ChapmanRizzoli0_2.pdf` | 45 | **N/A** | **source-pdf** — retain the source-specific sound-speed profile; generic smoothing would invent profile detail. The p.35 crop was already tightened specifically to exclude duplicated prose. |
-| 3 | 61 | `ChapmanRizzoli3.pdf` | 26 | **Pending** | **vector-candidate** — analytic surface-wave geometry or equation-defined schematic; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
-| 3 | 62 | `ChapmanRizzoli3.pdf` | 27 | **Pending** | **vector-candidate** — analytic surface-wave geometry or equation-defined schematic; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
-| 3 | 63 | `ChapmanRizzoli3.pdf` | 28 | **Pending** | **vector-candidate** — analytic surface-wave geometry or equation-defined schematic; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
 | 4 | 77 | `ChapmanRizzoli4.pdf` | 14 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
 | 4 | 79 | `ChapmanRizzoli4.pdf` | 16 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
 | 4 | 80 | `ChapmanRizzoli4.pdf` | 17 | **Pending** | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
