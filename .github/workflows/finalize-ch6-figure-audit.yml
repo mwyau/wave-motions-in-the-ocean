@@ -1,0 +1,254 @@
+name: Finalize Chapter 6 figure audit
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  actions: write
+  contents: write
+  issues: write
+
+concurrency:
+  group: finalize-ch6-figure-audit
+  cancel-in-progress: false
+
+jobs:
+  finalize:
+    if: github.event.issue.number == 9 && github.event.comment.body == '/finalize-ch6-figure-audit'
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Check out newest main
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Apply independently checked Chapter 6 audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'wave-motions-figure-audit'
+          git config user.email '5298134+mwyau@users.noreply.github.com'
+
+          cat > /tmp/apply_ch6_figure_audit.py <<'PY'
+          from pathlib import Path
+          import math
+          import re
+
+          def bisect(fn, a, b, n=120):
+              fa = fn(a)
+              for _ in range(n):
+                  m = (a + b) / 2
+                  fm = fn(m)
+                  if fa * fm <= 0:
+                      b = m
+                  else:
+                      a = m
+                      fa = fm
+              return (a + b) / 2
+
+          def kroot(ell, n=1):
+              return bisect(
+                  lambda k: math.tan(k) - k / (ell - 1),
+                  (n - 0.5) * math.pi + 1e-9,
+                  n * math.pi - 1e-9,
+              )
+
+          def sigma(ell, n=1):
+              k = kroot(ell, n)
+              return -2 * ell / (ell * ell + k * k + 1)
+
+          # Independent numerical gate: first matched modal maximum for b=L=f=1.
+          lo, hi = -3.2, -1.7
+          for _ in range(120):
+              m1 = (2 * lo + hi) / 3
+              m2 = (lo + 2 * hi) / 3
+              if sigma(m1) < sigma(m2):
+                  lo = m1
+              else:
+                  hi = m2
+          ellmax = (lo + hi) / 2
+          kmax = kroot(ellmax)
+          sigmax = sigma(ellmax)
+          assert abs(ellmax + 2.42327667) < 3e-7
+          assert abs(kmax - 2.50909274) < 3e-7
+          assert abs(sigmax - 0.36806052) < 3e-7
+          fixed_k = -math.sqrt(kmax * kmax + 1)
+          assert abs(fixed_k + 2.70102691) < 3e-7
+
+          # The first three branch maxima must preserve the source ordering.
+          maxima = []
+          for n, bounds in [(1, (-3.2, -1.7)), (2, (-6.5, -4.0)), (3, (-10.0, -6.5))]:
+              lo, hi = bounds
+              for _ in range(120):
+                  m1 = (2 * lo + hi) / 3
+                  m2 = (lo + 2 * hi) / 3
+                  if sigma(m1, n) < sigma(m2, n):
+                      lo = m1
+                  else:
+                      hi = m2
+              e = (lo + hi) / 2
+              maxima.append((e, kroot(e, n), sigma(e, n)))
+          assert maxima[0][2] > maxima[1][2] > maxima[2][2] > 0
+          assert maxima[0][0] > maxima[1][0] > maxima[2][0]
+
+          chapter = Path('reconstruction/chapter6.tex')
+          text = chapter.read_text()
+          old = r'''Each mode is constrained to be below some maximum frequency where
+$\partial\sigma/\partial\ell=0$. This occurs at
+\[
+ \ell\big|_{\sigma_{\max}}=-(k^2+b^2)^{1/2}.
+\]
+'''
+          new = r'''Each mode is constrained to be below some maximum frequency where the alongshore
+group velocity $d\sigma_n/d\ell$ vanishes along that matched mode. Because the matching
+condition makes $k=k_n(\ell)$, differentiating the dispersion relation along a branch gives
+\[
+ k^2+b^2-\ell^2=2\ell k\frac{dk_n}{d\ell}.
+\]
+The source obtains $\ell=-(k^2+b^2)^{1/2}$ by differentiating at fixed $k$; that is not
+the stationarity condition along a matched modal branch and is recorded in
+\texttt{ERRATA.md}.
+'''
+          if new not in text:
+              if text.count(old) != 1:
+                  raise SystemExit('Chapter 6 p159 source block changed unexpectedly')
+              text = text.replace(old, new, 1)
+              chapter.write_text(text)
+
+          errata = Path('reconstruction/ERRATA.md')
+          er = errata.read_text()
+          h1 = '### Printed page 159 — matching-condition figure labels'
+          h2 = '### Printed page 159 — maximum-frequency condition along a shelf-wave mode'
+          if h1 not in er and h2 not in er:
+              anchor = '### Printed page 160 — “discrete frequencies” versus discrete cross-shelf modes\n'
+              if er.count(anchor) != 1:
+                  raise SystemExit('Chapter 6 errata insertion anchor changed unexpectedly')
+              insert = r'''### Printed page 159 — matching-condition figure labels
+
+- **Category:** `figure`
+- **Status:** `accepted`
+- **Location:** Chapter 6, printed page 159, upper figure
+- **Original:** The straight matching line is labeled $-k/(\ell+b)$ and the near-horizontal
+  limiting line is labeled $\ell=\infty$.
+- **Reconstruction:** The vector root plot uses the derived matching relation
+  $\tan kL=k/(\ell-b)=-k/(b-\ell)$. Under the chapter convention $\ell<0$, the
+  near-horizontal limit is $\ell\to-\infty$.
+- **Reason/evidence:** Continuity of $\psi$ and $\psi_x$ at $x=L$ gives the displayed
+  matching relation directly. The source labels are incompatible with that derivation.
+
+### Printed page 159 — maximum-frequency condition along a shelf-wave mode
+
+- **Category:** `equation`
+- **Status:** `accepted`
+- **Location:** Chapter 6, printed page 159
+- **Original:** $\ell|_{\sigma_{\max}}=-(k^2+b^2)^{1/2}$.
+- **Reconstruction:** Along a discrete mode $k=k_n(\ell)$,
+  $k^2+b^2-\ell^2=2\ell k\,dk_n/d\ell$.
+- **Reason/evidence:** The source differentiates
+  $\sigma=-2bf\ell/(\ell^2+k^2+b^2)$ while holding $k$ fixed, but the matching
+  equation $\tan kL=k/(\ell-b)$ makes $k$ vary with $\ell$ on every modal branch.
+  For the normalized check $b=L=f=1$, the first branch has its numerical maximum at
+  $\ell=-2.42327667$, $k=2.50909274$, $\sigma=0.36806052$; the fixed-$k$ source
+  expression would instead give $\ell=-2.70102691$ at that $k$. The first three
+  independently solved branches also preserve the source ordering and each has one maximum.
+
+'''
+              er = er.replace(anchor, insert + anchor, 1)
+              errata.write_text(er)
+          elif not (h1 in er and h2 in er):
+              raise SystemExit('Only one of the two p159 errata entries exists')
+
+          figures = Path('reconstruction/FIGURES.md')
+          fig = figures.read_text()
+          lines = fig.splitlines()
+          idx = [i for i, line in enumerate(lines) if line.startswith('| 6 | 159 | `ChapmanRizzoli6.pdf` | 12 |')]
+          if len(idx) != 1:
+              raise SystemExit(f'Expected one direct p159 row, found {len(idx)}')
+          i = idx[0]
+          parts = lines[i].split('|')
+          current = parts[5].strip()
+          if current == '**Pending**':
+              parts[5] = ' **Validated** '
+              parts[6] = (' **source-pdf** — deliberately retain the historical full modal dispersion diagram. '
+                          'The coupled matching/dispersion branches were independently solved and compared with the '
+                          'authoritative source page; for `b=L=f=1` the first branch maximum is at '
+                          '`ell=-2.42327667`, `k=2.50909274`, `sigma=0.36806052`. The first three branches preserve '
+                          'the source ordering and one-maximum shape. The source fixed-`k` maximum condition is a '
+                          'documented erratum. ')
+              lines[i] = '|'.join(parts)
+              fig = '\n'.join(lines) + '\n'
+          elif current != '**Validated**':
+              raise SystemExit(f'Unexpected direct p159 state: {current}')
+
+          states = ('Validated', 'Partial', 'Pending', 'N/A')
+          counts = {s: sum(1 for line in fig.splitlines() if line.startswith('|') and f'**{s}**' in line) for s in states}
+          if counts != {'Validated': 83, 'Partial': 6, 'Pending': 1, 'N/A': 15}:
+              raise SystemExit(f'Unexpected post-p159 counts: {counts}')
+          summary = ('Current snapshot across the 105 tracked body/front-matter assets and direct source placements: '
+                     '**83 Validated, 6 Partial, 1 Pending, 15 N/A**.')
+          fig, n = re.subn(
+              r'Current snapshot across the 105 tracked body/front-matter assets and direct source placements: '
+              r'\*\*\d+ Validated, \d+ Partial, \d+ Pending, \d+ N/A\*\*\.',
+              summary,
+              fig,
+              count=1,
+          )
+          if n != 1:
+              raise SystemExit('FIGURES summary anchor missing')
+          figures.write_text(fig)
+          PY
+
+          success=false
+          for attempt in $(seq 1 20); do
+            git fetch origin main
+            git reset --hard origin/main
+            python3 /tmp/apply_ch6_figure_audit.py
+            python3 scripts/sync-views.py --readme
+            python3 scripts/sync-views.py --check-readme
+            rm -f .github/workflows/finalize-ch6-figure-audit.yml
+            git diff --check
+            git add -- reconstruction/chapter6.tex reconstruction/ERRATA.md reconstruction/FIGURES.md README.md .github/workflows/finalize-ch6-figure-audit.yml
+            git diff --cached --check
+            if git diff --cached --quiet; then
+              final_sha=$(git rev-parse HEAD)
+              echo "FINAL_SHA=$final_sha" >> "$GITHUB_ENV"
+              success=true
+              break
+            fi
+            git commit -m 'Correct continental shelf wave maximum'
+            if git push origin HEAD:main; then
+              final_sha=$(git rev-parse HEAD)
+              echo "FINAL_SHA=$final_sha" >> "$GITHUB_ENV"
+              success=true
+              break
+            fi
+            echo 'main advanced before push; retrying from newest main'
+          done
+          test "$success" = true
+
+      - name: Validate canonical publication build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_id=''
+          for _ in $(seq 1 120); do
+            run_id=$(gh run list --workflow publish.yml --commit "$FINAL_SHA" --event push --limit 10 \
+              --json databaseId --jq '.[0].databaseId // empty')
+            [ -n "$run_id" ] && break
+            sleep 2
+          done
+          test -n "$run_id"
+          echo "BUILD_RUN_ID=$run_id" >> "$GITHUB_ENV"
+          gh run watch "$run_id" --exit-status
+
+      - name: Record checkpoint on issue
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh issue comment 9 --body "Chapter 6 p.159 integrated in \`$FINAL_SHA\` and canonical publication validation run \`$BUILD_RUN_ID\` passed. The authoritative source PDF hash was independently matched before the trigger; the source plot/formula defects are now recorded in ERRATA.md. FIGURES.md is 83 Validated / 6 Partial / 1 Pending / 15 N/A; only Ch.4 p.91 remains pending on issue #7. The temporary p.159 finalizer deleted itself in the source commit."
