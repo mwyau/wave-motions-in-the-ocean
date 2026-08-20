@@ -9,7 +9,7 @@
 ## Figures
 
 - Re-review existing vectors for scientific meaning, not only visual resemblance.
-- Vectorize remaining candidates only where all scientific information can be preserved; retain dense/source-specific art as direct source-PDF crops when better.
+- No direct source-PDF vector candidates remain. Revisit a retained source crop only when new source evidence or an exact reconstruction method removes the documented interpretation risk.
 - Complete provenance and review status in `FIGURES.md` as figures are touched.
 
 ## Publication
