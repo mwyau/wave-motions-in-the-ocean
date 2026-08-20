@@ -20,6 +20,7 @@ EPUB_NS = "http://www.idpf.org/2007/ops"
 SVG_NS = "http://www.w3.org/2000/svg"
 XLINK_NS = "http://www.w3.org/1999/xlink"
 XML_NS = "http://www.w3.org/XML/1998/namespace"
+EPUB_TYPE = f"{{{EPUB_NS}}}type"
 LANGUAGE = "en-US"
 
 ACCESSIBILITY_SUMMARY = (
@@ -85,6 +86,58 @@ def manifest_xhtml_members(
     return members
 
 
+def manifest_member(opf_name: str, item: ET.Element) -> str:
+    href = urllib.parse.unquote(item.get("href") or "")
+    return posixpath.normpath(posixpath.join(posixpath.dirname(opf_name), href))
+
+
+def navigation_member(opf_name: str, opf_root: ET.Element) -> str:
+    manifest = opf_root.find("{*}manifest")
+    if manifest is None:
+        raise SystemExit("EPUB manifest is missing")
+    items = [
+        item
+        for item in manifest.findall("{*}item")
+        if "nav" in (item.get("properties") or "").split()
+    ]
+    if len(items) != 1 or not items[0].get("href"):
+        raise SystemExit("EPUB navigation document is missing or ambiguous")
+    return manifest_member(opf_name, items[0])
+
+
+def first_bodymatter_member(
+    source: zipfile.ZipFile,
+    opf_name: str,
+    opf_root: ET.Element,
+) -> str:
+    manifest = opf_root.find("{*}manifest")
+    spine = opf_root.find("{*}spine")
+    if manifest is None or spine is None:
+        raise SystemExit("EPUB manifest/spine is incomplete")
+    by_id = {
+        item.get("id"): item
+        for item in manifest.findall("{*}item")
+        if item.get("id")
+    }
+    for itemref in spine.findall("{*}itemref"):
+        item = by_id.get(itemref.get("idref"))
+        if (
+            item is None
+            or item.get("media-type") != "application/xhtml+xml"
+            or not item.get("href")
+        ):
+            continue
+        member = manifest_member(opf_name, item)
+        try:
+            root = ET.fromstring(source.read(member))
+        except (KeyError, ET.ParseError) as exc:
+            raise SystemExit(f"cannot parse EPUB XHTML {member}: {exc}") from exc
+        body = root.find(".//{*}body")
+        if body is not None and "bodymatter" in (body.get(EPUB_TYPE) or "").split():
+            return member
+    raise SystemExit("EPUB spine has no bodymatter content document")
+
+
 def cover_image_basename(opf_root: ET.Element) -> str:
     manifest = opf_root.find("{*}manifest")
     if manifest is None:
@@ -124,13 +177,67 @@ def set_svg_accessible_name(svg: ET.Element, text: str) -> None:
     title.text = text
 
 
-def set_known_image_alternatives(
+def ensure_bodymatter_landmark(
+    root: ET.Element,
+    nav_member: str,
+    bodymatter_member: str,
+) -> bool:
+    landmarks = [
+        nav
+        for nav in root.findall(".//{*}nav")
+        if "landmarks" in (nav.get(EPUB_TYPE) or "").split()
+    ]
+    if len(landmarks) != 1:
+        raise SystemExit(
+            f"expected one EPUB landmarks navigation element, found {len(landmarks)}"
+        )
+    landmark = landmarks[0]
+    existing = [
+        link
+        for link in landmark.findall(".//{*}a")
+        if "bodymatter" in (link.get(EPUB_TYPE) or "").split()
+    ]
+    expected_href = posixpath.relpath(
+        bodymatter_member,
+        posixpath.dirname(nav_member) or ".",
+    )
+    if existing:
+        if len(existing) != 1:
+            raise SystemExit("EPUB landmarks contain multiple bodymatter entries")
+        target = urllib.parse.unquote(
+            urllib.parse.urlsplit(existing[0].get("href") or "").path
+        )
+        resolved = posixpath.normpath(
+            posixpath.join(posixpath.dirname(nav_member), target)
+        )
+        if resolved != bodymatter_member:
+            raise SystemExit(
+                "EPUB bodymatter landmark points to the wrong content document"
+            )
+        return False
+
+    ordered_list = landmark.find("./{*}ol")
+    if ordered_list is None:
+        raise SystemExit("EPUB landmarks navigation has no ordered list")
+    item = ET.SubElement(ordered_list, f"{{{XHTML_NS}}}li")
+    link = ET.SubElement(
+        item,
+        f"{{{XHTML_NS}}}a",
+        {"href": expected_href, EPUB_TYPE: "bodymatter"},
+    )
+    link.text = "Start reading"
+    return True
+
+
+def set_known_accessibility(
     source: zipfile.ZipFile,
     opf_name: str,
     opf_root: ET.Element,
 ) -> dict[str, bytes]:
-    """Add only alternatives whose content is already authoritative in the book."""
+    """Add only semantics whose content is already authoritative in the book."""
     cover_basename = cover_image_basename(opf_root)
+    nav_member = navigation_member(opf_name, opf_root)
+    bodymatter_member = first_bodymatter_member(source, opf_name, opf_root)
     rewritten: dict[str, bytes] = {}
     frontispiece_found = False
     cover_found = False
@@ -170,6 +277,13 @@ def set_known_image_alternatives(
             set_svg_accessible_name(svg, COVER_ALTERNATIVE)
             cover_found = True
             changed = True
+
+        if member == nav_member:
+            changed = ensure_bodymatter_landmark(
+                root,
+                nav_member,
+                bodymatter_member,
+            ) or changed
 
         if changed:
             rewritten[member] = ET.tostring(
@@ -244,7 +358,7 @@ def apply_metadata(epub: Path) -> None:
             encoding="utf-8",
             xml_declaration=True,
         )
-        rewritten_xhtml = set_known_image_alternatives(
+        rewritten_xhtml = set_known_accessibility(
             source,
             opf_name,
             opf_root,
@@ -349,6 +463,63 @@ def image_alternative_inventory(
     return total, meaningful, generic, empty, missing, alternatives
 
 
+def validate_document_languages(
+    archive: zipfile.ZipFile,
+    opf_name: str,
+    opf_root: ET.Element,
+) -> None:
+    for member in manifest_xhtml_members(opf_name, opf_root):
+        root = ET.fromstring(archive.read(member))
+        xml_lang = root.get(f"{{{XML_NS}}}lang")
+        html_lang = root.get("lang")
+        if xml_lang != LANGUAGE:
+            raise SystemExit(
+                f"EPUB XHTML {member} has xml:lang={xml_lang!r}; expected {LANGUAGE!r}"
+            )
+        if html_lang is not None and html_lang != LANGUAGE:
+            raise SystemExit(
+                f"EPUB XHTML {member} has lang={html_lang!r}; expected {LANGUAGE!r}"
+            )
+
+
+def validate_bodymatter_landmark(
+    archive: zipfile.ZipFile,
+    opf_name: str,
+    opf_root: ET.Element,
+) -> None:
+    nav_member = navigation_member(opf_name, opf_root)
+    expected = first_bodymatter_member(archive, opf_name, opf_root)
+    root = ET.fromstring(archive.read(nav_member))
+    landmarks = [
+        nav
+        for nav in root.findall(".//{*}nav")
+        if "landmarks" in (nav.get(EPUB_TYPE) or "").split()
+    ]
+    if len(landmarks) != 1:
+        raise SystemExit(
+            f"expected one EPUB landmarks navigation element, found {len(landmarks)}"
+        )
+    links = [
+        link
+        for link in landmarks[0].findall(".//{*}a")
+        if "bodymatter" in (link.get(EPUB_TYPE) or "").split()
+    ]
+    if len(links) != 1:
+        raise SystemExit(
+            f"expected one EPUB bodymatter landmark, found {len(links)}"
+        )
+    target = urllib.parse.unquote(
+        urllib.parse.urlsplit(links[0].get("href") or "").path
+    )
+    resolved = posixpath.normpath(
+        posixpath.join(posixpath.dirname(nav_member), target)
+    )
+    if resolved != expected:
+        raise SystemExit(
+            f"EPUB bodymatter landmark resolves to {resolved!r}; expected {expected!r}"
+        )
+
+
 def validate_metadata(epub: Path) -> None:
     with zipfile.ZipFile(epub, "r") as archive:
         if archive.testzip() is not None:
@@ -379,6 +550,8 @@ def validate_metadata(epub: Path) -> None:
             raise SystemExit(
                 f"EPUB publication language is incomplete: {dc_languages!r}"
             )
+        validate_document_languages(archive, opf_name, opf_root)
+        validate_bodymatter_landmark(archive, opf_name, opf_root)
 
         actual: dict[str, list[str]] = {}
         for element in metadata.findall("{*}meta"):
