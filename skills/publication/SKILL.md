@@ -72,13 +72,15 @@ When changing facsimile typography, validate the components as well as the full 
 
 ## README and HTML synchronization
 
-`scripts/book_views.py` derives chapter titles, `\section{}` headings, Contents, Downloads, and license presentation. `scripts/sync-views.py` applies that model.
+`scripts/book_views.py` derives chapter titles, `\section{}` headings, Contents, Downloads, source links, and license presentation. `scripts/sync-views.py` applies that model.
 
 README and `index.html` must have the same substantive front matter/publication navigation except:
 
 - README uses absolute Pages URLs; HTML uses relative URLs.
 - README alone has the Shields badge row.
 - HTML has web navigation/theme controls.
+
+Link `https://oxbow.sr.unh.edu/ChapmanRizzoli/Wave_Motions_in_the_Ocean.html` as **Original online source** in README and HTML only. It is web navigation/reference material, not part of the reconstructed book; do not add it to either PDF or the EPUB unless the owner requests it.
 
 Shared Downloads are:
 
@@ -92,7 +94,7 @@ Section anchors are public links; keep them stable.
 
 ## HTML
 
-Preserve the responsive/mobile reader, Auto/Light/Dark theme selection, Source navigation, wide-math/table overflow handling, and stable chapter/section navigation unless explicitly redesigned.
+Preserve the responsive/mobile reader, Auto/Light/Dark theme selection, Repository navigation, Contents navigation, wide-math/table overflow handling, and stable chapter/section navigation unless explicitly redesigned.
 
 Do not dark-mode invert/filter the historical front-matter JPEG. Generated black-on-white scientific diagrams may be theme-adjusted for legibility.
 
@@ -134,18 +136,22 @@ dist/
 
 `build/` and `dist/` are generated and untracked.
 
-Before committing a canonical front-matter or heading change, regenerate the README:
+After any reconstruction `.tex` change, regenerate the README before committing:
 
 ```bash
 python3 scripts/sync-views.py --readme
 ```
 
-A full validation is `./scripts/build.sh all`.
+Include any resulting README update with the source change. A full validation is `./scripts/build.sh all`.
 
 ## Publish workflow
 
-`.github/workflows/publish.yml` is the single canonical publication workflow. It builds and validates the complete publication for pushes to `main`, pull requests targeting `main`, and manual runs. Deployment to GitHub Pages occurs only for `main`; PRs and manual runs from other branches build and validate without deploying.
+`.github/workflows/publish.yml` is the single publication workflow. It builds and validates the complete publication for pushes to `main`, pull requests targeting `main`, and manual runs. Deployment to GitHub Pages occurs only for `main`; PRs and manual runs from other branches build and validate without deploying.
 
-The canonical `Publish` workflow must be reproducible from the triggering commit and must not edit tracked source files, create commits, or push repository changes. Do not append chat/session migrations, one-time cleanup scripts, or other repository-mutating automation to it. If a task genuinely requires GitHub Actions to modify tracked repository contents, create a separate purpose-specific workflow and remove it after the task unless the owner explicitly wants it retained.
+`Publish` must be reproducible from the triggering commit and must not edit tracked source files, create commits, or push repository changes. Do not append chat/session migrations, one-time cleanup scripts, or other repository-mutating automation to it.
 
-Keep `cancel-in-progress: false` for production publishing so an active deployment is not interrupted by a newer push. CI must verify `index.html` plus all three downloadable formats. Keep `tex-packages.txt` at repository root as the TeX dependency manifest.
+If your task genuinely requires GitHub Actions to modify tracked repository contents, create a separate purpose-specific workflow and any needed trigger file. Remove automation created by your task when that task is complete unless the owner asks to retain it. Treat unfamiliar temporary workflows and triggers as potentially active; do not remove another session's automation merely because it looks temporary.
+
+Frequent pushes should cancel stale **build** jobs for the same ref. The **Pages deployment** itself must use `cancel-in-progress: false` so an active deployment is not interrupted; newer successful builds may queue for deployment.
+
+CI must verify `index.html` plus all three downloadable formats. Keep `tex-packages.txt` at repository root as the TeX dependency manifest.
