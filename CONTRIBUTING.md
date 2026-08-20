@@ -4,7 +4,7 @@ Pull requests are welcome. Keep changes focused and include the source page or o
 
 ## Setup
 
-The reference environment is Ubuntu 26.04 with Python 3.14.7, uv 0.12.1, TinyTeX 2026.08, Pillow, Pandoc, Poppler, qpdf, Ghostscript, ImageMagick, and librsvg.
+The reference environment is Ubuntu 26.04 with Python 3.14, uv 0.12.1, TinyTeX 2026.08, Pillow, Pandoc, Poppler, qpdf, Ghostscript, ImageMagick, and librsvg.
 
 Install the system tools:
 
