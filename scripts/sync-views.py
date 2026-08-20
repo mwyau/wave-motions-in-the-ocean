@@ -10,11 +10,13 @@ from __future__ import annotations
 
 import argparse
 import difflib
+import html
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.parse
 from pathlib import Path
 
 from book_views import (
@@ -201,6 +203,10 @@ def write_readme(*, check: bool) -> None:
     print("README.md synchronized from LaTeX sources")
 
 
+def heading_text(fragment: str) -> str:
+    return " ".join(html.unescape(re.sub(r"<[^>]+>", "", fragment)).split())
+
+
 def install_stable_section_ids() -> None:
     h2_re = re.compile(r"<h2(?P<attrs>[^>]*)>(?P<body>.*?)</h2>", re.S | re.I)
     for chapter in book_structure():
@@ -215,6 +221,12 @@ def install_stable_section_ids() -> None:
             if index >= len(chapter.sections):
                 return m.group(0)
             section = chapter.sections[index]
+            rendered = heading_text(m.group("body"))
+            if rendered != section:
+                raise SystemExit(
+                    f"{page.name}: section heading {index + 1} is {rendered!r}; "
+                    f"expected {section!r}"
+                )
             index += 1
             attrs = re.sub(r'\s+id="[^"]*"', "", m.group("attrs"), flags=re.I)
             return f'<h2 id="{section_slug(section)}"{attrs}>{m.group("body")}</h2>'
@@ -225,6 +237,39 @@ def install_stable_section_ids() -> None:
                 f"{page.name}: found {index} section headings, expected {len(chapter.sections)}"
             )
         page.write_text(updated)
+
+
+def validate_local_fragments() -> None:
+    pages = sorted(OUT.glob("*.html"))
+    ids_by_page: dict[Path, set[str]] = {}
+    broken: list[tuple[str, str]] = []
+
+    def ids_for(path: Path) -> set[str]:
+        if path not in ids_by_page:
+            text = path.read_text(errors="replace")
+            ids_by_page[path] = {
+                html.unescape(value)
+                for value in re.findall(r'\bid=["\']([^"\']+)["\']', text, flags=re.I)
+            }
+        return ids_by_page[path]
+
+    for page in pages:
+        text = page.read_text(errors="replace")
+        for ref in re.findall(r'href=["\']([^"\']+)["\']', text, flags=re.I):
+            parsed = urllib.parse.urlsplit(html.unescape(ref))
+            if parsed.scheme or parsed.netloc or not parsed.fragment:
+                continue
+            target = page if not parsed.path else page.parent / urllib.parse.unquote(parsed.path)
+            if target.suffix.lower() not in {".html", ".htm"} or not target.is_file():
+                continue
+            fragment = urllib.parse.unquote(parsed.fragment)
+            if fragment not in ids_for(target):
+                broken.append((page.name, ref))
+
+    if broken:
+        for page, ref in broken[:40]:
+            print(f"broken local HTML fragment: {page}: {ref}", file=sys.stderr)
+        raise SystemExit(f"{len(broken)} broken local HTML fragment(s)")
 
 
 def sync_html() -> None:
@@ -243,6 +288,7 @@ def sync_html() -> None:
     if count != 1:
         raise SystemExit("could not locate generated Contents/Downloads/license block in index.html")
     index.write_text(text)
+    validate_local_fragments()
     print("HTML contents/downloads/license synchronized from LaTeX sources")
 
 

@@ -10,6 +10,8 @@ OUT = ROOT / "dist"
 ASSETS = OUT / "assets"
 SOURCE_URL = "https://github.com/mwyau/wave-motions-in-the-ocean"
 SOURCE_LINK = f'<a class="source-link" href="{SOURCE_URL}">Source</a>'
+MATHJAX_UNPINNED = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+MATHJAX_PINNED = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"
 
 THEME_BUTTON = (
     '<button class="theme-toggle" type="button" data-theme-toggle '
@@ -30,6 +32,9 @@ EXTRA_CSS = r"""
   --wave-control-bg: #f1efe9;
   --wave-control-border: #aaa69d;
   --wave-selection: #cfe7f5;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
@@ -184,6 +189,7 @@ NAV_RE = re.compile(r'(<nav class="book-nav"[^>]*>)(.*?)(</nav>)', re.S)
 
 def enhance_page(path: Path) -> None:
     text = path.read_text(errors="replace")
+    text = text.replace(MATHJAX_UNPINNED, MATHJAX_PINNED)
     if "assets/wave.js" not in text:
         text = text.replace("</head>", '<script defer src="assets/wave.js"></script>\n</head>')
 
@@ -219,6 +225,8 @@ def main() -> int:
         text = page.read_text(errors="replace")
         if "assets/wave.js" not in text or "data-theme-toggle" not in text or SOURCE_URL not in text:
             raise SystemExit(f"HTML enhancement missing from {page.name}")
+        if MATHJAX_UNPINNED in text:
+            raise SystemExit(f"unversioned MathJax URL remains in {page.name}")
     print(f"HTML responsive/theme enhancement OK: {len(pages)} pages")
     return 0
 

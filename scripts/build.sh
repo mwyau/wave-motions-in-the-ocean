@@ -140,6 +140,11 @@ finish_html() {
   python3 "$ROOT/scripts/sync-views.py" --check-readme
 }
 
+clean_html_outputs() {
+  rm -rf "$DIST/assets"
+  rm -f "$DIST/index.html" "$DIST/references.html" "$DIST"/chapter*.html
+}
+
 reset_generated() {
   rm -rf "$BUILD" "$DIST"
   mkdir -p "$BUILD" "$DIST"
@@ -160,14 +165,18 @@ case "$TARGET" in
     finish_html
     ;;
   pdf)
+    reset_generated
     build_pdf
     ;;
   html)
+    reset_generated
     prepare_html
     finish_html
     ;;
   epub)
+    reset_generated
     prepare_html
     build_epub
+    clean_html_outputs
     ;;
 esac
