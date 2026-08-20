@@ -1,0 +1,108 @@
+name: Run final errata audit
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: write
+  contents: write
+  issues: write
+
+concurrency:
+  group: finalize-audited-source-errata
+  cancel-in-progress: false
+
+jobs:
+  finalize:
+    if: github.event.issue.title == '[internal] finalize audited source errata'
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Check out newest main
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Apply reviewed errata patch atomically
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import textwrap
+
+          path = Path('.github/workflows/finalize-errata-audit.yml')
+          text = path.read_text()
+          opener = "          cat > /tmp/apply_errata.py <<'PY'\n"
+          closer = "\n          PY\n\n          success=false"
+          if opener not in text or closer not in text:
+              raise SystemExit('cannot locate reviewed errata patch in finalizer')
+          code = text.split(opener, 1)[1].split(closer, 1)[0]
+          Path('/tmp/apply_errata.py').write_text(textwrap.dedent(code))
+          PY
+
+          success=false
+          for attempt in $(seq 1 20); do
+            git fetch origin main
+            git reset --hard origin/main
+
+            python3 /tmp/apply_errata.py
+            python3 scripts/sync-views.py --readme
+            python3 scripts/sync-views.py --check-readme
+
+            rm -f \
+              .github/workflows/finalize-errata-audit.yml \
+              .github/workflows/run-finalize-errata-audit.yml
+
+            git diff --check
+            git add -A
+            git diff --cached --check
+
+            if git diff --cached --quiet; then
+              echo "No remaining errata delta"
+              final_sha=$(git rev-parse HEAD)
+              echo "FINAL_SHA=$final_sha" >> "$GITHUB_ENV"
+              success=true
+              break
+            fi
+
+            git commit -m "Resolve audited source errata"
+            if git push origin HEAD:main; then
+              final_sha=$(git rev-parse HEAD)
+              echo "FINAL_SHA=$final_sha" >> "$GITHUB_ENV"
+              success=true
+              break
+            fi
+            echo "main advanced before push; retrying from newest main"
+          done
+          test "$success" = true
+
+      - name: Dispatch canonical publication validation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run publish.yml --ref main
+          run_id=""
+          for _ in $(seq 1 60); do
+            run_id=$(gh run list --workflow publish.yml --branch main --event workflow_dispatch --limit 30 \
+              --json databaseId,headSha,createdAt \
+              --jq ".[] | select(.headSha == \"$FINAL_SHA\") | .databaseId" | head -n1)
+            [ -n "$run_id" ] && break
+            sleep 2
+          done
+          test -n "$run_id"
+          echo "PUBLISH_RUN_ID=$run_id" >> "$GITHUB_ENV"
+          gh run watch "$run_id" --exit-status
+
+      - name: Close internal trigger issue
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: gh issue close "${{ github.event.issue.number }}" --reason completed
