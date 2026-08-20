@@ -1,1 +1,1 @@
-armed
+run
