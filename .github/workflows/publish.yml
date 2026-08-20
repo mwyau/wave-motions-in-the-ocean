@@ -143,6 +143,14 @@ jobs:
         run: ./scripts/build.sh all
 
       # QA is advisory on development builds, but stable release tags remain strict.
+      - name: Check synchronized README
+        continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        run: python3 scripts/sync-views.py --check-readme
+
+      - name: Check EPUB accessibility metadata
+        continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        run: python3 scripts/set-epub-accessibility.py --check
+
       - name: Install EPUBCheck
         continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         shell: bash
