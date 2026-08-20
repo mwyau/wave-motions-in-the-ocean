@@ -44,7 +44,11 @@ The paged modern PDF uses conventional book preliminaries after the exterior cov
 
 `frontmatter-modern-book.tex` owns that PDF-only sequence. The half-title, frontispiece, title, and edition-notice leaves are counted as Roman preliminary pages but suppress their folios; Contents is the first visibly numbered preliminary page and begins at **v**. Chapter 1 resets to Arabic page `1`.
 
-The edition-notice verso records historical authorship, presentation date, digital-editor provenance, the authorized CC BY-NC-SA 4.0 release, source-scan provenance, and the concise Hokusai cover credit. Do not assert that the digital editor owns copyright in the historical lecture notes. Keep the page bibliographic/legal rather than repeating the GPT assistance statement there.
+On modern page iii, keep the digital-editor credit at the bottom of the title page. Use the same serif family as the author line, but smaller/lower prominence so Albert M. W. Yau does not read as a third author. Keep the credit concise: `Digital edition by Albert M. W. Yau, August 2026.`
+
+The edition-notice verso lists the original authors and presentation date, digital editor and date, the authorized CC BY-NC-SA 4.0 release, the original source scan, and the concise Hokusai cover credit. Do not assert that the digital editor owns copyright in the original lecture notes. Keep this page bibliographic/legal rather than repeating the GPT assistance statement there.
+
+Use plain publication wording in reader-facing text. Prefer `Digital edition by` to `Digital edition prepared by` and `original source scan` to `historical source scan`. Avoid inflated words such as `provenance` when a simpler phrase is equally precise.
 
 The generated web/README title block may continue to state original/digital dates and the digital editor even though those details are deliberately absent from the front cover. In `frontmatter-modern.tex`, `wavepdfonly` selects the paged book preliminaries and `wavewebonly` retains the web/README title metadata. Do not let the two branches diverge in authorship/title facts.
 
