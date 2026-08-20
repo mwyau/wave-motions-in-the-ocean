@@ -15,7 +15,7 @@ HTML_ARCHIVE = "wave-motions-html.zip"
 def package_release(dist: Path, output: Path) -> None:
     dist = dist.resolve()
     output = output.resolve()
-    verify_manifest(dist)
+    verify_manifest(dist, DEFAULT_FILES)
 
     if output.exists():
         shutil.rmtree(output)
@@ -44,7 +44,7 @@ def package_release(dist: Path, output: Path) -> None:
 
     release_files = [*DEFAULT_FILES, HTML_ARCHIVE]
     write_manifest(output, release_files)
-    verify_manifest(output)
+    verify_manifest(output, release_files)
     print(f"Release assets ready: {', '.join(release_files)}, {MANIFEST}")
 
 
