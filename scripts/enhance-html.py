@@ -2,12 +2,16 @@
 """Add responsive navigation and color-theme behavior to generated HTML."""
 from __future__ import annotations
 
+import html
 import re
 from pathlib import Path
+
+from book_views import book_structure
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "dist"
 ASSETS = OUT / "assets"
+BOOK_TITLE = "Wave Motions in the Ocean"
 REPOSITORY_URL = "https://github.com/mwyau/wave-motions-in-the-ocean"
 REPOSITORY_LINK = f'<a class="source-link" href="{REPOSITORY_URL}">GitHub Source</a>'
 MATHJAX_UNPINNED = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
@@ -55,7 +59,7 @@ html {
 }
 body {
   box-sizing: border-box;
-  max-width: 72rem;
+  max-width: 60rem;
   background: var(--wave-bg);
   color: var(--wave-text);
   font-size: clamp(1rem, .97rem + .14vw, 1.08rem);
@@ -66,18 +70,38 @@ h1, h2, h3 { line-height: 1.2; overflow-wrap: anywhere; }
 a { color: var(--wave-link); text-underline-offset: .13em; }
 a:visited { color: var(--wave-visited); }
 .book-nav {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: .65rem 1rem;
+  gap: .65rem 1.15rem;
   border-color: var(--wave-rule);
 }
-.book-nav-links { display: flex; flex-wrap: wrap; gap: .2rem .55rem; align-items: center; }
-.book-nav-links a { white-space: nowrap; }
+.book-context {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .12rem;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.2;
+}
+.book-title {
+  width: fit-content;
+  color: var(--wave-text);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .045em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+.book-title:visited { color: var(--wave-text); }
+.book-location { color: var(--wave-muted); font-size: .9rem; font-weight: 600; }
+.book-controls { min-width: 0; display: flex; align-items: center; gap: .8rem; }
+.book-nav-links { min-width: 0; display: flex; flex-wrap: wrap; gap: .2rem .55rem; align-items: center; }
+.book-nav-links a { display: inline-flex; align-items: center; min-height: 2.25rem; white-space: nowrap; }
 .theme-toggle {
+  flex: 0 0 auto;
   min-height: 2.5rem;
-  margin-left: auto;
+  margin-left: 0;
   border: 1px solid var(--wave-control-border);
   border-radius: .55rem;
   padding: .4rem .7rem;
@@ -135,8 +159,28 @@ table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scro
   }
   h1 { font-size: clamp(1.65rem, 7vw, 2.2rem); }
   h2 { font-size: clamp(1.35rem, 5.7vw, 1.75rem); }
-  .book-nav { margin-bottom: 1.25rem; font-size: .9rem; }
-  .book-nav-links { gap: .35rem .6rem; }
+  .book-nav {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: .45rem;
+    margin-bottom: 1.25rem;
+    font-size: .9rem;
+  }
+  .book-context { gap: .08rem; }
+  .book-title { font-size: .72rem; }
+  .book-location { font-size: .86rem; line-height: 1.25; }
+  .book-controls { width: 100%; gap: .55rem; }
+  .book-nav-links {
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    gap: .65rem;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    padding-bottom: .12rem;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+  .book-nav-links a { min-height: 2.75rem; }
   .theme-toggle { min-height: 2.75rem; }
   figure { margin: 1rem 0; }
   img, svg { margin: .8rem auto; }
@@ -187,19 +231,56 @@ JS = r"""(() => {
 NAV_RE = re.compile(r'(<nav class="book-nav"[^>]*>)(.*?)(</nav>)', re.S)
 
 
+def page_context(path: Path) -> str:
+    if path.name == "index.html":
+        return "Front matter & contents"
+    if path.name == "references.html":
+        return "References"
+    match = re.fullmatch(r"chapter([1-6])\.html", path.name)
+    if match:
+        number = int(match.group(1))
+        chapter = next(chapter for chapter in book_structure() if chapter.number == number)
+        return f"Chapter {chapter.number} · {chapter.title}"
+    raise ValueError(f"unexpected publication page: {path.name}")
+
+
 def enhance_page(path: Path) -> None:
     text = path.read_text(errors="replace")
     text = text.replace(MATHJAX_UNPINNED, MATHJAX_PINNED)
+    context = page_context(path)
+    escaped_context = html.escape(context)
+    document_title = BOOK_TITLE if path.name == "index.html" else f"{context} — {BOOK_TITLE}"
+    text = re.sub(
+        r"<title>.*?</title>",
+        f"<title>{html.escape(document_title)}</title>",
+        text,
+        count=1,
+        flags=re.S,
+    )
     if "assets/wave.js" not in text:
         text = text.replace("</head>", '<script defer src="assets/wave.js"></script>\n</head>')
+
+    nav_context = (
+        '<span class="book-context">'
+        f'<a class="book-title" href="index.html">{BOOK_TITLE}</a>'
+        f'<span class="book-location">{escaped_context}</span>'
+        "</span>"
+    )
 
     def nav_sub(match: re.Match[str]) -> str:
         inner = match.group(2).replace('href="index.html"', 'href="index.html#contents"')
         if REPOSITORY_URL not in inner:
             inner = inner.rstrip() + " · " + REPOSITORY_LINK
-        if "data-theme-toggle" in inner:
+        if "data-theme-toggle" in inner or "book-context" in inner:
             return match.group(1) + inner + match.group(3)
-        return match.group(1) + '<span class="book-nav-links">' + inner + "</span>" + THEME_BUTTON + match.group(3)
+        controls = (
+            '<span class="book-controls"><span class="book-nav-links">'
+            + inner
+            + "</span>"
+            + THEME_BUTTON
+            + "</span>"
+        )
+        return match.group(1) + nav_context + controls + match.group(3)
 
     text = NAV_RE.sub(nav_sub, text)
     path.write_text(text)
@@ -227,8 +308,11 @@ def main() -> int:
 
     for page in pages:
         text = page.read_text(errors="replace")
+        expected_context = html.escape(page_context(page))
         if "assets/wave.js" not in text or "data-theme-toggle" not in text or REPOSITORY_URL not in text:
             raise SystemExit(f"HTML enhancement missing from {page.name}")
+        if 'class="book-context"' not in text or f'class="book-location">{expected_context}</span>' not in text:
+            raise SystemExit(f"HTML reading context is missing from {page.name}")
         if 'href="index.html#contents"' not in text:
             raise SystemExit(f"HTML contents navigation is missing from {page.name}")
         if MATHJAX_UNPINNED in text:
