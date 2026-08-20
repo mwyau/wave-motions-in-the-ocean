@@ -24,7 +24,14 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Apply reviewed errata patch atomically
+      - name: Install README sync dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+
+      - name: Apply reviewed issue 7 patch in checkpoints
         shell: bash
         run: |
           set -euo pipefail
@@ -50,26 +57,46 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             python3 /tmp/apply_errata.py
+
+            # Issue #9 owns FIGURES.md reconciliation after #7 releases ERRATA.md.
+            git restore -- reconstruction/FIGURES.md
+
             python3 scripts/sync-views.py --readme
             python3 scripts/sync-views.py --check-readme
-            rm -f .github/workflows/finalize-errata-audit.yml .github/workflows/run-finalize-errata-audit.yml
             git diff --check
-            git add -A
+
+            # Checkpoint 1: scientific source corrections.
+            git add -- reconstruction/chapter4.tex reconstruction/chapter5.tex README.md
             git diff --cached --check
-            if git diff --cached --quiet; then
+            if ! git diff --cached --quiet; then
+              git commit -m "Correct audited wave relations"
+            fi
+
+            # Checkpoint 2: records and all #7-owned temporary automation.
+            rm -f \
+              .github/workflows/finalize-errata-audit.yml \
+              .github/workflows/run-finalize-errata-audit.yml \
+              .github/workflows/run-audited-errata-finalizer.yml \
+              .github/errata-audit-finalize.trigger
+
+            git add -- \
+              reconstruction/ERRATA.md \
+              reconstruction/PLAN.md \
+              .github/workflows/finalize-errata-audit.yml \
+              .github/workflows/run-finalize-errata-audit.yml \
+              .github/workflows/run-audited-errata-finalizer.yml \
+              .github/errata-audit-finalize.trigger
+            git diff --cached --check
+            if ! git diff --cached --quiet; then
+              git commit -m "Resolve audited source errata records"
+            fi
+
+            if git diff --quiet && git diff --cached --quiet && git push origin HEAD:main; then
               final_sha=$(git rev-parse HEAD)
               echo "FINAL_SHA=$final_sha" >> "$GITHUB_ENV"
               success=true
               break
             fi
-            git commit -m "Resolve audited source errata"
-            if git push origin HEAD:main; then
-              final_sha=$(git rev-parse HEAD)
-              echo "FINAL_SHA=$final_sha" >> "$GITHUB_ENV"
-              success=true
-              break
-            fi
-            echo "main advanced before push; retrying from newest main"
           done
           test "$success" = true
 
@@ -89,11 +116,14 @@ jobs:
             sleep 2
           done
           test -n "$run_id"
+          echo "PUBLISH_RUN_ID=$run_id" >> "$GITHUB_ENV"
           gh run watch "$run_id" --exit-status
 
-      - name: Close internal trigger issue
+      - name: Record completion and close issue
         if: success()
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
-        run: gh issue close "${{ github.event.issue.number }}" --reason completed
+        run: |
+          gh issue comment "${{ github.event.issue.number }}" --body "Completed #7 at $FINAL_SHA. Canonical Publish run $PUBLISH_RUN_ID passed. The source corrections were committed separately from ERRATA/PLAN and temporary-automation cleanup; FIGURES.md was left to #9 as coordinated."
+          gh issue close "${{ github.event.issue.number }}" --reason completed
