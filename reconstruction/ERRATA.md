@@ -42,6 +42,24 @@ so the phase speed is independent of wavelength and frequency but depends on pro
 
 ## Chapter 2
 
+### Printed page 19 - adiabatic entropy derivative
+
+- **Category:** `equation`
+- **Status:** `accepted`
+- **Location:** Chapter 2, printed page 19
+- **Original:** $\partial S/\partial t=0$
+- **Reconstruction:** $DS/Dt=0$
+- **Reason/evidence:** The motions are described as adiabatic and the immediately following thermodynamic relations are written with material derivatives. Entropy conservation for a moving parcel is therefore $DS/Dt=0$, not a zero local time derivative at a fixed point.
+
+### Printed page 19 - "infinitesmal"
+
+- **Category:** `typographical`
+- **Status:** `accepted`
+- **Location:** Chapter 2, printed page 19
+- **Original:** "infinitesmal"
+- **Reconstruction:** "infinitesimal"
+- **Reason/evidence:** Straightforward spelling correction; no scientific meaning is changed.
+
 ### Printed page 22 - tangential wavenumber projection in specular reflection
 
 The source sketch labels $\theta_i$ and $\theta_r$ as the angles between the incident/reflected wavevectors and the dashed boundary **normal**. It then states that the projection of the incident wavenumber on the boundary equals the projection of the reflected wavenumber on the boundary, but typesets
@@ -64,7 +82,36 @@ This is also the component that must match so the incident and reflected phases 
 
 it gives the source's stated result $\theta_r=\theta_i$. The reconstruction therefore uses $\sin$ and the redrawn figure constructs the boundary normal exactly perpendicular to the wall, with the two wavevectors exactly symmetric about that normal.
 
+## Chapter 3
+
+### Printed page 54 - shorthand late-time envelope
+
+- **Category:** `editorial`
+- **Status:** `accepted`
+- **Location:** Chapter 3, printed page 54
+- **Original:** $\eta(x,t\to\infty)=t$
+- **Reconstruction:** The late-time envelope is stated as $O(t)$ growth rather than as a literal equality to $t$.
+- **Reason/evidence:** The source notation is dimensional shorthand for the asymptotic envelope scaling. Writing the growth as $O(t)$ preserves that intended statement without asserting the dimensionally incomplete equality $\eta=t$.
+
 ## Chapter 4
+
+### Printed page 68 - "f-plane approrimation"
+
+- **Category:** `typographical`
+- **Status:** `accepted`
+- **Location:** Chapter 4, printed page 68
+- **Original:** "f-plane approrimation"
+- **Reconstruction:** "f-plane approximation"
+- **Reason/evidence:** Straightforward spelling correction; no scientific meaning is changed.
+
+### Printed page 86 - pressure derivative transcription
+
+- **Category:** `transcription`
+- **Status:** `accepted`
+- **Location:** Chapter 4, printed page 86
+- **Original:** A previous reconstruction read $w_{xtt}$.
+- **Reconstruction:** $\rho_0 w_{zt}=p_{xx}$
+- **Reason/evidence:** Reinspection of the high-resolution historical scan shows $\rho_0 w_{zt}=p_{xx}$. The earlier $w_{xtt}$ reading was a transcription error, not a source erratum.
 
 ### Printed page 90 - reflected vertical-wavenumber ratio
 
@@ -99,6 +146,15 @@ m_r=\pm m_i
 That extra factor is incompatible with the characteristic directions $m=\pm Rk$ stated on page 88 and with the wavevector sketch immediately preceding the formula. The reconstruction retains the historical source expression in the page note, but uses the relation implied by the source's own characteristic geometry as the corrected form.
 
 ## Chapter 5
+
+### Printed page 102 - "Bousinesq"
+
+- **Category:** `typographical`
+- **Status:** `accepted`
+- **Location:** Chapter 5, printed page 102
+- **Original:** "Bousinesq"
+- **Reconstruction:** "Boussinesq"
+- **Reason/evidence:** Straightforward spelling correction of the standard Boussinesq approximation name; no scientific meaning is changed.
 
 ### Printed page 110 - "free periods" followed by squared frequencies
 
@@ -294,16 +350,3 @@ The source prints $\omega=S\ell/(n\pi)$ without the minus sign. That form can on
 ### Printed page 172 - Bjerknes title spelling
 
 The source prints the German title as **"Die Theorie der Aussertropischen Zyklonenbuildung."** The correct German word, and the form used in the reconstruction, is **"Zyklonenbildung."** This is a bibliographic spelling correction only.
-
-## Migrated audit notes still requiring explicit schema normalization
-
-The former per-chapter audit documents contained a mixture of confirmed-no-change checks and deviations. Confirmed-no-change derivation checks were intentionally not copied here. The following source deviations were called out there and should remain visible during future review:
-
-- **Chapter 2, printed p.19 — adiabatic entropy derivative.** Category: `equation`; status: `accepted`. Source prints $\partial S/\partial t=0$; reconstruction uses material conservation $DS/Dt=0$, consistent with the immediately following material-derivative equations.
-- **Chapter 2, printed p.19 — “infinitesmal”.** Category: `typographical`; status: `accepted`. Reconstruction uses “infinitesimal”.
-- **Chapter 3, printed p.54 — shorthand late-time envelope.** Category: `editorial`; status: `accepted`. The source shorthand $\eta(x,t\to\infty)=t$ is rendered as an $O(t)$ envelope statement; retain source wording/evidence if revisited.
-- **Chapter 4, printed p.68 — “f-plane approrimation”.** Category: `typographical`; status: `accepted`. Reconstruction uses “f-plane approximation”.
-- **Chapter 4, printed p.86 — pressure derivative transcription.** Category: `transcription`; status: `accepted`. High-resolution source read is $\rho_0 w_{zt}=p_{xx}$; an earlier reconstruction incorrectly had $w_{xtt}$.
-- **Chapter 5, printed p.102 — “Bousinesq”.** Category: `typographical`; status: `accepted`. Reconstruction uses “Boussinesq”.
-
-Continue normalizing older entries to the explicit metadata format when they are touched; do not create `verification.tsv` or separate chapter errata files.
