@@ -5,13 +5,17 @@ on:
     branches: [main]
     paths:
       - ".github/issue14-numbering-fallback.trigger"
+  issue_comment:
+    types: [created]
 
 permissions:
   contents: write
 
 jobs:
   finalize:
-    if: github.event.head_commit.message == 'Run equation numbering fallback'
+    if: >-
+      (github.event_name == 'push' && github.event.head_commit.message == 'Run equation numbering fallback') ||
+      (github.event_name == 'issue_comment' && github.event.issue.number == 14 && github.event.comment.body == '/run-equation-numbering-fallback')
     runs-on: ubuntu-26.04
     timeout-minutes: 45
     steps:
