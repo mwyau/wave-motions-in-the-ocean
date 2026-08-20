@@ -8,6 +8,14 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 - Scan fidelity, equations, scientific verification, and references: `skills/source-audit/SKILL.md`
 - Figure extraction, vector/raster reconstruction, comparison, and scientific figure review: `skills/figure-audit/SKILL.md`
 
+## Git workflow and automation
+
+- Pull requests are not part of the active repository workflow until the owner explicitly enables them. Do not create a PR unless explicitly requested.
+- When integration to `main` is authorized, keep history linear: rebase/fast-forward rather than creating merge commits.
+- The owner may squash or rewrite `main` history at any time. Treat the current contents of `main` as authoritative; do not rely on long-lived commit SHAs or stable historical commit boundaries.
+- The canonical publication workflow is not a general-purpose repository mutation hook. Never add one-off migration, cleanup, source-editing, commit, or push logic to it.
+- If a temporary or task-specific GitHub Actions job must modify tracked repository contents, create a separate purpose-specific workflow. Remove that workflow after the task unless the owner explicitly wants it retained.
+
 ## Canonical sources
 
 - `source/*.pdf` is the immutable historical authority. Never edit, recompress, replace, or rewrite a source PDF.
