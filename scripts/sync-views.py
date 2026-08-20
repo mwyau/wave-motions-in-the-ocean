@@ -16,6 +16,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import unicodedata
 import urllib.parse
 from pathlib import Path
 
@@ -55,6 +56,18 @@ SIGNATURE_RE = re.compile(
 LOCAL_RASTER_RE = re.compile(
     r"\\includegraphics(?P<opts>\[[^]]*\])?\s*\{figures/(?P<name>[^}]+\.(?:png|jpe?g))\}",
     re.I,
+)
+HEADING_TRANSLATION = str.maketrans(
+    {
+        "‘": "'",
+        "’": "'",
+        "ʼ": "'",
+        "“": '"',
+        "”": '"',
+        "–": "-",
+        "—": "-",
+        "\u00a0": " ",
+    }
 )
 
 
@@ -207,6 +220,11 @@ def heading_text(fragment: str) -> str:
     return " ".join(html.unescape(re.sub(r"<[^>]+>", "", fragment)).split())
 
 
+def normalized_heading_text(text: str) -> str:
+    normalized = unicodedata.normalize("NFKC", text).translate(HEADING_TRANSLATION)
+    return " ".join(normalized.split())
+
+
 def install_stable_section_ids() -> None:
     h2_re = re.compile(r"<h2(?P<attrs>[^>]*)>(?P<body>.*?)</h2>", re.S | re.I)
     for chapter in book_structure():
@@ -222,7 +240,7 @@ def install_stable_section_ids() -> None:
                 return m.group(0)
             section = chapter.sections[index]
             rendered = heading_text(m.group("body"))
-            if rendered != section:
+            if normalized_heading_text(rendered) != normalized_heading_text(section):
                 raise SystemExit(
                     f"{page.name}: section heading {index + 1} is {rendered!r}; "
                     f"expected {section!r}"
@@ -279,7 +297,7 @@ def sync_html() -> None:
         raise SystemExit(f"missing generated HTML index: {index}")
     text = index.read_text(errors="replace")
     block_re = re.compile(
-        r'<section class="book-toc">.*?</section>\s*<p class="license">.*?</p>',
+        r'<section class="book-toc"(?: id="contents")?>.*?</section>\s*<p class="license">.*?</p>',
         re.S | re.I,
     )
     available_downloads = tuple(item for item in DOWNLOADS if (OUT / item[0]).is_file())

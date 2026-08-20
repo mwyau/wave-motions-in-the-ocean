@@ -116,7 +116,7 @@ def html_contents(*, downloads: tuple[tuple[str, str], ...] = DOWNLOADS) -> str:
         )
         download_html = f"<h2>Downloads</h2><ul>{links}</ul>"
     return (
-        '<section class="book-toc"><h2>Contents</h2><ol>'
+        '<section class="book-toc" id="contents"><h2>Contents</h2><ol>'
         + "".join(items)
         + '</ol><p><a href="references.html">References</a> · '
         + f'<a href="{ORIGINAL_SOURCE_URL}">Original online source</a></p>'

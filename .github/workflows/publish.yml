@@ -13,14 +13,12 @@ permissions:
   pages: write
   id-token: write
 
-# Keep production publishing linear. Pull-request refs use separate groups.
-concurrency:
-  group: publish-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
   build:
     runs-on: ubuntu-26.04
+    concurrency:
+      group: publish-build-${{ github.ref }}
+      cancel-in-progress: true
     env:
       TINYTEX_VERSION: "2026.08"
     steps:
@@ -139,6 +137,9 @@ jobs:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-26.04
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

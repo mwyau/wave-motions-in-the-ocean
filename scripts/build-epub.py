@@ -189,23 +189,43 @@ def text_content(element: ET.Element) -> str:
 
 def resolved_member(base: str, ref: str) -> str | None:
     parsed = urllib.parse.urlsplit(ref)
-    if parsed.scheme or parsed.netloc or not parsed.path:
+    if parsed.scheme or parsed.netloc:
         return None
+    if not parsed.path:
+        return base if parsed.fragment else None
     path = urllib.parse.unquote(parsed.path)
     return posixpath.normpath(posixpath.join(posixpath.dirname(base), path))
 
 
+def xhtml_ids(archive: zipfile.ZipFile, name: str) -> set[str]:
+    try:
+        root = ET.fromstring(archive.read(name))
+    except ET.ParseError as exc:
+        raise SystemExit(f"invalid EPUB XHTML in {name}: {exc}") from exc
+    return {value for element in root.iter() if (value := element.get("id"))}
+
+
 def validate_internal_refs(archive: zipfile.ZipFile, xhtml_names: list[str]) -> None:
     names = set(archive.namelist())
+    xhtml_name_set = set(xhtml_names)
+    ids_by_name = {name: xhtml_ids(archive, name) for name in xhtml_names}
     broken: list[tuple[str, str]] = []
     ref_re = re.compile(rb'(?:href|src)=["\']([^"\']+)["\']', re.I)
     for name in xhtml_names:
         content = archive.read(name)
         for raw_ref in ref_re.findall(content):
             ref = html.unescape(raw_ref.decode("utf-8", errors="replace"))
+            parsed = urllib.parse.urlsplit(ref)
             member = resolved_member(name, ref)
-            if member is not None and member not in names:
+            if member is None:
+                continue
+            if member not in names:
                 broken.append((name, ref))
+                continue
+            if parsed.fragment and member in xhtml_name_set:
+                fragment = urllib.parse.unquote(parsed.fragment)
+                if fragment not in ids_by_name[member]:
+                    broken.append((name, ref))
     if broken:
         for name, ref in broken[:20]:
             print(f"broken EPUB reference: {name}: {ref}")
