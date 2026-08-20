@@ -1,1 +1,0 @@
-One-time trigger for the audited Chapter 6 vector integration. The workflow removes this file after successful completion.
