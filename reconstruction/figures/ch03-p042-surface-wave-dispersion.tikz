@@ -1,0 +1,14 @@
+% wave-source: pdf=ChapmanRizzoli3.pdf; page=7; trim=225bp 250bp 225bp 475bp
+% Source: Wave Motions in the Ocean, printed p.42 (physical p.7).
+% Exact normalized plot of S=sigma*sqrt(D/g)=sqrt(K tanh K), K=kD.
+% Its K->0 tangent is S=K and its K->infinity asymptote is S=sqrt(K).
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \draw[->,line width=0.65pt] (0.65,0.55) -- (7.30,0.55) node[right] {$k$};
+  \draw[->,line width=0.65pt] (0.65,0.55) -- (0.65,4.65) node[above] {$\sigma$};
+  \draw[line width=0.90pt,domain=0.001:5.2,samples=120,smooth,variable=\x]
+    plot ({0.65+1.20*\x},{0.55+1.45*sqrt(\x*tanh(\x))});
+  \draw[densely dashed,line width=0.38pt,domain=0:1.10,samples=2,variable=\x]
+    plot ({0.65+1.20*\x},{0.55+1.45*\x});
+  \node[anchor=west,rotate=43] at (1.30,1.30) {$\sigma\simeq (gD)^{1/2}k$};
+  \node[anchor=west] at (4.95,3.82) {$\sigma\simeq (gk)^{1/2}$};
+\end{tikzpicture}
