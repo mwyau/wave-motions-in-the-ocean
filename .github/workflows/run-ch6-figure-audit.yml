@@ -24,6 +24,13 @@ jobs:
           ref: main
           fetch-depth: 0
 
+      - name: Install README sync dependency
+        env:
+          NEEDRESTART_MODE: a
+        run: |
+          sudo apt-get update
+          sudo -E apt-get install -y --no-install-recommends pandoc
+
       - name: Apply reviewed p159 patch against current main
         shell: bash
         run: |
