@@ -101,7 +101,9 @@ def check_canonical_source() -> None:
             if text.count(item) > 1:
                 fail(f"{chapter.name}: duplicated known legacy math form {item!r}")
 
-        math_text = "\n".join(MATH_TEXT_COMMAND_RE.sub("", region) for region in tex_math_regions(text))
+        math_text = "\n".join(
+            MATH_TEXT_COMMAND_RE.sub("", region) for region in tex_math_regions(text)
+        )
         for function in NAMED_FUNCTIONS:
             bare = re.search(rf"(?<![\\A-Za-z]){function}(?![A-Za-z])", math_text)
             if bare:
@@ -131,7 +133,9 @@ def require_labels(text: str, labels: tuple[str, ...], *, artifact: str) -> None
     for label in labels:
         count = text.count(label)
         if count != 1:
-            fail(f"{artifact}: equation label {label} occurs {count} times; expected exactly once")
+            fail(
+                f"{artifact}: equation label {label} occurs {count} times; expected exactly once"
+            )
         positions.append(text.find(label))
     if positions != sorted(positions):
         fail(f"{artifact}: numbered equation labels are not in canonical order")
@@ -258,7 +262,16 @@ def check_epub_mathml() -> None:
         if not {"inline", "block"}.issubset(displays):
             fail(f"EPUB lacks inline or block MathML: {sorted(str(v) for v in displays)}")
 
-        required_structures = ("mi", "mn", "mo", "msub", "msup", "mfrac", "mover", "mtable")
+        required_structures = (
+            "mi",
+            "mn",
+            "mo",
+            "msub",
+            "msup",
+            "mfrac",
+            "mover",
+            "mtable",
+        )
         counts: dict[str, int] = {}
         for tag in required_structures:
             count = sum(len(math.findall(f".//{ns}{tag}")) for math in math_elements)
@@ -266,8 +279,12 @@ def check_epub_mathml() -> None:
             if count == 0:
                 fail(f"EPUB MathML has no <{tag}> structure")
 
-        mi_nodes = [node for math in math_elements for node in math.findall(f".//{ns}mi")]
-        mo_nodes = [node for math in math_elements for node in math.findall(f".//{ns}mo")]
+        mi_nodes = [
+            node for math in math_elements for node in math.findall(f".//{ns}mi")
+        ]
+        mo_nodes = [
+            node for math in math_elements for node in math.findall(f".//{ns}mo")
+        ]
         mi_text = ["".join(node.itertext()).strip() for node in mi_nodes]
         mo_text = ["".join(node.itertext()).strip() for node in mo_nodes]
         for symbol in EPUB_VARIABLE_SENTINELS:
@@ -276,11 +293,14 @@ def check_epub_mathml() -> None:
             if symbol in mo_text:
                 fail(f"EPUB variable {symbol!r} is incorrectly represented as operator <mo>")
 
-        # Pandoc/texmath follows the MathML convention for named functions:
-        # the function name is an <mi> token followed by an <mo> U+2061
-        # FUNCTION APPLICATION marker.  Requiring the text "sin"/"cos"/etc.
-        # inside <mo> confuses the function token with the application operator.
-        def has_function_application(name: str) -> bool:
+        # texmath changed its MathML serialization of named functions. Older
+        # versions used <mo>sin</mo>; newer versions use an <mi> function token
+        # followed by U+2061 FUNCTION APPLICATION in <mo>. Accept either
+        # serialization, but require every representative function to be
+        # recognized as a function rather than an ordinary variable.
+        def has_named_function(name: str) -> bool:
+            if name in mo_text:
+                return True
             for math in math_elements:
                 for parent in math.iter():
                     children = list(parent)
@@ -294,11 +314,11 @@ def check_epub_mathml() -> None:
                             return True
             return False
 
-        for operator in EPUB_OPERATOR_SENTINELS:
-            if not has_function_application(operator):
+        for function in EPUB_OPERATOR_SENTINELS:
+            if not has_named_function(function):
                 fail(
-                    f"EPUB named function {operator!r} lacks an explicit "
-                    "MathML function-application operator"
+                    f"EPUB named function {function!r} is not represented "
+                    "with a recognized MathML function serialization"
                 )
 
         atmosphere_math = [
@@ -364,7 +384,9 @@ def check_pdf() -> None:
             "do not exist in the Italian alphabet",
         ):
             if sentinel not in text:
-                fail(f"{path.name}: Paola-preface PDF text sentinel is missing: {sentinel!r}")
+                fail(
+                    f"{path.name}: Paola-preface PDF text sentinel is missing: {sentinel!r}"
+                )
 
     modern_text = extracted[MODERN_PDF]
     all_labels = tuple(
@@ -374,7 +396,17 @@ def check_pdf() -> None:
     )
     require_labels(modern_text, all_labels, artifact=MODERN_PDF.name)
 
-    modern_log = Path(os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motions"))) / "latex" / "modern" / "main-modern.log"
+    modern_log = (
+        Path(
+            os.environ.get(
+                "WAVE_CACHE_DIR",
+                str(ROOT / ".cache" / "wave-motions"),
+            )
+        )
+        / "latex"
+        / "modern"
+        / "main-modern.log"
+    )
     if modern_log.is_file():
         log = modern_log.read_text(errors="replace")
         warnings = []
@@ -383,7 +415,10 @@ def check_pdf() -> None:
         if "Package amsmath Warning:" in log:
             warnings.append("amsmath warning")
         if warnings:
-            print("PDF math log review warning: " + ", ".join(warnings), file=sys.stderr)
+            print(
+                "PDF math log review warning: " + ", ".join(warnings),
+                file=sys.stderr,
+            )
 
     print("PDF math/text extraction smoke checks OK")
 
@@ -402,7 +437,12 @@ def run_epubcheck(require: bool) -> None:
         print("EPUBCheck not installed; standards validation skipped")
         return
 
-    proc = subprocess.run(cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    proc = subprocess.run(
+        cmd,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
     if proc.stdout:
         sys.stdout.write(proc.stdout)
     if proc.returncode:
