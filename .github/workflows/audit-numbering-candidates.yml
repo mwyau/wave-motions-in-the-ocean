@@ -1,0 +1,136 @@
+name: Audit numbering candidates
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    if: github.event.head_commit.message == 'Audit numbering candidates'
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Classify durable equations and figure placements
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' > /tmp/numbering-report.md
+          from pathlib import Path
+          import re
+
+          root = Path('reconstruction')
+          display_re = re.compile(
+              r'(?P<bracket>\\\[(?P<bracket_body>.*?)\\\])'
+              r'|(?P<align>\\begin\{align\*\}(?P<align_body>.*?)\\end\{align\*\})',
+              re.S,
+          )
+          strong_before = (
+              'dispersion relation', 'field equation', 'wave equation', 'vorticity equation',
+              'continuity equation', 'equations of motion', 'boundary condition',
+              'boundary conditions', 'eigenvalue', 'orthogonality relation',
+              'conservation law', 'conservation equation', 'phase speed', 'group velocity',
+              'wave action', 'energy density', 'energy flux', 'radiation condition',
+              'snell', 'matching relation', 'root condition', 'is defined as',
+              'are defined as', 'we define', 'defined by', 'ray equations',
+              'ray equation', 'governing equation', 'governing equations',
+          )
+          strong_after = (
+              'dispersion relation', 'boundary condition', 'eigenvalue', 'conservation law',
+              'we recognize', 'will be used', 'this is the wave equation',
+              'this is the dispersion relation',
+          )
+          weak_before = (
+              'becomes', 'reduces to', 'yields', 'gives', 'we obtain', 'we have',
+              'can be written', 'takes the form', 'has the form', 'satisfies',
+          )
+
+          def compact(body: str) -> str:
+              body = re.sub(r'\s+', ' ', body).strip()
+              body = body.replace('\\qquad', ' ').replace('\\;', ' ')
+              return body[:110] + ('…' if len(body) > 110 else '')
+
+          def classify(text: str, matches: list[re.Match[str]]) -> list[bool]:
+              chosen = []
+              scores = []
+              for m in matches:
+                  before = re.sub(r'\s+', ' ', text[max(0, m.start()-520):m.start()]).lower()
+                  after = re.sub(r'\s+', ' ', text[m.end():m.end()+280]).lower()
+                  body = m.group('bracket_body') if m.group('bracket') else m.group('align_body')
+                  score = 0
+                  score += 4 * sum(phrase in before for phrase in strong_before)
+                  score += 3 * sum(phrase in after for phrase in strong_after)
+                  score += 1 * sum(phrase in before[-220:] for phrase in weak_before)
+                  if '\\boxed' in body:
+                      score += 5
+                  # A system introduced explicitly as equations/conditions is durable even if
+                  # the exact noun is slightly outside the context window.
+                  if m.group('align') and re.search(r'(equations?|conditions?|system)\b', before[-260:]):
+                      score += 2
+                  scores.append(score)
+                  chosen.append(score >= 4)
+
+              # Propagate within a compact logical chain of displayed equations when the first
+              # member is introduced as a governing/boundary/dispersion result. This captures
+              # separately displayed conditions without numbering unrelated derivation chains.
+              for i in range(1, len(matches)):
+                  gap = text[matches[i-1].end():matches[i].start()]
+                  gap_plain = re.sub(r'%.*?(?:\n|$)', '', gap)
+                  gap_plain = re.sub(r'\s+', ' ', gap_plain).strip().lower()
+                  if chosen[i-1] and len(gap_plain) <= 90 and not re.search(r'[.!?](?:\s|$)', gap_plain):
+                      if gap_plain in ('', 'and', 'or', 'with', 'where', 'and so', 'so', 'while'):
+                          chosen[i] = True
+              return chosen
+
+          print('# Numbering candidate dry run')
+          print()
+          print('Policy: number durable results, not transient algebra. This is a dry run; no chapter source is modified.')
+          print()
+          total_eq = total_selected = total_fig = 0
+          for chapter in range(1, 7):
+              path = root / f'chapter{chapter}.tex'
+              text = path.read_text()
+              matches = list(display_re.finditer(text))
+              selected = classify(text, matches)
+              eq_count = len(matches)
+              sel_count = sum(selected)
+              total_eq += eq_count
+              total_selected += sel_count
+
+              figure_patterns = {
+                  'wavevectorart': r'\\wavevectorart(?:\[[^]]+\])?\{[^}]+\}',
+                  'sourceart': r'\\sourceart(?:\[[^]]+\])?\{[^}]+\}\{\d+\}\{[^}]+\}',
+                  'raw-tikz': r'\\input\{figures/[^}]+\.tikz\}',
+                  'raster': r'\\includegraphics(?:\[[^]]*\])?\s*\{figures/[^}]+\.(?:png|jpe?g)\}',
+                  'direct-source': r'\\includegraphics\[[^]]*page=\d+[^]]*\]\s*\{\.\./source/[^}]+\}',
+              }
+              fig_counts = {name: len(re.findall(pattern, text, re.I | re.S)) for name, pattern in figure_patterns.items()}
+              fig_count = sum(fig_counts.values())
+              total_fig += fig_count
+
+              print(f'## Chapter {chapter}: {sel_count} numbered candidates / {eq_count} display blocks; {fig_count} figure placements')
+              print()
+              print('Figure placement mix: ' + ', '.join(f'{k}={v}' for k, v in fig_counts.items()))
+              print()
+              for index, (m, use) in enumerate(zip(matches, selected), 1):
+                  if not use:
+                      continue
+                  body = m.group('bracket_body') if m.group('bracket') else m.group('align_body')
+                  page_before = text[:m.start()]
+                  page_matches = list(re.finditer(r'Source printed page\s+(\d+)', page_before))
+                  page = page_matches[-1].group(1) if page_matches else '?'
+                  kind = 'system' if m.group('align') else 'display'
+                  print(f'- p.{page} [{kind}] `{compact(body)}`')
+              print()
+
+          print(f'**Totals:** {total_selected} numbered candidates / {total_eq} display blocks; {total_fig} figure placements.')
+          PY
+          gh issue comment 14 --body-file /tmp/numbering-report.md
