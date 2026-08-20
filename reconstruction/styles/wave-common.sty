@@ -20,6 +20,16 @@
 \setlength{\emergencystretch}{1.5em}
 \raggedbottom
 
+% Consistent attribution block for modern front matter. Keep the semantic
+% order name / place, year so the HTML conversion can mirror it exactly.
+\newcommand{\wavesignature}[3]{%
+  \par\medskip
+  \begin{flushright}
+    \textit{#1}\\
+    #2, #3
+  \end{flushright}
+}
+
 % Direct crop from an authoritative committed source PDF. Arguments are
 % width fraction, source filename, physical PDF page, and trim rectangle.
 \newcommand{\sourceart}[4][0.72]{%
