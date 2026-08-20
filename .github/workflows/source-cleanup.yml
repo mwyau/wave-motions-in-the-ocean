@@ -1,5 +1,5 @@
-# One-time workflow; remove after the cleanup commit lands.
-name: One-time source cleanup
+# One-time workflow; this workflow deletes itself after the reconciliation commit.
+name: One-time errata reconciliation
 
 on:
   issues:
@@ -9,144 +9,101 @@ permissions:
   contents: write
 
 jobs:
-  cleanup:
+  reconcile:
     if: github.event.issue.title == '[internal] one-time source cleanup'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: main
           fetch-depth: 0
 
-      - name: Normalize errata and source comments
+      - name: Reconcile accepted errata with canonical TeX
+        shell: bash
         run: |
+          set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
-          import re
 
-          root = Path("reconstruction")
-          errata_path = root / "ERRATA.md"
-          errata = errata_path.read_text()
-          migrated_heading = "## Migrated audit notes still requiring explicit schema normalization"
+          def replace_once(path: str, old: str, new: str) -> None:
+              p = Path(path)
+              text = p.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected exactly one match, found {count}")
+              p.write_text(text.replace(old, new, 1))
 
-          if migrated_heading in errata:
-              errata = errata.split(migrated_heading, 1)[0].rstrip() + "\n"
-              entries = {
-                  "## Chapter 2\n\n": r'''### Printed page 19 - adiabatic entropy derivative
-
-- **Category:** `equation`
-- **Status:** `accepted`
-- **Location:** Chapter 2, printed page 19
-- **Original:** $\partial S/\partial t=0$
-- **Reconstruction:** $DS/Dt=0$
-- **Reason/evidence:** The motions are described as adiabatic and the immediately following thermodynamic relations are written with material derivatives. Entropy conservation for a moving parcel is therefore $DS/Dt=0$, not a zero local time derivative at a fixed point.
-
-### Printed page 19 - "infinitesmal"
-
-- **Category:** `typographical`
-- **Status:** `accepted`
-- **Location:** Chapter 2, printed page 19
-- **Original:** "infinitesmal"
-- **Reconstruction:** "infinitesimal"
-- **Reason/evidence:** Straightforward spelling correction; no scientific meaning is changed.
-
-''',
-                  "## Chapter 3\n\n": r'''### Printed page 54 - shorthand late-time envelope
-
-- **Category:** `editorial`
-- **Status:** `accepted`
-- **Location:** Chapter 3, printed page 54
-- **Original:** $\eta(x,t\to\infty)=t$
-- **Reconstruction:** The late-time envelope is stated as $O(t)$ growth rather than as a literal equality to $t$.
-- **Reason/evidence:** The source notation is dimensional shorthand for the asymptotic envelope scaling. Writing the growth as $O(t)$ preserves that intended statement without asserting the dimensionally incomplete equality $\eta=t$.
-
-''',
-                  "## Chapter 4\n\n": r'''### Printed page 68 - "f-plane approrimation"
-
-- **Category:** `typographical`
-- **Status:** `accepted`
-- **Location:** Chapter 4, printed page 68
-- **Original:** "f-plane approrimation"
-- **Reconstruction:** "f-plane approximation"
-- **Reason/evidence:** Straightforward spelling correction; no scientific meaning is changed.
-
-### Printed page 86 - pressure derivative transcription
-
-- **Category:** `transcription`
-- **Status:** `accepted`
-- **Location:** Chapter 4, printed page 86
-- **Original:** A previous reconstruction read $w_{xtt}$.
-- **Reconstruction:** $\rho_0 w_{zt}=p_{xx}$
-- **Reason/evidence:** Reinspection of the high-resolution historical scan shows $\rho_0 w_{zt}=p_{xx}$. The earlier $w_{xtt}$ reading was a transcription error, not a source erratum.
-
-''',
-                  "## Chapter 5\n\n": r'''### Printed page 102 - "Bousinesq"
-
-- **Category:** `typographical`
-- **Status:** `accepted`
-- **Location:** Chapter 5, printed page 102
-- **Original:** "Bousinesq"
-- **Reconstruction:** "Boussinesq"
-- **Reason/evidence:** Straightforward spelling correction of the standard Boussinesq approximation name; no scientific meaning is changed.
-
-''',
-              }
-              for anchor, addition in entries.items():
-                  if anchor in errata:
-                      errata = errata.replace(anchor, anchor + addition, 1)
-              errata_path.write_text(errata)
-
-          merged_block = re.compile(
-              r"(?m)^% ===== merged from [^\n]+ =====\n(?:%[^\n]*\n)+\n"
+          replace_once(
+              "reconstruction/chapter1.tex",
+              """For cases (a)--(d), the phase speed $c=\\sigma/|\\vec{k}|$ is independent of wavelength,
+frequency or direction. Such waves are nondispersive or dispersionless because all waves
+(for each case individually) travel with the same speed. In case (e), the phase speed $c$
+is dependent upon the wavelength and the direction, so these waves are dispersive.""",
+              """For cases (a), (b), and (d), the phase speed $c=\\sigma/|\\vec{k}|$ is independent
+of wavelength, frequency or direction. In case (c),
+$c=\\vec c_0\\cdot\\hat{\\vec k}$, so the phase speed is independent of wavelength and
+frequency but depends on propagation direction relative to $\\vec c_0$. For any fixed
+propagation direction, cases (a)--(d) are nondispersive with respect to wavenumber
+magnitude. In case (e), the phase speed $c$ is dependent upon the wavelength and the
+direction, so these waves are dispersive.""",
           )
-          stale_comment = re.compile(
-              r"merged from|chapter0[1-6]-p\d|CHAPTER\d+_AUDIT\.md|"
-              r"FIGURE_AUDIT\.md|verification\.tsv|pre-merge",
-              re.I,
-          )
-          source_map = {
-              1: "ChapmanRizzoli0_2.pdf",
-              2: "ChapmanRizzoli0_2.pdf",
-              3: "ChapmanRizzoli3.pdf",
-              4: "ChapmanRizzoli4.pdf",
-              5: "ChapmanRizzoli5.pdf",
-              6: "ChapmanRizzoli6.pdf",
-          }
 
-          for number in range(1, 7):
-              path = root / f"chapter{number}.tex"
-              text = path.read_text()
-              authority = re.search(r"^% Source authority: ([^,\n]+\.pdf)", text, re.M)
-              source_pdf = authority.group(1) if authority else source_map[number]
-              text, removed = merged_block.subn("", text)
-              text = "\n".join(
-                  line for line in text.splitlines()
-                  if not (line.lstrip().startswith("%") and stale_comment.search(line))
-              ).lstrip("\n") + "\n"
-              text = re.sub(
-                  r"\A% Wave Motions in the Ocean: Myrl's [Vv]iew\n"
-                  r"(?:%[^\n]*\n){0,6}\n?",
-                  "",
-                  text,
-              )
-              header = (
-                  "% Wave Motions in the Ocean: Myrl's View\n"
-                  f"% Chapter {number}; historical source: source/{source_pdf}.\n"
-                  "% Source-page comments preserve printed/physical page correspondence.\n"
-                  "% Substantive corrections are documented in ERRATA.md.\n\n"
-              )
-              path.write_text(header + text)
-              print(f"{path}: removed {removed} obsolete fragment header(s)")
+          replace_once(
+              "reconstruction/chapter4.tex",
+              """After some algebra, the result is
+\\[
+ |\\vec k_r|=|\\vec k_i|\\left(\\frac{1+aR}{1-aR}\\right)
+\\]
+\\[
+ m_r=\\pm m_i\\left(\\frac{1+aR}{1-aR}\\right)
+ \\left(\\frac{R+a}{R-a}\\right)
+\\]
+where the signs have been taken from the sketch. This gives the new wavenumbers in
+terms of the old ones.""",
+              """After some algebra, the result is
+\\[
+ |\\vec k_r|=|\\vec k_i|\\left(\\frac{1+aR}{1-aR}\\right).
+\\]
+The incident and reflected wavenumbers lie on the two characteristic directions
+$m_i=Rk_i$ and $m_r=-Rk_r$, so this also gives
+\\[
+ m_r=-m_i\\left(\\frac{1+aR}{1-aR}\\right).
+\\]
+The typeset source includes an additional factor $(R+a)/(R-a)$ in the expression for
+$m_r$; that factor is inconsistent with the characteristic directions above and is
+recorded in \\texttt{ERRATA.md}. This gives the new wavenumbers in terms of the old
+ones.""",
+          )
+
+          replace_once(
+              "reconstruction/chapter5.tex",
+              "results in a sequence of free frequencies $\\sigma_1^2,\\sigma_2^2,\\sigma_3^2,\\ldots$",
+              "results in a sequence of squared free frequencies $\\sigma_1^2,\\sigma_2^2,\\sigma_3^2,\\ldots$",
+          )
+
+          replace_once(
+              "reconstruction/chapter5.tex",
+              "Thus, in a westward propagating wave,\n\\[",
+              "Thus, in a westward propagating wave with $\\ell=0$,\n\\[",
+          )
+
+          # This workflow was temporary; remove it in the same source commit.
+          Path(".github/workflows/source-cleanup.yml").unlink()
           PY
 
-      - name: Commit cleanup
+          git diff --check
+          grep -Fq 'case (c),' reconstruction/chapter1.tex
+          grep -Fq 'm_r=-m_i' reconstruction/chapter4.tex
+          grep -Fq 'squared free frequencies' reconstruction/chapter5.tex
+          grep -Fq 'wave with $\ell=0$' reconstruction/chapter5.tex
+
+      - name: Commit reconciliation
+        shell: bash
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add reconstruction/ERRATA.md reconstruction/chapter*.tex
-          if git diff --cached --quiet; then
-            echo "No cleanup changes produced"
-            exit 0
-          fi
-          git commit -m "Normalize errata and clean reconstruction comments"
+          git add reconstruction/chapter1.tex reconstruction/chapter4.tex reconstruction/chapter5.tex .github/workflows/source-cleanup.yml
+          git commit -m "Reconcile accepted errata with canonical TeX"
+          git pull --rebase origin main
           git push origin HEAD:main
