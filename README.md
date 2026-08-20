@@ -88,7 +88,7 @@ The reconstruction is a work in progress, with assistance from OpenAI’s GPT-5.
 *Stony Brook — Albert M. W. Yau, 2026*
 
 <figure>
-<img src="reconstruction/figures/frontmatter/salmon-hendershott-como-1980.jpeg" />
+<img src="reconstruction/figures/frontmatter/salmon-hendershott-como-1980.jpg" />
 <p>Rick Salmon (left) and Myrl Hendershott at Villa Carlotta, Lake Como,
 during the International School of Physics “Enrico Fermi,” Course LXXX,
 <em>Topics in Ocean Physics</em>, July 1980.</p>
