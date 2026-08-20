@@ -63,10 +63,10 @@ and teaching. On the not-so-positive side (I will not say negative):
 
 - like him, I erase with my left hand what I have just written with my right hand.
 
-- like him, I put $\ell$ ($x$ wavenumber) before $k$ ($y$ wavenumber)
+- like him, I put $`\ell`$ ($`x`$ wavenumber) before $`k`$ ($`y`$ wavenumber)
 
-As the letters $j,k,x,y,w$ do not exist in the Italian alphabet, $k$ coming before or after
-$\ell$ was supremely unimportant to me. On the positive side, Myrl was absolutely the
+As the letters $`j,k,x,y,w`$ do not exist in the Italian alphabet, $`k`$ coming before or after
+$`\ell`$ was supremely unimportant to me. On the positive side, Myrl was absolutely the
 best teacher I had in the various courses I took at Scripps. His lectures were always
 interesting, imaginative and full of physical insight. Looking back, I realize that a
 great deal of the important oceanographic concepts and ideas I learned over the years
@@ -88,7 +88,7 @@ The reconstruction is a work in progress, with assistance from OpenAI’s GPT-5.
 *Stony Brook — Albert M. W. Yau, 2026*
 
 <figure>
-<img src="reconstruction/figures/frontmatter/salmon-hendershott-como-1980.jpg" />
+<img src="reconstruction/figures/frontmatter/salmon-hendershott-como-1980.jpg" style="width:82.0%" />
 <p>Rick Salmon (left) and Myrl Hendershott at Villa Carlotta, Lake Como,
 during the International School of Physics “Enrico Fermi,” Course LXXX,
 <em>Topics in Ocean Physics</em>, July 1980.</p>
