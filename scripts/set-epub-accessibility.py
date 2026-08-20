@@ -435,18 +435,30 @@ def validate_metadata(epub: Path) -> None:
                     + required
                 )
 
-        # Validate native SVG naming as well as the ARIA name. Some EPUB
-        # reading systems expose only one of these mechanisms.
+        # If Pandoc uses an inline SVG cover, validate its native <title> as
+        # well as its ARIA name. Other Pandoc versions may emit a normal <img>,
+        # whose required alt text is already checked above.
+        cover_basename = cover_image_basename(opf_root)
+        cover_svg_seen = False
         cover_title_found = False
         for member in manifest_xhtml_members(opf_name, opf_root):
             root = ET.fromstring(archive.read(member))
             for svg in root.findall(".//{*}svg"):
+                if not any(
+                    ref_basename(svg_image_ref(image)) == cover_basename
+                    for image in svg.findall(".//{*}image")
+                ):
+                    continue
+                cover_svg_seen = True
                 if svg.get("aria-label") != COVER_ALTERNATIVE:
                     continue
                 title = svg.find(f"{{{SVG_NS}}}title")
-                if title is not None and " ".join(title.itertext()).strip() == COVER_ALTERNATIVE:
+                if (
+                    title is not None
+                    and " ".join(title.itertext()).strip() == COVER_ALTERNATIVE
+                ):
                     cover_title_found = True
-        if not cover_title_found:
+        if cover_svg_seen and not cover_title_found:
             raise SystemExit("EPUB cover SVG is missing its native accessible title")
 
     print("EPUB accessibility discovery metadata OK")
