@@ -33,25 +33,40 @@ jobs:
               r'|(?P<align>\\begin\{align\*\}(?P<align_body>.*?)\\end\{align\*\})',
               re.S,
           )
-          strong_before = (
+          durable_intro = (
               'dispersion relation', 'field equation', 'wave equation', 'vorticity equation',
-              'continuity equation', 'equations of motion', 'boundary condition',
-              'boundary conditions', 'eigenvalue', 'orthogonality relation',
-              'conservation law', 'conservation equation', 'phase speed', 'group velocity',
-              'wave action', 'energy density', 'energy flux', 'radiation condition',
-              'snell', 'matching relation', 'root condition', 'is defined as',
-              'are defined as', 'we define', 'defined by', 'ray equations',
-              'ray equation', 'governing equation', 'governing equations',
+              'continuity equation', 'equations of motion', 'governing equation',
+              'governing equations', 'boundary condition', 'boundary conditions',
+              'eigenvalue problem', 'orthogonality relation', 'conservation law',
+              'conservation equation', 'phase speed', 'group velocity', 'wave action',
+              'energy density', 'energy flux', 'radiation condition', 'snell',
+              'matching relation', 'root condition', 'ray equation', 'ray equations',
           )
-          strong_after = (
-              'dispersion relation', 'boundary condition', 'eigenvalue', 'conservation law',
-              'we recognize', 'will be used', 'this is the wave equation',
-              'this is the dispersion relation',
+          durable_after = (
+              'this is the dispersion relation', 'is the dispersion relation',
+              'this is the wave equation', 'is the wave equation',
+              'is the boundary condition', 'are the boundary conditions',
+              'is an eigenvalue problem', 'is the orthogonality relation',
+              'will be used later', 'will be used to',
           )
-          weak_before = (
-              'becomes', 'reduces to', 'yields', 'gives', 'we obtain', 'we have',
-              'can be written', 'takes the form', 'has the form', 'satisfies',
+          definition_intro = (
+              'we define', 'is defined as', 'are defined as', 'defined by',
+              'we introduce', 'we write the definition',
           )
+
+          def normalize(text: str) -> str:
+              text = re.sub(r'%.*?(?:\n|$)', ' ', text)
+              return re.sub(r'\s+', ' ', text).strip().lower()
+
+          def immediate_before(text: str, pos: int) -> str:
+              # Restrict the semantic trigger to the immediate prose clause. Do not let a
+              # keyword from an earlier equation carry forward into later algebra.
+              chunk = normalize(text[max(0, pos-300):pos])
+              cuts = [chunk.rfind(mark) for mark in ('. ', '? ', '! ')]
+              cut = max(cuts)
+              if cut >= 0:
+                  chunk = chunk[cut+2:]
+              return chunk[-220:]
 
           def compact(body: str) -> str:
               body = re.sub(r'\s+', ' ', body).strip()
@@ -59,40 +74,38 @@ jobs:
               return body[:110] + ('…' if len(body) > 110 else '')
 
           def classify(text: str, matches: list[re.Match[str]]) -> list[bool]:
-              chosen = []
-              scores = []
+              chosen: list[bool] = []
               for m in matches:
-                  before = re.sub(r'\s+', ' ', text[max(0, m.start()-520):m.start()]).lower()
-                  after = re.sub(r'\s+', ' ', text[m.end():m.end()+280]).lower()
+                  intro = immediate_before(text, m.start())
+                  after = normalize(text[m.end():m.end()+180])
                   body = m.group('bracket_body') if m.group('bracket') else m.group('align_body')
-                  score = 0
-                  score += 4 * sum(phrase in before for phrase in strong_before)
-                  score += 3 * sum(phrase in after for phrase in strong_after)
-                  score += 1 * sum(phrase in before[-220:] for phrase in weak_before)
+                  use = False
                   if '\\boxed' in body:
-                      score += 5
-                  # A system introduced explicitly as equations/conditions is durable even if
-                  # the exact noun is slightly outside the context window.
-                  if m.group('align') and re.search(r'(equations?|conditions?|system)\b', before[-260:]):
-                      score += 2
-                  scores.append(score)
-                  chosen.append(score >= 4)
+                      use = True
+                  if any(phrase in intro for phrase in durable_intro):
+                      use = True
+                  if any(phrase in after for phrase in durable_after):
+                      use = True
+                  if any(phrase in intro for phrase in definition_intro) and len(normalize(body)) <= 320:
+                      use = True
+                  if m.group('align') and re.search(
+                      r'\b(equations?|conditions?|system)\b.{0,55}\b(are|become|reduce|becomes|is)\b',
+                      intro,
+                  ):
+                      use = True
+                  chosen.append(use)
 
-              # Propagate within a compact logical chain of displayed equations when the first
-              # member is introduced as a governing/boundary/dispersion result. This captures
-              # separately displayed conditions without numbering unrelated derivation chains.
+              # A compact list of separately displayed boundary/eigen conditions belongs to
+              # the same durable result. Propagate only across conjunction-sized prose gaps.
               for i in range(1, len(matches)):
-                  gap = text[matches[i-1].end():matches[i].start()]
-                  gap_plain = re.sub(r'%.*?(?:\n|$)', '', gap)
-                  gap_plain = re.sub(r'\s+', ' ', gap_plain).strip().lower()
-                  if chosen[i-1] and len(gap_plain) <= 90 and not re.search(r'[.!?](?:\s|$)', gap_plain):
-                      if gap_plain in ('', 'and', 'or', 'with', 'where', 'and so', 'so', 'while'):
-                          chosen[i] = True
+                  gap = normalize(text[matches[i-1].end():matches[i].start()])
+                  if chosen[i-1] and gap in ('', 'and', 'or', 'with', 'where', 'while'):
+                      chosen[i] = True
               return chosen
 
-          print('# Numbering candidate dry run')
+          print('# Numbering candidate dry run — sparse rule')
           print()
-          print('Policy: number durable results, not transient algebra. This is a dry run; no chapter source is modified.')
+          print('Policy: number durable results identified by the immediate introducing clause; do not carry keywords through later algebra.')
           print()
           total_eq = total_selected = total_fig = 0
           for chapter in range(1, 7):
@@ -120,7 +133,7 @@ jobs:
               print()
               print('Figure placement mix: ' + ', '.join(f'{k}={v}' for k, v in fig_counts.items()))
               print()
-              for index, (m, use) in enumerate(zip(matches, selected), 1):
+              for m, use in zip(matches, selected):
                   if not use:
                       continue
                   body = m.group('bracket_body') if m.group('bracket') else m.group('align_body')
