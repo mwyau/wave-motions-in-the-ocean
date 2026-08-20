@@ -30,17 +30,38 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          gh workflow run publish.yml --ref main
-          run_id=""
-          for _ in $(seq 1 60); do
+          success=false
+          for attempt in $(seq 1 12); do
+            # Wait for main to be unchanged for ten seconds before dispatching.
+            while true; do
+              a=$(git ls-remote origin refs/heads/main | awk '{print $1}')
+              sleep 10
+              b=$(git ls-remote origin refs/heads/main | awk '{print $1}')
+              [ "$a" = "$b" ] && break
+              echo 'main moved while settling; waiting again'
+            done
+
+            gh workflow run publish.yml --ref main
+            sleep 3
             run_id=$(gh run list --workflow publish.yml --branch main --event workflow_dispatch --limit 1 \
               --json databaseId --jq '.[0].databaseId')
-            [ -n "$run_id" ] && break
-            sleep 2
+            test -n "$run_id"
+            echo "Publish validation attempt $attempt: $run_id"
+
+            if gh run watch "$run_id" --exit-status; then
+              success=true
+              break
+            fi
+
+            conclusion=$(gh run view "$run_id" --json conclusion --jq '.conclusion')
+            if [ "$conclusion" = 'cancelled' ]; then
+              echo 'Publish run was canceled by a newer main push; retrying'
+              continue
+            fi
+            echo "Publish validation failed with conclusion: $conclusion"
+            exit 1
           done
-          test -n "$run_id"
-          echo "Publish validation run: $run_id"
-          gh run watch "$run_id" --exit-status
+          test "$success" = true
 
       - name: Remove verifier and close coordination issue
         env:
