@@ -69,13 +69,23 @@ jobs:
           sudo -E apt-get install -y --no-install-recommends \
             qpdf poppler-utils imagemagick ghostscript python3-pil pandoc
 
-      - name: Build and validate
+      - name: Build PDFs and generated HTML site
         run: ./scripts/build.sh all
+
+      - name: Verify Pages root and downloads
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s dist/html/index.html
+          test -s dist/html/wave-motions-1989-facsimile.pdf
+          test -s dist/html/wave-motions-1989-modern.pdf
+          grep -q 'wave-motions-1989-facsimile.pdf' dist/html/index.html
+          grep -q 'wave-motions-1989-modern.pdf' dist/html/index.html
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload Pages artifact
+      - name: Upload generated HTML as Pages root
         uses: actions/upload-pages-artifact@v5
         with:
           path: dist/html
@@ -87,6 +97,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Deploy generated HTML site
         id: deployment
         uses: actions/deploy-pages@v5
