@@ -70,7 +70,7 @@ Historical fragment-level `\setcounter{page}{...}` resets are also source-page b
 
 When changing facsimile typography, validate the components as well as the full build: front matter = 10 pages, Chapters 1–6 = 17 + 20 + 26 + 32 + 53 + 23 = 171 pages, references = 3 pages, total = 184. Do not accept overfull vertical boxes as a way to preserve the count.
 
-While figure/vector geometry is still changing, canonical CI may report facsimile page-count drift as a **warning** so otherwise-valid publication builds can complete. This does not relax the final publication requirement: before release, restore and verify the exact 184-page source-compatible structure.
+While figure/vector geometry is still changing, canonical CI may report facsimile page-count drift as a **warning** so otherwise-valid publication builds can complete. This does not relax the final publication requirement: before release, restore and verify the exact 184-page source-compatible structure. A stable release tag must fail rather than warn if the facsimile is not exactly 184 pages.
 
 ## README and HTML synchronization
 
@@ -134,11 +134,14 @@ dist/
   wave-motions.pdf
   wave-motions-facsimile.pdf
   wave-motions.epub
+  SHA256SUMS
 ```
 
 `build/` and `dist/` are generated and untracked.
 
-Generated reader artifacts carry an exact source build identity. HTML and EPUB display the short commit identifier linked to that commit; the modern PDF places it on the copyright/edition-notice page; the facsimile keeps it non-visible in PDF metadata so historical page appearance is unchanged. When building an exact release tag such as `v1.0.0`, the display label may include both the release tag and short commit, for example `v1.0.0 (abc1234)`.
+Generated reader artifacts carry an exact source build identity. HTML and EPUB display the short commit identifier linked to that commit; the modern PDF places it on the copyright/edition-notice page; the facsimile keeps it non-visible in PDF metadata so historical page appearance is unchanged. The short commit identifier is **build provenance, not a Git tag**. Stable releases use semantic Git tags such as `v1.0.0`; an exact release-tag build displays both, for example `v1.0.0 (abc1234)`.
+
+`SHA256SUMS` covers the two PDFs and EPUB in the canonical `dist/` artifact. Release packaging verifies that manifest before promotion, then emits a release manifest covering the two direct PDFs, direct EPUB, and HTML-only ZIP.
 
 After any reconstruction `.tex` change, regenerate the README before committing:
 
@@ -150,7 +153,9 @@ Include any resulting README update with the source change. A full validation is
 
 ## Publish workflow
 
-`.github/workflows/publish.yml` is the single publication workflow. It builds and validates the complete publication for pushes to `main`, pull requests targeting `main`, and manual runs. Deployment to GitHub Pages occurs only for `main`; PRs and manual runs from other branches build and validate without deploying.
+`.github/workflows/publish.yml` is the single publication workflow. It builds and validates the complete publication for relevant publication-input pushes to `main`, every pull request targeting `main`, stable semantic release tags such as `v1.0.0`, and manual runs. Tag pushes are release builds and must not depend on changed-path filtering.
+
+For direct pushes to `main`, the canonical trigger paths are publication inputs: `reconstruction/**`, `scripts/**`, `.python-version`, `requirements.txt`, `tex-packages.txt`, `README.md`, and `.github/workflows/publish.yml`. Keep pull requests unfiltered so a future required Build check cannot remain indefinitely Pending merely because GitHub skipped the workflow. Changes limited to agent instructions, skills, immutable source scans, contribution docs, or other non-publication files do not require a full main-push publication build unless they also change a publication input.
 
 `Publish` must be reproducible from the triggering commit and must not edit tracked source files, create commits, or push repository changes. Do not append chat/session migrations, one-time cleanup scripts, or other repository-mutating automation to it.
 
@@ -158,6 +163,12 @@ If your task genuinely requires GitHub Actions to modify tracked repository cont
 
 During periods of frequent direct pushes, do **not** cancel the active publication build for the same ref. Use `cancel-in-progress: false` so one run can finish while GitHub coalesces pending work toward the newest commit instead of repeatedly terminating every build. The **Pages deployment** must also use `cancel-in-progress: false` so an active deployment is not interrupted.
 
-CI should surface build/validation categories as separate named steps where practical so failures are visible without reading a monolithic log. Facsimile pagination drift is warning-only during active figure work; compilation, PDF integrity, destination collisions, content sentinels, render smoke checks, publish-root/download checks, and build-identity checks remain fatal.
+An exact TinyTeX cache hit is a complete, pinned TeX environment for the matching TinyTeX version, runner OS, and `tex-packages.txt` hash. Skip `tlmgr update --self` and package installation on that exact hit. A cache miss or prefix restore must run dependency installation before building.
+
+CI should surface build/validation categories as separate named steps where practical so failures are visible without reading a monolithic log. Facsimile pagination drift is warning-only during active figure work; compilation, PDF integrity, destination collisions, content sentinels, render smoke checks, publish-root/download checks, build-identity checks, and checksum verification remain fatal.
+
+Build once and promote that exact validated output. Pages and GitHub Releases must consume the `wave-motions-editions` artifact from the successful Build job rather than rebuilding the book. For a stable `vX.Y.Z` tag, the release gate additionally requires the exact semantic version in build identity, a clean/non-dirty identity, and exactly 184 facsimile pages. The release publishes `wave-motions.pdf`, `wave-motions-facsimile.pdf`, and `wave-motions.epub` as direct assets plus `wave-motions-html.zip` and `SHA256SUMS`. Do not manufacture short-SHA Git tags.
+
+GitHub Pages is temporarily disabled while the repository remains private. Keep the existing Pages steps/deploy job dormant rather than removing them; when Pages is restored, remove only the temporary false guards so deployment promotes the same validated `dist/` output.
 
 CI must verify `index.html` plus all three downloadable formats. Keep `tex-packages.txt` at repository root as the TeX dependency manifest.
