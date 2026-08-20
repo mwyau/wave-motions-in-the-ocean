@@ -66,6 +66,15 @@ run_latexmk_cached() {
   return 1
 }
 
+rebuild_facsimile_clean() {
+  echo "facsimile pagination mismatch; retrying from a clean latexmk cache" >&2
+  rm -rf "$LATEX_CACHE/facsimile"
+  mkdir -p "$LATEX_CACHE/facsimile"
+  run_latexmk_cached main-facsimile.tex facsimile
+  cp "$LATEX_CACHE/facsimile/main-facsimile.pdf" "$DIST/wave-motions-facsimile.pdf"
+  validate_pdf "$DIST/wave-motions-facsimile.pdf"
+}
+
 build_pdf() {
   rm -rf "$BUILD/facsimile" "$BUILD/modern"
   mkdir -p "$BUILD/facsimile" "$BUILD/modern" "$LATEX_CACHE/facsimile" "$LATEX_CACHE/modern" "$DIST"
@@ -83,8 +92,12 @@ build_pdf() {
 
   local fac_pages mod_pages
   fac_pages=$(pdfinfo "$DIST/wave-motions-facsimile.pdf" | awk '/^Pages:/ {print $2}')
+  if [[ "$fac_pages" != "184" ]]; then
+    rebuild_facsimile_clean
+    fac_pages=$(pdfinfo "$DIST/wave-motions-facsimile.pdf" | awk '/^Pages:/ {print $2}')
+  fi
   mod_pages=$(pdfinfo "$DIST/wave-motions.pdf" | awk '/^Pages:/ {print $2}')
-  test "$fac_pages" = "184" || { echo "facsimile page count is $fac_pages; expected 184" >&2; exit 1; }
+  test "$fac_pages" = "184" || { echo "facsimile page count is $fac_pages; expected 184 after clean rebuild" >&2; exit 1; }
   test "$mod_pages" -gt 0
 
   ! grep -q "destination with the same identifier" "$LATEX_CACHE/facsimile/main-facsimile.log"
