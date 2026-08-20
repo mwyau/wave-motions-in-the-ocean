@@ -116,6 +116,22 @@ provenance belong in `FIGURES.md`.
   $k_r/k_i=(1+aR)/(1-aR)$. These relations directly imply the reconstructed result;
   the extra source factor is incompatible with the characteristic directions.
 
+### Printed page 90 — signed versus magnitude wavenumber ratio
+
+- **Category:** `equation`
+- **Status:** `pending-review`
+- **Location:** Chapter 4, printed page 90
+- **Original:** $|\vec k_r|=|\vec k_i|(1+aR)/(1-aR)$.
+- **Reconstruction:** Unchanged pending review.
+- **Reason/evidence:** Equality of phase along the wall $z=ax$, together with
+  $m_i=Rk_i$ and $m_r=-Rk_r$, gives the **signed** component relation
+  $k_r/k_i=(1+aR)/(1-aR)$. For magnitudes the corresponding relation requires an
+  absolute value,
+  $|\vec k_r|/|\vec k_i|=|(1+aR)/(1-aR)|$. The printed magnitude equation becomes
+  negative for $aR>1$ and therefore cannot hold literally across supercritical slopes.
+  Check whether the surrounding argument intends an unstated restriction $aR<1$
+  before changing the reconstruction.
+
 ## Chapter 5
 
 ### Printed page 102 — “Bousinesq”
@@ -173,6 +189,22 @@ provenance belong in `FIGURES.md`.
   $\alpha_T=90^\circ$ gives $K_I\sin\alpha_I'=K_T$, hence the reconstructed
   ratio. Since $D_1<D_2$, the source ratio would exceed one.
 
+### Printed page 113 — reversed-incidence amplitude coefficients
+
+- **Category:** `equation`
+- **Status:** `pending-review`
+- **Location:** Chapter 5, printed page 113
+- **Original:** On reversing the incidence direction, the text says that the reflected
+  and transmitted amplitudes are “still given by the above formulas.”
+- **Reconstruction:** Unchanged pending review.
+- **Reason/evidence:** The preceding formulas are written for incidence from the deep
+  $D_2$ side. Repeating the same elevation/transport matching for incidence from the
+  shallow $D_1$ side gives
+  $A_R/A_I=(D_1k_1-D_2k_2)/(D_1k_1+D_2k_2)$ and
+  $A_T/A_I=2D_1k_1/(D_1k_1+D_2k_2)$. Thus the same **matching form** applies only
+  after interchanging which region is incident and transmitted; the coefficients as
+  previously written do not remain literally unchanged.
+
 ### Printed page 116 — “waves modes”
 
 - **Category:** `typographical`
@@ -228,6 +260,23 @@ provenance belong in `FIGURES.md`.
 - **Original:** “one free mode is obtained simply be having ...”
 - **Reconstruction:** “one free mode is obtained simply by having ...”
 - **Reason/evidence:** Grammatical correction only.
+
+### Printed page 129 — coordinate phase speeds described as components
+
+- **Category:** `editorial`
+- **Status:** `pending-review`
+- **Location:** Chapter 5, printed page 129
+- **Original:** After stating that phase speed has a westward component, the text writes
+  $c_x=\sigma/k$ and $c_y=\sigma/\ell$ as though these were vector components.
+- **Reconstruction:** Unchanged pending review.
+- **Reason/evidence:** Chapter 1 already distinguishes $\sigma/k$ from the $x$ component
+  of the phase-velocity vector: it is the speed at which a constant-phase plane
+  intersects the $x$ axis. For a two-dimensional plane wave the phase-velocity vector is
+  $\vec c_p=\sigma\vec k/|\vec k|^2$. The Rossby-wave conclusion remains valid because
+  its true zonal component is
+  $c_{px}=\sigma k/(k^2+\ell^2)=-\beta k^2/(k^2+\ell^2)^2\le0$.
+  Consider clarifying the terminology while retaining $\sigma/k$ as the conventional
+  zonal coordinate phase speed.
 
 ### Printed page 130 — “aditional”
 
@@ -289,6 +338,38 @@ provenance belong in `FIGURES.md`.
 - **Reconstruction:** “For given mode number $m$ and wavenumber $k$ ...”
 - **Reason/evidence:** $m=0,1,2,\ldots$ is the discrete Hermite mode index; $k$ is the
   zonal wavenumber.
+
+### Printed page 146 — local meridional phase with variable wavenumber
+
+- **Category:** `equation`
+- **Status:** `pending-review`
+- **Location:** Chapter 5, printed page 146
+- **Original:** $v=v_0(y)\exp[-i\sigma t+ikx+i\ell(y)y]$ while treating $\ell(y)$ as
+  the local meridional wavenumber.
+- **Reconstruction:** Unchanged pending review.
+- **Reason/evidence:** Ray theory defines local wavenumber as the gradient of phase. If
+  $\Theta_y=\ell(y)$, the phase must contain
+  $\int^y\ell(y')\,dy'$. Differentiating the printed phase instead gives
+  $\Theta_y=\ell+y\ell_y$. The WKB/local-plane-wave ansatz should therefore use
+  $\exp[i\int^y\ell(y')\,dy']$ when $\ell$ varies with latitude.
+
+### Printed pages 146--147 — ray direction identified with wavevector direction
+
+- **Category:** `equation`
+- **Status:** `pending-review`
+- **Location:** Chapter 5, printed pages 146--147
+- **Original:** The text defines the ray path by $dy/dx=\ell/k$ while retaining the
+  local equatorial dispersion term $-\beta k/\sigma$.
+- **Reconstruction:** Unchanged pending review.
+- **Reason/evidence:** Earlier ray theory in Chapter 1 defines a ray as the wave-group
+  path, so $dy/dx=c_{gy}/c_{gx}$. For the local dispersion function
+  $F=\sigma^2/(gD)-k^2-\ell^2-\beta k/\sigma-\beta^2y^2/(gD)=0$,
+  implicit differentiation gives
+  $c_{gy}/c_{gx}=2\ell/(2k+\beta/\sigma)$, not $\ell/k$. The printed expression is
+  recovered only if the $\beta k/\sigma$ contribution is neglected, but that term is
+  retained in the same local dispersion relation. If the full local dispersion is kept,
+  the subsequent ray angle and sinusoidal path require the same
+  $k+\beta/(2\sigma)$ correction. The turning points still follow from $\ell=0$.
 
 ### Printed page 147 — turning coordinate written as $\theta_T$
 
