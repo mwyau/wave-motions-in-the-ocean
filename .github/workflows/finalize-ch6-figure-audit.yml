@@ -36,13 +36,17 @@ jobs:
           import math
           import re
 
-          def bisect(fn, a, b, n=120):
+          def bisect(fn, a, b, n=140):
               fa = fn(a)
+              fb = fn(b)
+              if fa * fb > 0:
+                  raise SystemExit(f'root not bracketed: {a}, {b}, {fa}, {fb}')
               for _ in range(n):
                   m = (a + b) / 2
                   fm = fn(m)
                   if fa * fm <= 0:
                       b = m
+                      fb = fm
                   else:
                       a = m
                       fa = fm
@@ -59,39 +63,32 @@ jobs:
               k = kroot(ell, n)
               return -2 * ell / (ell * ell + k * k + 1)
 
-          # Independent numerical gate: first matched modal maximum for b=L=f=1.
-          lo, hi = -3.2, -1.7
-          for _ in range(120):
-              m1 = (2 * lo + hi) / 3
-              m2 = (lo + 2 * hi) / 3
-              if sigma(m1) < sigma(m2):
-                  lo = m1
-              else:
-                  hi = m2
-          ellmax = (lo + hi) / 2
-          kmax = kroot(ellmax)
-          sigmax = sigma(ellmax)
-          assert abs(ellmax + 2.42327667) < 3e-7
-          assert abs(kmax - 2.50909274) < 3e-7
-          assert abs(sigmax - 0.36806052) < 3e-7
-          fixed_k = -math.sqrt(kmax * kmax + 1)
-          assert abs(fixed_k + 2.70102691) < 3e-7
-
-          # The first three branch maxima must preserve the source ordering.
-          maxima = []
-          for n, bounds in [(1, (-3.2, -1.7)), (2, (-6.5, -4.0)), (3, (-10.0, -6.5))]:
-              lo, hi = bounds
-              for _ in range(120):
+          def branch_maximum(n, lo, hi):
+              for _ in range(140):
                   m1 = (2 * lo + hi) / 3
                   m2 = (lo + 2 * hi) / 3
                   if sigma(m1, n) < sigma(m2, n):
                       lo = m1
                   else:
                       hi = m2
-              e = (lo + hi) / 2
-              maxima.append((e, kroot(e, n), sigma(e, n)))
-          assert maxima[0][2] > maxima[1][2] > maxima[2][2] > 0
-          assert maxima[0][0] > maxima[1][0] > maxima[2][0]
+              ell = (lo + hi) / 2
+              k = kroot(ell, n)
+              return ell, k, sigma(ell, n)
+
+          maxima = [
+              branch_maximum(1, -3.2, -1.7),
+              branch_maximum(2, -6.5, -4.0),
+              branch_maximum(3, -10.0, -6.5),
+              branch_maximum(4, -14.0, -9.0),
+          ]
+          ellmax, kmax, sigmax = maxima[0]
+          assert abs(ellmax + 2.42327667) < 3e-7
+          assert abs(kmax - 2.50909274) < 3e-7
+          assert abs(sigmax - 0.36806052) < 3e-7
+          fixed_k = -math.sqrt(kmax * kmax + 1)
+          assert abs(fixed_k + 2.70102691) < 3e-7
+          assert all(maxima[i][2] > maxima[i + 1][2] > 0 for i in range(3))
+          assert all(maxima[i][0] > maxima[i + 1][0] for i in range(3))
 
           chapter = Path('reconstruction/chapter6.tex')
           text = chapter.read_text()
@@ -114,69 +111,71 @@ the stationarity condition along a matched modal branch and is recorded in
           if new not in text:
               if text.count(old) != 1:
                   raise SystemExit('Chapter 6 p159 source block changed unexpectedly')
-              text = text.replace(old, new, 1)
-              chapter.write_text(text)
+              chapter.write_text(text.replace(old, new, 1))
 
           errata = Path('reconstruction/ERRATA.md')
           er = errata.read_text()
-          h1 = '### Printed page 159 — matching-condition figure labels'
-          h2 = '### Printed page 159 — maximum-frequency condition along a shelf-wave mode'
-          if h1 not in er and h2 not in er:
-              anchor = '### Printed page 160 — “discrete frequencies” versus discrete cross-shelf modes\n'
-              if er.count(anchor) != 1:
-                  raise SystemExit('Chapter 6 errata insertion anchor changed unexpectedly')
-              insert = r'''### Printed page 159 — matching-condition figure labels
+          heading = '### Printed page 159 — modal maximum differentiated at fixed cross-shelf wavenumber'
+          start = er.find(heading)
+          if start < 0:
+              raise SystemExit('Current p159 erratum heading is missing')
+          next_heading = er.find('\n### ', start + len(heading))
+          if next_heading < 0:
+              raise SystemExit('Cannot delimit current p159 erratum')
+          section = er[start:next_heading]
+          section, n = re.subn(r'- \*\*Status:\*\* `pending-review`', '- **Status:** `accepted`', section, count=1)
+          if n == 0 and '- **Status:** `accepted`' not in section:
+              raise SystemExit('Unexpected p159 erratum status')
+          old_recon = ('- **Reconstruction:** Unchanged pending canonical correction; issue #9 independently\n'
+                       '  identified the same source error from the figure-equation audit.')
+          new_recon = ('- **Reconstruction:** The canonical chapter now differentiates along the matched modal branch,\n'
+                       '  giving $k^2+b^2-\\ell^2=2\\ell k\\,dk_n/d\\ell$.')
+          if new_recon not in section:
+              if section.count(old_recon) != 1:
+                  raise SystemExit('Unexpected p159 Reconstruction text')
+              section = section.replace(old_recon, new_recon, 1)
+          er = er[:start] + section + er[next_heading:]
+
+          # The historical upper p.159 matching-condition sketch carries labels that
+          # contradict the matching relation derived on p.158. Preserve the historical
+          # error in the ledger while keeping the corrected equation-generated vector.
+          fig_heading = '### Printed page 159 — matching-condition figure labels'
+          if fig_heading not in er:
+              insert_at = er.find(heading)
+              figure_erratum = r'''### Printed page 159 — matching-condition figure labels
 
 - **Category:** `figure`
 - **Status:** `accepted`
 - **Location:** Chapter 6, printed page 159, upper figure
 - **Original:** The straight matching line is labeled $-k/(\ell+b)$ and the near-horizontal
   limiting line is labeled $\ell=\infty$.
-- **Reconstruction:** The vector root plot uses the derived matching relation
+- **Reconstruction:** The equation-generated root plot uses the derived matching relation
   $\tan kL=k/(\ell-b)=-k/(b-\ell)$. Under the chapter convention $\ell<0$, the
   near-horizontal limit is $\ell\to-\infty$.
 - **Reason/evidence:** Continuity of $\psi$ and $\psi_x$ at $x=L$ gives the displayed
-  matching relation directly. The source labels are incompatible with that derivation.
-
-### Printed page 159 — maximum-frequency condition along a shelf-wave mode
-
-- **Category:** `equation`
-- **Status:** `accepted`
-- **Location:** Chapter 6, printed page 159
-- **Original:** $\ell|_{\sigma_{\max}}=-(k^2+b^2)^{1/2}$.
-- **Reconstruction:** Along a discrete mode $k=k_n(\ell)$,
-  $k^2+b^2-\ell^2=2\ell k\,dk_n/d\ell$.
-- **Reason/evidence:** The source differentiates
-  $\sigma=-2bf\ell/(\ell^2+k^2+b^2)$ while holding $k$ fixed, but the matching
-  equation $\tan kL=k/(\ell-b)$ makes $k$ vary with $\ell$ on every modal branch.
-  For the normalized check $b=L=f=1$, the first branch has its numerical maximum at
-  $\ell=-2.42327667$, $k=2.50909274$, $\sigma=0.36806052$; the fixed-$k$ source
-  expression would instead give $\ell=-2.70102691$ at that $k$. The first three
-  independently solved branches also preserve the source ordering and each has one maximum.
+  matching relation directly. The source labels are incompatible with that derivation;
+  the corrected vector remains tied to the source page through its `wave-source` record.
 
 '''
-              er = er.replace(anchor, insert + anchor, 1)
-              errata.write_text(er)
-          elif not (h1 in er and h2 in er):
-              raise SystemExit('Only one of the two p159 errata entries exists')
+              er = er[:insert_at] + figure_erratum + er[insert_at:]
+          errata.write_text(er)
 
           figures = Path('reconstruction/FIGURES.md')
           fig = figures.read_text()
           lines = fig.splitlines()
-          idx = [i for i, line in enumerate(lines) if line.startswith('| 6 | 159 | `ChapmanRizzoli6.pdf` | 12 |')]
-          if len(idx) != 1:
-              raise SystemExit(f'Expected one direct p159 row, found {len(idx)}')
-          i = idx[0]
+          matches = [i for i, line in enumerate(lines) if line.startswith('| 6 | 159 | `ChapmanRizzoli6.pdf` | 12 |')]
+          if len(matches) != 1:
+              raise SystemExit(f'Expected one direct p159 row, found {len(matches)}')
+          i = matches[0]
           parts = lines[i].split('|')
           current = parts[5].strip()
           if current == '**Pending**':
               parts[5] = ' **Validated** '
               parts[6] = (' **source-pdf** — deliberately retain the historical full modal dispersion diagram. '
-                          'The coupled matching/dispersion branches were independently solved and compared with the '
-                          'authoritative source page; for `b=L=f=1` the first branch maximum is at '
-                          '`ell=-2.42327667`, `k=2.50909274`, `sigma=0.36806052`. The first three branches preserve '
-                          'the source ordering and one-maximum shape. The source fixed-`k` maximum condition is a '
-                          'documented erratum. ')
+                          'The coupled matching/dispersion branches were independently solved: for `b=L=f=1` '
+                          'the first branch maximum is `ell=-2.42327667`, `k=2.50909274`, `sigma=0.36806052`, '
+                          'and the first four branches preserve the source ordering and one-maximum shape. '
+                          'The source fixed-`k` maximum condition is a documented historical equation error. ')
               lines[i] = '|'.join(parts)
               fig = '\n'.join(lines) + '\n'
           elif current != '**Validated**':
@@ -184,7 +183,8 @@ the stationarity condition along a matched modal branch and is recorded in
 
           states = ('Validated', 'Partial', 'Pending', 'N/A')
           counts = {s: sum(1 for line in fig.splitlines() if line.startswith('|') and f'**{s}**' in line) for s in states}
-          if counts != {'Validated': 83, 'Partial': 6, 'Pending': 1, 'N/A': 15}:
+          expected = {'Validated': 83, 'Partial': 6, 'Pending': 1, 'N/A': 15}
+          if counts != expected:
               raise SystemExit(f'Unexpected post-p159 counts: {counts}')
           summary = ('Current snapshot across the 105 tracked body/front-matter assets and direct source placements: '
                      '**83 Validated, 6 Partial, 1 Pending, 15 N/A**.')
@@ -251,4 +251,4 @@ the stationarity condition along a matched modal branch and is recorded in
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          gh issue comment 9 --body "Chapter 6 p.159 integrated in \`$FINAL_SHA\` and canonical publication validation run \`$BUILD_RUN_ID\` passed. The authoritative source PDF hash was independently matched before the trigger; the source plot/formula defects are now recorded in ERRATA.md. FIGURES.md is 83 Validated / 6 Partial / 1 Pending / 15 N/A; only Ch.4 p.91 remains pending on issue #7. The temporary p.159 finalizer deleted itself in the source commit."
+          gh issue comment 9 --body "Chapter 6 p.159 integrated in \`$FINAL_SHA\` and canonical publication validation run \`$BUILD_RUN_ID\` passed. FIGURES.md is now 83 Validated / 6 Partial / 1 Pending / 15 N/A; only Ch.4 p.91 remains pending. The p.159 source equation/figure-label errors are recorded in ERRATA.md, and the temporary p.159 finalizer deleted itself in the source commit."
