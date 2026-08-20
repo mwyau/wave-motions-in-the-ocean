@@ -27,7 +27,7 @@ Cover invariants:
 
 The cover text/frame color `#213E5E` is derived from the dark blue in the supplied Met image; the cover paper is warm ivory `#FBF7EC`.
 
-The Met image is committed as `reconstruction/figures/frontmatter/great-wave-met-dp130155.jpg`. Preserve it as the source image; do not color-correct, crop away the original composition, or replace it with AI-generated art. Keep the full scholarly attribution in the Editor's note.
+The Met image is committed as `reconstruction/figures/frontmatter/great-wave-met-dp130155.jpg`. Preserve it as the source image; do not color-correct, crop away the original composition, or replace it with AI-generated art. Keep a concise cover credit at the bottom of the Editor's-note page; omit museum-catalog detail from reader-facing front matter.
 
 The generated web/README title block may continue to state original/digital dates and the digital editor even though those details are deliberately absent from the front cover. In `frontmatter-modern.tex`, `wavepdfonly` contains the modern cover and `wavewebonly` retains the web/README title metadata. Do not let the two branches diverge in authorship/title facts.
 
@@ -35,7 +35,7 @@ The Editor's note keeps `\wavesignature{Albert M. W. Yau}{Stony Brook}{2026}`, w
 
 The modern cover page is unnumbered. Front matter then uses lower-case Roman numerals starting at `i`; Chapter 1 resets to Arabic `1`. Modern contents use Chapter → Section only (`tocdepth=1`).
 
-Keep the CC BY-NC-SA 4.0 statement in the Editor's note. The cover-image attribution belongs on the Editor's-note page, not on the front cover.
+Keep the CC BY-NC-SA 4.0 statement in the Editor's note. The concise cover credit belongs at the bottom of the Editor's-note page in the modern PDF and EPUB only; omit it from README and HTML because those views do not display the Hokusai cover.
 
 The historical Lake Como photograph remains unnumbered and uses the established caption identifying Rick Salmon (left) and Myrl Hendershott at Villa Carlotta during the International School of Physics “Enrico Fermi,” Course LXXX, *Topics in Ocean Physics*, July 1980. Do not add unsupported photographer attribution or apply speculative color correction.
 
