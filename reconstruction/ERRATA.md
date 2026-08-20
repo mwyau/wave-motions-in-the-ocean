@@ -77,6 +77,8 @@ provenance belong in `FIGURES.md`.
   $\Delta\Theta/\Theta$ is not invariant. Direct inspection of physical pages 21--22
   confirms the historical wording and criterion.
 
+## Chapter 2
+
 ### Printed page 19 — adiabatic entropy derivative
 
 - **Category:** `equation`
