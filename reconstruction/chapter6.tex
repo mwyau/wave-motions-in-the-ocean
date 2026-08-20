@@ -77,7 +77,7 @@ Now consider motions confined to a channel along the $x$ axis.
 The bottom slopes gradually across the channel with bottom slope $\alpha$. The normal
 velocity must vanish at the sidewalls and at the bottom, while a rigid lid is assumed at
 the surface. The boundary conditions are
-\begin{wavealign}
+\begin{align*}
  v=0&\quad\Rightarrow\quad i\sigma p_y+fp_x=0
  &&\text{at }y=0,L,\\
  w=0&\quad\Rightarrow\quad p_z=0
@@ -86,7 +86,7 @@ the surface. The boundary conditions are
  i\sigma(f^2-\sigma^2)p_z
  =\alpha N^2(i\sigma p_y+fp_x)
  &&\text{at }z=-H+\alpha y.
-\end{wavealign}
+\end{align*}
 To proceed, we scale the variables as follows: $x,y$ by $L$; $z$ by $H$; and
 $\omega=\sigma/f$. We also assume $N$ is constant. The problem then becomes
 \begin{align*}
@@ -151,9 +151,9 @@ shoals toward the south ($-y$), $\delta<0$, then the waves travel eastward ($+x$
 Thus, the effective north direction is the direction of shoaling.
 
 The limit of weak stratification, $S\to0$, leads to $\mu\to0$ and
-\begin{waveequation}
+\[
  \omega=-\frac{\delta k}{n^2\pi^2+k^2}
-\end{waveequation}
+\]
 or in dimensional form
 \begin{waveequation}
  \sigma=-\frac{\alpha kf}
@@ -171,9 +171,9 @@ we relax these restrictions by considering waves along a sloping bottom in a
 semi-infinite fluid. The motions are still assumed to be subinertial, $\sigma<f$, but
 the frequency may approach $f$. This problem is also due to Rhines (1970). The field
 equation for pressure is
-\begin{waveequation}
+\[
  p_{xx}+p_{yy}+\frac{f^2-\sigma^2}{N^2}p_{zz}=0
-\end{waveequation}
+\]
 
 \sourcepagebreak
 
@@ -186,10 +186,10 @@ where $N$ is constant. The bottom is along $z=\alpha x$ where $w=\alpha u$.
 \wavevectorart[0.76]{ch06-p154-effective-slope}
 
 The boundary condition along the bottom is
-\begin{waveequation}
+\[
  i\sigma(f^2-\sigma^2)p_z
  =\alpha N^2(i\sigma p_x-fp_y).
-\end{waveequation}
+\]
 We scale $z$ by $R=N/(f^2-\sigma^2)^{1/2}$ so that $z'=zR$, and we assume a plane
 wave in the $y$ direction, $e^{i\ell y}$. The problem becomes
 \begin{align*}
@@ -232,9 +232,9 @@ wavenumber parallel to the bottom, while $m$ is the wavenumber perpendicular to 
 bottom. The same solution could have been derived by first rotating the coordinate
 system to be aligned with the bottom and then rotating back. Substituting this solution
 into the field equation relates $k,\ell$ and $m$ as
-\begin{waveequation}
+\[
  m^2=k^2+\ell^2.
-\end{waveequation}
+\]
 This, along with the bottom boundary condition, yields expressions for $k$ and $m$ in
 terms of $\omega,\ell$ and $S$, i.e. the dispersion relation;
 \begin{waveequation}
@@ -305,11 +305,11 @@ ignore stratification for now and assume that the flow is nondivergent.
  (uD)_x+(vD)_y&=0.
 \end{align*}
 The continuity equation allows us to define a transport streamfunction as
-\begin{waveequation}
+\[
  uD=\psi_y,
  \qquad
  vD=-\psi_x.
-\end{waveequation}
+\]
 Substituting into the momentum equations and eliminating the sea-surface displacement
 yields
 \[
@@ -342,22 +342,22 @@ assume a convenient depth profile of
 % Source printed page 158 / source physical page 11
 % -----------------------------------------------------------------------------
 Over the shelf, the field equation reduces to
-\begin{waveequation}
+\[
  \psi_{xx}-2b\psi_x
  -\left(\frac{2bf\ell}{\sigma}+\ell^2\right)\psi=0
-\end{waveequation}
+\]
 while in the deep ocean it becomes
-\begin{waveequation}
+\[
  \psi_{xx}-\ell^2\psi=0.
-\end{waveequation}
+\]
 The boundary conditions are that the velocity normal to the coast must vanish and that
 $\psi$ should vanish far offshore:
-\begin{waveequation}
+\[
  u=0\quad\Rightarrow\quad\psi=0\quad\text{at }x=0,
-\end{waveequation}
-\begin{waveequation}
+\]
+\[
  \psi\to0\quad\text{as }x\to\infty.
-\end{waveequation}
+\]
 The solution over the shelf can be written
 \[
  \psi=Ae^{b(x-L)}\sin kx.
@@ -400,9 +400,9 @@ coast on their right in the northern hemisphere. The dispersion diagram looks li
 Each mode is constrained to be below some maximum frequency where the alongshore
 group velocity $d\sigma_n/d\ell$ vanishes along that matched mode. Because the matching
 condition makes $k=k_n(\ell)$, differentiating the dispersion relation along a branch gives
-\[
+\begin{waveequation}
  k^2+b^2-\ell^2=2\ell k\frac{dk_n}{d\ell}.
-\]
+\end{waveequation}
 The source obtains $\ell=-(k^2+b^2)^{1/2}$ by differentiating at fixed $k$; that is not
 the stationarity condition along a matched modal branch and is recorded in
 \texttt{ERRATA.md}.
@@ -410,9 +410,9 @@ At the maximum frequency, the alongshore group velocity is zero, meaning that en
 propagate even though phases still do. For waves that are longer than this wavelength
 (smaller $|\ell|$), the wave energy propagates with the phase. For very long waves
 $\ell\to0$, the dispersion relation becomes
-\begin{waveequation}
+\[
  \sigma=-\frac{2bf\ell}{k^2+b^2}
-\end{waveequation}
+\]
 and the waves are nondispersive. This will be used to advantage later.
 
 \sourcepagebreak
@@ -444,20 +444,20 @@ equations with arbitrary cross-shelf topography. The equations are
 If we assume that the topography does not vary along the shelf, i.e.
 $\partial D/\partial y=0$, and look for plane waves of the form
 $e^{-i\sigma t+i\ell y}$, then the problem becomes
-\[
+\begin{waveequation}
  (D\eta_x)_x-K\eta=0,
  \qquad
  K=\frac{f\ell}{\sigma}D_x+\ell^2D+\frac{f^2-\sigma^2}{g}.
-\]
+\end{waveequation}
 The boundary conditions are
-\begin{waveequation}
+\[
  uD=0\quad\Rightarrow\quad
  D\left(\eta_x-\frac{f\ell}{\sigma}\eta\right)=0
  \quad\text{at }x=0,
-\end{waveequation}
-\begin{waveequation}
+\]
+\[
  \eta\to0\quad\text{as }x\to\infty.
-\end{waveequation}
+\]
 
 \sourcepagebreak
 
@@ -506,20 +506,20 @@ consider a coastline oriented along the $y$ axis with $x$ pointing offshore.
 We assume that the topography varies only across the shelf and look for free waves
 propagating in $y$, i.e. $e^{-i\sigma t+i\ell y}$. The equation and boundary conditions
 in terms of pressure are
-\begin{waveequation}
+\[
  p_{xx}-\ell^2p+\frac{f^2-\sigma^2}{N^2}p_{zz}=0,
-\end{waveequation}
-\begin{waveequation}
+\]
+\[
  (f^2-\sigma^2)p_z
  +N^2D_x\left(p_x-\frac{f\ell}{\sigma}p\right)=0
  \quad\text{at }z=-D(x),
-\end{waveequation}
-\begin{waveequation}
+\]
+\[
  p_z=0\quad\text{at }z=0,
-\end{waveequation}
-\begin{waveequation}
+\]
+\[
  p\to0\quad\text{as }x\to\infty.
-\end{waveequation}
+\]
 We have taken $N$ to be constant and applied a rigid lid. However, all of the following
 analysis can be generalized to the case of variable $N$ and a free surface (see
 Huthnance, 1978).
@@ -531,14 +531,14 @@ Huthnance, 1978).
 
 We scale the variables as follows: $x,y$ by $L$; $z,D$ by $H$; and
 $\omega=\sigma/f$. The equations become
-\begin{align*}
+\begin{wavealign}
  p_{xx}-\ell^2p+\frac{1-\omega^2}{S^2}p_{zz}&=0,\\
  (1-\omega^2)p_z
  +S^2D_x\left(p_x-\frac{\ell}{\omega}p\right)&=0
  &&\text{at }z=-D(x),\\
  p_z&=0 &&\text{at }z=0,\\
  p&\to0 &&\text{as }x\to\infty,
-\end{align*}
+\end{wavealign}
 where $S=NH/fL$ as before. For general $D(x)$, this eigenvalue problem must be solved
 numerically. In fact, only a couple of special cases of $D$ are known which give
 analytical solutions. And these are rather unusual in their properties, so we will not
@@ -722,11 +722,11 @@ $\partial/\partial y\ll\partial/\partial x$. These assumptions constitute the
 \emph{long-wave approximation}. In terms of the free-wave dispersion diagram, we are
 assuming that the waves are at small $\sigma$ and small $\ell$. The equations of motion
 are
-\begin{wavealign}
+\begin{align*}
  -fv&=-g\eta_x,\\
  v_t+fu&=-g\eta_y+\frac{\tau^y}{D},\\
  (uD)_x+(vD)_y&=0.
-\end{wavealign}
+\end{align*}
 We have also assumed a rigid lid, and imposed an alongshelf wind stress $\tau^y$.
 Notice that the long-wave approximation has rendered the alongshelf flow to be in
 geostrophic balance. This turns out to be a good approximation over most continental
@@ -761,14 +761,14 @@ separate variables by writing
  \psi(x,y,t)=\phi(y,t)F(x).
 \]
 The field equation becomes
-\begin{waveequation}
+\[
  \phi_t\left(\frac{F_x}{D}\right)_x
  +\frac{fD_x}{D^2}\phi_yF=0
-\end{waveequation}
+\]
 for which the separation works only if
-\begin{waveequation}
+\[
  \frac{1}{c}\phi_t-\phi_y=0
-\end{waveequation}
+\]
 \begin{waveequation}
  \left(\frac{F_x}{D}\right)_x
  +\frac{fD_x}{cD^2}F=0
@@ -784,9 +784,9 @@ the eigenfunctions, $F_n$, satisfy the orthogonality relation
 where $\delta_{nm}$ is the Kronecker delta. Each $F_n$ corresponds to the cross-shelf
 structure of a free-wave mode. The problem for $\phi$ is just a first-order wave equation
 with the solution
-\begin{waveequation}
+\[
  \phi=\phi_0(y+ct).
-\end{waveequation}
+\]
 
 \sourcepagebreak
 
@@ -809,9 +809,9 @@ free modes yields
  \frac{1}{c_n}\phi_{nt}-\phi_{ny}=-b_n\tau^y
 \end{waveequation}
 where
-\begin{waveequation}
+\[
  b_n=\frac{1}{f}\int_0^L\frac{D_x}{D^2}F_n\,dx
-\end{waveequation}
+\]
 are the wind-coupling coefficients which tell how well the wind stress drives each mode.
 The solution to this equation is
 \[
