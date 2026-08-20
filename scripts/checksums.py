@@ -6,6 +6,7 @@ import argparse
 import hashlib
 import hmac
 import re
+from collections.abc import Iterable
 from pathlib import Path
 
 DEFAULT_FILES = (
@@ -32,9 +33,16 @@ def _safe_name(name: str) -> str:
     return name
 
 
+def _checked_names(names: Iterable[str]) -> list[str]:
+    checked = [_safe_name(name) for name in names]
+    if len(checked) != len(set(checked)):
+        raise ValueError("checksum file list contains duplicate paths")
+    return checked
+
+
 def write_manifest(root: Path, names: tuple[str, ...] | list[str]) -> Path:
     root = root.resolve()
-    checked = [_safe_name(name) for name in names]
+    checked = _checked_names(names)
     missing = [name for name in checked if not (root / name).is_file()]
     if missing:
         raise FileNotFoundError(f"missing checksum inputs: {', '.join(missing)}")
@@ -46,13 +54,13 @@ def write_manifest(root: Path, names: tuple[str, ...] | list[str]) -> Path:
     return manifest
 
 
-def verify_manifest(root: Path) -> int:
+def verify_manifest(root: Path, expected_names: Iterable[str] | None = None) -> int:
     root = root.resolve()
     manifest = root / MANIFEST
     if not manifest.is_file():
         raise FileNotFoundError(f"missing checksum manifest: {manifest}")
 
-    count = 0
+    seen: set[str] = set()
     for line_no, line in enumerate(manifest.read_text().splitlines(), start=1):
         if not line.strip():
             continue
@@ -60,17 +68,35 @@ def verify_manifest(root: Path) -> int:
         if not separator or not SHA256_RE.fullmatch(expected):
             raise ValueError(f"invalid checksum line {line_no}")
         name = _safe_name(name)
+        if name in seen:
+            raise ValueError(f"duplicate checksum target: {name}")
         path = root / name
         if not path.is_file():
             raise FileNotFoundError(f"checksum target is missing: {name}")
         actual = sha256(path)
         if not hmac.compare_digest(actual, expected):
             raise ValueError(f"checksum mismatch: {name}")
-        count += 1
+        seen.add(name)
 
-    if count == 0:
+    if not seen:
         raise ValueError("checksum manifest is empty")
-    return count
+
+    if expected_names is not None:
+        expected = set(_checked_names(expected_names))
+        missing = sorted(expected - seen)
+        unexpected = sorted(seen - expected)
+        if missing or unexpected:
+            details: list[str] = []
+            if missing:
+                details.append(f"missing: {', '.join(missing)}")
+            if unexpected:
+                details.append(f"unexpected: {', '.join(unexpected)}")
+            raise ValueError(
+                "checksum manifest does not match expected files ("
+                + "; ".join(details)
+                + ")"
+            )
+    return len(seen)
 
 
 def main() -> int:
@@ -82,14 +108,12 @@ def main() -> int:
     parser.add_argument("files", nargs="*")
     args = parser.parse_args()
 
+    names = args.files or list(DEFAULT_FILES)
     if args.write:
-        names = args.files or list(DEFAULT_FILES)
         manifest = write_manifest(args.root, names)
         print(f"Wrote {manifest}")
     else:
-        if args.files:
-            parser.error("file arguments are only valid with --write")
-        count = verify_manifest(args.root)
+        count = verify_manifest(args.root, names)
         print(f"Checksum manifest OK: {count} files")
     return 0
 
