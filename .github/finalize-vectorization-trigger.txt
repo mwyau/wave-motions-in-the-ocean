@@ -1,1 +1,1 @@
-One-time trigger for the minimal final source-figure vectorization state reconciliation. The repository Publish workflow performs the authoritative full publication build after this finalizer commits.
+Trigger the minimal p.97 source-art disposition finalizer on the newest main.
