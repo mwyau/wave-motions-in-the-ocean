@@ -1,1 +1,1 @@
-Trigger the corrected sparse numbering candidate dry run for issue #14.
+Trigger the reviewed chapter-based numbering integration for issue #14.
