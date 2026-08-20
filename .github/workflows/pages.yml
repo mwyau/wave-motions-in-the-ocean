@@ -10,9 +10,12 @@ permissions:
   pages: write
   id-token: write
 
+# GitHub recommends allowing an in-progress production Pages deployment to
+# finish. New pushes may replace a queued run, but must not interrupt the
+# deployment that is already publishing the site.
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
