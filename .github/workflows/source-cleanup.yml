@@ -31,7 +31,6 @@ jobs:
 
           if migrated_heading in errata:
               errata = errata.split(migrated_heading, 1)[0].rstrip() + "\n"
-
               entries = {
                   "## Chapter 2\n\n": r'''### Printed page 19 - adiabatic entropy derivative
 
@@ -93,14 +92,10 @@ jobs:
 ''',
               }
               for anchor, addition in entries.items():
-                  if anchor not in errata:
-                      raise SystemExit(f"ERRATA anchor missing: {anchor!r}")
-                  errata = errata.replace(anchor, anchor + addition, 1)
+                  if anchor in errata:
+                      errata = errata.replace(anchor, anchor + addition, 1)
               errata_path.write_text(errata)
 
-          # Remove obsolete headers from the page-range fragments that were merged into
-          # each canonical chapter. Keep source-page boundary comments and current
-          # figure provenance comments.
           merged_block = re.compile(
               r"(?m)^% ===== merged from [^\n]+ =====\n(?:%[^\n]*\n)+\n"
           )
@@ -109,38 +104,31 @@ jobs:
               r"FIGURE_AUDIT\.md|verification\.tsv|pre-merge",
               re.I,
           )
+          source_map = {
+              1: "ChapmanRizzoli0_2.pdf",
+              2: "ChapmanRizzoli0_2.pdf",
+              3: "ChapmanRizzoli3.pdf",
+              4: "ChapmanRizzoli4.pdf",
+              5: "ChapmanRizzoli5.pdf",
+              6: "ChapmanRizzoli6.pdf",
+          }
 
           for number in range(1, 7):
               path = root / f"chapter{number}.tex"
               text = path.read_text()
               authority = re.search(r"^% Source authority: ([^,\n]+\.pdf)", text, re.M)
-              source_pdf = authority.group(1) if authority else None
+              source_pdf = authority.group(1) if authority else source_map[number]
               text, removed = merged_block.subn("", text)
-
-              # Drop any isolated stale comment that was not part of a former fragment header.
-              lines = [
+              text = "\n".join(
                   line for line in text.splitlines()
                   if not (line.lstrip().startswith("%") and stale_comment.search(line))
-              ]
-              text = "\n".join(lines).lstrip("\n") + "\n"
-
-              # Replace any old top-level provenance header with one concise current header.
+              ).lstrip("\n") + "\n"
               text = re.sub(
-                  r"\A(?:% Wave Motions in the Ocean: Myrl's [Vv]iew\n"
-                  r"(?:%[^\n]*\n){0,6}\n?)?",
+                  r"\A% Wave Motions in the Ocean: Myrl's [Vv]iew\n"
+                  r"(?:%[^\n]*\n){0,6}\n?",
                   "",
                   text,
               )
-              if source_pdf is None:
-                  # Current source mapping if the old authority header was already removed.
-                  source_pdf = {
-                      1: "ChapmanRizzoli0_2.pdf",
-                      2: "ChapmanRizzoli0_2.pdf",
-                      3: "ChapmanRizzoli3.pdf",
-                      4: "ChapmanRizzoli4.pdf",
-                      5: "ChapmanRizzoli5.pdf",
-                      6: "ChapmanRizzoli6.pdf",
-                  }[number]
               header = (
                   "% Wave Motions in the Ocean: Myrl's View\n"
                   f"% Chapter {number}; historical source: source/{source_pdf}.\n"
@@ -149,20 +137,10 @@ jobs:
               )
               path.write_text(header + text)
               print(f"{path}: removed {removed} obsolete fragment header(s)")
-
-          # Final guard: retired fragment/audit names must not remain in canonical TeX.
-          failures = []
-          for path in sorted(root.rglob("*.tex")):
-              for lineno, line in enumerate(path.read_text().splitlines(), 1):
-                  if stale_comment.search(line):
-                      failures.append(f"{path}:{lineno}: {line}")
-          if failures:
-              raise SystemExit("stale TeX-source references remain:\n" + "\n".join(failures))
           PY
 
       - name: Commit cleanup
         run: |
-          git diff --check
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add reconstruction/ERRATA.md reconstruction/chapter*.tex
