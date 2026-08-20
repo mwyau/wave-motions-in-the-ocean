@@ -1,0 +1,15 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=27; trim=130bp 590bp 110bp 70bp
+% Source: Wave Motions in the Ocean, printed p.90 (physical p.27).
+% Geometric angle/projection construction underlying |k_r|/|k_i|=(1+aR)/(1-aR) in the subcritical aR<1 regime.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
+  \def\th{51}\def\al{18}
+  \coordinate (O) at (4.0,1.35);
+  \draw[line width=1pt] (0.55,0.25)--(8.45,2.82) node[right] {wall};
+  \draw[->,line width=.85pt] (O)--++(\th:2.25) node[above] {$|\vec k_i|$};
+  \draw[->,line width=.85pt] (O)--++(-\th:4.20) node[below right] {$|\vec k_r|$};
+  \draw[dashed] (O)--++(\al:4.0);
+  \draw[->] ($(O)+(\al:0.78)$) arc[start angle=\al,end angle=\th,radius=.78];
+  \node at ($(O)+(34:1.12)$) {$\tan^{-1}R-\tan^{-1}a$};
+  \draw[->] ($(O)+(-\th:1.0)$) arc[start angle=-\th,end angle=\al,radius=1.0];
+  \node[anchor=west] at (5.05,0.82) {$\tan^{-1}R+\tan^{-1}a$};
+\end{tikzpicture}

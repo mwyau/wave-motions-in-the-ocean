@@ -1,0 +1,15 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=22; trim=70bp 500bp 55bp 80bp
+% Source: Wave Motions in the Ocean, printed p.85 (physical p.22).
+% Analytic topography h=h0 sin(kx); boundary vertical velocity w=U h_x and sigma=-Uk are enforced. Wavefronts are schematic radiation geometry.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
+  \draw[->,line width=.8pt] (0.65,3.65)--(2.30,3.65) node[midway,above] {$U$};
+  \draw[line width=.9pt,domain=.5:9.0,samples=160,smooth,variable=\x] plot ({\x},{1.30+0.24*sin(100*\x)});
+  \node[anchor=west] at (8.75,0.92) {$h=h_0\sin kx$};
+  \draw[->] (0.55,1.05)--(9.25,1.05) node[right] {$x$};
+  \draw[->] (0.70,0.70)--(0.70,4.65) node[above] {$z$};
+  \foreach \x/\up in {1.15/1,2.95/-1,4.75/1,6.55/-1,8.35/1}{\draw[->,line width=.55pt] (\x,1.55)--(\x,{1.55+0.65*\up});}
+  \node[anchor=west] at (7.15,2.55) {$w=U h_x$};
+  \foreach \x in {1.8,3.0,4.2,5.4,6.6,7.8}{\draw[line width=.45pt] (\x,1.9)--++(-1.15,2.1);}
+  \draw[->,line width=.75pt] (4.65,2.25)--(3.85,3.70) node[midway,right] {$\vec c_g$};
+  \node[anchor=west] at (6.15,4.15) {$k<N/U$: upward radiation};
+\end{tikzpicture}
