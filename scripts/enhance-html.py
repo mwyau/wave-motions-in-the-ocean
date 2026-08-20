@@ -8,6 +8,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "dist"
 ASSETS = OUT / "assets"
+SOURCE_URL = "https://github.com/mwyau/wave-motions-in-the-ocean"
+SOURCE_LINK = f'<a class="source-link" href="{SOURCE_URL}">Source</a>'
 
 THEME_BUTTON = (
     '<button class="theme-toggle" type="button" data-theme-toggle '
@@ -23,6 +25,7 @@ EXTRA_CSS = r"""
   --wave-text: #202124;
   --wave-muted: #62666b;
   --wave-link: #145d8c;
+  --wave-visited: #6b4c84;
   --wave-rule: #c9c5bc;
   --wave-control-bg: #f1efe9;
   --wave-control-border: #aaa69d;
@@ -34,6 +37,7 @@ EXTRA_CSS = r"""
   --wave-text: #e8e4dc;
   --wave-muted: #b7b2aa;
   --wave-link: #8fc7ee;
+  --wave-visited: #cbb3e6;
   --wave-rule: #4b5054;
   --wave-control-bg: #202427;
   --wave-control-border: #62686d;
@@ -55,6 +59,7 @@ body {
 ::selection { background: var(--wave-selection); }
 h1, h2, h3 { line-height: 1.2; overflow-wrap: anywhere; }
 a { color: var(--wave-link); text-underline-offset: .13em; }
+a:visited { color: var(--wave-visited); }
 .book-nav {
   display: flex;
   align-items: center;
@@ -106,6 +111,7 @@ table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scro
     --wave-text: #e8e4dc;
     --wave-muted: #b7b2aa;
     --wave-link: #8fc7ee;
+    --wave-visited: #cbb3e6;
     --wave-rule: #4b5054;
     --wave-control-bg: #202427;
     --wave-control-border: #62686d;
@@ -183,8 +189,10 @@ def enhance_page(path: Path) -> None:
 
     def nav_sub(match: re.Match[str]) -> str:
         inner = match.group(2)
+        if SOURCE_URL not in inner:
+            inner = inner.rstrip() + " · " + SOURCE_LINK
         if "data-theme-toggle" in inner:
-            return match.group(0)
+            return match.group(1) + inner + match.group(3)
         return match.group(1) + '<span class="book-nav-links">' + inner + "</span>" + THEME_BUTTON + match.group(3)
 
     text = NAV_RE.sub(nav_sub, text)
@@ -209,7 +217,7 @@ def main() -> int:
 
     for page in pages:
         text = page.read_text(errors="replace")
-        if "assets/wave.js" not in text or "data-theme-toggle" not in text:
+        if "assets/wave.js" not in text or "data-theme-toggle" not in text or SOURCE_URL not in text:
             raise SystemExit(f"HTML enhancement missing from {page.name}")
     print(f"HTML responsive/theme enhancement OK: {len(pages)} pages")
     return 0
