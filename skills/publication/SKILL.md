@@ -39,6 +39,16 @@ Keep the CC BY-NC-SA 4.0 statement in the Editor's note. The concise cover credi
 
 The historical Lake Como photograph remains unnumbered and uses the established caption identifying Rick Salmon (left) and Myrl Hendershott at Villa Carlotta during the International School of Physics “Enrico Fermi,” Course LXXX, *Topics in Ocean Physics*, July 1980. Do not add unsupported photographer attribution or apply speculative color correction.
 
+## Facsimile PDF
+
+The facsimile is a source-page edition, not merely the modern text with old-style fonts. Preserve the **184 physical-page** structure and the historical printed page numbers.
+
+`styles/wave-facsimile.sty` intentionally uses a larger 12 pt body font and stretchable leading. The minimum baseline is compact enough for dense historical pages, while sparse pages may stretch substantially so the reconstructed text occupies the page vertically like the scans instead of collecting at the top. Keep `\flushbottom` and source-page `\pagebreak[4]` behavior together; replacing those breaks with `\newpage` or `\clearpage` defeats the vertical justification by inserting bottom fill.
+
+Historical fragment-level `\setcounter{page}{...}` resets are also source-page boundaries when encountered after material has begun. The facsimile style enforces that boundary before resetting the printed page number so separately reconstructed fragments cannot merge two original pages.
+
+When changing facsimile typography, validate the components as well as the full build: front matter = 10 pages, Chapters 1–6 = 17 + 20 + 26 + 32 + 53 + 23 = 171 pages, references = 3 pages, total = 184. Do not accept overfull vertical boxes as a way to preserve the count.
+
 ## README and HTML synchronization
 
 `scripts/book_views.py` derives chapter titles, `\section{}` headings, Contents, Downloads, and license presentation. `scripts/sync-views.py` applies that model.
