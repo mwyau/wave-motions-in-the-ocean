@@ -1,0 +1,515 @@
+name: Finalize audited source errata
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  actions: write
+  contents: write
+
+concurrency:
+  group: finalize-audited-source-errata
+  cancel-in-progress: false
+
+jobs:
+  finalize:
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Apply audited corrections to newest main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          cat > /tmp/apply_errata.py <<'PY'
+          from pathlib import Path
+          import re
+          import textwrap
+
+          D = textwrap.dedent
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              p = Path(path)
+              old = D(old)
+              new = D(new)
+              text = p.read_text()
+              if new in text and old not in text:
+                  return
+              count = text.count(old)
+              if count == 0:
+                  return
+              if count != 1:
+                  raise SystemExit(f"{path}: expected at most one match, found {count}: {old[:120]!r}")
+              p.write_text(text.replace(old, new, 1))
+
+          def replace_pending_section(path: str, heading: str, next_heading: str, replacement: str) -> None:
+              p = Path(path)
+              replacement = D(replacement).rstrip()
+              text = p.read_text()
+              if replacement in text:
+                  return
+              if text.count(heading) != 1:
+                  raise SystemExit(f"{path}: heading count {text.count(heading)}: {heading!r}")
+              start = text.index(heading)
+              end = text.index(next_heading, start + len(heading))
+              section = text[start:end]
+              if '- **Status:** `pending-review`' not in section:
+                  return
+              p.write_text(text[:start] + replacement + "\n\n" + text[end:])
+
+          def replace_section_if_contains(path: str, heading: str, next_heading: str, marker: str, replacement: str) -> None:
+              p = Path(path)
+              replacement = D(replacement).rstrip()
+              text = p.read_text()
+              if replacement in text:
+                  return
+              if text.count(heading) != 1:
+                  raise SystemExit(f"{path}: heading count {text.count(heading)}: {heading!r}")
+              start = text.index(heading)
+              end = text.index(next_heading, start + len(heading))
+              section = text[start:end]
+              if marker not in section:
+                  return
+              p.write_text(text[:start] + replacement + "\n\n" + text[end:])
+
+          # Chapter 4: preserve the signed component ratio but make both magnitude
+          # relations nonnegative on the supercritical aR>1 branch.
+          replace_once(
+              'reconstruction/chapter4.tex',
+              r'''After some algebra, the result is
+              \[
+               |\vec k_r|=|\vec k_i|\left(\frac{1+aR}{1-aR}\right).
+              \]
+              The incident and reflected wavenumbers lie on the two characteristic directions''',
+              r'''After some algebra, the result for the wavenumber magnitudes is
+              \[
+               |\vec k_r|=|\vec k_i|\left|\frac{1+aR}{1-aR}\right|.
+              \]
+              The corresponding signed horizontal-component relation is
+              $k_r/k_i=(1+aR)/(1-aR)$. The incident and reflected wavenumbers lie on the two characteristic directions'''
+          )
+          replace_once(
+              'reconstruction/chapter4.tex',
+              r'''Again we can use geometry to obtain
+              \[
+               |\vec v_r|=|\vec v_i|\left(\frac{1+aR}{1-aR}\right).
+              \]
+              ''',
+              r'''Again we can use geometry to obtain
+              \[
+               |\vec v_r|=|\vec v_i|\left|\frac{1+aR}{1-aR}\right|.
+              \]
+              The source omits the outer absolute value in both magnitude ratios; this fails on the
+              $aR>1$ branch and is recorded in \texttt{ERRATA.md}.
+              '''
+          )
+
+          # Chapter 5 p.113: shallow-side incidence requires swapped incident/transmitted labels.
+          replace_once(
+              'reconstruction/chapter5.tex',
+              "In this case, the reflected and transmitted amplitudes are still given by the above\n"
+              "formulas and Snell's law still holds.",
+              r'''In this case, the same matching calculation applies after interchanging the incident
+              and transmitted region labels. The coefficients are therefore
+              \[
+               \frac{A_R}{A_I}=\frac{D_1k_1-D_2k_2}{D_1k_1+D_2k_2}
+               \ ;\qquad
+               \frac{A_T}{A_I}=\frac{2D_1k_1}{D_1k_1+D_2k_2},
+              \]
+              and Snell's law still holds.'''
+          )
+
+          # Chapter 5 p.129: distinguish coordinate phase-plane speeds from vector components.
+          replace_once(
+              'reconstruction/chapter5.tex',
+              r'''If $\ell=0$, then
+              $\sigma=-\beta/k$ and $c=\sigma/k=-\beta/k^2$. The phase speed $c$ \emph{always} has
+              a westward component for whatever value of $\ell$ we choose. In general
+              \[
+               c_x=\frac{\sigma}{k}=-\frac{\beta}{k^2+\ell^2},
+               \qquad
+               c_y=\frac{\sigma}{\ell}
+               =-\frac{\beta k}{\ell(k^2+\ell^2)}.
+              \]
+              These waves are called \emph{Rossby waves}.''',
+              r'''If $\ell=0$, then
+              $\sigma=-\beta/k$ and $c=\sigma/k=-\beta/k^2$. For general $\ell$, the normal
+              phase-velocity vector is
+              \[
+               \vec c_p=\frac{\sigma\vec k}{k^2+\ell^2},
+               \qquad
+               c_{px}=\frac{\sigma k}{k^2+\ell^2}
+               =-\frac{\beta k^2}{(k^2+\ell^2)^2}\le0.
+              \]
+              Thus its zonal component is never eastward. As in Chapter 1, the coordinate-axis
+              phase speeds (the speeds at which a phase plane intersects the coordinate axes,
+              where defined) are
+              \[
+               c_x^{(\mathrm{axis})}=\frac{\sigma}{k}=-\frac{\beta}{k^2+\ell^2},
+               \qquad
+               c_y^{(\mathrm{axis})}=\frac{\sigma}{\ell}
+               =-\frac{\beta k}{\ell(k^2+\ell^2)}.
+              \]
+              These are not vector components. These waves are called \emph{Rossby waves}.'''
+          )
+
+          # Chapter 5 pp.146-147: WKB phase and group-velocity ray direction.
+          p = Path('reconstruction/chapter5.tex')
+          text = p.read_text()
+          old_phase = r'v=v_0(y)e^{-i\sigma t+ikx+i\ell(y)y}.'
+          old_ray = r'\frac{dy}{dx}=\frac{\ell}{k}'
+          if 'At leading local-plane-wave/WKB order' not in text:
+              if old_phase in text and old_ray in text:
+                  start_marker = "We know that trapping means that a wave decays exponentially away from some boundary.\n"
+                  page147_marker = (
+                      "\\sourcepagebreak\n\n"
+                      "% -----------------------------------------------------------------------------\n"
+                      "% Source printed page 147 / source physical page 52\n"
+                      "% -----------------------------------------------------------------------------\n"
+                  )
+                  start = text.index(start_marker)
+                  end = text.index(page147_marker, start)
+                  p146 = D(r'''We know that trapping means that a wave decays exponentially away from some boundary.
+                  We have seen that this corresponds to the total reflection of wave rays as well.
+                  Therefore, it is useful to examine these equatorial waves with the ray method discussed
+                  earlier in the course. At leading local-plane-wave/WKB order, write the phase so that
+                  $\ell(y)$ is the meridional phase gradient,
+                  \[
+                   v=v_0(y)\exp\left[-i\sigma t+ikx+i\int^y\ell(y')\,dy'\right].
+                  \]
+                  Neglecting derivatives of the slowly varying amplitude and local wavenumber gives,
+                  with $c=(gD)^{1/2}$,
+                  \[
+                   \ell^2(y)=\frac{\sigma^2}{c^2}-k^2-\frac{\beta k}{\sigma}
+                   -\frac{\beta^2y^2}{c^2}.
+                  \]
+                  A ray follows the group velocity. Retaining this same local dispersion relation and defining
+                  \[
+                   k_*\equiv k+\frac{\beta}{2\sigma},
+                  \]
+                  implicit differentiation gives
+                  \[
+                   \frac{dy}{dx}=\frac{c_{gy}}{c_{gx}}
+                   =\frac{2\ell}{2k+\beta/\sigma}
+                   =\frac{\ell}{k_*}.
+                  \]
+                  For $k_*\ne0$, define the group-ray angle at the equator by
+                  \[
+                   \tan\theta_0=\frac{\ell(0)}{k_*}.
+                  \]
+                  Integrating the ray equation then gives
+                  \[
+                   y=\frac{c k_*}{\beta}\tan\theta_0
+                   \sin\left(\frac{\beta}{c k_*}x+\mathrm{const}\right).
+                  \]
+                  Thus generic rays are sinusoids about the equator. If $k_*=0$, then
+                  $c_{gx}=0$ and $x$ is not a valid parameter for the ray. The historical phase and
+                  ray expressions use $\ell(y)y$ and $dy/dx=\ell/k$; these corrections are documented
+                  in \texttt{ERRATA.md}.
+
+                  ''')
+                  text = text[:start] + p146 + text[end:]
+                  p.write_text(text)
+              elif old_phase in text or old_ray in text:
+                  raise SystemExit('chapter5.tex: p.146 has a partially changed ray derivation')
+
+          text = p.read_text()
+          old_straight = 'the ray path degenerates into the straight line'
+          if 'The corrected group-velocity ray is not a straight' not in text and old_straight in text:
+              fig = re.search(
+                  r'^\\wavevectorart\[[^\]]+\]\{ch05-p147-equatorial-ray\}\n\n',
+                  text,
+                  flags=re.MULTILINE,
+              )
+              if not fig:
+                  raise SystemExit('chapter5.tex: p.147 vector inclusion not found')
+              p148_marker = (
+                  "\\sourcepagebreak\n\n"
+                  "% -----------------------------------------------------------------------------\n"
+                  "% Source printed page 148 / source physical page 53\n"
+                  "% -----------------------------------------------------------------------------\n"
+              )
+              end = text.index(p148_marker, fig.end())
+              p147 = D(r'''The generic rays go back and forth between the two turning coordinates $\pm y_T$,
+              being continuously refracted by the varying $f=\beta y$, which models the curvature
+              of the earth. The turning points are where $\ell=0$, so, with $c=(gD)^{1/2}$,
+              \[
+               \boxed{
+               y_T=\frac{c}{\beta}
+               \left(\frac{\sigma^2}{c^2}-k^2-\frac{\beta k}{\sigma}\right)^{1/2}
+               =\frac{c}{\beta}|k_*\tan\theta_0|
+               }.
+              \]
+              The source denotes this dimensional meridional distance by $\theta_T$; see
+              \texttt{ERRATA.md}.
+
+              For $k=0$, the turning points reduce exactly to the inertial latitudes,
+              $y=\pm|\sigma|/\beta$. The corrected group-velocity ray is not a straight
+              north--south line, however, because then $k_*=\beta/(2\sigma)$ and $c_{gx}\ne0$.
+              For $\sigma k>0$, nonzero $k$ moves the turning points equatorward. For
+              $\sigma k<0$, the retained $\beta k/\sigma$ term can instead move them poleward or
+              equatorward depending on the branch. The inertial latitudes are therefore the familiar
+              gravity-wave turning scale when the Rossby-coupling term is negligible, but they are
+              not a universal hard bound for every equatorial branch when that term is retained.
+              Beyond a turning coordinate the WKB meridional wavenumber becomes imaginary and the
+              wave is evanescent rather than abruptly terminated. Furthermore, the decay scale is
+              very different for the barotropic waves versus their baroclinic counterparts. An
+              analysis of the Hermite functions shows that
+
+              ''')
+              p.write_text(text[:fig.end()] + p147 + text[end:])
+
+          # Resolve only sections that are still pending. If another session has already
+          # resolved one, preserve its conclusion instead of overwriting it.
+          replace_pending_section(
+              'reconstruction/ERRATA.md',
+              '### Printed page 90 — signed versus magnitude wavenumber ratio\n',
+              '## Chapter 5\n',
+              r'''### Printed page 90 — signed versus magnitude reflection ratios
+
+              - **Category:** `equation`
+              - **Status:** `accepted`
+              - **Location:** Chapter 4, printed pages 90--91
+              - **Original:** The source writes both
+                $|\vec k_r|=|\vec k_i|(1+aR)/(1-aR)$ and
+                $|\vec v_r|=|\vec v_i|(1+aR)/(1-aR)$ as magnitude relations.
+              - **Reconstruction:** The signed component relation is retained as
+                $k_r/k_i=(1+aR)/(1-aR)$, while the magnitude relations use
+                $|(1+aR)/(1-aR)|$.
+              - **Reason/evidence:** Equality of phase along the wall $z=ax$, together with
+                $m_i=Rk_i$ and $m_r=-Rk_r$, gives the signed component ratio directly. Magnitudes
+                cannot be negative, so the outer absolute value is required. The following source
+                page explicitly depicts both forward and backward reflection on opposite sides of
+                the critical $aR\simeq1$ regime, so there is no global $aR<1$ restriction that makes
+                the printed magnitude equations valid.'''
+          )
+          replace_pending_section(
+              'reconstruction/ERRATA.md',
+              '### Printed page 113 — reversed-incidence amplitude coefficients\n',
+              '### Printed page 116 — “waves modes”\n',
+              r'''### Printed page 113 — reversed-incidence amplitude coefficients
+
+              - **Category:** `equation`
+              - **Status:** `accepted`
+              - **Location:** Chapter 5, printed page 113
+              - **Original:** On reversing the incidence direction, the text says that the reflected
+                and transmitted amplitudes are “still given by the above formulas.”
+              - **Reconstruction:** The same matching calculation is retained after interchanging
+                the incident and transmitted region labels, giving
+                $A_R/A_I=(D_1k_1-D_2k_2)/(D_1k_1+D_2k_2)$ and
+                $A_T/A_I=2D_1k_1/(D_1k_1+D_2k_2)$.
+              - **Reason/evidence:** Repeating elevation and transport matching for shallow-side
+                incidence gives those coefficients directly. The matching structure is unchanged,
+                but the preceding deep-side-incidence coefficients do not remain literally unchanged.'''
+          )
+          replace_pending_section(
+              'reconstruction/ERRATA.md',
+              '### Printed page 129 — coordinate phase speeds described as components\n',
+              '### Printed page 130 — “aditional”\n',
+              r'''### Printed page 129 — coordinate phase speeds described as components
+
+              - **Category:** `editorial`
+              - **Status:** `accepted`
+              - **Location:** Chapter 5, printed page 129
+              - **Original:** After stating that phase speed has a westward component, the text writes
+                $c_x=\sigma/k$ and $c_y=\sigma/\ell$ as though these were vector components.
+              - **Reconstruction:** $\sigma/k$ and $\sigma/\ell$ are identified as coordinate-axis
+                phase-plane intersection speeds, distinct from the normal phase-velocity vector
+                $\vec c_p=\sigma\vec k/|\vec k|^2$.
+              - **Reason/evidence:** Holding one coordinate fixed in
+                $kx+\ell y-\sigma t=\mathrm{constant}$ gives the intersection speeds. The true zonal
+                vector component is
+                $c_{px}=\sigma k/(k^2+\ell^2)=-\beta k^2/(k^2+\ell^2)^2\le0$, preserving the
+                westward-zonal conclusion without misidentifying coordinate speeds as components.'''
+          )
+          replace_pending_section(
+              'reconstruction/ERRATA.md',
+              '### Printed page 146 — local meridional phase with variable wavenumber\n',
+              '### Printed pages 146--147 — ray direction identified with wavevector direction\n',
+              r'''### Printed page 146 — local meridional phase with variable wavenumber
+
+              - **Category:** `equation`
+              - **Status:** `accepted`
+              - **Location:** Chapter 5, printed page 146
+              - **Original:** $v=v_0(y)\exp[-i\sigma t+ikx+i\ell(y)y]$ while treating $\ell(y)$ as
+                the local meridional wavenumber.
+              - **Reconstruction:** The WKB phase is written as
+                $\exp[i\int^y\ell(y')\,dy']$, with $\ell$ explicitly the meridional phase gradient.
+              - **Reason/evidence:** Ray theory defines local wavenumber as the gradient of phase.
+                Differentiating the printed phase gives $\Theta_y=\ell+y\ell_y$, whereas the
+                integrated phase gives $\Theta_y=\ell(y)$ as required.'''
+          )
+          replace_pending_section(
+              'reconstruction/ERRATA.md',
+              '### Printed pages 146--147 — ray direction identified with wavevector direction\n',
+              '### Printed page 147 — turning coordinate written as $\\theta_T$\n',
+              r'''### Printed pages 146--147 — ray direction identified with wavevector direction
+
+              - **Category:** `equation`
+              - **Status:** `accepted`
+              - **Location:** Chapter 5, printed pages 146--147
+              - **Original:** The text defines the ray by $dy/dx=\ell/k$ while retaining the local
+                dispersion term $-\beta k/\sigma$; it then treats the $k\to0$ case as a straight
+                north--south ray and states that nonzero $k$ moves the turning point equatorward.
+              - **Reconstruction:** With $k_*=k+\beta/(2\sigma)$,
+                $dy/dx=c_{gy}/c_{gx}=\ell/k_*$ and generic rays remain sinusoidal. For $k=0$,
+                $k_*=\beta/(2\sigma)$ so the group ray is not a straight north--south line. For
+                $\sigma k<0$, the turning point may move poleward or equatorward depending on branch.
+              - **Reason/evidence:** Implicit differentiation of
+                $F=\sigma^2/(gD)-k^2-\ell^2-\beta k/\sigma-\beta^2y^2/(gD)=0$ gives
+                $c_{gy}/c_{gx}=2\ell/(2k+\beta/\sigma)$. The source's $\ell/k$ follows only after
+                dropping the same $\beta k/\sigma$ contribution retained in its local dispersion
+                relation. Turning points themselves remain defined by $\ell=0$.'''
+          )
+
+          replace_section_if_contains(
+              'reconstruction/ERRATA.md',
+              '### Printed page 147 — turning coordinate written as $\\theta_T$\n',
+              '### Chapter 5 section numbering in the contents\n',
+              '$\\pm y_T=\\pm[(gD)^{1/2}k/\\beta]\\tan\\theta_0$',
+              r'''### Printed page 147 — turning coordinate written as $\theta_T$
+
+              - **Category:** `equation`
+              - **Status:** `accepted`
+              - **Location:** Chapter 5, printed page 147
+              - **Original:**
+                $\pm\theta_T=\pm[(gD)^{1/2}k/\beta]\tan\theta_0$.
+              - **Reconstruction:** With $c=(gD)^{1/2}$ and
+                $k_*=k+\beta/(2\sigma)$, the dimensional turning coordinate is
+                $y_T=(c/\beta)[\sigma^2/c^2-k^2-\beta k/\sigma]^{1/2}
+                =(c/\beta)|k_*\tan\theta_0|$.
+              - **Reason/evidence:** The right-hand side has dimensions of meridional distance, not
+                angle. The corrected group-ray relation also replaces the source's $k$ by $k_*$ in
+                the ray-angle form. The immediately following inertial limit is expressed in the
+                distance coordinate $y$.'''
+          )
+          replace_section_if_contains(
+              'reconstruction/ERRATA.md',
+              '### Chapter 5 section numbering in the contents\n',
+              '## Chapter 6\n',
+              '- **Original:** `5.5 Kelvin waves`, following section 5.7',
+              r'''### Chapter 5 section numbering in the contents
+
+              - **Category:** `transcription`
+              - **Status:** `reverted`
+              - **Location:** Historical table of contents; Kelvin waves entry
+              - **Original:** The historical source scan reads `5.8 Kelvin waves`.
+              - **Reconstruction:** `5.8 Kelvin waves`.
+              - **Reason/evidence:** Direct reinspection of the contents scan shows that the earlier
+                audit reading `5.5 Kelvin waves` was erroneous. There is no source/reconstruction
+                deviation.'''
+          )
+
+          errata = Path('reconstruction/ERRATA.md').read_text()
+          if '- **Status:** `pending-review`' in errata:
+              raise SystemExit('ERRATA.md still contains pending-review')
+
+          # Figure ledger: change only rows whose old audit text proves they have not
+          # already been independently revised by another session.
+          fp = Path('reconstruction/FIGURES.md')
+          figures = fp.read_text()
+          old_p147 = ('| `ch05-p147-equatorial-ray.tikz` | 147 | **vector-complete** | **Validated** | '
+                      'Sinusoidal ray and its extrema were checked against the equation-defined turning latitudes. |')
+          new_p147 = ('| `ch05-p147-equatorial-ray.tikz` | 147 | **vector-complete** | **Partial** | '
+                      'The corrected WKB/group-velocity derivation preserves sinusoidal rays and turning points at `ell=0`, '
+                      'but the existing vector has not yet been parameter-matched to the corrected '
+                      '`k_*=k+beta/(2 sigma)` along-ray scale; qualitative ray/turning geometry is verified, '
+                      'not the quantitative x-scale. |')
+          if old_p147 in figures:
+              figures = figures.replace(old_p147, new_p147, 1)
+
+          old_p91 = ('| 4 | 91 | `ChapmanRizzoli4.pdf` | 28 | **Pending** | **source-pdf** — deliberately retain '
+                     'the multi-slope reflection sketch while the documented signed-versus-magnitude convention across '
+                     '`aR=1` remains unresolved; redrawing it would silently choose a supercritical interpretation. |')
+          new_p91 = ('| 4 | 91 | `ChapmanRizzoli4.pdf` | 28 | **Validated** | **source-pdf** — retain the historical '
+                     'multi-slope reflection sketch; forward/backward branch directions and the singular `aR=1` limit '
+                     'were checked against the signed component relation, while the source magnitude formulas missing '
+                     'their outer absolute values are documented in `ERRATA.md`. |')
+          if old_p91 in figures:
+              figures = figures.replace(old_p91, new_p91, 1)
+
+          states = re.findall(r'\|\s*\*\*(Validated|Partial|Pending|N/A)\*\*\s*\|', figures)
+          counts = {s: states.count(s) for s in ('Validated', 'Partial', 'Pending', 'N/A')}
+          total = sum(counts.values())
+          snapshot_re = re.compile(
+              r'Current snapshot across the \d+ tracked body/front-matter assets and direct source placements: '
+              r'\*\*\d+ Validated, \d+ Partial, \d+ Pending, \d+ N/A\*\*\.'
+          )
+          snapshot = (
+              f'Current snapshot across the {total} tracked body/front-matter assets and direct source placements: '
+              f'**{counts["Validated"]} Validated, {counts["Partial"]} Partial, '
+              f'{counts["Pending"]} Pending, {counts["N/A"]} N/A**.'
+          )
+          figures, n = snapshot_re.subn(snapshot, figures, count=1)
+          if n != 1:
+              raise SystemExit(f'FIGURES.md: snapshot replacement count {n}')
+          fp.write_text(figures)
+
+          plan = Path('reconstruction/PLAN.md')
+          text = plan.read_text()
+          text = text.replace('- Resolve or normalize remaining `pending-review` items in `ERRATA.md`.\n', '')
+          plan.write_text(text)
+
+          # Fail closed if the specifically audited historical formulations remain.
+          ch4 = Path('reconstruction/chapter4.tex').read_text()
+          ch5 = Path('reconstruction/chapter5.tex').read_text()
+          if r'|\vec k_r|=|\vec k_i|\left(\frac{1+aR}{1-aR}\right).' in ch4:
+              raise SystemExit('chapter4.tex: unsigned magnitude ratio remains')
+          if "amplitudes are still given by the above\nformulas" in ch5:
+              raise SystemExit('chapter5.tex: reversed-incidence amplitude statement remains')
+          if old_phase in ch5 or old_ray in ch5 or old_straight in ch5:
+              raise SystemExit('chapter5.tex: historical ray formulation remains')
+          PY
+
+          success=false
+          for attempt in $(seq 1 12); do
+            git fetch origin main
+            git reset --hard origin/main
+            python3 /tmp/apply_errata.py
+            python3 scripts/sync-views.py --readme
+            python3 scripts/sync-views.py --check-readme
+            rm -f .github/workflows/finalize-errata-audit.yml
+            git diff --check
+            git add -A
+            git diff --cached --check
+
+            if git diff --cached --quiet; then
+              echo "FINAL_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+              success=true
+              break
+            fi
+
+            git commit -m "Resolve audited source errata"
+            if git push origin HEAD:main; then
+              echo "FINAL_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+              success=true
+              break
+            fi
+            echo "main advanced before push; retrying from newest main"
+          done
+          test "$success" = true
+
+      - name: Validate canonical publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run publish.yml --ref main
+          run_id=""
+          for _ in $(seq 1 40); do
+            run_id=$(gh run list --workflow publish.yml --branch main --event workflow_dispatch --limit 20 \
+              --json databaseId --jq '.[0].databaseId' | head -n1)
+            [ -n "$run_id" ] && break
+            sleep 2
+          done
+          test -n "$run_id"
+          gh run watch "$run_id" --exit-status
