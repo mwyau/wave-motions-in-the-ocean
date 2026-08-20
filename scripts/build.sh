@@ -96,6 +96,7 @@ build_pdf() {
 build_html() {
   for cmd in pandoc pdftocairo; do need "$cmd"; done
   python3 "$ROOT/scripts/build-html.py"
+  python3 "$ROOT/scripts/enhance-html.py"
 
   # Pages deployment from `all` includes the current PDFs at the same root.
   if [[ -f "$DIST/wave-motions-1989-facsimile.pdf" ]]; then
