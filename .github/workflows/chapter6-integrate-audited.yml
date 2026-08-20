@@ -1,0 +1,162 @@
+name: One-time audited Chapter 6 integration
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    if: github.event.head_commit.message == 'Run Chapter 6 vector integration'
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Check out current main
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Install figure comparison dependencies
+        env:
+          NEEDRESTART_MODE: a
+        run: |
+          sudo apt-get update
+          sudo -E apt-get install -y --no-install-recommends \
+            latexmk texlive-latex-base texlive-latex-extra texlive-pictures \
+            texlive-fonts-recommended poppler-utils python3-pil
+
+      - name: Integrate Chapter 6 in audited batches
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'wave-motions-figure-audit'
+          git config user.email '5298134+mwyau@users.noreply.github.com'
+
+          cat > /tmp/ch6_patch.py <<'PY'
+          from pathlib import Path
+          import re, sys
+
+          chapter=Path('reconstruction/chapter6.tex')
+          figures=Path('reconstruction/FIGURES.md')
+          batches=[
+            {
+              'message':'Reconstruct Chapter 6 topographic-wave geometry',
+              'stems':['ch06-p151-sloping-channel','ch06-p152-bottom-trapped-mode','ch06-p154-effective-slope'],
+              'repls':[
+                (r'\sourceart[0.70]{ChapmanRizzoli6.pdf}{4}{155bp 515bp 145bp 125bp}',r'% Constraint-generated sloping-channel geometry.\n\wavevectorart[0.70]{ch06-p151-sloping-channel}'),
+                (r'\sourceart[0.46]{ChapmanRizzoli6.pdf}{5}{175bp 145bp 185bp 470bp}',r'% Equation-generated bottom-trapped vertical mode.\n\wavevectorart[0.52]{ch06-p152-bottom-trapped-mode}'),
+                (r'\sourceart[0.76]{ChapmanRizzoli6.pdf}{7}{120bp 500bp 85bp 105bp}',r'% Constraint-generated effective-slope geometry.\n\wavevectorart[0.76]{ch06-p154-effective-slope}'),
+              ],
+              'direct':[(151,4,1),(152,5,1),(154,7,1)],
+              'rows':[
+                ('ch06-p151-sloping-channel',151,'Validated','The channel is constructed with sidewalls `y=0,L`, rigid lid `z=0`, and the exact planar bottom `z=-H+alpha y`; the perspective depth is schematic but every boundary contact follows the stated geometry.'),
+                ('ch06-p152-bottom-trapped-mode',152,'Validated','The plotted vertical structure is generated from normalized `cosh(mu z)` with `mu^2=S^2(n^2 pi^2+k^2)`. Independent evaluation confirms amplitude increases monotonically toward the bottom and trapping strengthens with increasing `mu`.'),
+                ('ch06-p154-effective-slope',154,'Validated','The scaled bottom is exactly `z prime=R alpha x`, with `theta=atan(R alpha)` and `R alpha=S/sqrt(1-omega^2)`; tangent `k` and normal decay `m` are constructed perpendicular to each other.'),
+              ],
+            },
+            {
+              'message':'Reconstruct Chapter 6 continental-shelf figures',
+              'stems':['ch06-p157-continental-shelf','ch06-p159-shelf-root-condition'],
+              'repls':[
+                (r'\sourceart[0.56]{ChapmanRizzoli6.pdf}{10}{155bp 520bp 140bp 80bp}',r'% Equation-generated continental-shelf depth profile.\n\wavevectorart[0.62]{ch06-p157-continental-shelf}'),
+                (r'\sourceart[0.82]{ChapmanRizzoli6.pdf}{12}{75bp 450bp 65bp 135bp}',r'% Equation-generated matching-condition root plot.\n\wavevectorart[0.82]{ch06-p159-shelf-root-condition}'),
+              ],
+              'direct':[(157,10,1),(159,12,1)],
+              'rows':[
+                ('ch06-p157-continental-shelf',157,'Validated','The shelf profile is generated from `D=D_0 exp(2bx)` for `0<x<L` and matched to constant depth offshore; the coast, shelf edge, and alongshore/offshore axes obey the chapter definition.'),
+                ('ch06-p159-shelf-root-condition',159,'Validated','The root plot is independently generated from `tan(kL)=k/(ell-b)`. For the declared normalized display `(ell-b)L=-1.5`, numerical roots are `2.1746260`, `5.0036453`, and `8.0384628`, approaching half-integer-pi asymptotes as stated.'),
+              ],
+              'retain159':True,
+            },
+            {
+              'message':'Reconstruct Chapter 6 coastal-transition figures',
+              'stems':['ch06-p167-mode-transition','ch06-p168-wind-forced-shelf'],
+              'repls':[
+                (r'\sourceart[0.68]{ChapmanRizzoli6.pdf}{21}{105bp 335bp 90bp 300bp}',r'% Constraint-generated weak-to-strong stratification mode transition.\n\wavevectorart[0.68]{ch06-p167-mode-transition}'),
+                (r'\sourceart[0.54]{ChapmanRizzoli6.pdf}{22}{155bp 420bp 135bp 240bp}',r'% Vector reconstruction of the long-wave wind-forcing geometry.\n\wavevectorart[0.58]{ch06-p168-wind-forced-shelf}'),
+              ],
+              'direct':[(167,21,1),(168,22,1)],
+              'rows':[
+                ('ch06-p167-mode-transition',167,'Partial','The historical family layout is preserved with `ell<0` to the left, the inertial line `sigma=f`, and the exact strong-stratification Kelvin limit `omega=-S ell/(n pi)`. The intermediate coastal-trapped/shelf-wave branch shapes are intentionally schematic because no unique `D(x)` is specified.'),
+                ('ch06-p168-wind-forced-shelf',168,'N/A','The coast, offshore `x`, alongshore `y`, shelf edge `x=L`, `D(x)`, and alongshelf wind-stress direction are isolated as vector geometry. The bathymetric curve is schematic and no equation-defined plotted quantity is asserted.'),
+              ],
+            },
+          ]
+
+          def summary(text):
+              states=('Validated','Partial','Pending','N/A')
+              counts={s:sum(1 for line in text.splitlines() if line.startswith('|') and f'**{s}**' in line) for s in states}
+              total=sum(counts.values())
+              repl=(f'Current snapshot across the {total} tracked body/front-matter assets and direct source placements: '
+                    f'**{counts["Validated"]} Validated, {counts["Partial"]} Partial, '
+                    f'{counts["Pending"]} Pending, {counts["N/A"]} N/A**.')
+              text,n=re.subn(r'Current snapshot across the \d+ tracked body/front-matter assets and direct source placements: '
+                             r'\*\*\d+ Validated, \d+ Partial, \d+ Pending, \d+ N/A\*\*\.',repl,text,count=1)
+              if n!=1: raise SystemExit('validation summary missing')
+              sec=text.split('## Direct source-PDF crop placements — complete inventory',1)[1].split('## Sizing and acceptance rules',1)[0]
+              direct=sum(1 for line in sec.splitlines() if re.match(r'^\| [1-6] \|',line))
+              text,n=re.subn(r'These \d+ placements are real figures',f'These {direct} placements are real figures',text,count=1)
+              if n!=1: raise SystemExit('direct-count sentence missing')
+              return text
+
+          i=int(sys.argv[1]); b=batches[i]
+          ch=chapter.read_text()
+          for old,new in b['repls']:
+              target=new.split('{')[-1].split('}')[0]
+              if old in ch: ch=ch.replace(old,new,1)
+              elif target not in ch: raise SystemExit(f'missing chapter anchor {target}')
+          chapter.write_text(ch)
+
+          fig=figures.read_text()
+          insert=''
+          for name,page,state,audit in b['rows']:
+              row=f'| `{name}.tikz` | {page} | **vector-complete** | **{state}** | {audit} |\n'
+              if row not in fig: insert+=row
+          if insert:
+              anchor='\n### Front matter\n'
+              if anchor not in fig: raise SystemExit('front-matter anchor missing')
+              fig=fig.replace(anchor,'\n'+insert+anchor,1)
+
+          for page,physical,wanted in b['direct']:
+              pat=re.compile(rf'^\| 6 \| {page} \| `ChapmanRizzoli6\.pdf` \| {physical} \| .*\n',re.M)
+              found=len(pat.findall(fig))
+              if found:
+                  if found<wanted: raise SystemExit(f'partial direct state p.{page}')
+                  fig=pat.sub('',fig,count=wanted)
+          if b.get('retain159'):
+              pat=re.compile(r'^\| 6 \| 159 \| `ChapmanRizzoli6\.pdf` \| 12 \| .*$',re.M)
+              row='| 6 | 159 | `ChapmanRizzoli6.pdf` | 12 | **Pending** | **source-pdf** — deliberately retain the full modal dispersion diagram: `k` is implicitly tied to `ell` by the shelf/deep-ocean matching relation, while the nearby stated maximum-frequency condition does not by itself fix a unique equation-generated branch reconstruction. Retain historical art until that coupled derivative/branch convention is resolved. |'
+              fig,n=pat.subn(row,fig,count=1)
+              if n!=1 and row not in fig: raise SystemExit('remaining p.159 row missing')
+          figures.write_text(summary(fig))
+          print('\n'.join(b['stems']))
+          PY
+
+          messages=(
+            'Reconstruct Chapter 6 topographic-wave geometry'
+            'Reconstruct Chapter 6 continental-shelf figures'
+            'Reconstruct Chapter 6 coastal-transition figures'
+          )
+          for i in 0 1 2; do
+            git fetch origin main
+            git rebase origin/main
+            stems=$(python3 /tmp/ch6_patch.py "$i")
+            for stem in $stems; do python3 scripts/compare-figures.py "$stem"; done
+            git diff --check
+            git add -- reconstruction/chapter6.tex reconstruction/FIGURES.md
+            if ! git diff --cached --quiet; then git commit -m "${messages[$i]}"; fi
+            git fetch origin main
+            if [ "$(git rev-parse origin/main)" != "$(git merge-base HEAD origin/main)" ]; then
+              git rebase origin/main
+              for stem in $stems; do python3 scripts/compare-figures.py "$stem"; done
+            fi
+            git push origin HEAD:main
+          done
+
+          git fetch origin main
+          git rebase origin/main
+          git rm -- .github/workflows/chapter6-integrate-audited.yml .github/chapter6-integration-trigger.txt
+          git commit -m 'Remove Chapter 6 integration helper'
+          git push origin HEAD:main
