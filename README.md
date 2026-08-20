@@ -8,8 +8,6 @@ Digital edition by **Albert M. W. Yau** — August 2026
 
 [![Read Online](https://img.shields.io/badge/Read%20Online-0969da)](https://mwyau.github.io/wave-motions-in-the-ocean/) [![PDF](https://img.shields.io/badge/PDF-b31b1b)](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.pdf) [![CC BY-NC-SA 4.0](https://img.shields.io/badge/CC%20BY--NC--SA%204.0-lightgrey)](https://creativecommons.org/licenses/by-nc-sa/4.0/) [![Build](https://img.shields.io/github/actions/workflow/status/mwyau/wave-motions-in-the-ocean/pages.yml?branch=main&label=Build)](https://github.com/mwyau/wave-motions-in-the-ocean/actions/workflows/pages.yml)
 
-[Read online](https://mwyau.github.io/wave-motions-in-the-ocean/) · [PDF](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.pdf) · [Facsimile PDF](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions-facsimile.pdf)
-
 ## Preface — David C. Chapman
 
 When I volunteered to teach the MIT/WHOI Joint Program core course on
