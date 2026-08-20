@@ -1,0 +1,341 @@
+name: Finalize figure and equation numbering
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  issues: write
+  actions: read
+
+concurrency:
+  group: finalize-figure-equation-numbering
+  cancel-in-progress: false
+
+jobs:
+  finalize:
+    if: github.event.head_commit.message == 'Apply figure and equation numbering'
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Install README synchronization dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v pandoc >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends pandoc
+          fi
+
+      - name: Apply chapter-based numbering against newest main
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git config user.name 'wave-motions-numbering'
+          git config user.email '5298134+mwyau@users.noreply.github.com'
+
+          cat > /tmp/apply_numbering.py <<'PY'
+          from pathlib import Path
+          import re
+
+          ROOT = Path('.')
+          RECON = ROOT / 'reconstruction'
+
+          # Genuine display math only: do not mistake the second slash of \\[3pt]
+          # table/align row spacing for a \[ display opener.
+          DISPLAY_RE = re.compile(
+              r'(?P<bracket>(?<!\\)\\\[(?P<bracket_body>.*?)(?<!\\)\\\])'
+              r'|(?P<align>\\begin\{align\*\}(?P<align_body>.*?)\\end\{align\*\})',
+              re.S,
+          )
+          DURABLE_INTRO = (
+              'dispersion relation', 'field equation', 'wave equation', 'vorticity equation',
+              'continuity equation', 'equations of motion', 'linearized equations',
+              'linearized set of equations', 'shallow water equations', 'governing equation',
+              'governing equations', 'boundary condition', 'boundary conditions',
+              'eigenvalue problem', 'orthogonality relation', 'conservation law',
+              'conservation equation', 'phase speed', 'group velocity', 'sound speed',
+              'wave action', 'energy density', 'energy flux', 'radiation condition',
+              'snell', 'matching relation', 'root condition', 'ray equation', 'ray equations',
+          )
+          DURABLE_AFTER = (
+              'this is the dispersion relation', 'is the dispersion relation',
+              'this is the wave equation', 'is the wave equation',
+              'is the boundary condition', 'are the boundary conditions',
+              'is an eigenvalue problem', 'is the orthogonality relation',
+              'will be used later', 'will be used to',
+          )
+          EXPECTED_EQ = [6, 13, 8, 18, 46, 33]
+          EXPECTED_FIG = [7, 10, 12, 30, 31, 14]
+
+          def normalize(text: str) -> str:
+              text = re.sub(r'%.*?(?:\n|$)', ' ', text)
+              return re.sub(r'\s+', ' ', text).strip().lower()
+
+          def immediate_before(text: str, pos: int) -> str:
+              chunk = normalize(text[max(0, pos-300):pos])
+              cuts = [chunk.rfind(mark) for mark in ('. ', '? ', '! ')]
+              cut = max(cuts)
+              if cut >= 0:
+                  chunk = chunk[cut+2:]
+              return chunk[-220:]
+
+          def classify(text: str, matches: list[re.Match[str]]) -> list[bool]:
+              chosen: list[bool] = []
+              for m in matches:
+                  intro = immediate_before(text, m.start())
+                  after = normalize(text[m.end():m.end()+180])
+                  body = m.group('bracket_body') if m.group('bracket') else m.group('align_body')
+                  use = '\\boxed' in body
+                  use = use or any(phrase in intro for phrase in DURABLE_INTRO)
+                  use = use or any(phrase in after for phrase in DURABLE_AFTER)
+                  chosen.append(use)
+              for i in range(1, len(matches)):
+                  gap = normalize(text[matches[i-1].end():matches[i].start()])
+                  if chosen[i-1] and gap in ('', 'and', 'or', 'with', 'where', 'while'):
+                      chosen[i] = True
+              return chosen
+
+          def figure_counts(text: str) -> tuple[int, int]:
+              standard = sum((
+                  len(re.findall(r'\\wavevectorart(?:\[[^]]+\])?\{[^}]+\}', text)),
+                  len(re.findall(r'\\sourceart(?:\[[^]]+\])?\{[^}]+\}\{\d+\}\{[^}]+\}', text)),
+              ))
+              raw = sum((
+                  len(re.findall(r'\\input\{figures/[^}]+\.tikz\}', text)),
+                  len(re.findall(r'\\includegraphics(?:\[[^]]*\])?\s*\{figures/[^}]+\.(?:png|jpe?g)\}', text, re.I)),
+                  len(re.findall(r'\\includegraphics\[[^]]*page=\d+[^]]*\]\s*\{\.\./source/[^}]+\}', text, re.S)),
+              ))
+              return standard, raw
+
+          # Migrate only the audited durable displays. Bracket displays use a wrapper
+          # equivalent to equation/equation*; align* systems use a separate wrapper so
+          # facsimile can restore the original align* geometry exactly.
+          selected_total = 0
+          explicit_figure_marks = 0
+          for chapter in range(1, 7):
+              path = RECON / f'chapter{chapter}.tex'
+              text = path.read_text()
+              if '\\begin{waveequation}' in text or '\\begin{wavealign}' in text:
+                  raise SystemExit(f'{path}: numbering migration already partially present')
+              matches = list(DISPLAY_RE.finditer(text))
+              chosen = classify(text, matches)
+              count = sum(chosen)
+              if count != EXPECTED_EQ[chapter-1]:
+                  raise SystemExit(f'{path}: expected {EXPECTED_EQ[chapter-1]} durable equations, found {count}')
+              selected_total += count
+
+              pieces: list[str] = []
+              last = 0
+              for m, use in zip(matches, chosen):
+                  if not use:
+                      continue
+                  pieces.append(text[last:m.start()])
+                  if m.group('bracket'):
+                      body = m.group('bracket_body').strip('\n')
+                      pieces.append('\\begin{waveequation}\n' + body + '\n\\end{waveequation}')
+                  else:
+                      body = m.group('align_body').strip('\n')
+                      pieces.append('\\begin{wavealign}\n' + body + '\n\\end{wavealign}')
+                  last = m.end()
+              pieces.append(text[last:])
+              text = ''.join(pieces)
+
+              standard, raw = figure_counts(text)
+              if standard + raw != EXPECTED_FIG[chapter-1]:
+                  raise SystemExit(
+                      f'{path}: expected {EXPECTED_FIG[chapter-1]} figures, found {standard+raw}'
+                  )
+
+              # Standard figure macros emit their own mark in wave-common. Raw body
+              # placements need an explicit marker immediately after the art command.
+              raw_patterns = (
+                  re.compile(r'\\input\{figures/[^}]+\.tikz\}'),
+                  re.compile(r'\\includegraphics(?:\[[^]]*\])?\s*\{figures/[^}]+\.(?:png|jpe?g)\}', re.I),
+                  re.compile(r'\\includegraphics\[[^]]*page=\d+[^]]*\]\s*\{\.\./source/[^}]+\}', re.S),
+              )
+              for pattern in raw_patterns:
+                  text, n = pattern.subn(lambda m: m.group(0) + '\n\\wavefiguremark', text)
+                  explicit_figure_marks += n
+              path.write_text(text)
+
+          if selected_total != 124:
+              raise SystemExit(f'expected 124 numbered equations, found {selected_total}')
+          if explicit_figure_marks != 22:
+              raise SystemExit(f'expected 22 raw figure markers, found {explicit_figure_marks}')
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              p = Path(path)
+              text = p.read_text()
+              if new in text:
+                  return
+              if text.count(old) != 1:
+                  raise SystemExit(f'{path}: expected one patch anchor, found {text.count(old)}')
+              p.write_text(text.replace(old, new, 1))
+
+          # Shared semantic wrappers. `report` already resets figure/equation counters
+          # by chapter; numberwithin makes the intended chapter equation format explicit.
+          replace_once(
+              'reconstruction/styles/wave-common.sty',
+              '''\\setlength{\\emergencystretch}{1.5em}\n\\raggedbottom\n''',
+              '''\\setlength{\\emergencystretch}{1.5em}\n\\raggedbottom\n\n% Editorial numbering in the modern PDF and flowing reader editions. Only\n% durable equations are wrapped in these environments; transient algebra remains\n% unnumbered. The facsimile style suppresses these added editorial numbers.\n\\numberwithin{equation}{chapter}\n\\newenvironment{waveequation}{\\begin{equation}}{\\end{equation}}\n\\newenvironment{wavealign}{\\begin{equation}\\begin{aligned}}{\\end{aligned}\\end{equation}}\n\\newcommand{\\wavefiguremark}{%\n  \\refstepcounter{figure}%\n  \\par\\nobreak\\smallskip\n  \\noindent\\hfill{\\small\\sffamily Figure \\thefigure}\\hfill\\null\\par\n  \\smallskip\n}\n'''
+          )
+          replace_once(
+              'reconstruction/styles/wave-common.sty',
+              '''  \\end{center}\n  \\smallskip\n}\n\n% Explicit vector reconstruction.''',
+              '''  \\end{center}\n  \\wavefiguremark\n  \\smallskip\n}\n\n% Explicit vector reconstruction.'''
+          )
+          replace_once(
+              'reconstruction/styles/wave-common.sty',
+              '''    \\endgroup\n  \\end{center}\n  \\smallskip\n}\n\n% Use a stable heading name''',
+              '''    \\endgroup\n  \\end{center}\n  \\wavefiguremark\n  \\smallskip\n}\n\n% Use a stable heading name'''
+          )
+
+          replace_once(
+              'reconstruction/styles/wave-facsimile.sty',
+              '''\\RequirePackage{lmodern}\n\n\\setlength{\\parindent}{1.75em}''',
+              '''\\RequirePackage{lmodern}\n\n% Preserve the historical source-page edition: the canonical source carries\n% modern editorial numbering semantics, but the facsimile renders the original\n% unnumbered display/figure presentation. `wavealign` restores align* exactly.\n\\renewenvironment{waveequation}{\\begin{equation*}}{\\end{equation*}}\n\\renewenvironment{wavealign}{\\begin{align*}}{\\end{align*}}\n\\renewcommand{\\wavefiguremark}{}\n\n\\setlength{\\parindent}{1.75em}'''
+          )
+
+          # Generated HTML/EPUB input must make numbers explicit because Pandoc does
+          # not render LaTeX equation counters. The canonical wrappers remain the source
+          # of truth; this is a generated compatibility transform, not a parallel ledger.
+          replace_once(
+              'scripts/build-html.py',
+              '''PDF_ONLY_RE = re.compile(\n    r"\\\\begin\\{wavepdfonly\\}.*?\\\\end\\{wavepdfonly\\}",\n    re.S,\n)\n''',
+              '''PDF_ONLY_RE = re.compile(\n    r"\\\\begin\\{wavepdfonly\\}.*?\\\\end\\{wavepdfonly\\}",\n    re.S,\n)\nWAVE_NUMBERED_RE = re.compile(\n    r"\\\\begin\\{(?P<env>waveequation|wavealign)\\}(?P<body>.*?)"\n    r"\\\\end\\{(?P=env)\\}",\n    re.S,\n)\nFIGURE_MARK_RE = re.compile(r"\\\\wavefiguremark")\n'''
+          )
+          replace_once(
+              'scripts/build-html.py',
+              'def transform_tex(text: str) -> str:\n',
+              'def transform_tex(text: str, chapter_number: int | None = None) -> str:\n'
+          )
+          replace_once(
+              'scripts/build-html.py',
+              '''    def vector_sub(m: re.Match[str]) -> str:\n        return rf"\\includegraphics{{assets/figures/{m.group('stem')}.svg}}"\n''',
+              '''    def vector_sub(m: re.Match[str]) -> str:\n        return rf"\\includegraphics{{assets/figures/{m.group('stem')}.svg}}" + "\\n\\\\wavefiguremark"\n'''
+          )
+          replace_once(
+              'scripts/build-html.py',
+              '''    def source_sub(m: re.Match[str]) -> str:\n        rel = source_crop(m.group("pdf"), int(m.group("page")), m.group("trim"))\n        return rf"\\includegraphics{{{rel}}}"\n''',
+              '''    def source_sub(m: re.Match[str]) -> str:\n        rel = source_crop(m.group("pdf"), int(m.group("page")), m.group("trim"))\n        return rf"\\includegraphics{{{rel}}}" + "\\n\\\\wavefiguremark"\n'''
+          )
+          replace_once(
+              'scripts/build-html.py',
+              '''    text = LOCAL_RASTER_RE.sub(\n        lambda m: rf"\\includegraphics{{assets/figures/{m.group('name')}}}", text\n    )\n    return text\n''',
+              '''    text = LOCAL_RASTER_RE.sub(\n        lambda m: rf"\\includegraphics{{assets/figures/{m.group('name')}}}", text\n    )\n\n    if chapter_number is None:\n        # Front matter has no numbered body figures/equations.\n        text = WAVE_NUMBERED_RE.sub(lambda m: rf"\\[{m.group('body')}\\]", text)\n        return FIGURE_MARK_RE.sub("", text)\n\n    equation_number = 0\n    def numbered_equation_sub(m: re.Match[str]) -> str:\n        nonlocal equation_number\n        equation_number += 1\n        body = m.group("body").strip()\n        if m.group("env") == "wavealign":\n            body = r"\\begin{aligned}" + body + r"\\end{aligned}"\n        label = f"({chapter_number}.{equation_number})"\n        return (\n            "\\\\[\\n" + body + "\\n\\\\]\\n"\n            "\\\\begin{flushright}\\n\\\\textit{" + label + "}\\n\\\\end{flushright}"\n        )\n\n    text = WAVE_NUMBERED_RE.sub(numbered_equation_sub, text)\n\n    figure_number = 0\n    def figure_mark_sub(_: re.Match[str]) -> str:\n        nonlocal figure_number\n        figure_number += 1\n        return (\n            "\\\\begin{center}\\n"\n            f"\\\\textit{{Figure {chapter_number}.{figure_number}}}\\n"\n            "\\\\end{center}"\n        )\n\n    text = FIGURE_MARK_RE.sub(figure_mark_sub, text)\n    if figure_number != {1:7, 2:10, 3:12, 4:30, 5:31, 6:14}[chapter_number]:\n        raise SystemExit(\n            f"chapter {chapter_number}: expected canonical figure count, got {figure_number}"\n        )\n    return text\n'''
+          )
+          replace_once(
+              'scripts/build-html.py',
+              '''        src.write_text(transform_tex((RECON / f"chapter{i}.tex").read_text()))\n''',
+              '''        src.write_text(transform_tex((RECON / f"chapter{i}.tex").read_text(), chapter_number=i))\n'''
+          )
+          replace_once(
+              'scripts/build-html.py',
+              '''main { min-width: 0; }\n''',
+              '''main { min-width: 0; }\ndiv.center { text-align: center; }\ndiv.flushright { text-align: right; margin-top: -0.85em; }\n'''
+          )
+
+          epub_css = Path('reconstruction/styles/wave-epub.css')
+          css = epub_css.read_text()
+          addition = '''\ndiv.center {\n  text-align: center;\n}\n\ndiv.flushright {\n  text-align: right;\n  margin-top: -0.85em;\n}\n'''
+          if 'div.flushright {' not in css:
+              epub_css.write_text(css.rstrip() + '\n' + addition)
+
+          publication = Path('skills/publication/SKILL.md')
+          pub = publication.read_text()
+          anchor = '## Build interface and outputs\n'
+          section = '''## Figure and equation numbering\n\nThe modern PDF, HTML, and EPUB use chapter-based figure and equation numbers. The facsimile suppresses these added editorial numbers so its historical source-page presentation remains unchanged.\n\nNumber every scientific body figure, but number displayed equations selectively. An equation is important enough to number when it has a durable identity in the exposition: a governing equation/system, boundary or eigenvalue problem, dispersion or modal/root relation, conservation law, ray equation, or named physical definition/result such as phase speed, group velocity, sound speed, wave action, or energy flux. Keep transient algebra, intermediate substitutions/rearrangements, generic parameter-definition lists, and one-off evaluation steps unnumbered. A multi-line governing system normally receives one number unless its component equations have independent roles.\n\nDo not add equation/figure cross-references or hyperlinks merely because numbers exist. Add those later, selectively, after numbering is stable across formats.\n\n'''
+          if section not in pub:
+              if pub.count(anchor) != 1:
+                  raise SystemExit('publication skill numbering anchor missing')
+              publication.write_text(pub.replace(anchor, section + anchor, 1))
+
+          plan = Path('reconstruction/PLAN.md')
+          plan_text = plan.read_text()
+          old_plan = '- Decide in a later focused pass whether semantic figure numbering and chapter-based equation numbering improve the edition.\n'
+          new_plan = '- Add selective equation/figure cross-references and hyperlinks after the new chapter-based numbering is stable.\n'
+          if old_plan in plan_text:
+              plan.write_text(plan_text.replace(old_plan, new_plan, 1))
+          elif new_plan not in plan_text:
+              raise SystemExit('PLAN numbering item changed unexpectedly')
+
+          # Source-level acceptance checks before the commit is allowed.
+          eq_counts = []
+          raw_marks = 0
+          for chapter in range(1, 7):
+              text = (RECON / f'chapter{chapter}.tex').read_text()
+              count = text.count('\\begin{waveequation}') + text.count('\\begin{wavealign}')
+              eq_counts.append(count)
+              raw_marks += text.count('\\wavefiguremark')
+          if eq_counts != EXPECTED_EQ:
+              raise SystemExit(f'post-migration equation counts changed: {eq_counts}')
+          if raw_marks != 22:
+              raise SystemExit(f'post-migration raw figure marker count changed: {raw_marks}')
+          print('equation counts:', eq_counts, 'total=', sum(eq_counts))
+          print('figure counts:', EXPECTED_FIG, 'total=', sum(EXPECTED_FIG))
+          PY
+
+          success=false
+          for attempt in $(seq 1 20); do
+            git fetch origin main
+            git reset --hard origin/main
+            python3 /tmp/apply_numbering.py
+            python3 scripts/sync-views.py --readme
+            python3 scripts/sync-views.py --check-readme
+            python3 -m py_compile scripts/build-html.py scripts/build-epub.py
+
+            # Pandoc smoke: generated-compatible labels must survive as visible HTML,
+            # while aligned systems remain valid display math.
+            cat >/tmp/numbering-smoke.tex <<'EOF'
+          \[\begin{aligned}a&=b\\c&=d\end{aligned}\]
+          \begin{flushright}\textit{(2.3)}\end{flushright}
+          \begin{center}\textit{Figure 2.4}\end{center}
+          EOF
+            pandoc /tmp/numbering-smoke.tex -f latex -t html5 --mathml -o /tmp/numbering-smoke.html
+            grep -q '(2.3)' /tmp/numbering-smoke.html
+            grep -q 'Figure 2.4' /tmp/numbering-smoke.html
+
+            rm -f \
+              .github/workflows/finalize-numbering.yml \
+              .github/workflows/audit-numbering-candidates.yml \
+              .github/numbering-candidates.trigger
+
+            git diff --check
+            git add -- \
+              reconstruction/chapter1.tex reconstruction/chapter2.tex \
+              reconstruction/chapter3.tex reconstruction/chapter4.tex \
+              reconstruction/chapter5.tex reconstruction/chapter6.tex \
+              reconstruction/styles/wave-common.sty \
+              reconstruction/styles/wave-facsimile.sty \
+              reconstruction/styles/wave-epub.css \
+              reconstruction/PLAN.md skills/publication/SKILL.md \
+              scripts/build-html.py README.md \
+              .github/workflows/finalize-numbering.yml \
+              .github/workflows/audit-numbering-candidates.yml \
+              .github/numbering-candidates.trigger
+            git diff --cached --check
+            git commit -m 'Add chapter-based figure and equation numbering'
+            if git push origin HEAD:main; then
+              echo "FINAL_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+              success=true
+              break
+            fi
+            echo 'main advanced before push; rebuilding numbering change from newest main'
+          done
+          test "$success" = true
+
+      - name: Record durable numbering handoff
+        if: success()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment 14 --body "Integrated chapter-based numbering in \`$FINAL_SHA\`. Canonical selection is 124 durable numbered equations by chapter 6/13/8/18/46/33 and all 104 scientific body figures by chapter 7/10/12/30/31/14. Modern PDF uses canonical counters; generated HTML/EPUB make the same numbers explicit; facsimile suppresses the added editorial numbering to preserve historical presentation. README synchronization, Python compilation, git diff checks, and a Pandoc MathML/number-label smoke test passed in the integration job. Cross-references/hyperlinks remain intentionally deferred to issue #16. Temporary #14 workflow and trigger files deleted themselves in the source commit. The normal repository Build/reader validation should be checked on the resulting main tip before release."
