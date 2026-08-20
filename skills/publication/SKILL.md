@@ -65,7 +65,7 @@ Shared Downloads are:
 - `wave-motions-facsimile.pdf` — Facsimile PDF
 - `wave-motions.epub` — EPUB
 
-README badges are **Read | Online**, **Read | PDF**, **Read | EPUB**, **License | CC BY-NC-SA 4.0**, and **Build | status**. Keep the badge row after the complete title/dedication/authorship block. Do not add a facsimile badge unless explicitly requested.
+README badges are **Read | Online**, **Read | PDF**, **Read | EPUB**, **License | CC BY-NC-SA 4.0**, and the native GitHub Actions **Publish** status badge for `.github/workflows/publish.yml`. Keep the badge row after the complete title/dedication/authorship block. Do not add a facsimile badge unless explicitly requested.
 
 Section anchors are public links; keep them stable.
 
@@ -121,8 +121,10 @@ python3 scripts/sync-views.py --readme
 
 A full validation is `./scripts/build.sh all`.
 
-## Pages and CI
+## Publish workflow
 
-`.github/workflows/pages.yml` builds the full publication and deploys `dist/` as the Pages root. Keep `cancel-in-progress: false` for the production Pages concurrency group. A superseded deployment is not equivalent to a build failure; the README Build badge tracks the build check.
+`.github/workflows/publish.yml` is the single canonical publication workflow. It builds and validates the complete publication for pushes to `main`, pull requests targeting `main`, and manual runs. Deployment to GitHub Pages occurs only for `main`; PRs and manual runs from other branches build and validate without deploying.
 
-CI must verify `index.html` plus all three downloadable formats. Keep `tex-packages.txt` at repository root as the TeX dependency manifest.
+The canonical `Publish` workflow must be reproducible from the triggering commit and must not edit tracked source files, create commits, or push repository changes. Do not append chat/session migrations, one-time cleanup scripts, or other repository-mutating automation to it. If a task genuinely requires GitHub Actions to modify tracked repository contents, create a separate purpose-specific workflow and remove it after the task unless the owner explicitly wants it retained.
+
+Keep `cancel-in-progress: false` for production publishing so an active deployment is not interrupted by a newer push. CI must verify `index.html` plus all three downloadable formats. Keep `tex-packages.txt` at repository root as the TeX dependency manifest.
