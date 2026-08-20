@@ -1,0 +1,146 @@
+name: One-time errata audit corrections
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  correct:
+    if: github.event.head_commit.message == 'Prepare errata audit corrections'
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Apply reviewed Chapter 5 corrections
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('reconstruction/chapter5.tex')
+          text = path.read_text()
+
+          def replace_once(old: str, new: str) -> None:
+              global text
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'expected one match, found {count}: {old[:80]!r}')
+              text = text.replace(old, new, 1)
+
+          replace_once(
+              "In this case, the reflected and transmitted amplitudes are still given by the above\n"
+              "formulas and Snell's law still holds.",
+              "In this case, the same matching formulas apply after interchanging the incident and\n"
+              "transmitted depth labels, and Snell's law still holds."
+          )
+
+          replace_once(
+              "The phase speed $c$ \\emph{always} has\n"
+              "a westward component for whatever value of $\\ell$ we choose. In general",
+              "The phase planes always propagate westward in the zonal sense for whatever value of\n"
+              "$\\ell$ we choose. As in Chapter 1, the coordinate-axis phase speeds (the speeds of\n"
+              "phase-plane intersections with the coordinate axes) are"
+          )
+
+          start_marker = (
+              "We know that trapping means that a wave decays exponentially away from some boundary.\n"
+          )
+          end_marker = "The inertial latitudes thus act as a natural waveguide"
+          start = text.index(start_marker)
+          end = text.index(end_marker, start)
+
+          replacement = r'''We know that trapping means that a wave decays exponentially away from some boundary.
+We have seen that this corresponds to the total reflection of wave rays as well.
+Therefore, it is useful to examine these equatorial waves with the ray method which we
+discussed earlier in the course. At leading WKB order, write the local phase so that
+$\ell(y)$ is the meridional phase gradient,
+\[
+ v=v_0(y)\exp\left[-i\sigma t+ikx+i\int^y\ell(y')\,dy'\right].
+\]
+Then the local dispersion relation becomes
+\[
+ \ell^2(y)=\frac{\sigma^2}{gD}-k^2-\frac{\beta k}{\sigma}
+ -\frac{\beta^2y^2}{gD}.
+\]
+Define
+\[
+ k_*\equiv k+\frac{\beta}{2\sigma}.
+\]
+A ray follows the group velocity, as in Chapter 1. Implicit differentiation of the
+local dispersion relation therefore gives
+\[
+ \frac{dy}{dx}=\frac{c_{gy}}{c_{gx}}
+ =\frac{2\ell}{2k+\beta/\sigma}
+ =\frac{\ell}{k_*}.
+\]
+We can define the angle that the ray makes at the equator ($y=0$) by
+\[
+ \tan\theta_0=\frac{\ell(0)}{k_*}.
+\]
+Integrating the ray equation gives
+\[
+ y=\frac{(gD)^{1/2}k_*}{\beta}\tan\theta_0
+ \sin\left(
+ \frac{\beta}{(gD)^{1/2}k_*}x+\mathrm{const}
+ \right).
+\]
+Thus the rays are sinusoids moving around the equator. The historical phase and ray
+expressions use $\ell(y)y$ and $dy/dx=\ell/k$; the corrections above are documented in
+\texttt{ERRATA.md}.
+
+\sourcepagebreak
+
+% -----------------------------------------------------------------------------
+% Source printed page 147 / source physical page 52
+% -----------------------------------------------------------------------------
+% Vector reconstruction; source PDF ChapmanRizzoli5.pdf, physical page 52, trim=175bp 505bp 150bp 45bp.
+\wavevectorart[0.55]{ch05-p147-equatorial-ray}
+
+They go back and forth between the two turning coordinates $\pm y_T$, being
+continuously refracted by the varying $f=\beta y$, which models the curvature of the
+earth.
+
+The turning coordinates are where $\ell=0$, so
+\[
+ \boxed{
+ \pm y_T
+ =\pm\frac{(gD)^{1/2}}{\beta}
+ \left(\frac{\sigma^2}{gD}-k^2-\frac{\beta k}{\sigma}\right)^{1/2}
+ =\pm\frac{(gD)^{1/2}k_*}{\beta}\tan\theta_0
+ }.
+\]
+The source denotes this distance coordinate by $\theta_T$ and also identifies the ray
+direction with the wavevector direction; see \texttt{ERRATA.md}.
+
+If $k\to0$, the turning coordinates reduce to
+\[
+ -\sigma/\beta\le y\le\sigma/\beta.
+\]
+At $y=\pm\sigma/\beta$, the local meridional wavenumber vanishes and
+$\sigma=|\beta y|=|f|$. These are the \emph{inertial latitudes}, where the rays turn
+back toward the equator. For $k\ne0$, the turning latitude moves equatorward, at least
+when $k/\sigma$ is not important. '''
+
+          text = text[:start] + replacement + text[end:]
+          path.write_text(text)
+          PY
+
+          git diff --check
+
+      - name: Commit reviewed corrections
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reconstruction/chapter5.tex
+          git commit -m "Correct shallow-water and equatorial-wave derivations"
+          git pull --rebase origin main
+          git push origin HEAD:main
