@@ -37,6 +37,20 @@ ASSETS = OUT / "assets"
 FIG_ASSETS = ASSETS / "figures"
 SOURCE_RENDER_DPI = 170
 TIKZ_CACHE_VERSION = "v1"
+TIKZ_STANDALONE_TEMPLATE = r"""\documentclass[border=5pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage{graphicx,xcolor,tikz}
+\usetikzlibrary{calc,decorations.pathreplacing}
+\begin{document}
+\begingroup
+\let\par\relax
+\let\smallskip\relax
+\def\center{}
+\def\endcenter{}
+\input{%s}
+\endgroup\end{document}
+"""
 
 SOURCEART_RE = re.compile(
     r"\\sourceart(?:\[(?P<width>[^]]+)\])?"
@@ -158,6 +172,8 @@ def render_tikz_svg(stem: str) -> None:
     digest = hashlib.sha256(
         TIKZ_CACHE_VERSION.encode()
         + b"\0"
+        + TIKZ_STANDALONE_TEMPLATE.encode()
+        + b"\0"
         + (ROOT / "tex-packages.txt").read_bytes()
         + b"\0"
         + tikz.read_bytes()
@@ -173,22 +189,7 @@ def render_tikz_svg(stem: str) -> None:
         shutil.rmtree(td)
     td.mkdir(parents=True)
     tex = td / "figure.tex"
-    tex.write_text(
-        r"""\documentclass[border=5pt]{standalone}
-\usepackage[T1]{fontenc}
-\usepackage{amsmath,amssymb,bm,mathtools}
-\usepackage{graphicx,xcolor,tikz}
-\usetikzlibrary{calc,decorations.pathreplacing}
-\begin{document}
-\begingroup
-\let\par\relax
-\let\smallskip\relax
-\def\center{}
-\def\endcenter{}
-"""
-        + f"\\input{{{tikz.as_posix()}}}\n"
-        + r"\endgroup\end{document}" + "\n"
-    )
+    tex.write_text(TIKZ_STANDALONE_TEMPLATE % tikz.as_posix())
     run(["latexmk", "-pdf", "-interaction=nonstopmode", "-halt-on-error", "figure.tex"], cwd=td)
     tmp_svg = td / "figure.svg"
     run(["pdftocairo", "-svg", str(td / "figure.pdf"), str(tmp_svg)])
@@ -211,14 +212,14 @@ def prepare_vector_assets() -> None:
     stems = referenced_tikz()
     workers = max(1, min(4, (os.cpu_count() or 2)))
     print(f"Rendering {len(stems)} TikZ figures to SVG ({workers} workers; cache enabled)...")
-    failures: list[tuple[str, BaseException]] = []
+    failures: list[tuple[str, Exception]] = []
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futs = {pool.submit(render_tikz_svg, stem): stem for stem in stems}
         for fut in as_completed(futs):
             stem = futs[fut]
             try:
                 fut.result()
-            except BaseException as exc:
+            except Exception as exc:
                 failures.append((stem, exc))
     if failures:
         for stem, exc in failures:
