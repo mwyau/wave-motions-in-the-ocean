@@ -83,29 +83,34 @@ def smart_title_case(title: str) -> str:
 
 
 def title_metadata(text: str) -> tuple[str, str, str, str, str, str, str]:
-    title_match = re.search(r"\\bfseries\s+([^\\{}]+?)\\par", text)
-    subtitle_match = re.search(r"\\itshape\s+([^\\{}]+?)\\par", text)
+    title_page = text.split(r"\clearpage", 1)[0]
+    title_match = re.search(r"\\bfseries\s+([^\\{}]+?)\\par", title_page)
+    subtitle_match = re.search(r"\\itshape\s+([^\\{}]+?)\\par", title_page)
     dedication_match = re.search(
-        r"\\textit\{Presented to\}\s*\\textbf\{([^{}]+)\}", text
+        r"\\textit\{Presented to\}\s*\\textbf\{([^{}]+)\}", title_page
     )
-    dated_bold = re.findall(
-        r"\\textbf\{([^{}]+)\}\s*---\s*([^\\{}]+?)\\par", text
+    author_match = re.search(
+        r"\\vfill\s*\{\\large\s+\\textbf\{(?P<authors>[^{}]+)\}\\par\}"
+        r"\s*\\vspace\{[^}]+\}\s*\{\\normalsize\s+(?P<date>[^\\{}]+?)\\par\}",
+        title_page,
+        re.S,
     )
     editor_match = re.search(
-        r"Digital edition by\s*\\textbf\{([^{}]+)\}\s*---\s*([^\\{}]+?)\\par",
-        text,
+        r"Digital edition by\s*\\textbf\{(?P<editor>[^{}]+)\}\\par\}"
+        r"\s*\\vspace\{[^}]+\}\s*\{\\small\\sffamily\s+(?P<date>[^\\{}]+?)\\par\}",
+        title_page,
+        re.S,
     )
-    if not all((title_match, subtitle_match, dedication_match, editor_match)) or not dated_bold:
+    if not all((title_match, subtitle_match, dedication_match, author_match, editor_match)):
         raise ValueError("could not parse modern title-page metadata")
-    original_author, original_date = dated_bold[0]
     return (
         smart_title_case(title_match.group(1).strip()),
         subtitle_match.group(1).strip(),
         dedication_match.group(1).strip(),
-        original_author.strip(),
-        original_date.strip(),
-        editor_match.group(1).strip(),
-        editor_match.group(2).strip(),
+        author_match.group("authors").strip(),
+        author_match.group("date").strip(),
+        editor_match.group("editor").strip(),
+        editor_match.group("date").strip(),
     )
 
 
@@ -115,6 +120,7 @@ def frontmatter_markdown(text: str) -> str:
         raise ValueError("modern front matter has no title-page boundary")
     body = text.split(r"\clearpage", 1)[1]
     body = body.split(r"\tableofcontents", 1)[0]
+    body = re.sub(r"\\wavepagenumbering\{[^}]+\}\s*", "", body)
     body = re.sub(r"\\addcontentsline\{toc\}\{chapter\}\{[^\n]*\}\s*", "", body)
     body = body.replace(r"\clearpage", "")
 

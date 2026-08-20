@@ -27,15 +27,19 @@ Facsimile and modern editions may differ only where intentionally required by pr
 
 ## Modern front matter
 
-Preserve the current hierarchy unless explicitly asked to redesign it:
+Preserve the modern title hierarchy unless explicitly asked to redesign it:
 
-1. `WAVE MOTIONS IN THE OCEAN`
-2. `Myrl's View`
-3. `Presented to` **Myrl C. Hendershott**
-4. **David C. Chapman and Paola Malanotte-Rizzoli** — August 1989
-5. Digital edition by **Albert M. W. Yau** — August 2026
+1. `WAVE MOTIONS IN THE OCEAN` is the dominant title.
+2. `Myrl's View` is a substantial italic subtitle, visibly larger than ordinary front-matter text but subordinate to the main title.
+3. `Presented to` **Myrl C. Hendershott** forms a separate dedication block.
+4. **David C. Chapman and Paola Malanotte-Rizzoli** form the original-author block; `August 1989` is on its own line in regular weight rather than being emphasized.
+5. `Digital edition by` **Albert M. W. Yau** is a smaller, clearly separated credit near the bottom; `August 2026` is on its own line in regular weight.
 
-Modern attribution blocks use the shared `\wavesignature` presentation. Do not normalize the facsimile front matter to the modern style.
+Keep the original authorship and digital-editor credit visually distinct so the modern editor is not presented as a third author. Modern attribution blocks use the shared `\wavesignature` presentation. The Editor's note keeps the editor signature in the body, but its TOC entry is simply `Editor's note` without the editor's name. Do not normalize the facsimile front matter to the modern style.
+
+The modern PDF title page has no visible page number. After it, front matter uses lower-case Roman numbering beginning at `i`; Chapter 1 resets to Arabic page `1`. The modern PDF contents stop at chapters and sections (`tocdepth=1`).
+
+Keep the CC BY-NC-SA 4.0 statement in the Editor's note. Do not put a CC badge, logo, or raw license URL on the title page; the repository/HTML views may use badges or icons as appropriate.
 
 The historical photograph `reconstruction/figures/frontmatter/salmon-hendershott-como-1980.jpeg` is part of the modern front matter. Keep it unnumbered and preserve the established provenance/caption identifying Rick Salmon and Myrl Hendershott at Villa Carlotta, Lake Como, during the International School of Physics “Enrico Fermi,” Course LXXX, *Topics in Ocean Physics*, July 1980. Do not reintroduce unsupported wording such as “Photograph by George” unless independently established. Do not recompress the photograph merely for the build.
 
@@ -160,6 +164,7 @@ Verify at minimum:
 
 - facsimile pagination remains 184 pages unless an explicitly reviewed change requires otherwise;
 - PDFs parse/render successfully and LaTeX references resolve;
+- modern title page is unnumbered, front matter uses Roman numerals, and Chapter 1 starts at Arabic page 1;
 - `dist/` contains the complete HTML site and both PDFs;
 - README synchronization passes;
 - README and HTML share chapter/section Contents, both Downloads, and the CC statement;

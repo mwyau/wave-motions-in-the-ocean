@@ -1,5 +1,5 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{styles/wave-modern}[2026/08/19 continuous modern reading layout]
+\ProvidesPackage{styles/wave-modern}[2026/08/20 continuous modern reading layout]
 \RequirePackage{styles/wave-common}
 \RequirePackage[letterpaper,top=0.70in,bottom=0.72in,left=0.82in,right=0.82in,headsep=0.22in]{geometry}
 \RequirePackage{newtxtext,newtxmath}
@@ -54,14 +54,22 @@
 \newcommand{\sourceinput}[1]{\input{#1}}
 
 % Source fragments retain historical page counter resets as provenance. Ignore
-% only those page resets in the modern continuous edition.
+% only those page resets in the modern continuous edition. Modern front/main
+% matter still needs deliberate page-numbering resets, so expose a dedicated
+% wrapper that temporarily restores the class's original \setcounter.
 \makeatletter
 \let\WaveOriginalSetCounter\setcounter
-\renewcommand{\setcounter}[2]{%
+\newcommand{\WaveModernSetCounter}[2]{%
   \def\WaveCounterName{#1}%
   \def\WavePageCounter{page}%
   \ifx\WaveCounterName\WavePageCounter
   \else
     \WaveOriginalSetCounter{#1}{#2}%
   \fi}
+\renewcommand{\setcounter}[2]{\WaveModernSetCounter{#1}{#2}}
+\newcommand{\wavepagenumbering}[1]{%
+  \let\setcounter\WaveOriginalSetCounter
+  \pagenumbering{#1}%
+  \let\setcounter\WaveModernSetCounter
+}
 \makeatother
