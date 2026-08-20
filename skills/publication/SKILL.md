@@ -70,6 +70,8 @@ Historical fragment-level `\setcounter{page}{...}` resets are also source-page b
 
 When changing facsimile typography, validate the components as well as the full build: front matter = 10 pages, Chapters 1–6 = 17 + 20 + 26 + 32 + 53 + 23 = 171 pages, references = 3 pages, total = 184. Do not accept overfull vertical boxes as a way to preserve the count.
 
+While figure/vector geometry is still changing, canonical CI may report facsimile page-count drift as a **warning** so otherwise-valid publication builds can complete. This does not relax the final publication requirement: before release, restore and verify the exact 184-page source-compatible structure.
+
 ## README and HTML synchronization
 
 `scripts/book_views.py` derives chapter titles, `\section{}` headings, Contents, Downloads, source links, and license presentation. `scripts/sync-views.py` applies that model.
@@ -94,7 +96,7 @@ Section anchors are public links; keep them stable.
 
 ## HTML
 
-Preserve the responsive/mobile reader, Auto/Light/Dark theme selection, Repository navigation, Contents navigation, wide-math/table overflow handling, and stable chapter/section navigation unless explicitly redesigned.
+Preserve the responsive/mobile reader, Auto/Light/Dark theme selection, **GitHub Source** navigation, Contents navigation, wide-math/table overflow handling, and stable chapter/section navigation unless explicitly redesigned.
 
 Do not dark-mode invert/filter the historical front-matter JPEG. Generated black-on-white scientific diagrams may be theme-adjusted for legibility.
 
@@ -136,6 +138,8 @@ dist/
 
 `build/` and `dist/` are generated and untracked.
 
+Generated reader artifacts carry an exact source build identity. HTML and EPUB display the short commit identifier linked to that commit; the modern PDF places it on the copyright/edition-notice page; the facsimile keeps it non-visible in PDF metadata so historical page appearance is unchanged. When building an exact release tag such as `v1.0.0`, the display label may include both the release tag and short commit, for example `v1.0.0 (abc1234)`.
+
 After any reconstruction `.tex` change, regenerate the README before committing:
 
 ```bash
@@ -152,6 +156,8 @@ Include any resulting README update with the source change. A full validation is
 
 If your task genuinely requires GitHub Actions to modify tracked repository contents, create a separate purpose-specific workflow and any needed trigger file. Remove automation created by your task when that task is complete unless the owner asks to retain it. Treat unfamiliar temporary workflows and triggers as potentially active; do not remove another session's automation merely because it looks temporary.
 
-Frequent pushes should cancel stale **build** jobs for the same ref. The **Pages deployment** itself must use `cancel-in-progress: false` so an active deployment is not interrupted; newer successful builds may queue for deployment.
+During periods of frequent direct pushes, do **not** cancel the active publication build for the same ref. Use `cancel-in-progress: false` so one run can finish while GitHub coalesces pending work toward the newest commit instead of repeatedly terminating every build. The **Pages deployment** must also use `cancel-in-progress: false` so an active deployment is not interrupted.
+
+CI should surface build/validation categories as separate named steps where practical so failures are visible without reading a monolithic log. Facsimile pagination drift is warning-only during active figure work; compilation, PDF integrity, destination collisions, content sentinels, render smoke checks, publish-root/download checks, and build-identity checks remain fatal.
 
 CI must verify `index.html` plus all three downloadable formats. Keep `tex-packages.txt` at repository root as the TeX dependency manifest.
