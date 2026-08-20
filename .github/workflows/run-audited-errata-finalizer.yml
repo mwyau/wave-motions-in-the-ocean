@@ -15,6 +15,7 @@ concurrency:
 
 jobs:
   finalize:
+    if: github.event.head_commit.message == 'Run audited source errata finalization'
     runs-on: ubuntu-26.04
     steps:
       - name: Check out newest main
