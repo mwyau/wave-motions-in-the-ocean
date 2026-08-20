@@ -70,10 +70,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: wave-motions-editions
-          path: |
-            dist/wave-motions-1989-facsimile.pdf
-            dist/wave-motions-1989-modern.pdf
-            dist/html/
+          path: dist/
           if-no-files-found: error
           retention-days: 14
           compression-level: 6

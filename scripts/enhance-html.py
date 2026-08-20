@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "dist" / "html"
+OUT = ROOT / "dist"
 ASSETS = OUT / "assets"
 
 THEME_BUTTON = (

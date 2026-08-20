@@ -25,7 +25,7 @@ RECON = ROOT / "reconstruction"
 SOURCE = ROOT / "source"
 FIGURES = RECON / "figures"
 BUILD = ROOT / "build" / "html-pandoc"
-OUT = ROOT / "dist" / "html"
+OUT = ROOT / "dist"
 ASSETS = OUT / "assets"
 FIG_ASSETS = ASSETS / "figures"
 
@@ -278,12 +278,10 @@ def build_index(temp: Path) -> None:
     pandoc_page(src, page, "Wave Motions in the Ocean: Myrl's View")
     downloads = []
     for filename, label in (
-        ("wave-motions-1989-facsimile.pdf", "Facsimile PDF"),
-        ("wave-motions-1989-modern.pdf", "Modern PDF"),
+        ("wave-motions.pdf", "PDF"),
+        ("wave-motions-facsimile.pdf", "Facsimile PDF"),
     ):
-        built_pdf = ROOT / "dist" / filename
-        if built_pdf.exists():
-            shutil.copy2(built_pdf, OUT / filename)
+        if (OUT / filename).exists():
             downloads.append(f'<li><a href="{filename}">{label}</a></li>')
     download_html = (
         '<h2>Downloads</h2><ul>' + "".join(downloads) + '</ul>' if downloads else ""
@@ -346,7 +344,13 @@ def main() -> int:
     for cmd in ("pandoc", "latexmk", "pdflatex", "pdftocairo", "pdftoppm", "pdfinfo"):
         require(cmd)
     shutil.rmtree(BUILD, ignore_errors=True)
-    shutil.rmtree(OUT, ignore_errors=True)
+    shutil.rmtree(ASSETS, ignore_errors=True)
+    shutil.rmtree(OUT / "html", ignore_errors=True)  # legacy nested site layout
+    OUT.mkdir(parents=True, exist_ok=True)
+    for page in [OUT / "index.html", OUT / "references.html"] + [
+        OUT / f"chapter{i}.html" for i in range(1, 7)
+    ]:
+        page.unlink(missing_ok=True)
     BUILD.mkdir(parents=True)
     FIG_ASSETS.mkdir(parents=True)
     prepare_vector_assets()

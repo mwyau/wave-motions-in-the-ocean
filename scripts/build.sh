@@ -47,7 +47,8 @@ validate_pdf() {
 build_pdf() {
   rm -rf "$BUILD/facsimile" "$BUILD/modern"
   mkdir -p "$BUILD/facsimile" "$BUILD/modern" "$DIST"
-  rm -f "$DIST/wave-motions-1989-facsimile.pdf" "$DIST/wave-motions-1989-modern.pdf"
+  rm -f "$DIST/wave-motions.pdf" "$DIST/wave-motions-facsimile.pdf" \
+    "$DIST/wave-motions-1989-modern.pdf" "$DIST/wave-motions-1989-facsimile.pdf"
 
   (
     cd "$RECON"
@@ -57,35 +58,36 @@ build_pdf() {
       -outdir="$BUILD/modern" main-modern.tex
   )
 
-  cp "$BUILD/facsimile/main-facsimile.pdf" "$DIST/wave-motions-1989-facsimile.pdf"
-  cp "$BUILD/modern/main-modern.pdf" "$DIST/wave-motions-1989-modern.pdf"
+  cp "$BUILD/facsimile/main-facsimile.pdf" "$DIST/wave-motions-facsimile.pdf"
+  cp "$BUILD/modern/main-modern.pdf" "$DIST/wave-motions.pdf"
 
-  validate_pdf "$DIST/wave-motions-1989-facsimile.pdf"
-  validate_pdf "$DIST/wave-motions-1989-modern.pdf"
+  validate_pdf "$DIST/wave-motions-facsimile.pdf"
+  validate_pdf "$DIST/wave-motions.pdf"
 
   local fac_pages mod_pages
-  fac_pages=$(pdfinfo "$DIST/wave-motions-1989-facsimile.pdf" | awk '/^Pages:/ {print $2}')
-  mod_pages=$(pdfinfo "$DIST/wave-motions-1989-modern.pdf" | awk '/^Pages:/ {print $2}')
+  fac_pages=$(pdfinfo "$DIST/wave-motions-facsimile.pdf" | awk '/^Pages:/ {print $2}')
+  mod_pages=$(pdfinfo "$DIST/wave-motions.pdf" | awk '/^Pages:/ {print $2}')
   test "$fac_pages" = "184" || { echo "facsimile page count is $fac_pages; expected 184" >&2; exit 1; }
   test "$mod_pages" -gt 0
 
   ! grep -q "destination with the same identifier" "$BUILD/facsimile/main-facsimile.log"
   ! grep -q "destination with the same identifier" "$BUILD/modern/main-modern.log"
 
-  pdftotext -layout "$DIST/wave-motions-1989-facsimile.pdf" "$BUILD/facsimile/text.txt"
-  pdftotext -layout "$DIST/wave-motions-1989-modern.pdf" "$BUILD/modern/text.txt"
+  pdftotext -layout "$DIST/wave-motions-facsimile.pdf" "$BUILD/facsimile/text.txt"
+  pdftotext -layout "$DIST/wave-motions.pdf" "$BUILD/modern/text.txt"
   for txt in "$BUILD/facsimile/text.txt" "$BUILD/modern/text.txt"; do
     grep -Fq "When I volunteered to teach the MIT/WHOI" "$txt"
     grep -Fq "These notes have been collected and assembled" "$txt"
   done
 
   # Renderer sentinels catch gross corruption without producing tracked output.
-  for spec in "facsimile:$fac_pages" "modern:$mod_pages"; do
-    local kind=${spec%%:*}; local pages=${spec##*:}; local middle=$((pages / 2))
+  for spec in "facsimile:$fac_pages:$DIST/wave-motions-facsimile.pdf" "modern:$mod_pages:$DIST/wave-motions.pdf"; do
+    IFS=: read -r kind pages pdf <<< "$spec"
+    local middle=$((pages / 2))
     mkdir -p "$BUILD/$kind/render-check"
     for p in 1 "$middle" "$pages"; do
       pdftoppm -f "$p" -l "$p" -singlefile -r 100 -png \
-        "$DIST/wave-motions-1989-$kind.pdf" "$BUILD/$kind/render-check/page-$p" >/dev/null 2>&1
+        "$pdf" "$BUILD/$kind/render-check/page-$p" >/dev/null 2>&1
     done
     test "$(find "$BUILD/$kind/render-check" -name 'page-*.png' | wc -l | tr -d ' ')" = "3"
   done
@@ -97,15 +99,6 @@ build_html() {
   for cmd in pandoc pdftocairo; do need "$cmd"; done
   python3 "$ROOT/scripts/build-html.py"
   python3 "$ROOT/scripts/enhance-html.py"
-
-  # Pages deployment from `all` includes the current PDFs at the same root.
-  if [[ -f "$DIST/wave-motions-1989-facsimile.pdf" ]]; then
-    cp "$DIST/wave-motions-1989-facsimile.pdf" "$DIST/html/"
-  fi
-  if [[ -f "$DIST/wave-motions-1989-modern.pdf" ]]; then
-    cp "$DIST/wave-motions-1989-modern.pdf" "$DIST/html/"
-  fi
-
   echo "HTML build OK"
 }
 

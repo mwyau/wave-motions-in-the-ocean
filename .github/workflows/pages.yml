@@ -79,19 +79,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s dist/html/index.html
-          test -s dist/html/wave-motions-1989-facsimile.pdf
-          test -s dist/html/wave-motions-1989-modern.pdf
-          grep -q 'wave-motions-1989-facsimile.pdf' dist/html/index.html
-          grep -q 'wave-motions-1989-modern.pdf' dist/html/index.html
+          test -s dist/index.html
+          test -s dist/wave-motions.pdf
+          test -s dist/wave-motions-facsimile.pdf
+          grep -q 'wave-motions.pdf' dist/index.html
+          grep -q 'wave-motions-facsimile.pdf' dist/index.html
+          test ! -e dist/html
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload generated HTML as Pages root
+      - name: Upload generated site as Pages root
         uses: actions/upload-pages-artifact@v5
         with:
-          path: dist/html
+          path: dist
 
   deploy:
     needs: build

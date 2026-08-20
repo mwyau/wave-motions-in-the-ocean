@@ -6,7 +6,7 @@ Presented to **Myrl C. Hendershott**.
 
 **Digital edition by Albert M. W. Yau — August 2026**
 
-[Read the modern HTML edition](https://mwyau.github.io/wave-motions-in-the-ocean/) · [Facsimile PDF](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions-1989-facsimile.pdf) · [Modern PDF](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions-1989-modern.pdf)
+[Read online](https://mwyau.github.io/wave-motions-in-the-ocean/) · [PDF](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.pdf) · [Facsimile PDF](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions-facsimile.pdf)
 
 ## Preface — David C. Chapman
 
