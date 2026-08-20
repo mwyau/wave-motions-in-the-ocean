@@ -1,0 +1,42 @@
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=24; trim=96.00bp 440.64bp 121.92bp 256.80bp
+% Source: Wave Motions in the Ocean, printed p.119 (physical p.24).
+% Vector redraw of the idealized particle-motion comparison.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=0.78cm,y=0.78cm,>=stealth,line cap=round,line join=round,font=\small]
+  % No rotation: particle displacement is along the propagation direction.
+  \begin{scope}[shift={(0,0)}]
+    \node[font=\bfseries] at (2.75,4.75) {No Rotation};
+    \foreach \t in {1.65,2.25,2.85,3.45} {
+      \draw[line width=0.65pt] ({\t-0.95},{\t+0.95}) -- ({\t+0.95},{\t-0.95});
+    }
+    \draw[->,line width=0.9pt] (1.20,1.20) -- (4.20,4.20);
+    % Local straight particle trajectories are parallel to k. Their overlap
+    % with the propagation line is intentional, as in the source sketch.
+    \foreach \t in {1.65,2.25,2.85} {
+      \draw[<->,line width=0.55pt] ({\t-0.24},{\t-0.24}) -- ({\t+0.24},{\t+0.24});
+    }
+    \node[anchor=west] at (4.42,4.02) {$k,\ c,\ c_g$};
+  \end{scope}
+
+  % Rotation: u/v=i sigma/f, so the components are in quadrature and the
+  % particle path is an ellipse whose major axis is along k. The arrowed arcs
+  % show clockwise motion for the northern-hemisphere sign convention.
+  \begin{scope}[shift={(6.70,0)}]
+    \node[font=\bfseries] at (2.75,4.75) {Rotation};
+    \foreach \t in {1.65,2.25,2.85,3.45} {
+      \draw[line width=0.65pt] ({\t-0.95},{\t+0.95}) -- ({\t+0.95},{\t-0.95});
+    }
+    \draw[->,line width=0.9pt] (1.20,1.20) -- (4.20,4.20);
+    \node[anchor=west] at (4.42,4.02) {$k,\ c,\ c_g$};
+    \foreach \t in {1.65,2.25,2.85} {
+      \begin{scope}[shift={(\t,\t)},rotate=45]
+        \draw[line width=0.55pt] (0,0) ellipse [x radius=0.42,y radius=0.25];
+        \draw[->,line width=0.55pt] (0.20,0.20)
+          arc[start angle=62,end angle=-26,x radius=0.42,y radius=0.25];
+      \end{scope}
+    }
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+\smallskip

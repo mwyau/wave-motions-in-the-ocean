@@ -1,0 +1,39 @@
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=32; trim=130bp 440bp 105bp 90bp
+% Source: Wave Motions in the Ocean, printed p.22 (physical p.32).
+% Equation-constrained redraw of specular reflection from z=alpha x.  The wall
+% angle is a display choice; the normal is constructed exactly perpendicular to
+% it and the incident/reflected directions are exactly symmetric about that normal.
+\begin{tikzpicture}[x=1.0cm,y=1.0cm,>=stealth,line cap=round,line join=round,font=\small]
+  \def\wallang{10}
+  \def\incang{34}
+  \pgfmathsetmacro{\normalang}{\wallang+90}
+  \pgfmathsetmacro{\incaway}{\normalang+\incang}
+  \pgfmathsetmacro{\reflang}{\normalang-\incang}
+  \coordinate (O) at (4.55,0.78);
+
+  % Horizontal reference and tilted solid boundary z=alpha x.
+  \draw[line width=0.55pt] (0.50,0.78) -- (8.62,0.78);
+  \draw[line width=1.15pt] ($(O)+(190:4.10)$) -- ($(O)+(10:4.10)$);
+  \draw[line width=0.40pt] ($(O)+(190:4.08)+(0,-0.10)$) -- ($(O)+(10:4.08)+(0,-0.10)$);
+  \node[anchor=west] at ($(O)+(10:4.18)+(0,0.12)$) {$z=\alpha x$};
+
+  % Exact normal to the wall.
+  \draw[dashed,line width=0.58pt] (O) -- ($(O)+(\normalang:3.65)$);
+  \node[anchor=south] at ($(O)+(\normalang:3.72)+(-0.28,0)$) {normal};
+
+  % Equal-magnitude incident/reflected directions symmetric about the normal.
+  \coordinate (I) at ($(O)+(\incaway:4.15)$);
+  \coordinate (R) at ($(O)+(\reflang:4.15)$);
+  \draw[->,line width=0.78pt] (I) -- (O);
+  \draw[->,line width=0.78pt] (O) -- (R);
+  \node[anchor=east] at ($(I)+(-0.08,-0.10)$) {$\vec{k}_i$};
+  \node[anchor=west] at ($(R)+(0.02,-0.35)$) {$\vec{k}_r$};
+
+  % The source's theta_i and theta_r are measured from the boundary normal.
+  \draw[->,line width=0.45pt] ($(O)+(\incaway:0.92)$)
+    arc[start angle=\incaway,end angle=\normalang,radius=0.92];
+  \draw[->,line width=0.45pt] ($(O)+(\normalang:0.92)$)
+    arc[start angle=\normalang,end angle=\reflang,radius=0.92];
+  \node at ($(O)+(117:1.22)$) {$\theta_i$};
+  \node at ($(O)+(83:1.22)$) {$\theta_r$};
+\end{tikzpicture}

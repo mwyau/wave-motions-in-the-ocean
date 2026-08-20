@@ -1,0 +1,29 @@
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=22; trim=175bp 328bp 235bp 324bp
+% Source: Wave Motions in the Ocean, printed p.12 (physical p.22).
+% Vector redraw of the path Gamma crossing a slowly varying train of wave crests.
+\begin{tikzpicture}[x=0.82cm,y=0.82cm,line cap=round,line join=round,font=\small]
+  % Two sides of the slowly varying wave group/path region.
+  \draw[line width=0.82pt]
+    (0.35,0.15)
+    .. controls (0.20,1.05) and (0.55,1.72) .. (1.35,2.15)
+    .. controls (2.20,2.60) and (2.10,3.28) .. (3.02,3.82)
+    .. controls (3.85,4.32) and (4.70,4.20) .. (5.55,4.22);
+  \draw[line width=0.82pt]
+    (0.35,0.15)
+    .. controls (1.05,0.28) and (1.05,0.68) .. (1.85,0.70)
+    .. controls (2.70,0.72) and (2.78,1.28) .. (3.62,1.42)
+    .. controls (4.48,1.55) and (5.22,1.92) .. (5.25,2.85)
+    .. controls (5.28,3.36) and (5.48,3.70) .. (5.55,4.22);
+
+  % Wave crests crossing the path.  They do not terminate inside the region.
+  \foreach \x/\y in {0.65/0.55,1.25/1.15,1.85/1.72,2.48/2.25,3.12/2.78,3.76/3.28,4.42/3.67} {
+    \draw[line width=0.55pt] (\x-0.55,\y+0.55) -- (\x+1.25,\y-1.25);
+  }
+
+  % End points and labels.
+  \fill (0.35,0.15) circle[radius=2.1pt];
+  \fill (5.55,4.22) circle[radius=2.1pt];
+  \node[below left=-1pt] at (0.35,0.15) {$A$};
+  \node[above right=-1pt] at (5.55,4.22) {$B$};
+  \node[left] at (2.13,3.68) {$\Gamma$};
+\end{tikzpicture}

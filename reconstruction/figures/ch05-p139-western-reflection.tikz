@@ -1,0 +1,27 @@
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=44; trim=145bp 500bp 140bp 150bp
+% Source: Wave Motions in the Ocean, printed p.139 (physical p.44), case (a).
+% With ell=0 the constant-frequency Rossby circle intersects the k-axis twice.
+% The western-boundary incident wave is the long-wave (small |k|) root; reflection
+% selects the short-wave (large |k|) root, while group velocity reverses normally.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=1.0cm,y=1.0cm,>=stealth,line cap=round,line join=round,font=\small]
+  \coordinate (O) at (0,0);
+  \coordinate (C) at (-1.70,0);
+  \def\r{0.85}
+  \draw[->,line width=0.8pt] (-3.25,0) -- (1.25,0) node[right] {$k$};
+  \draw[->,line width=0.8pt] (0,-1.15) -- (0,1.25) node[above] {$\ell$};
+  \draw[line width=0.7pt] (C) circle[radius=\r];
+
+  \draw[->,line width=0.75pt] (-0.47,-0.18) -- (-1.02,-0.18);
+  \node[anchor=west] at (-0.42,-0.44) {$\vec k_i$};
+  \draw[->,line width=0.75pt] (-1.85,0.50) -- (-2.42,0.50);
+  \node[anchor=west] at (-2.05,0.72) {$\vec k_r$};
+
+  \draw[->,line width=0.7pt] (-1.16,-0.50) -- (-1.82,-0.50);
+  \node[anchor=north] at (-1.49,-0.54) {$\vec c_{g i}$};
+  \draw[->,line width=0.7pt] (-2.46,-0.50) -- (-1.92,-0.50);
+  \node[anchor=north] at (-2.19,-0.54) {$\vec c_{g r}$};
+\end{tikzpicture}
+\end{center}
+\smallskip

@@ -1,0 +1,43 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{styles/wave-facsimile}[2026/08/19 source-page facsimile layout]
+\RequirePackage{styles/wave-common}
+\RequirePackage[letterpaper,top=0.90in,bottom=0.70in,left=1.15in,right=1.15in]{geometry}
+\RequirePackage{lmodern}
+
+\setlength{\parindent}{1.75em}
+\setlength{\parskip}{0pt}
+\setlength{\jot}{6pt}
+\pagestyle{plain}
+
+\makeatletter
+\renewcommand{\@makechapterhead}[1]{%
+  \vspace*{1.45in}%
+  {\parindent\z@\raggedright\normalfont
+   \Large Chapter \thechapter\par
+   \vspace{0.52in}%
+   \LARGE\bfseries #1\par\nobreak
+   \vspace{0.70in}}}
+\renewcommand{\@makeschapterhead}[1]{%
+  \vspace*{1.20in}%
+  {\parindent\z@\raggedright\normalfont
+   \LARGE\bfseries #1\par\nobreak
+   \vspace{0.65in}}}
+\makeatother
+
+\AtBeginDocument{%
+  % Make the custom reading size durable: chapter/section machinery calls
+  % \normalsize, so setting \fontsize only once would silently revert later.
+  \let\WaveClassNormalSize\normalsize
+  \renewcommand{\normalsize}{%
+    \WaveClassNormalSize
+    \fontsize{11.2pt}{13.8pt}\selectfont
+    \setlength{\abovedisplayskip}{10pt plus 2pt minus 3pt}%
+    \setlength{\belowdisplayskip}{10pt plus 2pt minus 3pt}%
+    \setlength{\abovedisplayshortskip}{7pt plus 2pt minus 2pt}%
+    \setlength{\belowdisplayshortskip}{7pt plus 2pt minus 2pt}%
+  }%
+  \normalsize
+}
+
+\newcommand{\sourcepagebreak}{\clearpage}
+\newcommand{\sourceinput}[1]{\input{#1}\clearpage}

@@ -1,0 +1,30 @@
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=44; trim=145bp 370bp 140bp 285bp
+% Source: Wave Motions in the Ocean, printed p.139 (physical p.44), case (b).
+% With ell=0 an eastward-energy incident short Rossby wave reflects from the
+% eastern wall onto the long-wave root, reversing group velocity.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=1.0cm,y=1.0cm,>=stealth,line cap=round,line join=round,font=\small]
+  \coordinate (O) at (0,0);
+  \coordinate (C) at (-1.70,0);
+  \def\r{0.85}
+  \def\kileft{-2.55}
+  \draw[->,line width=0.8pt] (-3.25,0) -- (1.25,0) node[right] {$k$};
+  \draw[->,line width=0.8pt] (0,-1.15) -- (0,1.25) node[above] {$\ell$};
+  \draw[line width=0.7pt] (C) circle[radius=\r];
+
+  \draw[->,line width=0.75pt] (-0.40,0.18) -- (-0.98,0.18);
+  \node[anchor=west] at (-0.70,0.42) {$\vec k_r$};
+
+  \draw[line width=0.55pt] (\kileft,-0.82) -- (0,-0.82);
+  \draw[line width=0.55pt] (\kileft,-0.74) -- (\kileft,-0.90);
+  \draw[line width=0.55pt] (0,-0.74) -- (0,-0.90);
+  \node[below=2pt] at (-1.28,-0.82) {$\vec k_i$};
+
+  \draw[->,line width=0.7pt] (-2.42,0.52) -- (-1.86,0.52);
+  \node[anchor=south] at (-2.14,0.57) {$\vec c_{g i}$};
+  \draw[->,line width=0.7pt] (-1.27,0.52) -- (-1.82,0.52);
+  \node[anchor=south] at (-1.54,0.57) {$\vec c_{g r}$};
+\end{tikzpicture}
+\end{center}
+\smallskip

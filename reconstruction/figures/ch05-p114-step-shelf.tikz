@@ -1,0 +1,19 @@
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=19; trim=158.40bp 443.04bp 181.92bp 240.00bp
+% Source: Wave Motions in the Ocean, printed p.114 (physical p.19).
+% Vector redraw of the classic step-shelf geometry.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=0.92cm,y=0.82cm,line cap=round,line join=round,font=\small]
+  \draw[line width=0.65pt] (0,2.05) -- (6.55,2.05);
+  \filldraw[fill=black!15,draw=black,line width=0.75pt]
+    (0,-0.15) -- (0,1.46) -- (3.45,1.46) -- (3.45,0.34) -- (6.55,0.34)
+    -- (6.55,-0.15) -- cycle;
+  \node[above=2pt] at (0,2.05) {$x=0$};
+  \node[above=2pt] at (3.45,2.05) {$x=L$};
+  \node[above=2pt,font=\itshape] at (1.75,2.05) {(shelf)};
+  \node[above=2pt,font=\itshape] at (5.05,2.05) {(deep sea)};
+  \node at (1.75,1.15) {$D_1$};
+  \node at (5.05,0.95) {$D_2$};
+\end{tikzpicture}
+\end{center}
+\smallskip

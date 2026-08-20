@@ -1,0 +1,21 @@
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=37; trim=168.00bp 359.04bp 203.52bp 292.80bp
+% Source: Wave Motions in the Ocean, printed p.132 (physical p.37), upper sketch.
+% For sigma=-(g beta D/f^2) k, fixed sigma fixes k while ell is arbitrary.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=1.0cm,y=1.0cm,>=stealth,line cap=round,line join=round,font=\small]
+  \coordinate (O) at (0,0);
+  \def\kline{-1.55}
+  \draw[->,line width=0.8pt] (-3.35,0) -- (2.05,0) node[right] {$k$};
+  \draw[->,line width=0.8pt] (0,-1.65) -- (0,2.10) node[above] {$\ell$};
+  \node[below right=1pt] at (O) {$0$};
+  \draw[dashed,line width=0.7pt] (\kline,-1.55) -- (\kline,1.90);
+  \foreach \yy in {0.42,0.90,1.42} {
+    \draw[->,line width=0.75pt] (O) -- (\kline,\yy);
+  }
+  \draw[->,line width=0.65pt] (-2.35,1.80) -- (-1.63,1.80);
+  \node[anchor=east,align=right] at (-2.40,1.18)
+    {$k=-\dfrac{\sigma f^2}{gD\beta}$};
+\end{tikzpicture}
+\end{center}
+\smallskip

@@ -1,0 +1,23 @@
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=20; trim=84bp 481bp 117bp 202bp
+% Source: Wave Motions in the Ocean, printed p.10 (physical p.20).
+% Vector redraw of the stationary-phase integrand schematic.
+\begin{tikzpicture}[x=0.82cm,y=0.82cm,>=stealth,line cap=round,line join=round]
+  \def\kzero{3.80}
+
+  % Axes.
+  \draw[line width=0.58pt] (0,-1.12) -- (0,1.36);
+  \draw[->,line width=0.58pt] (-0.18,0) -- (7.55,0) node[right] {$k$};
+
+  % A representative stationary-phase integrand.  A quadratic phase makes the
+  % oscillations slow at k_0 and increasingly rapid away from it, matching the
+  % physical content and the original schematic.
+  \draw[line width=0.82pt,samples=420,smooth,domain=0.03:7.18,variable=\x]
+    plot (\x,{0.58*cos(180*(\x-\kzero)*(\x-\kzero))});
+
+  % Stationary point.
+  \draw[line width=0.48pt] (\kzero,0.10) -- (\kzero,-0.18);
+  \node[below] at (\kzero,-0.12) {$k_0$};
+
+  % Source label sits to the left of the vertical axis.
+  \node[anchor=east] at (-0.20,0.02) {$A(k)e^{it\Theta(k;x,t)}$};
+\end{tikzpicture}

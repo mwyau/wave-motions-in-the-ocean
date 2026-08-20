@@ -1,0 +1,29 @@
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=23; trim=163.20bp 536.64bp 174.72bp 168.00bp
+% Source: Wave Motions in the Ocean, printed p.118 (physical p.23).
+% Vector redraw of the gravest and first higher coastal-seiche modes.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=0.95cm,y=0.95cm,line cap=round,line join=round,font=\small]
+  \filldraw[fill=black!15,draw=black,line width=0.75pt]
+    (0,-0.12) -- (0,0.62) -- (3.25,0.62) -- (3.25,0.08) -- (6.10,0.08)
+    -- (6.10,-0.12) -- cycle;
+  \draw[line width=0.75pt] (0,0.62) -- (0,1.48);
+  \draw[dashed,line width=0.55pt] (0,1.48) -- (6.12,1.48);
+
+  % n=0: antinode at the coast and elevation node at the shelf break.
+  \draw[line width=0.85pt,samples=100,domain=0:3.25]
+    plot (\x,{1.48+0.34*cos(90*\x/3.25)});
+  \draw[line width=0.85pt,samples=100,domain=3.25:6.00]
+    plot (\x,{1.48-0.18*sin(180*(\x-3.25)/2.75)});
+
+  % n=1: one additional shelf zero and the same shelf-break node.
+  \draw[dashed,line width=0.80pt,samples=120,domain=0:3.25]
+    plot (\x,{1.48+0.28*cos(270*\x/3.25)});
+  \draw[dashed,line width=0.80pt,samples=100,domain=3.25:6.00]
+    plot (\x,{1.48+0.15*sin(180*(\x-3.25)/2.75)});
+
+  \node at (0.95,1.90) {$0$};
+  \node at (1.05,1.12) {$1$};
+\end{tikzpicture}
+\end{center}
+\smallskip

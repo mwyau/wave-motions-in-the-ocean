@@ -1,0 +1,40 @@
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=47; trim=65bp 390bp 60bp 125bp
+% Source: Wave Motions in the Ocean, printed p.142 (physical p.47).
+% Exact dimensionless shapes v_m proportional to exp(-xi^2/2) H_m(xi), m=0..3.
+% Each panel is rescaled by a constant solely for comparable visual height; zeros,
+% parity, and relative lobe geometry remain equation-determined.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=0.72cm,y=0.72cm,>=stealth,line cap=round,line join=round,font=\small]
+  \newcommand{\modeaxes}[1]{%
+    \draw[->,line width=0.65pt] (-3.15,0) -- (3.30,0) node[right] {$y$};%
+    \draw[->,line width=0.65pt] (0,-1.55) -- (0,1.70) node[above] {$v_{#1}$};%
+    \node[below left=1pt] at (0,0) {$0$};%
+  }
+
+  \begin{scope}[shift={(0,4.0)}]
+    \modeaxes{0}
+    \draw[line width=0.85pt,samples=180,domain=-3:3,variable=\x]
+      plot (\x,{1.28*exp(-0.5*\x*\x)});
+  \end{scope}
+
+  \begin{scope}[shift={(7.6,4.0)}]
+    \modeaxes{1}
+    \draw[line width=0.85pt,samples=180,domain=-3:3,variable=\x]
+      plot (\x,{1.05*(2*\x)*exp(-0.5*\x*\x)});
+  \end{scope}
+
+  \begin{scope}[shift={(0,0)}]
+    \modeaxes{2}
+    \draw[line width=0.85pt,samples=180,domain=-3:3,variable=\x]
+      plot (\x,{0.52*(4*\x*\x-2)*exp(-0.5*\x*\x)});
+  \end{scope}
+
+  \begin{scope}[shift={(7.6,0)}]
+    \modeaxes{3}
+    \draw[line width=0.85pt,samples=180,domain=-3:3,variable=\x]
+      plot (\x,{0.24*(8*\x*\x*\x-12*\x)*exp(-0.5*\x*\x)});
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+\smallskip

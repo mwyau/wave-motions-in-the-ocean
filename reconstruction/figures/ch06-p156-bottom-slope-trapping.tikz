@@ -1,0 +1,47 @@
+% wave-source: pdf=ChapmanRizzoli6.pdf; page=9; trim=65bp 405bp 55bp 185bp
+% Source: Wave Motions in the Ocean, printed p.156 (physical p.9).
+% Bottom-trapped waves propagate along a slope when omega<S and become
+% evanescent/reflected where omega>S.  The three source panels show propagation,
+% reflection at one slope change, and trapping between two evanescent regions.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=0.82cm,y=0.82cm,>=stealth,line cap=round,line join=round,font=\small]
+  % (a) Propagating on a single slope: oscillatory structure remains attached to
+  % the bottom because omega<S.
+  \begin{scope}[shift={(0,0)}]
+    \draw[line width=0.75pt] (0,-0.2) -- (2.05,3.95);
+    \draw[line width=0.85pt,samples=110,domain=0.10:3.55,variable=\s]
+      plot ({0.42+0.43*sin(650*\s)+0.40*\s},{0.16+0.80*\s});
+    \node at (2.25,0.48) {$\omega<S$};
+    \node at (2.62,3.30) {$\omega<S$};
+  \end{scope}
+
+  % (b) One slope transition: propagation on the lower/steeper segment and
+  % evanescence on the upper/gentler segment.
+  \begin{scope}[shift={(4.65,0)}]
+    \draw[line width=0.75pt] (0,-0.2) -- (1.00,2.15) -- (3.12,3.12);
+    \draw[line width=0.85pt,samples=80,domain=0.10:2.10,variable=\s]
+      plot ({0.42+0.39*sin(700*\s)+0.25*\s},{0.13+0.88*\s});
+    \draw[line width=0.85pt,samples=70,domain=0:1.85,variable=\s]
+      plot ({1.08+0.72*\s},{2.43+0.28*exp(-1.35*\s)});
+    \node at (1.55,0.80) {$\omega<S$};
+    \node at (2.62,2.08) {$\omega>S$};
+  \end{scope}
+
+  % (c) A continental-slope-like middle segment bounded by gentler regions:
+  % exponential tails on both sides and oscillatory propagation in the center.
+  \begin{scope}[shift={(9.70,0)}]
+    \draw[line width=0.75pt] (0,0.25) -- (1.25,0.78) -- (2.58,3.00) -- (4.35,3.27);
+    \draw[line width=0.85pt,samples=65,domain=0:1.12,variable=\s]
+      plot ({0.03+1.05*\s},{0.58+0.20*exp(-1.7*(1.12-\s))});
+    \draw[line width=0.85pt,samples=100,domain=0.12:2.10,variable=\s]
+      plot ({1.42+0.34*sin(720*\s)+0.44*\s},{0.75+0.92*\s});
+    \draw[line width=0.85pt,samples=70,domain=0:1.55,variable=\s]
+      plot ({2.75+0.98*\s},{3.50+0.22*exp(-1.45*\s)});
+    \node at (0.85,0.10) {$\omega>S$};
+    \node at (3.15,1.72) {$\omega<S$};
+    \node at (3.82,2.82) {$\omega>S$};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+\smallskip

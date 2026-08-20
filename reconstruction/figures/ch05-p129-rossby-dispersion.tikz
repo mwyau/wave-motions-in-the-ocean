@@ -1,0 +1,46 @@
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=34; trim=163.20bp 294.24bp 189.12bp 345.60bp
+% Source: Wave Motions in the Ocean, printed p.129 (physical p.34).
+% The locus follows exactly from
+%   (k + beta/(2 sigma))^2 + ell^2 = (beta/(2 sigma))^2.
+% Geometry below is normalized by a=|beta/(2 sigma)|; gamma is chosen only to
+% reproduce the source schematic. The circle relation then gives delta=2 gamma.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=1.05cm,y=1.05cm,>=stealth,line cap=round,line join=round,font=\small]
+  \def\a{1.60}
+  \def\thetaW{130} % central polar angle of W; gives gamma=25 deg, delta=50 deg
+  \coordinate (O) at (0,0);
+  \coordinate (C) at (-\a,0);
+  \coordinate (W) at ({-\a+\a*cos(\thetaW)},{\a*sin(\thetaW)});
+
+  % k-l plane and exact constant-frequency circle.
+  \draw[->,line width=0.8pt] (-3.65,0) -- (1.65,0) node[right] {$k$};
+  \draw[->,line width=0.8pt] (0,-1.95) -- (0,2.45) node[above] {$\ell$};
+  \draw[line width=0.8pt] (C) circle[radius=\a];
+  \fill (C) circle (1.4pt) node[below=3pt] {$C$};
+  \node[below right=1pt] at (O) {$0$};
+  \fill (W) circle (1.2pt) node[above left=1pt] {$W$};
+
+  % Radius CW and wavevector OW. k and c are parallel to the wavevector.
+  \draw[line width=0.65pt] (C) -- (W);
+  \draw[->,line width=0.85pt] (O) -- (W);
+  \node[rotate=-25,anchor=south] at (-1.48,0.92) {$\vec k,\ \vec c$};
+
+  % Group velocity points southeast. From the Rossby dispersion relation its
+  % direction is -delta with delta=2 gamma.
+  \draw[->,line width=0.85pt] (W) -- ++({1.15*cos(-50)},{1.15*sin(-50)});
+  \node[anchor=east] at (-2.45,0.73) {$\vec c_g$};
+
+  % gamma at O: angle between the westward k-axis and OW.
+  \draw[line width=0.55pt] (-0.48,0) arc[start angle=180,end angle=155,radius=0.48];
+  \node at (-0.52,0.18) {$\gamma$};
+
+  % delta at C: angle between westward direction and CW; delta=50=2 gamma.
+  \draw[line width=0.55pt] ({-\a-0.55},0) arc[start angle=180,end angle=130,radius=0.55];
+  \node at (-2.16,0.27) {$\delta$};
+
+  \node[anchor=west] at (0.62,1.55) {$\delta=2\gamma$};
+  \node[anchor=west] at (0.62,1.10) {$|WC|=\left|\dfrac{\beta}{2\sigma}\right|$};
+\end{tikzpicture}
+\end{center}
+\smallskip

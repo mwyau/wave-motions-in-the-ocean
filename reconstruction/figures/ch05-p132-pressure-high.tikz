@@ -1,0 +1,27 @@
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=37; trim=158.40bp 157.44bp 160.32bp 537.60bp
+% Source: Wave Motions in the Ocean, printed p.132 (physical p.37), lower sketch.
+% Geostrophic flow around a Northern Hemisphere pressure high is clockwise.
+% Because transport between equal isobars is proportional to 1/f, the southern
+% side carries more transport: convergence occurs west (A) and divergence east (B).
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \coordinate (H) at (0,0);
+  \foreach \r in {0.55,0.95,1.35} {
+    \draw[line width=0.65pt] (H) circle[radius=\r];
+  }
+  \draw[->,line width=0.75pt] (110:1.35) arc[start angle=110,end angle=55,radius=1.35];
+  \draw[->,line width=0.75pt] (105:0.95) arc[start angle=105,end angle=45,radius=0.95];
+  \draw[->,line width=0.75pt] (290:1.35) arc[start angle=290,end angle=235,radius=1.35];
+  \draw[->,line width=0.75pt] (300:0.95) arc[start angle=300,end angle=240,radius=0.95];
+
+  \node[font=\large] at (H) {$H$};
+  \node[font=\large] at (-1.72,0) {$A$};
+  \node[font=\large] at (1.72,0) {$B$};
+  \node[anchor=east,align=right] at (-2.05,0.18)
+    {Convergence:\\Pressure rises\\at A};
+  \node[anchor=west,align=left] at (2.05,0.18)
+    {Divergence:\\Pressure drops\\at B};
+\end{tikzpicture}
+\end{center}
+\smallskip

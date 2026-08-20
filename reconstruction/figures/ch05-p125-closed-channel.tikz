@@ -1,0 +1,21 @@
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=30; trim=194.40bp 491.04bp 174.72bp 187.20bp
+% Source: Wave Motions in the Ocean, printed p.125 (physical p.30).
+% Vector redraw of the simple closed-channel boundary-condition geometry.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[font=\normalsize]
+  \filldraw[fill=black!18,draw=black,line width=0.45pt]
+    (0,2.50) rectangle (7.15,2.64);
+  \filldraw[fill=black!18,draw=black,line width=0.45pt]
+    (0,0) rectangle (7.15,0.14);
+  \filldraw[fill=black!18,draw=black,line width=0.45pt]
+    (7.01,0) rectangle (7.15,2.64);
+  \node[below=2pt] at (3.55,2.50) {$v=0$};
+  \node[above=2pt] at (3.55,0.14) {$v=0$};
+  \node[anchor=east] at (6.72,1.32) {$u=0$};
+  \node[anchor=west] at (7.34,2.57) {$y=a$};
+  \node[anchor=west] at (7.34,0.07) {$y=0$};
+  \node[anchor=north] at (7.08,-0.16) {$x=0$};
+\end{tikzpicture}
+\end{center}
+\smallskip

@@ -1,0 +1,58 @@
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=42; trim=130bp 455bp 130bp 35bp
+% Source: Wave Motions in the Ocean, printed p.137 (physical p.42).
+% Geometry is constrained by a straight wall: the dashed normal is perpendicular
+% to the wall. The incoming ray (opposite O->Pi) and outgoing reflected ray are
+% symmetric about the normal line, giving specular group-velocity reflection.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=0.9cm,y=0.9cm,>=stealth,line cap=round,line join=round,font=\small]
+  \coordinate (O) at (0,0);
+  \def\wallang{114}
+  \def\normalang{24}
+  \def\iang{-20}
+  \def\rang{68}
+
+  % Wall and its normal.
+  \draw[line width=5pt,black!18] ({3.15*cos(\wallang)},{3.15*sin(\wallang)}) -- ({-2.30*cos(\wallang)},{-2.30*sin(\wallang)});
+  \draw[line width=0.8pt] ({3.15*cos(\wallang)},{3.15*sin(\wallang)}) -- ({-2.30*cos(\wallang)},{-2.30*sin(\wallang)});
+  \draw[dashed,line width=0.65pt] (O) -- ({4.05*cos(\normalang)},{4.05*sin(\normalang)}) node[anchor=west] {normal};
+  \draw[->,line width=0.8pt] (O) -- (4.65,0) node[right] {$x$};
+
+  % Group-velocity rays: incident points toward the wall, reflected away.
+  \coordinate (Pi) at ({3.05*cos(\iang)},{3.05*sin(\iang)});
+  \coordinate (Pr) at ({3.25*cos(\rang)},{3.25*sin(\rang)});
+  \draw[->,line width=0.85pt] (Pi) -- (O);
+  \draw[->,line width=0.85pt] (O) -- (Pr);
+  \node[anchor=north west] at ({2.15*cos(\iang)},{2.15*sin(\iang)-0.10}) {$\vec c_{g i}$};
+  \node[anchor=west] at ({2.30*cos(\rang)+0.12},{2.30*sin(\rang)}) {$\vec c_{g r}$};
+
+  % Source angle annotations: theta_i from +x to the incident ray, and theta_r
+  % from the wall normal to the reflected ray.
+  \draw[line width=0.55pt] (0.78,0) arc[start angle=0,end angle=\iang,radius=0.78];
+  \node at ({1.05*cos(\iang/2)},{1.05*sin(\iang/2)}) {$\theta_i$};
+  \draw[line width=0.55pt] ({1.02*cos(\normalang)},{1.02*sin(\normalang)}) arc[start angle=\normalang,end angle=\rang,radius=1.02];
+  \node at ({1.28*cos((\normalang+\rang)/2)},{1.28*sin((\normalang+\rang)/2)}) {$\theta_r$};
+
+  % Wall angle mu as in the source sketch.
+  \draw[line width=0.55pt] ({0.57*cos(\wallang)},{0.57*sin(\wallang)}) arc[start angle=\wallang,end angle=180,radius=0.57];
+  \node at (-0.74,0.44) {$\mu$};
+
+  % Schematic wavefronts. Their normals show k,c; the exact wavelengths are not
+  % specified by this geometric reflection sketch.
+  \begin{scope}[shift={(2.85,-1.32)}]
+    \foreach \yy in {-0.75,-0.35,0.05,0.45,0.85} {
+      \draw[line width=0.55pt] (-0.95,\yy) -- (0.95,\yy);
+    }
+    \draw[->,line width=0.70pt] (0.10,-1.05) -- (-0.75,-1.05);
+    \node[anchor=north] at (-0.32,-1.08) {$\vec k_i,\vec c_i$};
+  \end{scope}
+  \begin{scope}[shift={(-0.45,3.05)},rotate=-42]
+    \foreach \yy in {-0.55,-0.18,0.19,0.56} {
+      \draw[line width=0.55pt] (-0.85,\yy) -- (0.85,\yy);
+    }
+    \draw[->,line width=0.70pt] (0.20,-0.85) -- (-0.65,-0.85);
+    \node[anchor=north] at (-0.25,-0.89) {$\vec k_r,\vec c_r$};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+\smallskip

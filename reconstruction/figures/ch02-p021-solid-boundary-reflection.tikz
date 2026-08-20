@@ -1,0 +1,26 @@
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=31; trim=105bp 405bp 100bp 125bp
+% Source: Wave Motions in the Ocean, printed p.21 (physical p.31).
+% Vector redraw of incident and reflected plane waves at the solid boundary z=0.
+\begin{tikzpicture}[x=0.92cm,y=0.92cm,>=stealth,line cap=round,line join=round,font=\small]
+  % Solid boundary and axes.
+  \draw[line width=1.20pt] (0.25,0.35) -- (9.20,0.35);
+  \draw[line width=0.42pt] (0.25,0.24) -- (9.20,0.24);
+  \foreach \x in {0.35,0.55,...,9.05} {
+    \draw[line width=0.32pt] (\x,0.24) -- +(0.10,0.11);
+  }
+  \draw[->,line width=0.65pt] (5.15,0.35) -- (5.15,4.25) node[above] {$z$};
+  \draw[->,line width=0.65pt] (9.20,0.35) -- (9.92,0.35) node[right] {$x$};
+
+  % Incident wave crests.
+  \foreach \s in {0,0.92,1.84} {
+    \draw[line width=0.75pt]
+      ({1.15+\s},{3.52-\s}) -- ({2.08+\s},{4.45-\s});
+  }
+  % Incident propagation direction.
+  \draw[->,line width=0.82pt] (1.85,4.18) -- (3.95,2.08);
+  \node[align=center,font=\bfseries\itshape] at (0.95,3.80) {incident\\wave};
+
+  % Reflected wave direction.
+  \draw[->,line width=0.82pt] (5.85,1.10) -- (8.10,3.35);
+  \node[align=center,font=\bfseries\itshape] at (8.10,1.93) {reflected\\wave};
+\end{tikzpicture}

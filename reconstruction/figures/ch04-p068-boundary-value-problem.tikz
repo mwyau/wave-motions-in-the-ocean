@@ -1,0 +1,28 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=5; trim=105bp 385bp 90bp 215bp
+% Source: Wave Motions in the Ocean, printed p.68 (physical p.5).
+% Compact vector restatement of the internal-wave field equation and exact free-
+% surface/bottom boundary conditions derived immediately before the source sketch.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  % Free surface and flat bottom.
+  \draw[line width=0.75pt,samples=80,domain=0:6.2,variable=\x]
+    plot (\x,{2.85+0.035*sin(420*\x)+0.02*sin(760*\x)});
+  \draw[line width=0.75pt] (0,0.25) -- (6.20,0.25);
+  \node[anchor=west] at (6.35,2.85) {$z=0$};
+  \node[anchor=west] at (6.35,0.25) {$z=-D$};
+
+  % Equations are placed in clear water-column whitespace; arrows terminate at
+  % the boundaries rather than running through the equation text.
+  \node[align=center] at (3.12,3.55)
+    {$ (\sigma^2-f^2)w_z+g\nabla_H^2w=0 $};
+  \draw[->,line width=0.55pt] (3.05,3.30) -- (2.82,2.92);
+
+  \node[align=center] at (3.10,1.62)
+    {$w_{zz}-\left(\dfrac{N^2-\sigma^2}{\sigma^2-f^2}\right)\nabla_H^2w=0$};
+
+  \node at (3.42,-0.36) {$w=0$};
+  \draw[->,line width=0.55pt] (3.18,-0.13) -- (2.95,0.22);
+\end{tikzpicture}
+\end{center}
+\smallskip

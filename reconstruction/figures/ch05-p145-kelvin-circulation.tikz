@@ -1,0 +1,32 @@
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=50; trim=145bp 465bp 115bp 155bp
+% Source: Wave Motions in the Ocean, printed p.145 (physical p.50), upper figure.
+% Conceptual closure of eastward equatorially trapped Kelvin waves by boundary
+% Kelvin waves on north-south coasts.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \def\xl{-2.75}
+  \def\xr{2.75}
+  % North-south boundaries and equator.
+  \draw[line width=5pt,black!18] (\xl,-1.35) -- (\xl,1.35);
+  \draw[line width=0.75pt] (\xl,-1.35) -- (\xl,1.35);
+  \draw[line width=5pt,black!18] (\xr,-1.35) -- (\xr,1.35);
+  \draw[line width=0.75pt] (\xr,-1.35) -- (\xr,1.35);
+  \draw[line width=0.70pt] (-3.55,0) -- (3.70,0);
+  \node[anchor=west] at (3.78,0) {$0$};
+
+  % Eastward equatorial Kelvin-wave arrows immediately above/below the equator.
+  \draw[->,line width=0.80pt] (-2.25,0.18) -- (2.15,0.18);
+  \draw[->,line width=0.80pt] (-2.15,-0.18) -- (2.25,-0.18);
+  \node[anchor=south] at (0,0.40) {Equatorially Trapped};
+  \node[anchor=north] at (0,-0.40) {Kelvin Waves};
+
+  % Boundary-current closure: western boundary toward the equator, eastern
+  % boundary away from it, matching the source sketch.
+  \draw[->,line width=0.78pt] (\xl+0.34,1.22) -- (\xl+0.34,0.35);
+  \draw[->,line width=0.78pt] (\xl+0.34,-1.22) -- (\xl+0.34,-0.35);
+  \draw[->,line width=0.78pt] (\xr-0.34,0.35) -- (\xr-0.34,1.22);
+  \draw[->,line width=0.78pt] (\xr-0.34,-0.35) -- (\xr-0.34,-1.22);
+\end{tikzpicture}
+\end{center}
+\smallskip

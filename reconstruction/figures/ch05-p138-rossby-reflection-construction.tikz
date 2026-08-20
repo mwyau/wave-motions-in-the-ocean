@@ -1,0 +1,55 @@
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=43; trim=105bp 475bp 95bp 35bp
+% Source: Wave Motions in the Ocean, printed p.138 (physical p.43).
+% Constant-frequency Rossby circle. Equal projection of k_i and k_r along the
+% wall means the chord IR is normal to the wall. The construction C'W' || OW
+% then makes the incident and reflected group-velocity angles to the wall equal.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=0.95cm,y=0.95cm,>=stealth,line cap=round,line join=round,font=\small]
+  \coordinate (O) at (0,0);
+  \coordinate (C) at (-3.30,-0.05);
+  \def\rad{1.82}
+  \def\wallang{102}
+
+  % Axes and wall in wave-number space.
+  \draw[->,line width=0.8pt] (-5.45,0) -- (1.45,0) node[right] {$k$};
+  \draw[->,line width=0.8pt] (0,-1.95) -- (0,2.65) node[above] {$\ell$};
+  \draw[line width=5pt,black!18] ({2.00*cos(\wallang)},{2.00*sin(\wallang)}) -- ({-2.00*cos(\wallang)},{-2.00*sin(\wallang)});
+  \draw[line width=0.75pt] ({2.00*cos(\wallang)},{2.00*sin(\wallang)}) -- ({-2.00*cos(\wallang)},{-2.00*sin(\wallang)});
+
+  % Exact constant-frequency circle, centered at C'.
+  \draw[line width=0.75pt] (C) circle[radius=\rad];
+  \fill (C) circle (1.3pt) node[below=2pt] {$C'$};
+  \node[below right=1pt] at (O) {$O$};
+
+  % Equal along-wall projection: I and R lie on a chord normal to the wall.
+  \coordinate (I) at (-2.16,1.37);
+  \coordinate (R) at (-4.86,0.86);
+  \draw[dashed,line width=0.65pt] (R) -- (I) -- ++(1.62,0.31) coordinate (W);
+  \node[above=2pt] at (I) {$I$};
+  \node[above left=1pt] at (R) {$R$};
+  \node[above=2pt] at (W) {$W$};
+  \draw[line width=0.55pt] ($(W)+(-0.16,-0.03)$) -- ($(W)+(-0.13,0.14)$) -- ($(W)+(0.04,0.11)$);
+
+  % Incident and reflected wavevectors from O to the two roots.
+  \draw[->,line width=0.80pt] (O) -- (I);
+  \draw[->,line width=0.80pt] (O) -- (R);
+  \node[anchor=north west] at (-1.32,0.43) {$\vec k_i$};
+  \node[anchor=north] at (-2.92,-0.16) {$\vec k_r$};
+
+  % Group velocities are normal to the constant-frequency circle.
+  \draw[->,line width=0.80pt] (I) -- (C);
+  \draw[->,line width=0.80pt] (R) -- (C);
+  \node[anchor=south] at (-2.55,1.36) {$\vec c_{g i}$};
+  \node[anchor=north] at (-4.62,0.22) {$\vec c_{g r}$};
+
+  % Construct C'W' parallel to OW (the wall direction).
+  \draw[dashed,line width=0.65pt] (C) -- ++({2.15*cos(\wallang)},{2.15*sin(\wallang)}) coordinate (Wp);
+  \node[above left=1pt] at (Wp) {$W'$};
+  \draw[line width=0.55pt] ($(Wp)+(0.01,-0.16)$) -- ($(Wp)+(0.17,-0.13)$) -- ($(Wp)+(0.14,0.03)$);
+
+  \draw[line width=0.55pt] (0.62,0) arc[start angle=0,end angle=\wallang-90,radius=0.62];
+  \node at (0.80,0.23) {$\mu$};
+\end{tikzpicture}
+\end{center}
+\smallskip

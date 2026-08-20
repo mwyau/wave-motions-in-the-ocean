@@ -1,0 +1,17 @@
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=28; trim=144.00bp 558.24bp 129.12bp 129.60bp
+% Vector redraw of the waveguide channel boundaries on printed page 123.
+% Source: ChapmanRizzoli5.pdf, physical page 28.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[font=\normalsize]
+  \filldraw[fill=black!18,draw=black,line width=0.45pt]
+    (0,1.78) rectangle (9.3,1.92);
+  \filldraw[fill=black!18,draw=black,line width=0.45pt]
+    (0,0) rectangle (9.3,0.14);
+  \node[below=2pt] at (4.65,1.78) {$v=0$};
+  \node[above=2pt] at (4.65,0.14) {$v=0$};
+  \node[anchor=west] at (9.52,1.85) {$y=a$};
+  \node[anchor=west] at (9.52,0.07) {$y=0$};
+\end{tikzpicture}
+\end{center}
+\smallskip

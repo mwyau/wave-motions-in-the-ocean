@@ -1,0 +1,38 @@
+% wave-source: pdf=ChapmanRizzoli6.pdf; page=16; trim=155bp 360bp 125bp 270bp
+% Source: Wave Motions in the Ocean, printed p.162 (physical p.16).
+% Idealized coastal-trapped-wave geometry: x offshore, y alongshore, z vertical,
+% variable bottom z=-D(x), shelf width L, and flat deep ocean z=-H.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=1.0cm,y=1.0cm,>=stealth,line cap=round,line join=round,font=\small]
+  \coordinate (O) at (0,0);
+  \def\L{2.75}
+  \def\H{-2.15}
+
+  % Water/solid cross-section.  The specific curved shelf shape is schematic; its
+  % required properties are D_x>0 offshore and transition to flat depth H at x=L.
+  \fill[black!15] (0,0) -- (0,\H) -- (5.35,\H) -- (5.35,-1.86)
+    -- (\L,-1.86)
+    .. controls (2.30,-1.75) and (1.85,-1.55) .. (1.62,-1.26)
+    .. controls (1.38,-0.95) and (0.84,-0.55) .. (0,0) -- cycle;
+  \draw[line width=0.80pt] (0,0) -- (0,\H) -- (5.35,\H);
+  \draw[line width=0.80pt] (0,0)
+    .. controls (0.84,-0.55) and (1.38,-0.95) .. (1.62,-1.26)
+    .. controls (1.85,-1.55) and (2.30,-1.75) .. (\L,-1.86)
+    -- (5.35,-1.86);
+
+  % Coordinate axes based at the shoreline/surface intersection.
+  \draw[->,line width=0.80pt] (O) -- (5.50,0) node[right] {$x$};
+  \draw[->,line width=0.80pt] (O) -- (0,1.35) node[above] {$z$};
+  \draw[->,line width=0.80pt] (O) -- (2.05,0.55) node[right] {$y$};
+
+  \node[anchor=east] at (-0.12,0) {$z=0$};
+  \node[anchor=west] at (0.22,-0.72) {$x=0$};
+  \node[anchor=west] at (1.95,-0.86) {$z=-D(x)$};
+  \draw[->,line width=0.50pt] (2.08,-0.98) -- (1.72,-1.28);
+  \draw[line width=0.55pt] (\L,-1.72) -- (\L,-2.03);
+  \node[anchor=west] at (\L+0.12,-1.63) {$x=L$};
+  \node[anchor=east] at (1.55,\H+0.02) {$z=-H$};
+\end{tikzpicture}
+\end{center}
+\smallskip

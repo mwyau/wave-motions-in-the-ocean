@@ -1,0 +1,62 @@
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=14; trim=60.24bp 443.04bp 78.72bp 36.00bp
+% Source: Wave Motions in the Ocean, printed p.4 (physical p.14).
+% Equation-constrained vector reconstruction of the original phase-plane sketch.
+% The parallel phase planes are normal to the wavevector. Their separation along
+% the wavevector is one wavelength, lambda = 2 pi / |kbar|. Geometry is schematic;
+% the display angle theta=35 deg is chosen only to match the source drawing.
+\begin{tikzpicture}[x=0.88cm,y=0.88cm,>=stealth,line cap=round,line join=round,font=\small]
+  \def\ang{35}
+  \def\sone{1.90}
+  \def\stwo{3.80}
+  \def\kend{6.20}
+  \coordinate (O) at (0,0);
+  \coordinate (K) at ({\kend*cos(\ang)},{\kend*sin(\ang)});
+  \coordinate (Kx) at ({\kend*cos(\ang)},0);
+
+  % Cartesian axes and wavevector components.
+  \draw[->,line width=0.78pt] (O) -- (8.25,0) node[right] {$x$};
+  \draw[->,line width=0.78pt] (O) -- (0,5.55) node[above] {$y$};
+  \draw[->,line width=1.02pt] (O) -- (K);
+  \draw[dashed,line width=0.58pt] (K) -- (Kx);
+  \node[above=2pt] at (K) {$\bar{k}$};
+  \node[below=2pt] at (Kx) {$k$};
+  \node[right=4pt] at ($(K)!0.50!(Kx)$) {$\ell$};
+
+  % theta is the angle from the x axis to the wavevector.
+  \draw[line width=0.52pt] (0.92,0) arc[start angle=0,end angle=\ang,radius=0.92];
+  \node at (1.12,0.36) {$\theta$};
+
+  % Work in the orthogonal (along-k, phase-plane) frame. Local x is parallel
+  % to the wavevector; local y is tangent to the constant-phase planes.
+  \begin{scope}[rotate=\ang]
+    % kx + ell y - sigma t = constant: three parallel constant-phase planes.
+    \draw[line width=0.76pt] (0,-1.55) -- (0,4.05);
+    \draw[line width=0.76pt] (\sone,-1.55) -- (\sone,3.45);
+    \draw[line width=0.76pt] (\stwo,-1.70) -- (\stwo,3.00);
+
+    % Right-angle marks emphasize that phase planes are normal to the wavevector.
+    \foreach \s in {0,\sone,\stwo} {
+      \draw[line width=0.50pt]
+        (\s+0.20,0) -- (\s+0.20,0.20) -- (\s,0.20);
+    }
+
+    % The source uses small wavy propagation arrows normal to two phase planes.
+    \foreach \s in {\sone,\stwo} {
+      \draw[->,line width=0.58pt,samples=55,domain=-0.68:0.55,variable=\q]
+        plot ({\s+\q},{0.38+0.075*sin(900*\q)});
+    }
+
+    % One wavelength is the normal distance between adjacent phase planes.
+    \draw[decorate,decoration={brace,amplitude=4.2pt,mirror},line width=0.52pt]
+      (0.18,-1.27) -- (\sone-0.18,-1.27);
+    \node[anchor=north west] at (1.15,-1.63)
+      {$\lambda=\dfrac{2\pi}{|\bar{k}|}$};
+  \end{scope}
+
+  % Source labels lie along the upper-left portions of the first two planes.
+  \node[rotate={\ang-90},anchor=south,inner sep=1.5pt] at
+    ({-1.95*sin(\ang)},{1.95*cos(\ang)})
+    {$kx+\ell y-\sigma t=0$};
+  \node[rotate={\ang-90},anchor=east,inner sep=1.5pt] at (-0.62,3.72)
+    {$kx+\ell y-\sigma t=2\pi$};
+\end{tikzpicture}

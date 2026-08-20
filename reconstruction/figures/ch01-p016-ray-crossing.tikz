@@ -1,0 +1,51 @@
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=26; trim=62bp 450bp 69bp 46bp
+% Source: Wave Motions in the Ocean, printed p.16 (physical p.26).
+% Equation-constrained redraw of the homogeneous-medium ray sketch.  The two
+% carrier wavelengths use the same display lambda_1/lambda_2 ratio as p.15, and
+% each later packet center is computed from its straight ray so the group center
+% lies exactly on the ray.
+\begin{tikzpicture}[x=0.90cm,y=0.90cm,>=stealth,line cap=round,line join=round,font=\small]
+  \def\lamone{0.54}
+  \def\lamtwo{0.45}
+  \def\yzero{0.95}
+  \def\ylater{3.15}
+  \def\ycross{6.10}
+  \def\xonezero{1.75}
+  \def\xtwozero{6.05}
+  \def\xcross{6.35}
+  \pgfmathsetmacro{\rayfrac}{(\ylater-\yzero)/(\ycross-\yzero)}
+  \pgfmathsetmacro{\xonelater}{\xonezero+(\xcross-\xonezero)*\rayfrac}
+  \pgfmathsetmacro{\xtwolater}{\xtwozero+(\xcross-\xtwozero)*\rayfrac}
+
+  \draw[->,line width=0.65pt] (0,0.05) -- (0,5.65) node[above] {$t$};
+  \draw[->,line width=0.60pt] (0,\ylater) -- (8.60,\ylater) node[right] {$x$};
+  \draw[->,line width=0.60pt] (0,\yzero) -- (8.60,\yzero) node[right] {$x$};
+  \node[anchor=east] at (-0.18,\ylater) {$\phi(x,t)$};
+  \node[anchor=east] at (-0.18,\yzero) {$\phi(x,0)$};
+
+  % The homogeneous-medium packets preserve their display carrier wavelengths.
+  \draw[line width=0.82pt,samples=420,smooth,domain=0.05:3.55,variable=\x]
+    plot (\x,{\yzero+0.34*exp(-0.80*(\x-\xonezero)*(\x-\xonezero))*cos(360*(\x-\xonezero)/\lamone)});
+  \draw[line width=0.82pt,samples=460,smooth,domain=4.30:7.80,variable=\x]
+    plot (\x,{\yzero+0.57*exp(-0.74*(\x-\xtwozero)*(\x-\xtwozero))*cos(360*(\x-\xtwozero)/\lamtwo)});
+
+  % Later packet centers are computed from the two straight rays, rather than
+  % positioned independently, so each group center lies exactly on its ray.
+  \draw[line width=0.82pt,samples=420,smooth,domain={\xonelater-1.75}:{\xonelater+1.75},variable=\x]
+    plot (\x,{\ylater+0.34*exp(-0.80*(\x-\xonelater)*(\x-\xonelater))*cos(360*(\x-\xonelater)/\lamone)});
+  \draw[line width=0.82pt,samples=460,smooth,domain={\xtwolater-1.75}:{\xtwolater+1.75},variable=\x]
+    plot (\x,{\ylater+0.57*exp(-0.74*(\x-\xtwolater)*(\x-\xtwolater))*cos(360*(\x-\xtwolater)/\lamtwo)});
+
+  \coordinate (C) at (\xcross,\ycross);
+  \draw[dashed,line width=0.62pt] (\xonezero,\yzero) -- (C);
+  \draw[dashed,line width=0.62pt] (\xtwozero,\yzero) -- (C);
+  \node[rotate=48.5,anchor=south,inner sep=1.5pt] at (3.72,3.92) {$k=k_1$};
+  \node[anchor=west,inner sep=1.5pt] at (6.48,4.42) {$k=k_2$};
+
+  \draw[line width=0.72pt] ($(C)+(-0.17,0)$) -- ($(C)+(0.17,0)$);
+  \draw[line width=0.72pt] ($(C)+(0,-0.17)$) -- ($(C)+(0,0.17)$);
+  \draw[line width=0.72pt] ($(C)+(-0.12,-0.12)$) -- ($(C)+(0.12,0.12)$);
+  \draw[line width=0.72pt] ($(C)+(-0.12,0.12)$) -- ($(C)+(0.12,-0.12)$);
+  \node[anchor=west,font=\itshape] at (6.67,6.08) {ray theory};
+  \node[anchor=west,font=\itshape] at (6.67,5.78) {fails};
+\end{tikzpicture}

@@ -1,0 +1,33 @@
+\documentclass[11pt,oneside]{report}
+\usepackage{styles/wave-facsimile}
+\begin{document}
+\input{frontmatter-facsimile}
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\input{chapter1}
+\input{chapter2}
+\input{chapter3}
+\input{chapter4}
+\input{chapter5}
+\input{chapter6}
+\clearpage
+\setcounter{page}{172}
+\nocite{*}
+% Preserve the source bibliography's printed-page boundaries while keeping a
+% single canonical BibTeX database shared with the modern and HTML editions.
+\makeatletter
+\let\waveoriginalbibitem\bibitem
+\newcommand{\wavemaybebibbreak}[1]{%
+  \def\wavebibkey{#1}%
+  \def\wavehoughkey{hough1897}%
+  \def\waverossbykey{rossby1939}%
+  \ifx\wavebibkey\wavehoughkey\clearpage\fi
+  \ifx\wavebibkey\waverossbykey\clearpage\fi
+}
+\def\bibitem{\@ifnextchar[{\wavebibitemopt}{\wavebibitemplain}}
+\def\wavebibitemopt[#1]#2{\wavemaybebibbreak{#2}\waveoriginalbibitem[#1]{#2}}
+\def\wavebibitemplain#1{\wavemaybebibbreak{#1}\waveoriginalbibitem{#1}}
+\makeatother
+\bibliographystyle{plainnat}
+\bibliography{references}
+\end{document}

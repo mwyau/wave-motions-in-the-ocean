@@ -1,0 +1,50 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{styles/wave-common}[2026/08/19 shared Wave Motions reconstruction support]
+
+\RequirePackage[T1]{fontenc}
+\RequirePackage{microtype}
+\RequirePackage{setspace}
+\RequirePackage{amsmath,amssymb,bm}
+\RequirePackage{mathtools}
+\RequirePackage{tikz}
+\usetikzlibrary{calc,decorations.pathreplacing}
+\RequirePackage{graphicx}
+\RequirePackage{enumitem}
+\RequirePackage{fancyhdr}
+\RequirePackage{xcolor}
+\RequirePackage{natbib}
+\setcitestyle{authoryear}
+\setlength{\bibhang}{2.5em}
+\setlength{\bibsep}{0.45\baselineskip}
+\RequirePackage[hidelinks,unicode,hypertexnames=false]{hyperref}
+\setlength{\emergencystretch}{1.5em}
+\raggedbottom
+
+% Direct crop from an authoritative committed source PDF. Arguments are
+% width fraction, source filename, physical PDF page, and trim rectangle.
+\newcommand{\sourceart}[4][0.72]{%
+  \par\smallskip
+  \begin{center}
+    \includegraphics[page=#3,trim=#4,clip,width=#1\linewidth]{../source/#2}%
+  \end{center}
+  \smallskip
+}
+
+% Explicit vector reconstruction. This is intentionally not a replacement
+% registry: the chapter names the vector file directly.
+\newcommand{\wavevectorart}[2][0.72]{%
+  \par\smallskip
+  \begin{center}
+    \begingroup
+      \let\par\relax
+      \let\smallskip\relax
+      \def\center{}%
+      \def\endcenter{}%
+      \resizebox{#1\linewidth}{!}{\input{figures/#2.tikz}}%
+    \endgroup
+  \end{center}
+  \smallskip
+}
+
+% Use a stable heading name in PDF and HTML bibliography output.
+\renewcommand{\bibname}{References}

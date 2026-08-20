@@ -1,0 +1,46 @@
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=39; trim=65bp 435bp 55bp 35bp
+% Source: Wave Motions in the Ocean, printed p.134 (physical p.39).
+% Exact constant-frequency locus:
+% (k+beta/(2 sigma))^2+ell^2=(beta/(2 sigma))^2+(sigma^2-f^2)/(gD).
+% The normalized display chooses r/|C O|<1 (sigma<f), as in the source.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=1.0cm,y=1.0cm,>=stealth,line cap=round,line join=round,font=\small]
+  \def\a{1.75}
+  \def\r{1.42}
+  \coordinate (O) at (0,0);
+  \coordinate (C) at (-\a,0);
+  \coordinate (Cp) at ({-\a+\r},0);
+
+  \draw[->,line width=0.8pt] (-3.65,0) -- (1.55,0) node[right] {$k$};
+  \draw[->,line width=0.8pt] (0,-1.75) -- (0,2.05) node[above] {$\ell$};
+  \draw[line width=0.75pt] (C) circle[radius=\r];
+  \fill (C) circle (1.3pt) node[below=2pt] {$C$};
+  \node[below right=2pt] at (O) {$O$};
+  \node[below left=2pt] at (Cp) {$C'$};
+
+  \draw[dashed,line width=0.65pt] (Cp) -- ++(0,1.62);
+  \draw[dashed,line width=0.55pt] (C) -- ++(0,-1.42);
+  \node[anchor=east,align=center] at (-0.60,1.83)
+    {$k=-\dfrac{\sigma f^2}{gD\beta}$};
+  \draw[->,line width=0.55pt] (-0.54,1.60) -- (-0.36,1.60);
+
+  \draw[line width=3.0pt] ({-\a+\r*cos(166)},{\r*sin(166)})
+    arc[start angle=166,end angle=194,radius=\r];
+  \draw[line width=3.0pt] ({-\a+\r*cos(-12)},{\r*sin(-12)})
+    arc[start angle=-12,end angle=12,radius=\r];
+  \node[anchor=east,align=right] at (-3.28,-0.64)
+    {ageostrophic\\nondivergent\\short waves};
+  \draw[->,line width=0.65pt] (-3.06,-0.43) -- (-3.14,-0.08);
+  \node[anchor=west,align=left] at (0.24,0.88)
+    {geostrophic\\divergent\\long waves};
+  \draw[->,line width=0.65pt] (0.21,0.66) -- (-0.31,0.12);
+
+  \draw[line width=0.55pt] (-\a,-1.38) -- ({-\a+\r},-1.38);
+  \draw[line width=0.55pt] (-\a,-1.30) -- (-\a,-1.47);
+  \draw[line width=0.55pt] ({-\a+\r},-1.30) -- ({-\a+\r},-1.47);
+  \node[anchor=north,align=center,font=\footnotesize] at ({-\a+0.5*\r},-1.50)
+    {$r=\left[\left(\dfrac{\beta}{2\sigma}\right)^2+\dfrac{\sigma^2-f^2}{gD}\right]^{1/2}$\\$=CC'<CO\quad(\sigma<f)$};
+\end{tikzpicture}
+\end{center}
+\smallskip

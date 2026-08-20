@@ -1,0 +1,38 @@
+% wave-source: pdf=ChapmanRizzoli6.pdf; page=18; trim=75bp 435bp 65bp 70bp
+% Source: Wave Motions in the Ocean, printed p.164 (physical p.18), upper figure.
+% General coastal-trapped-wave dispersion is not analytic for arbitrary D(x).
+% The vector therefore enforces only the properties derived in the text:
+% omega(ell=0)=0, discrete ordered modes, and a common short-wave limit
+% omega -> S max[D_x] as ell -> -infinity. Curvature is schematic.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=1.05cm,y=1.05cm,>=stealth,line cap=round,line join=round,font=\small]
+  \def\asym{1.12}
+  \draw[->,line width=0.8pt] (-5.15,0) -- (1.12,0) node[right] {$\ell$};
+  \draw[->,line width=0.8pt] (0,-0.12) -- (0,3.45) node[above] {$\omega$};
+
+  % Common short-wave asymptote, placed as a short source-style guide at left.
+  \draw[line width=0.70pt] (-5.02,\asym) -- (-4.15,\asym);
+  \node[anchor=east] at (-5.10,\asym) {$\omega=S\max[D_x]$};
+
+  % q=-ell >=0. Each curve starts at zero, overshoots, and relaxes to the same
+  % short-wave asymptote. Coefficients are display-only and preserve mode ordering.
+  \foreach \h/\lab in {1.85/1,1.36/2,1.02/3,0.72/4} {
+    \draw[line width=0.78pt,samples=150,domain=0:4.75,variable=\q]
+      plot ({-\q},{\asym*(1-exp(-1.35*\q))+\h*\q*exp(-0.78*\q)});
+    \pgfmathsetmacro{\qx}{1.95}
+    \pgfmathsetmacro{\qy}{\asym*(1-exp(-1.35*\qx))+\h*\qx*exp(-0.78*\qx)}
+    \node[font=\footnotesize,anchor=south] at (-\qx,\qy+0.03) {$\lab$};
+  }
+  \node[font=\footnotesize,anchor=east] at (-2.00,2.82) {$n=1$};
+  \node at (-2.05,0.48) {$\vdots$};
+
+  % Free-surface Kelvin branch shown in the source only for comparison.
+  \draw[dashed,line width=0.62pt] (-0.14,0) -- (-0.38,3.20);
+  \node[anchor=west,align=left,font=\footnotesize] at (0.34,2.38)
+    {Kelvin wave\\(if free surface)};
+  \draw[->,line width=0.48pt] (0.28,2.31) -- (-0.24,2.44);
+  \node[anchor=west] at (0.12,2.96) {$1\ (\sigma=f)$};
+\end{tikzpicture}
+\end{center}
+\smallskip

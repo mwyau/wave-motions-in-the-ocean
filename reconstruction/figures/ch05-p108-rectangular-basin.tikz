@@ -1,0 +1,13 @@
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=13; trim=168.00bp 205.44bp 165.12bp 475.20bp
+% Source: Wave Motions in the Ocean, printed p.108 (physical p.13).
+% Vector redraw of the rectangular basin bounded by four solid walls.
+\begin{center}
+\begin{tikzpicture}[x=0.85cm,y=0.85cm,>=stealth,line cap=round,line join=round]
+  \draw[very thick] (0,0) rectangle (5.0,1.65);
+  \draw[->] (0,0)--(5.65,0) node[right] {$x$};
+  \draw[->] (0,0)--(0,2.25) node[above] {$y$};
+  \node[below left] at (0,0) {$0$};
+  \node[below] at (5,0) {$x=a$};
+  \node[left] at (0,1.65) {$y=b$};
+\end{tikzpicture}
+\end{center}

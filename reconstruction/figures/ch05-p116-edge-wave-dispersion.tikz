@@ -1,0 +1,60 @@
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=21; trim=129.60bp 445.44bp 155.52bp 168.00bp
+% Source: Wave Motions in the Ocean, printed p.116 (physical p.21).
+% Vector reconstruction of the edge-wave dispersion sketch.
+% The modal branches satisfy tan(k_1 L)=D_2 k_2/(D_1 k_1). The source is
+% schematic and gives no numerical depth ratio; D_2/D_1=8 is used only to match
+% its opening-angle ratio. Axis scaling likewise matches the source geometry.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=0.88cm,y=0.88cm,>=stealth,line cap=round,line join=round,font=\small]
+  \def\rr{8}
+  \def\ss{0.40}
+  \def\aa{0.72}
+
+  % Sector bounded by the deep-water gravity-wave lines.
+  \fill[black!14] (0,0) -- (2.24,4.56) -- (-2.24,4.56) -- cycle;
+
+  % Axes and limiting wave-speed lines.
+  \draw[->,line width=0.85pt] (-5.05,0) -- (5.15,0) node[right] {$\ell$};
+  \draw[->,line width=0.85pt] (0,-0.22) -- (0,4.92) node[above] {$\sigma$};
+  \draw[line width=0.70pt] (0,0) -- (2.24,4.56);
+  \draw[line width=0.70pt] (0,0) -- (-2.24,4.56);
+  \draw[dashed,line width=0.65pt] (0,0) -- (4.60,3.31);
+  \draw[dashed,line width=0.65pt] (0,0) -- (-4.60,3.31);
+
+  % Dimensionless parameterization of the first three roots. With
+  % q=k_1 L and r=D_2/D_1,
+  %   (ell L)^2 = q^2 [1+tan^2(q)/r]/(r-1),
+  % and sigma follows from sigma^2/(gD_1)=ell^2+k_1^2.
+  \begin{scope}
+    \clip (-4.72,0) rectangle (4.72,4.48);
+    \foreach \qlo/\qhi in {0.02/1.55,3.143/4.69,6.284/7.82} {
+      \draw[line width=0.72pt,samples=150,domain=\qlo:\qhi,variable=\q]
+        plot ({\ss*\q*sqrt((1+pow(tan(\q r),2)/\rr)/(\rr-1))},
+              {\ss*\aa*\q*sqrt((\rr+pow(tan(\q r),2)/\rr)/(\rr-1))});
+      \draw[line width=0.72pt,samples=150,domain=\qlo:\qhi,variable=\q]
+        plot ({-\ss*\q*sqrt((1+pow(tan(\q r),2)/\rr)/(\rr-1))},
+              {\ss*\aa*\q*sqrt((\rr+pow(tan(\q r),2)/\rr)/(\rr-1))});
+    }
+  \end{scope}
+
+  \node at (1.30,1.10) {$1$};
+  \node at (1.26,1.55) {$2$};
+  \node at (1.24,2.12) {$3$};
+  \node at (-1.30,1.10) {$1$};
+  \node at (-1.26,1.55) {$2$};
+  \node at (-1.24,2.12) {$3$};
+
+  % Labels are offset from their limiting rays so no dashed/solid line crosses
+  % the glyphs at final page scale.
+  \node[rotate=64,font=\footnotesize,inner sep=0.4pt] at (1.03,3.08)
+    {$\sigma=\sqrt{gD_2}\,\ell$};
+  \node[rotate=-64,font=\footnotesize,inner sep=0.4pt] at (-1.03,3.08)
+    {$\sigma=-\sqrt{gD_2}\,\ell$};
+  \node[rotate=36,font=\footnotesize,inner sep=0.4pt] at (3.36,1.62)
+    {$\sigma=\sqrt{gD_1}\,\ell$};
+  \node[rotate=-36,font=\footnotesize,inner sep=0.4pt] at (-3.36,1.62)
+    {$\sigma=-\sqrt{gD_1}\,\ell$};
+\end{tikzpicture}
+\end{center}
+\smallskip

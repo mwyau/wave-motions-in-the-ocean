@@ -1,0 +1,27 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=15; trim=190bp 615bp 165bp 60bp
+% Source: Wave Motions in the Ocean, printed p.78 (physical p.15), upper sketch.
+% Normalized exact shapes for case A with S^2>0:
+%   LHS = C/k,  C>0;
+%   RHS = tanh(a k).
+% Positive and negative intersections therefore give the two oppositely traveling
+% surface-wave roots. C=a=1 is a display normalization only.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=1.1cm,y=1.0cm,>=stealth,line cap=round,line join=round,font=\small]
+  \draw[->,line width=0.75pt] (-3.25,0) -- (3.35,0) node[right] {$k$};
+  \draw[line width=0.65pt] (0,-2.00) -- (0,2.15);
+
+  % LHS = 1/k; split around the vertical asymptote.
+  \draw[line width=0.82pt,samples=120,domain=0.38:3.00,variable=\x]
+    plot (\x,{1/\x});
+  \draw[line width=0.82pt,samples=120,domain=-3.00:-0.38,variable=\x]
+    plot (\x,{1/\x});
+  % RHS = tanh(k), written in exponential form for portable PGF evaluation.
+  \draw[line width=0.82pt,samples=150,domain=-3.00:3.00,variable=\x]
+    plot (\x,{(exp(2*\x)-1)/(exp(2*\x)+1)});
+
+  \node[anchor=west] at (0.62,1.73) {LHS};
+  \node[anchor=west] at (1.95,1.28) {RHS};
+\end{tikzpicture}
+\end{center}
+\smallskip

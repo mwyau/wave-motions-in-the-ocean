@@ -1,0 +1,25 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=15; trim=190bp 300bp 165bp 390bp
+% Source: Wave Motions in the Ocean, printed p.78 (physical p.15), lower sketch.
+% Normalized exact shapes for case A1 with S^2<0:
+%   LHS = -C/k, C>0;
+%   RHS = tanh(a k).
+% The two curves have opposite sign for every real nonzero k, so no propagating
+% real-k roots exist. C=a=1 is display normalization only.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=1.1cm,y=1.0cm,>=stealth,line cap=round,line join=round,font=\small]
+  \draw[->,line width=0.75pt] (-3.25,0) -- (3.35,0) node[right] {$k$};
+  \draw[line width=0.65pt] (0,-2.00) -- (0,2.15);
+
+  \draw[line width=0.82pt,samples=120,domain=0.38:3.00,variable=\x]
+    plot (\x,{-1/\x});
+  \draw[line width=0.82pt,samples=120,domain=-3.00:-0.38,variable=\x]
+    plot (\x,{-1/\x});
+  \draw[line width=0.82pt,samples=150,domain=-3.00:3.00,variable=\x]
+    plot (\x,{(exp(2*\x)-1)/(exp(2*\x)+1)});
+
+  \node[anchor=west] at (1.90,1.26) {RHS};
+  \node[anchor=west] at (1.30,-1.22) {LHS};
+\end{tikzpicture}
+\end{center}
+\smallskip

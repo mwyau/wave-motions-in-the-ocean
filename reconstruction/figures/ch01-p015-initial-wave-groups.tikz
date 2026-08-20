@@ -1,0 +1,56 @@
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=25; trim=62bp 445bp 69bp 46bp
+% Source: Wave Motions in the Ocean, printed p.15 (physical p.25).
+% Equation-constrained redraw: the two carrier periods equal the displayed lambda_1
+% and lambda_2 exactly; the k plateaus are proportional to 2pi/lambda with one
+% common display scale.  lambda_1=0.54 and lambda_2=0.45 are schematic display
+% normalizations chosen to match the source proportions, not measured ocean values.
+\begin{tikzpicture}[x=0.92cm,y=0.92cm,>=stealth,line cap=round,line join=round,font=\small]
+  \def\lamone{0.54}
+  \def\lamtwo{0.45}
+  \def\kbase{0.70}
+  \def\kscale{0.30}
+  \pgfmathsetmacro{\kone}{\kbase+\kscale/\lamone}
+  \pgfmathsetmacro{\ktwo}{\kbase+\kscale/\lamtwo}
+
+  \draw[->,line width=0.65pt] (0,-0.25) -- (0,6.25);
+  \foreach \yy in {5.15,2.95,0.70} {\draw[->,line width=0.60pt] (0,\yy) -- (9.35,\yy) node[right] {$x$};}
+  \node[anchor=east] at (-0.18,5.15) {$\phi(x,0)$};
+  \node[anchor=east] at (-0.18,2.95) {$a(x,0)$};
+  \node[anchor=east] at (-0.18,0.70) {$k(x,0)$};
+
+  % The carrier periods are exactly lambda_1 and lambda_2, matching the markers.
+  \draw[line width=0.82pt,samples=420,smooth,domain=0.05:4.05,variable=\x]
+    plot (\x,{5.15+0.46*exp(-0.72*(\x-2.02)*(\x-2.02))*cos(360*(\x-2.02)/\lamone)});
+  \draw[line width=0.82pt,samples=460,smooth,domain=4.55:8.55,variable=\x]
+    plot (\x,{5.15+0.70*exp(-0.72*(\x-6.55)*(\x-6.55))*cos(360*(\x-6.55)/\lamtwo)});
+
+  % Wavelength markers use the same exact display wavelengths as the carriers.
+  \draw[line width=0.48pt] ({2.02-\lamone/2},5.78) -- ({2.02-\lamone/2},5.38);
+  \draw[line width=0.48pt] ({2.02+\lamone/2},5.78) -- ({2.02+\lamone/2},5.38);
+  \draw[<->,line width=0.52pt] ({2.02-\lamone/2},5.67) -- ({2.02+\lamone/2},5.67);
+  \node[above] at (2.02,5.66) {$\lambda_1$};
+  \draw[line width=0.48pt] ({6.55-\lamtwo/2},5.96) -- ({6.55-\lamtwo/2},5.52);
+  \draw[line width=0.48pt] ({6.55+\lamtwo/2},5.96) -- ({6.55+\lamtwo/2},5.52);
+  \draw[<->,line width=0.52pt] ({6.55-\lamtwo/2},5.83) -- ({6.55+\lamtwo/2},5.83);
+  \node[above] at (6.55,5.82) {$\lambda_2$};
+  \node at (8.05,5.72) {$\lambda_1>\lambda_2$};
+
+  \draw[line width=0.78pt,samples=100,smooth,domain=0.02:4.05,variable=\x]
+    plot (\x,{2.95+0.40*exp(-0.62*(\x-2.0)*(\x-2.0))});
+  \draw[line width=0.78pt,samples=100,smooth,domain=4.55:8.55,variable=\x]
+    plot (\x,{2.95+0.76*exp(-0.62*(\x-6.55)*(\x-6.55))});
+
+  \draw[line width=0.78pt]
+    (0.02,\kbase) .. controls (0.16,\kbase) and (0.16,\kone-0.06) .. (0.48,\kone)
+    -- (3.52,\kone) .. controls (3.86,\kone-0.03) and (3.86,\kbase) .. (4.08,\kbase);
+  \draw[line width=0.78pt]
+    (4.55,\kbase) .. controls (4.76,\kbase) and (4.76,\ktwo-0.05) .. (5.05,\ktwo)
+    -- (8.12,\ktwo) .. controls (8.38,\ktwo-0.05) and (8.38,\kbase) .. (8.56,\kbase);
+
+  \draw[->,line width=0.50pt] (2.08,1.63) -- (2.08,\kone+0.02);
+  \draw[->,line width=0.50pt] (2.08,0.32) -- (2.08,0.67);
+  \node[right] at (2.20,0.31) {$\dfrac{2\pi}{\lambda_1}$};
+  \draw[->,line width=0.50pt] (6.50,1.72) -- (6.50,\ktwo+0.02);
+  \draw[->,line width=0.50pt] (6.50,0.32) -- (6.50,0.67);
+  \node[right] at (6.62,0.31) {$\dfrac{2\pi}{\lambda_2}$};
+\end{tikzpicture}
