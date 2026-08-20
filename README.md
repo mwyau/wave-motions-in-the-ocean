@@ -84,3 +84,20 @@ The reconstruction is still a work in progress.
 ![Rick Salmon and Myrl Hendershott at Villa Carlotta, Lake Como, 1980](reconstruction/figures/frontmatter/salmon-hendershott-como-1980.jpeg)
 
 *Rick Salmon (left) and Myrl Hendershott at Villa Carlotta, Lake Como, during the International School of Physics “Enrico Fermi,” Course LXXX, **Topics in Ocean Physics**, July 1980.*
+
+## Contents
+
+1. [Chapter 1](https://mwyau.github.io/wave-motions-in-the-ocean/chapter1.html)
+2. [Chapter 2](https://mwyau.github.io/wave-motions-in-the-ocean/chapter2.html)
+3. [Chapter 3](https://mwyau.github.io/wave-motions-in-the-ocean/chapter3.html)
+4. [Chapter 4](https://mwyau.github.io/wave-motions-in-the-ocean/chapter4.html)
+5. [Chapter 5](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html)
+6. [Chapter 6](https://mwyau.github.io/wave-motions-in-the-ocean/chapter6.html)
+
+[References](https://mwyau.github.io/wave-motions-in-the-ocean/references.html)
+
+## Downloads
+
+- [PDF](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.pdf)
+
+This work is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" width="16" height="16"> <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" width="16" height="16"> <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" width="16" height="16"> <img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" width="16" height="16">
