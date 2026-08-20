@@ -108,6 +108,10 @@ stamp_epub() {
   python3 "$ROOT/scripts/stamp-build-info.py" --epub
 }
 
+write_checksums() {
+  python3 "$ROOT/scripts/checksums.py" --root "$DIST" --write
+}
+
 clean_html_outputs() {
   rm -rf "$DIST/assets"
   rm -f "$DIST/index.html" "$DIST/references.html" "$DIST"/chapter*.html
@@ -133,9 +137,11 @@ case "$TARGET" in
     finish_html
     stamp_html
     stamp_epub
+    write_checksums
     if [[ "$SKIP_VALIDATION" != "1" ]]; then
       bash "$ROOT/scripts/validate-publication.sh" publish-root
       bash "$ROOT/scripts/validate-publication.sh" build-identity
+      bash "$ROOT/scripts/validate-publication.sh" checksums
     fi
     ;;
   pdf)

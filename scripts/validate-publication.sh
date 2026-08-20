@@ -86,6 +86,7 @@ check_publish_root() {
   test -s "$DIST/wave-motions.pdf"
   test -s "$DIST/wave-motions-facsimile.pdf"
   test -s "$DIST/wave-motions.epub"
+  test -s "$DIST/SHA256SUMS"
   grep -q 'wave-motions.pdf' "$DIST/index.html"
   grep -q 'wave-motions-facsimile.pdf' "$DIST/index.html"
   grep -q 'wave-motions.epub' "$DIST/index.html"
@@ -131,6 +132,40 @@ PY
   printf 'Build identity OK: %s\n' "$label"
 }
 
+check_checksums() {
+  need python3
+  python3 "$ROOT/scripts/checksums.py" --root "$DIST" --check
+}
+
+check_release_gate() {
+  need python3
+  need pdfinfo
+
+  local tag version short label fac_pages
+  tag=${WAVE_BUILD_VERSION:-${GITHUB_REF_NAME:-}}
+  if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "release tag must be a stable semantic version such as v1.0.0; got: ${tag:-<empty>}" >&2
+    exit 1
+  fi
+
+  version=$(python3 "$ROOT/scripts/build_info.py" --version)
+  short=$(python3 "$ROOT/scripts/build_info.py" --short)
+  label=$(python3 "$ROOT/scripts/build_info.py" --label)
+  test "$version" = "$tag"
+  test "$short" != "unknown"
+  test "$label" = "$tag ($short)"
+  [[ "$label" != *"+dirty"* ]]
+
+  fac_pages=$(pdf_pages "$DIST/wave-motions-facsimile.pdf")
+  if [[ "$fac_pages" != "184" ]]; then
+    echo "release blocked: facsimile page count is $fac_pages; expected exactly 184" >&2
+    exit 1
+  fi
+
+  check_checksums
+  printf 'Release gate OK: %s, facsimile=%s pages\n' "$label" "$fac_pages"
+}
+
 case "$MODE" in
   pdf-integrity) check_pdf_integrity ;;
   pdf-destinations) check_pdf_destinations ;;
@@ -138,6 +173,8 @@ case "$MODE" in
   pdf-render) check_pdf_render ;;
   publish-root) check_publish_root ;;
   build-identity) check_build_identity ;;
+  checksums) check_checksums ;;
+  release-gate) check_release_gate ;;
   pdf)
     check_pdf_integrity
     check_pdf_destinations
@@ -151,9 +188,10 @@ case "$MODE" in
     check_pdf_render
     check_publish_root
     check_build_identity
+    check_checksums
     ;;
   *)
-    echo "usage: $0 [pdf-integrity|pdf-destinations|pdf-text|pdf-render|publish-root|build-identity|pdf|all]" >&2
+    echo "usage: $0 [pdf-integrity|pdf-destinations|pdf-text|pdf-render|publish-root|build-identity|checksums|release-gate|pdf|all]" >&2
     exit 2
     ;;
 esac

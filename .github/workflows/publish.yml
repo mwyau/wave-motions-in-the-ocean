@@ -3,6 +3,16 @@ name: Build
 on:
   push:
     branches: [main]
+    tags:
+      - "v[0-9]*.[0-9]*.[0-9]*"
+    paths:
+      - "reconstruction/**"
+      - "scripts/**"
+      - ".python-version"
+      - "requirements.txt"
+      - "tex-packages.txt"
+      - "README.md"
+      - ".github/workflows/publish.yml"
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -10,8 +20,6 @@ on:
 permissions:
   actions: read
   contents: read
-  pages: write
-  id-token: write
 
 jobs:
   build:
@@ -91,6 +99,7 @@ jobs:
           echo "TEXBIN=$TEXBIN" >> "$GITHUB_ENV"
 
       - name: Install TeX dependencies
+        if: steps.tinytex-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -122,6 +131,13 @@ jobs:
       - name: Check build identity
         run: bash scripts/validate-publication.sh build-identity
 
+      - name: Check checksum manifest
+        run: bash scripts/validate-publication.sh checksums
+
+      - name: Check release gate
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: bash scripts/validate-publication.sh release-gate
+
       - name: Upload publication artifact
         uses: actions/upload-artifact@v7.0.1
         with:
@@ -142,10 +158,51 @@ jobs:
         with:
           path: dist
 
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-26.04
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - name: Check out release source
+        uses: actions/checkout@v7.0.1
+
+      - name: Download validated publication
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: wave-motions-editions
+          path: dist
+
+      - name: Prepare release assets
+        run: python3 scripts/package-release.py --dist dist --output release
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="$GITHUB_REF_NAME"
+          assets=(release/wave-motions.pdf release/wave-motions-facsimile.pdf release/wave-motions.epub release/wave-motions-html.zip release/SHA256SUMS)
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$tag" "${assets[@]}" --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$tag" "${assets[@]}" \
+              --repo "$GITHUB_REPOSITORY" \
+              --verify-tag \
+              --generate-notes \
+              --title "$tag"
+          fi
+
   deploy:
     if: ${{ false && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
     needs: build
     runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     concurrency:
       group: pages
       cancel-in-progress: false
