@@ -59,7 +59,7 @@ jobs:
             test "$(git hash-object reconstruction/chapter4.tex)" = da72ea0b34bb0fca3d51533baf5fc6a2405a5c62
             test "$(git hash-object reconstruction/chapter5.tex)" = 16c2a70197c1b011719e9600a8ca66f12240bd80
             test "$(git hash-object reconstruction/ERRATA.md)" = 8c2bba779f240556f9f6c6413938e0b8bc466be0
-            test "$(git hash-object reconstruction/PLAN.md)" = 63f2afc1fd0b414e3b525d7554e2af22e1a24c97
+            test "$(git hash-object reconstruction/PLAN.md)" = 9f9a21c128793b68c1c21bb7d9ae501c53ebfed7
 
             python3 /tmp/apply_errata.py
 
@@ -110,7 +110,7 @@ jobs:
             test "$(git hash-object reconstruction/chapter4.tex)" = 603c50a5a83a61fc38280ff9ca03dc0b554ab03a
             test "$(git hash-object reconstruction/chapter5.tex)" = 04538177bdf45e3ef16b41ae614f6e38247bea83
             test "$(git hash-object reconstruction/ERRATA.md)" = b4c698dbad45b845bc922ea7f00403505dcda62a
-            test "$(git hash-object reconstruction/PLAN.md)" = 6c6d9c05e8615baab6ec6f634517d0d1ec138fea
+            test "$(git hash-object reconstruction/PLAN.md)" = 867b667e1d5bdbce985ed4d4ea32eb47c67c1d64
 
             python3 scripts/sync-views.py --readme
             python3 scripts/sync-views.py --check-readme
@@ -123,7 +123,7 @@ jobs:
               git commit -m "Correct audited wave relations"
             fi
 
-            # Checkpoint 2: records and every #7-owned temporary helper.
+            # Checkpoint 2: reviewed records and every #7-owned temporary helper.
             rm -f \
               .github/workflows/finalize-errata-audit.yml \
               .github/workflows/run-finalize-errata-audit.yml \
