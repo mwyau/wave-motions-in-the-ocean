@@ -1,7 +1,7 @@
 % wave-source: pdf=ChapmanRizzoli4.pdf; page=16; trim=70bp 420bp 55bp 125bp
 % Source: Wave Motions in the Ocean, printed p.79 (physical p.16).
 % Normalized exact plot of C/x=tan x, x=kRD; C=+0.7 and -0.7 illustrate S^2 signs.
-\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\scriptsize,line cap=round]
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
 \foreach \dx/\sgn/\title in {0/1/{$\sigma^2>f^2$},4.75/-1/{$\sigma^2<f^2$}}{
   \begin{scope}[xshift=\dx cm]
     \draw[->] (0.45,2.35)--(4.25,2.35) node[right] {$x=kRD$};

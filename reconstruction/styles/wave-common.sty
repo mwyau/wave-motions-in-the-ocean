@@ -72,8 +72,12 @@
   \smallskip
 }
 
-% Explicit vector reconstruction. This is intentionally not a replacement
-% registry: the chapter names the vector file directly.
+% Explicit vector reconstruction. The requested width scales only the geometric
+% TikZ coordinate system. Labels keep one physical \small size, and line weights
+% and arrowheads are not silently magnified or shrunk with the figure width.
+% The small safety factor leaves room for unscaled text at the picture boundary.
+\newsavebox{\wavevectorbox}
+\makeatletter
 \newcommand{\wavevectorart}[2][0.72]{%
   \par\smallskip
   \begin{center}
@@ -82,12 +86,24 @@
       \let\smallskip\relax
       \def\center{}%
       \def\endcenter{}%
-      \resizebox{#1\linewidth}{!}{\input{figures/#2.tikz}}%
+      \sbox{\wavevectorbox}{%
+        \begingroup
+          \small
+          \input{figures/#2.tikz}%
+        \endgroup
+      }%
+      \pgfmathsetmacro{\wavevectorscale}{%
+        0.975*(#1*\strip@pt\linewidth)/(\strip@pt\wd\wavevectorbox)%
+      }%
+      \tikzset{every picture/.append style={scale=\wavevectorscale}}%
+      \small
+      \input{figures/#2.tikz}%
     \endgroup
   \end{center}
   \wavefiguremark
   \smallskip
 }
+\makeatother
 
 % Use a stable heading name in PDF and HTML bibliography output.
 \renewcommand{\bibname}{References}

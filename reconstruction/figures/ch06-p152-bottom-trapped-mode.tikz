@@ -8,8 +8,10 @@
   \draw[->] (0.75,4.55)--(7.7,4.55) node[right] {$p$};
   \node[left] at (0.88,4.55) {$0$};
   \node[left] at (0.88,0.85) {$-1$};
-  \draw[densely dashed] (1.0,0.85)--(7.1,0.85) node[right] {bottom};
-  \draw[densely dashed] (1.0,4.55)--(7.1,4.55) node[right] {surface};
+  \draw[densely dashed] (1.0,0.85)--(7.1,0.85);
+  \node[below right=1pt] at (7.1,0.85) {bottom};
+  \draw[densely dashed] (1.0,4.55)--(7.1,4.55);
+  \node[below left=1pt] at (6.45,4.55) {surface};
   \draw[line width=.95pt,domain=0:1,samples=120,smooth,variable=\s]
     plot ({1.0+5.7*cosh(\mu*(1-\s))/cosh(\mu)},{0.85+3.70*\s});
   \draw[<->] (6.7,0.85)--(6.7,4.55);

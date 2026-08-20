@@ -1,7 +1,7 @@
 % wave-source: pdf=ChapmanRizzoli4.pdf; page=20; trim=85bp 420bp 75bp 80bp
 % Source: Wave Motions in the Ocean, printed p.83 (physical p.20).
 % Normalized exact plot C/x=-tan x. C=+0.7 (A) and C=-0.7 (A1); A1 has the additional small-|k| pair.
-\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\scriptsize,line cap=round]
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
 \foreach \dx/\sgn/\title in {0/1/{A},4.75/-1/{A1}}{
   \begin{scope}[xshift=\dx cm]
     \draw[->] (0.45,2.35)--(4.25,2.35) node[right] {$x=kR_1D$};

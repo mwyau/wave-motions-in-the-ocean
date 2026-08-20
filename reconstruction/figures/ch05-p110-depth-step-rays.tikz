@@ -34,9 +34,9 @@
     \draw[->,line width=0.85pt] (0,0) -- ({\raylen*cos(\alphaI)},{-\raylen*sin(\alphaI)});
     \draw[->,line width=0.85pt] (0,0) -- ({-\translen*cos(\alphaT)},{-\translen*sin(\alphaT)});
 
-    \node[anchor=west,font=\itshape] at (1.48,0.51) {incident};
-    \node[anchor=west,font=\itshape] at (1.42,-0.69) {reflected};
-    \node[anchor=north,font=\itshape] at (-1.34,-0.67) {transmitted};
+    \node[anchor=west] at (1.48,0.51) {incident};
+    \node[anchor=west] at (1.42,-0.69) {reflected};
+    \node[anchor=north] at (-1.34,-0.67) {transmitted};
 
     \node at (0.70,0.22) {$\alpha_I$};
     \node at (0.70,-0.22) {$\alpha_R$};

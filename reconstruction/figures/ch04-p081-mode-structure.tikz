@@ -14,5 +14,5 @@
   \draw[line width=.75pt,dashed,domain=0:1,samples=90,smooth,variable=\s]
     plot ({2.15+1.55*cos(180*\s)},{0.80+3.50*\s});
   \node[anchor=west] at (3.65,4.05) {$-u/(Rw_0\sin\chi)$};
-  \node[anchor=west] at (0.55,0.35) {$\chi=k_1x-\sigma t$ fixes only the instantaneous horizontal factor$.$};
+  \node[anchor=west] at (0.55,0.35) {$\chi=k_1x-\sigma t$ fixes only the instantaneous horizontal factor.};
 \end{tikzpicture}
