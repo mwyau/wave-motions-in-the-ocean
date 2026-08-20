@@ -2,6 +2,9 @@
 name: One-time errata reconciliation
 
 on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/source-cleanup.yml]
   issues:
     types: [opened, reopened]
 
@@ -10,7 +13,7 @@ permissions:
 
 jobs:
   reconcile:
-    if: github.event.issue.title == '[internal] one-time source cleanup'
+    if: github.event_name == 'push' || github.event.issue.title == '[internal] one-time source cleanup'
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7.0.1
@@ -87,7 +90,6 @@ ones.""",
               "Thus, in a westward propagating wave with $\\ell=0$,\n\\[",
           )
 
-          # This workflow was temporary; remove it in the same source commit.
           Path(".github/workflows/source-cleanup.yml").unlink()
           PY
 
