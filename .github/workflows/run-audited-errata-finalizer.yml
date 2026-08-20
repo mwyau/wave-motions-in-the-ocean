@@ -5,7 +5,9 @@ on:
     branches: [main]
 
 permissions:
+  actions: write
   contents: write
+  issues: write
 
 concurrency:
   group: run-audited-errata-finalizer
@@ -13,7 +15,6 @@ concurrency:
 
 jobs:
   finalize:
-    if: github.event.head_commit.message == 'Run audited source errata finalization'
     runs-on: ubuntu-26.04
     steps:
       - name: Check out newest main
@@ -55,24 +56,21 @@ jobs:
             git reset --hard origin/main
             python3 /tmp/apply_errata.py
 
-            # FIGURES.md is owned by issue #9; leave its current checkpoint untouched.
+            # Issue #9 owns FIGURES.md reconciliation after #7 releases ERRATA.md.
             git restore -- reconstruction/FIGURES.md
 
-            # Required after reconstruction source changes. These chapter-body edits do
-            # not alter generated README structure, but run the canonical sync gate.
             python3 scripts/sync-views.py --readme
             python3 scripts/sync-views.py --check-readme
-
             git diff --check
 
-            # Checkpoint 1: canonical scientific text only (plus README if sync changed it).
+            # Checkpoint 1: canonical scientific text only.
             git add -- reconstruction/chapter4.tex reconstruction/chapter5.tex README.md
             git diff --cached --check
             if ! git diff --cached --quiet; then
               git commit -m "Correct audited wave relations"
             fi
 
-            # Checkpoint 2: reviewed records and #7-owned temporary automation cleanup.
+            # Checkpoint 2: reviewed records and every #7-owned temporary helper.
             rm -f \
               .github/workflows/finalize-errata-audit.yml \
               .github/workflows/run-finalize-errata-audit.yml \
@@ -91,11 +89,38 @@ jobs:
               git commit -m "Resolve audited source errata records"
             fi
 
-            if git diff --quiet && git diff --cached --quiet; then
-              if git push origin HEAD:main; then
-                success=true
-                break
-              fi
+            if git diff --quiet && git diff --cached --quiet && git push origin HEAD:main; then
+              echo "FINAL_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+              success=true
+              break
             fi
           done
           test "$success" = true
+
+      - name: Validate canonical publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run publish.yml --ref main
+          run_id=""
+          for _ in $(seq 1 90); do
+            run_id=$(gh run list --workflow publish.yml --branch main --event workflow_dispatch --limit 30 \
+              --json databaseId,headSha,createdAt \
+              --jq ".[] | select(.headSha == \"$FINAL_SHA\") | .databaseId" | head -n1)
+            [ -n "$run_id" ] && break
+            sleep 2
+          done
+          test -n "$run_id"
+          echo "PUBLISH_RUN_ID=$run_id" >> "$GITHUB_ENV"
+          gh run watch "$run_id" --exit-status
+
+      - name: Record completion and close issue 7
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh issue comment 7 --body "Completed #7 at $FINAL_SHA. Canonical Publish run $PUBLISH_RUN_ID passed. The scientific source corrections and ERRATA/PLAN cleanup were committed as separate checkpoints; all #7 temporary automation self-deleted, and FIGURES.md remained owned by #9."
+          gh issue close 7 --reason completed
