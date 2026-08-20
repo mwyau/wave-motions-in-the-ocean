@@ -1,0 +1,81 @@
+name: Run audited errata finalizer
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: run-audited-errata-finalizer
+  cancel-in-progress: false
+
+jobs:
+  finalize:
+    if: github.event.head_commit.message == 'Run audited source errata finalization'
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Check out newest main
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Apply reviewed issue 7 patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import textwrap
+
+          source = Path('.github/workflows/finalize-errata-audit.yml').read_text()
+          opener = "          cat > /tmp/apply_errata.py <<'PY'\n"
+          closer = "\n          PY\n\n          success=false"
+          if opener not in source or closer not in source:
+              raise SystemExit('cannot locate reviewed errata patch')
+          code = source.split(opener, 1)[1].split(closer, 1)[0]
+          Path('/tmp/apply_errata.py').write_text(textwrap.dedent(code))
+          PY
+
+          success=false
+          for attempt in $(seq 1 20); do
+            git fetch origin main
+            git reset --hard origin/main
+            python3 /tmp/apply_errata.py
+
+            rm -f \
+              .github/workflows/finalize-errata-audit.yml \
+              .github/workflows/run-finalize-errata-audit.yml \
+              .github/workflows/run-audited-errata-finalizer.yml \
+              .github/errata-audit-finalize.trigger
+
+            git diff --check
+            git add -- \
+              reconstruction/chapter4.tex \
+              reconstruction/chapter5.tex \
+              reconstruction/ERRATA.md \
+              reconstruction/FIGURES.md \
+              reconstruction/PLAN.md \
+              .github/workflows/finalize-errata-audit.yml \
+              .github/workflows/run-finalize-errata-audit.yml \
+              .github/workflows/run-audited-errata-finalizer.yml \
+              .github/errata-audit-finalize.trigger
+            git diff --cached --check
+
+            if git diff --cached --quiet; then
+              success=true
+              break
+            fi
+
+            git commit -m "Resolve audited source errata"
+            if git push origin HEAD:main; then
+              success=true
+              break
+            fi
+          done
+          test "$success" = true
