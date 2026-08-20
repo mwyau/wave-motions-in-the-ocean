@@ -35,6 +35,9 @@ SOURCEART_RE = re.compile(
 )
 VECTOR_RE = re.compile(r"\\wavevectorart(?:\[(?P<width>[^]]+)\])?\{(?P<stem>[^}]+)\}")
 TIKZ_INPUT_RE = re.compile(r"\\input\{figures/(?P<stem>[^}]+)\.tikz\}")
+SIGNATURE_RE = re.compile(
+    r"\\wavesignature\{(?P<name>[^{}]+)\}\{(?P<place>[^{}]+)\}\{(?P<year>[^{}]+)\}"
+)
 # Direct source-PDF inclusions retained where a one-off wrapper would be needless.
 DIRECT_PDF_RE = re.compile(
     r"\\includegraphics\[(?P<opts>[^]]*page=(?P<page>\d+)[^]]*trim=(?P<trim>[^,\]]+)[^]]*)\]"
@@ -189,6 +192,16 @@ def transform_tex(text: str) -> str:
     # Source-compatible pagination has no meaning in flowing HTML.
     text = text.replace(r"\sourcepagebreak", "")
     text = re.sub(r"\\setcounter\{page\}\{[^}]+\}", "", text)
+
+    def signature_sub(m: re.Match[str]) -> str:
+        return (
+            "\\begin{flushright}\n"
+            f"\\textit{{{m.group('name')}}}\\\\\n"
+            f"{m.group('place')}, {m.group('year')}\n"
+            "\\end{flushright}"
+        )
+
+    text = SIGNATURE_RE.sub(signature_sub, text)
 
     def vector_sub(m: re.Match[str]) -> str:
         return rf"\includegraphics{{assets/figures/{m.group('stem')}.svg}}"
@@ -353,6 +366,7 @@ h1,h2,h3,nav { font-family: system-ui, sans-serif; }
 .book-nav { margin: 0 0 2rem; padding: .75rem 0; border-bottom: 1px solid #bbb; }
 .book-nav + header { margin-top: 1rem; }
 .book-toc { margin: 3rem 0; padding-top: 1rem; border-top: 1px solid #bbb; }
+.flushright { text-align: right; margin: 1.5rem 0; }
 img, svg { display: block; max-width: min(100%, 58rem); height: auto; margin: 1.1rem auto; }
 .math.display { overflow-x: auto; overflow-y: hidden; padding: .2rem 0; }
 .references { font-size: .96rem; }
