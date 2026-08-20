@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Apply conservative accessibility discovery metadata to the generated EPUB."""
+"""Apply and verify conservative accessibility discovery metadata for EPUB."""
 from __future__ import annotations
 
 import argparse
+import posixpath
 import shutil
 import tempfile
+import urllib.parse
 import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
@@ -14,6 +16,10 @@ EPUB = ROOT / "dist" / "wave-motions.epub"
 OPF_NS = "http://www.idpf.org/2007/opf"
 DC_NS = "http://purl.org/dc/elements/1.1/"
 
+ACCESSIBILITY_SUMMARY = (
+    "Mathematics is encoded as MathML and the EPUB includes linked table-of-contents navigation. "
+    "Scientific figures do not yet have complete alternative text or extended descriptions, so visual access is required for full use."
+)
 ACCESSIBILITY_METADATA: tuple[tuple[str, str], ...] = (
     ("schema:accessMode", "textual"),
     ("schema:accessMode", "visual"),
@@ -21,15 +27,12 @@ ACCESSIBILITY_METADATA: tuple[tuple[str, str], ...] = (
     ("schema:accessibilityFeature", "MathML"),
     ("schema:accessibilityFeature", "tableOfContents"),
     ("schema:accessibilityHazard", "none"),
-    (
-        "schema:accessibilitySummary",
-        "Mathematics is encoded as MathML and the EPUB includes linked table-of-contents navigation. "
-        "Scientific figures do not yet have complete alternative text or extended descriptions, so visual access is required for full use.",
-    ),
+    ("schema:accessibilitySummary", ACCESSIBILITY_SUMMARY),
 )
 ACCESSIBILITY_PROPERTIES = {
     property_name for property_name, _ in ACCESSIBILITY_METADATA
 }
+GENERIC_ALT_TEXT = {"image", "figure"}
 
 
 def package_document(archive: zipfile.ZipFile) -> tuple[str, ET.Element]:
@@ -128,6 +131,39 @@ def apply_metadata(epub: Path) -> None:
         tmp.unlink(missing_ok=True)
 
 
+def image_alternative_inventory(
+    archive: zipfile.ZipFile,
+    opf_name: str,
+    opf_root: ET.Element,
+) -> tuple[int, int, int, int, int]:
+    manifest = opf_root.find("{*}manifest")
+    if manifest is None:
+        raise SystemExit("EPUB manifest is missing")
+    package_dir = posixpath.dirname(opf_name)
+    total = meaningful = generic = empty = missing = 0
+    for item in manifest.findall("{*}item"):
+        if item.get("media-type") != "application/xhtml+xml" or not item.get("href"):
+            continue
+        href = urllib.parse.unquote(item.get("href") or "")
+        member = posixpath.normpath(posixpath.join(package_dir, href))
+        try:
+            root = ET.fromstring(archive.read(member))
+        except (KeyError, ET.ParseError) as exc:
+            raise SystemExit(f"cannot parse EPUB XHTML {member}: {exc}") from exc
+        for image in root.findall(".//{*}img"):
+            total += 1
+            alt = image.get("alt")
+            if alt is None:
+                missing += 1
+            elif not alt.strip():
+                empty += 1
+            elif alt.strip().casefold() in GENERIC_ALT_TEXT:
+                generic += 1
+            else:
+                meaningful += 1
+    return total, meaningful, generic, empty, missing
+
+
 def validate_metadata(epub: Path) -> None:
     with zipfile.ZipFile(epub, "r") as archive:
         if archive.testzip() is not None:
@@ -142,7 +178,7 @@ def validate_metadata(epub: Path) -> None:
                 "EPUB mimetype entry is invalid after accessibility metadata update"
             )
 
-        _, opf_root = package_document(archive)
+        opf_name, opf_root = package_document(archive)
         metadata = opf_root.find("{*}metadata")
         if metadata is None:
             raise SystemExit("EPUB package metadata is missing")
@@ -184,15 +220,36 @@ def validate_metadata(epub: Path) -> None:
                     "EPUB must not claim accessibility conformance before the audit is complete"
                 )
 
+        total, meaningful, generic, empty, missing = image_alternative_inventory(
+            archive, opf_name, opf_root
+        )
+        if total == 0:
+            raise SystemExit("EPUB contains no images to audit for alternative text")
+
     print("EPUB accessibility discovery metadata OK")
+    print(
+        "EPUB image-alternative baseline: "
+        f"total={total}, meaningful={meaningful}, generic={generic}, "
+        f"empty={empty}, missing={missing}"
+    )
+    if generic or missing:
+        print(
+            "Accessibility audit remains open: scientific figure alternatives are incomplete",
+        )
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("epub", nargs="?", type=Path, default=EPUB)
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="verify the generated EPUB without modifying it",
+    )
     args = parser.parse_args()
     epub = args.epub.resolve()
-    apply_metadata(epub)
+    if not args.check:
+        apply_metadata(epub)
     validate_metadata(epub)
     return 0
 
