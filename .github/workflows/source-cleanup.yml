@@ -1,3 +1,4 @@
+# One-time workflow; remove after the cleanup commit lands.
 name: One-time source cleanup
 
 on:
