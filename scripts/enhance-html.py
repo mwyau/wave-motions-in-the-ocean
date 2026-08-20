@@ -30,6 +30,7 @@ EXTRA_CSS = r"""
   --wave-bg: #fbfaf7;
   --wave-text: #202124;
   --wave-muted: #62666b;
+  --wave-heading: #245A73;
   --wave-link: #145d8c;
   --wave-visited: #6b4c84;
   --wave-rule: #c9c5bc;
@@ -45,6 +46,7 @@ EXTRA_CSS = r"""
   --wave-bg: #111416;
   --wave-text: #e8e4dc;
   --wave-muted: #b7b2aa;
+  --wave-heading: #8fc7ee;
   --wave-link: #8fc7ee;
   --wave-visited: #cbb3e6;
   --wave-rule: #4b5054;
@@ -62,11 +64,24 @@ body {
   max-width: 60rem;
   background: var(--wave-bg);
   color: var(--wave-text);
-  font-size: clamp(1rem, .97rem + .14vw, 1.08rem);
-  line-height: 1.62;
+  font-size: clamp(1.0625rem, 1.02rem + .16vw, 1.125rem);
+  line-height: 1.56;
 }
 ::selection { background: var(--wave-selection); }
-h1, h2, h3 { line-height: 1.2; overflow-wrap: anywhere; }
+h1, h2, h3 {
+  color: var(--wave-heading);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+h1 { font-size: clamp(2.1rem, 1.95rem + .7vw, 2.5rem); }
+h2 { font-size: clamp(1.45rem, 1.35rem + .45vw, 1.75rem); }
+h3 { font-size: clamp(1.18rem, 1.14rem + .2vw, 1.35rem); }
+main p,
+main ul,
+main ol,
+main blockquote {
+  max-width: 74ch;
+}
 a { color: var(--wave-link); text-underline-offset: .13em; }
 a:visited { color: var(--wave-visited); }
 .book-nav {
@@ -113,7 +128,7 @@ a:visited { color: var(--wave-visited); }
 .theme-toggle:focus-visible { outline: 2px solid var(--wave-link); outline-offset: 2px; }
 .book-toc { border-color: var(--wave-rule); }
 figure { max-width: 100%; }
-figcaption { color: var(--wave-muted); }
+figcaption { color: var(--wave-muted); font-size: .9em; }
 img, svg { max-width: 100%; height: auto; }
 .math.display,
 mjx-container[jax="CHTML"][display="true"] {
@@ -127,6 +142,7 @@ mjx-container[jax="CHTML"][display="true"] {
 mjx-container[jax="CHTML"] { color: inherit; }
 pre { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.references { font-size: .95em; }
 .license { color: var(--wave-muted); }
 :root[data-theme="dark"] img[src^="assets/figures/"][src$=".svg"],
 :root[data-theme="dark"] img[src^="assets/figures/source-"][src$=".png"],
@@ -139,6 +155,7 @@ table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scro
     --wave-bg: #111416;
     --wave-text: #e8e4dc;
     --wave-muted: #b7b2aa;
+    --wave-heading: #8fc7ee;
     --wave-link: #8fc7ee;
     --wave-visited: #cbb3e6;
     --wave-rule: #4b5054;
@@ -155,10 +172,11 @@ table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scro
 @media (max-width: 700px) {
   body {
     padding: max(.9rem, env(safe-area-inset-top)) max(.9rem, env(safe-area-inset-right)) 3rem max(.9rem, env(safe-area-inset-left));
-    line-height: 1.56;
+    line-height: 1.54;
   }
   h1 { font-size: clamp(1.65rem, 7vw, 2.2rem); }
   h2 { font-size: clamp(1.35rem, 5.7vw, 1.75rem); }
+  h3 { font-size: 1.2rem; }
   .book-nav {
     grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
@@ -195,6 +213,7 @@ table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scro
     --wave-bg: #fff;
     --wave-text: #000;
     --wave-muted: #444;
+    --wave-heading: #000;
     --wave-link: #000;
     --wave-visited: #000;
     --wave-rule: #aaa;

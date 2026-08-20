@@ -19,19 +19,22 @@
 \setlength{\jot}{7pt}
 \setlength{\headheight}{22pt}
 
+% Keep the generous 11.5 pt reading size while giving the modern edition a
+% clearer hierarchy than the report-class defaults. Source Sans Pro carries
+% structure; New TX remains the body and mathematics face.
 \titleformat{\chapter}[display]
   {\normalfont\sffamily\color{WaveAccent}}
-  {\Large\bfseries Chapter \thechapter}
+  {\fontsize{14.5pt}{17pt}\selectfont\bfseries Chapter \thechapter}
   {0.32em}
-  {\Huge\bfseries}
+  {\fontsize{29pt}{31pt}\selectfont\bfseries}
   [\vspace{0.25em}\titlerule]
 \titlespacing*{\chapter}{0pt}{0.2in}{0.38in}
 \titleformat{\section}
-  {\Large\sffamily\bfseries\color{WaveAccent}}
+  {\fontsize{16.5pt}{19.5pt}\selectfont\sffamily\bfseries\color{WaveAccent}}
   {\thesection}{0.65em}{}
 \titlespacing*{\section}{0pt}{1.25em plus .2em minus .1em}{0.50em}
 \titleformat{\subsection}
-  {\large\sffamily\bfseries\color{WaveAccent}}
+  {\fontsize{13.5pt}{16pt}\selectfont\sffamily\bfseries\color{WaveAccent}}
   {\thesubsection}{0.55em}{}
 
 \pagestyle{fancy}
