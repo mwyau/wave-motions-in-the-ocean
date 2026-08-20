@@ -9,9 +9,10 @@
 
 % Preserve the historical source-page edition: the canonical source carries
 % modern editorial numbering semantics, but the facsimile renders the original
-% unnumbered display/figure presentation. `wavealign` restores align* exactly.
+% unnumbered display/figure presentation. Keep the alignment body inside a
+% matching outer environment so LaTeX does not see mismatched environment names.
 \renewenvironment{waveequation}{\begin{equation*}}{\end{equation*}}
-\renewenvironment{wavealign}{\begin{align*}}{\end{align*}}
+\renewenvironment{wavealign}{\begin{equation*}\begin{aligned}}{\end{aligned}\end{equation*}}
 \renewcommand{\wavefiguremark}{}
 
 \setlength{\parindent}{1.75em}
