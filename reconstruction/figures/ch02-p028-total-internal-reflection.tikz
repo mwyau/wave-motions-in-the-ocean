@@ -1,0 +1,43 @@
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=38; trim=80bp 95bp 75bp 535bp
+% Source: Wave Motions in the Ocean, printed p.28 (physical p.38).
+% Equation-defined total-internal-reflection sequence.  For the illustrative ratio
+% c_1/c_2=0.75, theta_Ic=asin(0.75)=48.590 deg.  The subcritical panel uses
+% theta_I=32 deg and theta_T=asin[(c_2/c_1)sin(theta_I)]=44.956 deg; the critical
+% transmitted ray is tangent to the interface, and the supercritical panel has no
+% propagating transmitted ray.  Reflection satisfies theta_R=theta_I throughout.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \def\thsub{32}
+  \def\thtrans{44.956}
+  \def\thcrit{48.590}
+  \def\thsup{60}
+  \coordinate (A) at (2.15,2.05);
+  \draw[line width=0.60pt] (0.35,2.05) -- (3.95,2.05);
+  \draw[line width=0.40pt] (2.15,0.25) -- (2.15,3.65);
+  \draw[->,line width=0.78pt] ($(A)+(270-\thsub:1.85)$) -- (A);
+  \draw[->,line width=0.78pt] (A) -- ($(A)+(270+\thsub:1.85)$);
+  \draw[->,line width=0.78pt] (A) -- ($(A)+(90-\thtrans:1.85)$);
+  \node[anchor=north east] at ($(A)+(270-\thsub:1.90)$) {$p_I$};
+  \node[anchor=north west] at ($(A)+(270+\thsub:1.90)$) {$p_R$};
+  \node[anchor=south west] at ($(A)+(90-\thtrans:1.90)$) {$p_T$};
+  \draw[line width=0.40pt] ($(A)+(270:0.68)$) arc[start angle=270,end angle=270-\thsub,radius=0.68];
+  \node at ($(A)+(252:0.96)$) {$\theta_I$};
+  \node at (2.15,0.02) {$\theta_I<\theta_{Ic}$};
+  \coordinate (B) at (6.15,2.05);
+  \draw[line width=0.60pt] (4.35,2.05) -- (7.95,2.05);
+  \draw[line width=0.40pt] (6.15,0.25) -- (6.15,3.65);
+  \draw[->,line width=0.78pt] ($(B)+(270-\thcrit:1.85)$) -- (B);
+  \draw[->,line width=0.78pt] (B) -- ($(B)+(270+\thcrit:1.85)$);
+  \draw[->,line width=0.78pt] (B) -- ++(1.70,0);
+  \node[anchor=north east] at ($(B)+(270-\thcrit:1.90)$) {$p_I$};
+  \node[anchor=north west] at ($(B)+(270+\thcrit:1.90)$) {$p_R$};
+  \node[anchor=south] at ($(B)+(1.35,0.12)$) {$p_T$};
+  \node at (6.15,0.02) {$\theta_I=\theta_{Ic}$};
+  \coordinate (C) at (10.15,2.05);
+  \draw[line width=0.60pt] (8.35,2.05) -- (11.95,2.05);
+  \draw[line width=0.40pt] (10.15,0.25) -- (10.15,3.65);
+  \draw[->,line width=0.78pt] ($(C)+(270-\thsup:1.85)$) -- (C);
+  \draw[->,line width=0.78pt] (C) -- ($(C)+(270+\thsup:1.85)$);
+  \node[anchor=north east] at ($(C)+(270-\thsup:1.90)$) {$p_I$};
+  \node[anchor=north west] at ($(C)+(270+\thsup:1.90)$) {$p_R$};
+  \node at (10.15,0.02) {$\theta_I>\theta_{Ic}$};
+\end{tikzpicture}

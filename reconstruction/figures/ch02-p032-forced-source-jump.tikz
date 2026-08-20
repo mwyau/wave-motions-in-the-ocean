@@ -1,0 +1,15 @@
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=42; trim=90bp 485bp 80bp 90bp
+% Source: Wave Motions in the Ocean, printed p.32 (physical p.42).
+% Equation-constrained redraw of a delta-forced one-dimensional acoustic source.
+% Integrating p_tt-c^2 p_xx=c^2 delta(x) q_t(t) across x=0 gives exactly
+% p_x^R(0,t)-p_x^L(0,t)=-q_t(t), while each side satisfies the homogeneous wave equation.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \draw[->,line width=0.68pt] (0.55,1.82) -- (10.20,1.82) node[right] {$x$};
+  \fill (5.25,1.82) circle (1.7pt);
+  \node[below=3pt] at (5.25,1.82) {$x=0$};
+  \node[align=center] at (2.65,1.15) {$p^L_{tt}-c^2p^L_{xx}=0$};
+  \node[align=center] at (7.85,1.15) {$p^R_{tt}-c^2p^R_{xx}=0$};
+  \draw[line width=0.50pt] (3.30,3.12) .. controls (4.10,3.00) and (4.80,2.78) .. (5.25,2.15);
+  \draw[line width=0.50pt] (7.20,3.12) .. controls (6.40,3.00) and (5.70,2.78) .. (5.25,2.15);
+  \node[align=center] at (5.25,3.35) {$p_x^R(0,t)-p_x^L(0,t)=-q_t(t)$};
+\end{tikzpicture}

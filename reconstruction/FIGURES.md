@@ -17,7 +17,7 @@ Equation-validation states are tracked independently of representation status:
 - **Pending** — equation validation materially applies but has not yet been independently completed and recorded.
 - **N/A** — no meaningful equation-defined quantity or relation controls the figure; visual, geometric, source-fidelity, and provenance checks still apply.
 
-The initial 2026-08-20 backfill is conservative: `Validated` is used only where the existing audit record supports an independent equation/constraint check, not merely because a vector was generated from a formula. Current snapshot across the 105 tracked body/front-matter assets and direct source placements: **27 Validated, 6 Partial, 59 Pending, 13 N/A**.
+The initial 2026-08-20 backfill is conservative: `Validated` is used only where the existing audit record supports an independent equation/constraint check, not merely because a vector was generated from a formula. Current snapshot across the 105 tracked body/front-matter assets and direct source placements: **30 Validated, 6 Partial, 56 Pending, 13 N/A**.
 
 Every `.tikz` file carries a `wave-source` comment naming the source PDF, physical page, and crop. `scripts/compare-figures.py` regenerates temporary side-by-side comparisons under `build/comparisons/`; comparison outputs are never committed.
 
@@ -46,6 +46,9 @@ Chapter 1 has no direct source-PDF crop placements in the book body.
 | `ch02-p023-waveguide-boundary-problem.tikz` | 23 | **vector-complete** | **Validated** | The channel walls are at `z=0,-D` with `p_z=0`; independently substituting `P=cos(n pi z/D)` gives zero normal derivative at both walls for integer `n` and satisfies the separated acoustic field equation. Wall thickness is schematic. |
 | `ch02-p024-waveguide-dispersion.tikz` | 24 | **vector-complete** | **Validated** | Branches are generated from normalized `S_n=sqrt(K^2+n^2)`. Independent evaluation confirms the `n=0` linear branch, `n=1,2` cutoffs at `S=1,2`, branch ordering, and common large-`K` slope. |
 | `ch02-p026-interface-scattering.tikz` | 26 | **vector-complete** | **Validated** | Incident/reflected rays are exact mirrors about the interface normal. For the declared illustrative ratio `c_2/c_1=1.25`, the transmitted angle is independently calculated from Snell’s law; ray lengths remain schematic. |
+| `ch02-p028-total-internal-reflection.tikz` | 28 | **vector-complete** | **Validated** | With the declared illustrative `c_1/c_2=0.75`, independent calculation gives `theta_Ic=48.590 deg`; the subcritical transmitted ray satisfies Snell’s law, the critical ray is tangent to the interface, and the supercritical panel has no propagating transmitted ray. |
+| `ch02-p032-forced-source-jump.tikz` | 32 | **vector-complete** | **Validated** | Independently integrating the delta-forced one-dimensional wave equation across `x=0` gives `p_x^R-p_x^L=-q_t`; each side obeys the homogeneous acoustic wave equation. |
+| `ch02-p036-sound-ray-turning.tikz` | 36 | **vector-complete** | **Validated** | For `c(z)` increasing upward, `k` remains fixed while `m` decreases. The ray is generated from `dz/dx=m/k=sqrt(sigma^2/(c^2 k^2)-1)` and independently checked to approach a horizontal tangent as `m` tends to zero; normalized display values are schematic. |
 
 ### Chapter 3
 
@@ -123,7 +126,7 @@ Chapter 5 was re-audited first on 2026-08-20. Four previously accepted drawings 
 
 ## Direct source-PDF crop placements — complete inventory
 
-These 45 placements are real figures even though no separate image file is committed. They are rendered directly from the source PDFs. Retaining a source crop is a positive scientific decision when vectorization would add interpretation risk; it is not an incomplete reconstruction by itself.
+These 42 placements are real figures even though no separate image file is committed. They are rendered directly from the source PDFs. Retaining a source crop is a positive scientific decision when vectorization would add interpretation risk; it is not an incomplete reconstruction by itself.
 
 The 2026-08-20 source-art pass also treats crop isolation as part of acceptance: surrounding prose/equations must not be embedded in a figure, and no scientific label or line may be cut by the trim. Eight Chapter 4 crops (printed pp. 69--76) failed or were unnecessarily fragile under that criterion and were replaced by isolated vectors. The remaining direct crops below are classified explicitly as vector candidates or deliberate source-art retentions.
 
@@ -131,11 +134,8 @@ Chapter 5 p.97 is a particularly important example: the sphere drawing was revie
 
 | Chapter | Printed page | Source PDF | Physical page | Equation validation | Status / vectorization disposition |
 |---|---:|---|---:|---|---|
-| 2 | 28 | `ChapmanRizzoli0_2.pdf` | 38 | **Pending** | **vector-candidate** — simple analytic acoustic-wave geometry/dispersion; suitable for a constrained TikZ redraw; source crop remains authoritative until replacement is compared. |
-| 2 | 32 | `ChapmanRizzoli0_2.pdf` | 42 | **Pending** | **vector-candidate** — simple analytic acoustic-wave geometry/dispersion; suitable for a constrained TikZ redraw; source crop remains authoritative until replacement is compared. |
 | 2 | 34 | `ChapmanRizzoli0_2.pdf` | 44 | **N/A** | **source-pdf** — retain the source-specific sound-speed profile; generic smoothing would invent profile detail. |
 | 2 | 35 | `ChapmanRizzoli0_2.pdf` | 45 | **N/A** | **source-pdf** — retain the source-specific sound-speed profile; generic smoothing would invent profile detail. The p.35 crop was already tightened specifically to exclude duplicated prose. |
-| 2 | 36 | `ChapmanRizzoli0_2.pdf` | 46 | **Pending** | **vector-candidate** — simple analytic acoustic-wave geometry/dispersion; suitable for a constrained TikZ redraw; source crop remains authoritative until replacement is compared. |
 | 3 | 39 | `ChapmanRizzoli3.pdf` | 3 | **Pending** | **vector-candidate** — analytic surface-wave geometry or equation-defined schematic; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
 | 3 | 42 | `ChapmanRizzoli3.pdf` | 7 | **Pending** | **vector-candidate** — analytic surface-wave geometry or equation-defined schematic; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
 | 3 | 44 | `ChapmanRizzoli3.pdf` | 9 | **Pending** | **vector-candidate** — analytic surface-wave geometry or equation-defined schematic; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |

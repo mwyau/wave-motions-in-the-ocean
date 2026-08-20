@@ -1,0 +1,27 @@
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=46; trim=80bp 250bp 70bp 465bp
+% Source: Wave Motions in the Ocean, printed p.36 (physical p.46).
+% Equation-constrained ray-theory redraw for c increasing upward.  k is constant,
+% m decreases as the ray rises, and the plotted ray is generated from
+% dz/dx=m/k=sqrt[sigma^2/(c(z)^2 k^2)-1] with a linear c(z).  Display parameters
+% are normalized (u=c k/sigma from 0.55 toward 1); the turning limit m->0 gives
+% a horizontal tangent.  Numeric values are illustrative, not source measurements.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \draw[->,line width=0.60pt] (0.45,0.45) -- (0.45,3.15) node[above] {$z$};
+  \draw[->,line width=0.60pt] (0.45,3.15) -- (3.00,3.15) node[right] {$c$};
+  \draw[line width=0.80pt] (0.92,0.72) -- (2.28,2.78);
+  \draw[->,line width=0.60pt] (3.55,3.15) -- (6.85,3.15) node[right] {$t$};
+  \draw[line width=0.55pt] (3.55,0.45) -- (3.55,3.15);
+  \draw[line width=0.55pt] (5.25,0.45) -- (5.25,3.15);
+  \draw[->,line width=0.75pt] (3.55,1.65) -- ++(0.82,1.05);
+  \draw[->,line width=0.75pt] (5.25,1.65) -- ++(0.82,0.66);
+  \node[anchor=south] at (4.20,2.67) {$k_0$};
+  \node[anchor=south] at (5.93,2.31) {$k_0$};
+  \node[anchor=east] at (3.48,1.88) {$m_0$};
+  \node[anchor=east] at (5.18,1.82) {$m_1$};
+  \draw[->,line width=0.60pt] (7.55,0.45) -- (7.55,3.15);
+  \draw[->,line width=0.60pt] (7.55,3.15) -- (11.55,3.15) node[right] {$x$};
+  \draw[->,line width=0.88pt,domain=0.55:0.985,samples=90,smooth,variable=\u]
+    plot ({7.65 + 3.55*(sqrt(1-0.55*0.55)-sqrt(1-\u*\u))/sqrt(1-0.55*0.55)},
+          {0.75 + 2.10*(\u-0.55)/(0.985-0.55)});
+  \node[anchor=west] at (8.12,1.48) {\textit{ray path}};
+\end{tikzpicture}
