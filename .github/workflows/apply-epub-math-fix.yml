@@ -1,6 +1,9 @@
 name: Apply EPUB math rendering fix
 
 on:
+  push:
+    paths:
+      - .github/epub-math-fix.trigger
   issue_comment:
     types: [created]
 
@@ -9,7 +12,7 @@ permissions:
 
 jobs:
   apply:
-    if: github.event.issue.number == 11 && github.event.comment.body == '/apply-epub-math-fix'
+    if: github.event_name == 'push' || (github.event.issue.number == 11 && github.event.comment.body == '/apply-epub-math-fix')
     runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
@@ -44,8 +47,8 @@ jobs:
           assert module.normalize_epub_math_tex(r'p_{\rm atmosphere}') == r'p_{\mathrm{atmosphere}}'
           assert module.normalize_epub_math_tex(r'\elliptic + \ell') == r'\elliptic + {ℓ}'
           PY
-          rm -- .github/workflows/apply-epub-math-fix.yml .github/epub-math-first-batch.patch
-          git add -- scripts/build-epub.py reconstruction/styles/wave-epub.css .github/workflows/apply-epub-math-fix.yml .github/epub-math-first-batch.patch
+          rm -- .github/workflows/apply-epub-math-fix.yml .github/epub-math-first-batch.patch .github/epub-math-fix.trigger
+          git add -- scripts/build-epub.py reconstruction/styles/wave-epub.css .github/workflows/apply-epub-math-fix.yml .github/epub-math-first-batch.patch .github/epub-math-fix.trigger
           git diff --cached --check
           git commit -m "Correct EPUB math rendering"
           git fetch origin main
