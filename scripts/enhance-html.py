@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "dist"
 ASSETS = OUT / "assets"
 REPOSITORY_URL = "https://github.com/mwyau/wave-motions-in-the-ocean"
-REPOSITORY_LINK = f'<a class="source-link" href="{REPOSITORY_URL}">Repository</a>'
+REPOSITORY_LINK = f'<a class="source-link" href="{REPOSITORY_URL}">GitHub Source</a>'
 MATHJAX_UNPINNED = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
 MATHJAX_PINNED = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"
 

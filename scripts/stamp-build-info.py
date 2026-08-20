@@ -31,7 +31,6 @@ def stamp_html() -> None:
 
     for path in pages:
         text = path.read_text(errors="replace")
-        text = text.replace(">Repository</a>", ">GitHub Source</a>")
         if 'class="build-info"' not in text:
             text = text.replace("</body>", footer + "\n</body>", 1)
         path.write_text(text)
