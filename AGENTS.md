@@ -24,11 +24,13 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 ## Work coordination with issues
 
 - Before modifying the repository, search open and relevant recently closed GitHub Issues for overlapping or prior work. Reuse a matching open issue. If a closed issue directly covers a continuation or follow-up, reopen and reuse it when practical; otherwise create one concise issue for the coherent task.
-- The issue should state what is being changed, the main files/areas involved, and any temporary branch, workflow, or trigger it owns. Keep it concise; do not use issues as a progress diary.
+- Agent/session coordination issues should normally use the `[internal]` title prefix so they are easy to distinguish from public or reader-facing issues. Do not rename unrelated public issues merely to impose this convention.
+- The issue should state what is being changed, the main files/areas involved, and any temporary branch, workflow, or trigger it owns.
 - When issue access is readily available, add concise progress notes when useful: scope changes, meaningful checkpoints during long work, blockers, or findings another agent may need. Do not interrupt straightforward work merely to report routine progress.
 - Before integrating, re-check open issues, relevant recently closed issues, and the latest `main` for newly overlapping work.
 - If another active issue overlaps, preserve its work and avoid competing edits; coordinate or split scope before proceeding.
-- After integration, record the relevant commit(s), key findings or handover notes, and any remaining work, then close the issue. If the task is abandoned or superseded, record the findings/state needed for handoff and close it rather than leaving a misleading active claim.
+- For non-trivial work, the final issue comment is the durable handoff document and should be detailed enough for another agent to continue without the original session context. Include the completed scope, files/areas changed, relevant commits, validation performed and results, important findings and decisions with rationale, unresolved questions or known limitations, status of temporary branches/workflows/triggers, and concrete next steps or restart points. Trivial fixes may use a short closeout.
+- After writing the handoff, close the issue. If the task is abandoned or superseded, still record the findings, current state, and restart/handoff information before closing it rather than leaving a misleading active claim.
 
 ## Automation
 
