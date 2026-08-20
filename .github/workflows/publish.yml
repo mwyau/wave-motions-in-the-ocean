@@ -96,6 +96,7 @@ jobs:
         run: |
           set -euo pipefail
           export PATH="$TEXBIN:$PATH"
+          tlmgr update --self
           mapfile -t PACKAGES < <(grep -Ev '^\s*(#|$)' tex-packages.txt)
           tlmgr install "${PACKAGES[@]}"
 
