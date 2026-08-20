@@ -116,6 +116,10 @@ stamp_epub() {
   python3 "$ROOT/scripts/stamp-build-info.py" --epub
 }
 
+check_epub_accessibility() {
+  python3 "$ROOT/scripts/set-epub-accessibility.py" --check
+}
+
 write_checksums() {
   python3 "$ROOT/scripts/checksums.py" --root "$DIST" --write
 }
@@ -139,6 +143,7 @@ case "$TARGET" in
     finish_html
     stamp_html
     stamp_epub
+    check_epub_accessibility
     write_checksums
     if [[ "$SKIP_VALIDATION" != "1" ]]; then
       bash "$ROOT/scripts/validate-publication.sh" publish-root
@@ -161,6 +166,7 @@ case "$TARGET" in
     prepare_html
     build_epub
     stamp_epub
+    check_epub_accessibility
     clean_html_outputs
     ;;
 esac
