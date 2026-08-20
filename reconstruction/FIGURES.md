@@ -163,7 +163,7 @@ Chapter 5 was re-audited first on 2026-08-20. Four previously accepted drawings 
 | Asset | Use | Status | Equation validation | Audit |
 |---|---|---|---|---|
 | `frontmatter/great-wave-met-dp130155.jpg` | modern cover | **edited-raster / provenance-complete** | **N/A** | Met object identification and public-domain status are recorded; artwork should remain raster rather than be vector-traced. |
-| `frontmatter/salmon-hendershott-como-1980.jpeg` | modern front matter | **source photo / provenance-review-needed** | **N/A** | Course LXXX / Topics in Ocean Physics / July 1980 is supported. Do not assert a more specific Lake Como villa or photographer surname without photo-specific evidence. A photograph is not a vectorization candidate. |
+| `frontmatter/salmon-hendershott-como-1980.jpg` | modern front matter | **source photo / provenance-complete** | **N/A** | Rick Salmon (left) and Myrl Hendershott are confirmed at Villa Carlotta, Lake Como, during the International School of Physics `Enrico Fermi`, Course LXXX, *Topics in Ocean Physics*, July 1980. Photographer attribution remains unconfirmed. A photograph is not a vectorization candidate. |
 
 ## Direct source-PDF crop placements — complete inventory
 
