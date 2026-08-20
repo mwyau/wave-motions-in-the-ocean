@@ -43,9 +43,13 @@ figcaption {
   font-size: 0.9em;
 }
 
-.math.display {
+math[display="block"] {
+  display: block;
+  max-width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
   margin: 1em 0;
+  padding: 0.15em 0;
 }
 
 pre, table {

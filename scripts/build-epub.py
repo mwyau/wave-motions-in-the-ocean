@@ -27,6 +27,7 @@ COVER_PNG = COVER_DIR / "cover.png"
 TITLE = "Wave Motions in the Ocean: Myrl's View"
 AUTHORS = ("David C. Chapman", "Paola Malanotte-Rizzoli")
 EDITOR = "Albert M. W. Yau (digital editor)"
+MATHML_NS = "http://www.w3.org/1998/Math/MathML"
 NAV_SENTINELS = (
     "Basic concepts",
     "Acoustic waves",
@@ -36,6 +37,18 @@ NAV_SENTINELS = (
     "Topographic effects",
     "References",
 )
+
+
+def normalize_epub_math_tex(text: str) -> str:
+    """Normalize TeX constructs that Pandoc/texmath mis-serializes in EPUB MathML."""
+    # Pandoc's TeX-math reader rejects the legacy declaration form used by the
+    # historical source in p_{\rm atmosphere}; \mathrm preserves the notation.
+    text = text.replace(r"\rm atmosphere", r"\mathrm{atmosphere}")
+
+    # Pandoc/texmath serializes TeX \ell as an operator (<mo>ℓ</mo>) instead of
+    # a variable (<mi>ℓ</mi>). A grouped Unicode literal preserves the variable
+    # semantics while remaining safe next to commands such as \partial\ell.
+    return re.sub(r"\\ell(?![A-Za-z])", "{ℓ}", text)
 
 
 def run(
@@ -69,15 +82,11 @@ def epub_inputs() -> list[Path]:
     text = text.replace(marker, credit_source.read_text().strip(), 1)
     epub_frontmatter.write_text(text)
 
-    # Apply EPUB-specific compatibility changes only to generated files. Pandoc's
-    # TeX-math reader rejects the legacy declaration form used by the source in
-    # p_{\rm atmosphere}; the equivalent \mathrm form preserves the notation.
+    # Apply EPUB-specific compatibility changes only to generated files.
     epub_chapters: list[Path] = []
     for i, chapter in enumerate(chapters, 1):
         epub_chapter = BUILD / f"chapter{i}.tex"
-        chapter_text = chapter.read_text().replace(
-            r"\rm atmosphere", r"\mathrm{atmosphere}"
-        )
+        chapter_text = normalize_epub_math_tex(chapter.read_text())
         epub_chapter.write_text(chapter_text)
         epub_chapters.append(epub_chapter)
 
@@ -125,10 +134,13 @@ def render_cover() -> None:
     run(
         [
             "pdftoppm",
-            "-f", "1",
-            "-l", "1",
+            "-f",
+            "1",
+            "-l",
+            "1",
             "-singlefile",
-            "-r", "200",
+            "-r",
+            "200",
             "-png",
             str(COVER_PDF),
             str(COVER_PNG.with_suffix("")),
@@ -143,14 +155,14 @@ def write_metadata() -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         "---\n"
-        f"title: \"{TITLE}\"\n"
+        f'title: "{TITLE}"\n'
         "author:\n"
         + "".join(f"  - {author}\n" for author in AUTHORS)
-        + "date: \"1989\"\n"
-        "lang: en-US\n"
-        "rights: \"CC BY-NC-SA 4.0\"\n"
-        "identifier: \"https://mwyau.github.io/wave-motions-in-the-ocean/\"\n"
-        f"contributor: \"{EDITOR}\"\n"
+        + 'date: "1989"\n'
+        'lang: en-US\n'
+        'rights: "CC BY-NC-SA 4.0"\n'
+        'identifier: "https://mwyau.github.io/wave-motions-in-the-ocean/"\n'
+        f'contributor: "{EDITOR}"\n'
         "---\n"
     )
     return path
@@ -164,21 +176,30 @@ def build_epub(inputs: list[Path], metadata: Path) -> None:
         [
             "pandoc",
             *(str(path) for path in inputs),
-            "-f", "latex",
-            "-t", "epub3",
+            "-f",
+            "latex",
+            "-t",
+            "epub3",
             "--toc",
             "--toc-depth=2",
             "--split-level=1",
             "--mathml",
             "--citeproc",
             f"--bibliography={RECON / 'references.bib'}",
-            "--metadata", "nocite=@*",
-            "--metadata-file", str(metadata),
-            "--metadata", f"title={TITLE}",
-            "--css", str(CSS),
-            "--epub-cover-image", str(COVER_PNG),
-            "--resource-path", resource_path,
-            "-o", str(EPUB),
+            "--metadata",
+            "nocite=@*",
+            "--metadata-file",
+            str(metadata),
+            "--metadata",
+            f"title={TITLE}",
+            "--css",
+            str(CSS),
+            "--epub-cover-image",
+            str(COVER_PNG),
+            "--resource-path",
+            resource_path,
+            "-o",
+            str(EPUB),
         ]
     )
 
@@ -230,6 +251,58 @@ def validate_internal_refs(archive: zipfile.ZipFile, xhtml_names: list[str]) -> 
         for name, ref in broken[:20]:
             print(f"broken EPUB reference: {name}: {ref}")
         raise SystemExit(f"EPUB contains {len(broken)} broken internal reference(s)")
+
+
+def validate_mathml(
+    archive: zipfile.ZipFile,
+    xhtml_items: dict[str, ET.Element],
+) -> None:
+    """Validate MathML structure and representative variable semantics."""
+    ns = f"{{{MATHML_NS}}}"
+    math_elements: list[ET.Element] = []
+    math_documents: set[str] = set()
+
+    for name in xhtml_items:
+        root = ET.fromstring(archive.read(name))
+        current = root.findall(f".//{ns}math")
+        if current:
+            math_documents.add(name)
+            math_elements.extend(current)
+
+    if len(math_elements) < 50:
+        raise SystemExit(
+            f"EPUB contains only {len(math_elements)} MathML element(s); math rendering regressed"
+        )
+
+    displays = {element.get("display") for element in math_elements}
+    if not {"inline", "block"}.issubset(displays):
+        raise SystemExit(f"EPUB MathML is missing inline or display math: {sorted(displays)!r}")
+
+    required_structures = ("mi", "msub", "msup", "mfrac", "mover")
+    for tag in required_structures:
+        if not any(element.find(f".//{ns}{tag}") is not None for element in math_elements):
+            raise SystemExit(f"EPUB MathML is missing representative <{tag}> structure")
+
+    mi_text = [
+        "".join(element.itertext())
+        for math in math_elements
+        for element in math.findall(f".//{ns}mi")
+    ]
+    mo_text = [
+        "".join(element.itertext())
+        for math in math_elements
+        for element in math.findall(f".//{ns}mo")
+    ]
+    for symbol in ("σ", "ρ", "ℓ"):
+        if symbol not in mi_text:
+            raise SystemExit(f"EPUB MathML variable {symbol!r} is not represented as <mi>")
+    if "ℓ" in mo_text:
+        raise SystemExit("EPUB MathML regressed: variable ℓ is represented as operator <mo>")
+
+    for name in math_documents:
+        properties = set((xhtml_items[name].get("properties") or "").split())
+        if "mathml" not in properties:
+            raise SystemExit(f"EPUB manifest omits mathml property for {name}")
 
 
 def validate_epub() -> None:
@@ -287,7 +360,8 @@ def validate_epub() -> None:
         manifest_items = list(manifest.findall("{*}item"))
         by_id = {item.get("id"): item for item in manifest_items if item.get("id")}
         cover_items = [
-            item for item in manifest_items
+            item
+            for item in manifest_items
             if "cover-image" in (item.get("properties") or "").split()
         ]
         if len(cover_items) != 1:
@@ -302,13 +376,16 @@ def validate_epub() -> None:
             raise SystemExit(f"EPUB cover image member is missing: {cover_member}")
 
         nav_items = [
-            item for item in manifest_items
+            item
+            for item in manifest_items
             if "nav" in (item.get("properties") or "").split()
         ]
         if len(nav_items) != 1 or not nav_items[0].get("href"):
             raise SystemExit("EPUB navigation document is missing or ambiguous")
         nav_name = posixpath.normpath(
-            posixpath.join(package_dir, urllib.parse.unquote(nav_items[0].get("href") or ""))
+            posixpath.join(
+                package_dir, urllib.parse.unquote(nav_items[0].get("href") or "")
+            )
         )
         if nav_name not in name_set:
             raise SystemExit(f"EPUB navigation member is missing: {nav_name}")
@@ -322,25 +399,26 @@ def validate_epub() -> None:
 
         spine_ids = [item.get("idref") for item in spine.findall("{*}itemref")]
         if len(spine_ids) < 8 or any(item_id not in by_id for item_id in spine_ids):
-            raise SystemExit("EPUB spine is unexpectedly short or references missing manifest items")
-
-        xhtml_names = [
-            posixpath.normpath(
-                posixpath.join(package_dir, urllib.parse.unquote(item.get("href") or ""))
+            raise SystemExit(
+                "EPUB spine is unexpectedly short or references missing manifest items"
             )
+
+        xhtml_items = {
+            posixpath.normpath(
+                posixpath.join(
+                    package_dir, urllib.parse.unquote(item.get("href") or "")
+                )
+            ): item
             for item in manifest_items
             if item.get("media-type") == "application/xhtml+xml" and item.get("href")
-        ]
+        }
+        xhtml_names = list(xhtml_items)
         if not xhtml_names or any(name not in name_set for name in xhtml_names):
             raise SystemExit("EPUB XHTML manifest is incomplete")
         validate_internal_refs(archive, xhtml_names)
+        validate_mathml(archive, xhtml_items)
 
         xhtml = b"\n".join(archive.read(name) for name in xhtml_names)
-        math_count = len(re.findall(rb"<math(?:\s|>)", xhtml))
-        if math_count < 50:
-            raise SystemExit(
-                f"EPUB contains only {math_count} MathML element(s); math rendering regressed"
-            )
         if b"David C. Chapman" not in xhtml or b"Paola Malanotte-Rizzoli" not in xhtml:
             raise SystemExit("EPUB text sentinel is missing")
         if b"JP1847" not in xhtml:
@@ -349,7 +427,9 @@ def validate_epub() -> None:
             raise SystemExit("EPUB contains no table markup")
 
         image_count = sum(
-            1 for item in manifest_items if (item.get("media-type") or "").startswith("image/")
+            1
+            for item in manifest_items
+            if (item.get("media-type") or "").startswith("image/")
         )
         if image_count < 5:
             raise SystemExit(f"EPUB contains only {image_count} image asset(s)")
