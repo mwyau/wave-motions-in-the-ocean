@@ -1,12 +1,24 @@
 % wave-source: pdf=ChapmanRizzoli4.pdf; page=27; trim=95bp 205bp 75bp 500bp
 % Source: Wave Motions in the Ocean, printed p.90 (physical p.27).
-% Exact subcritical velocity construction: vi parallel incident characteristic, vr=q times outgoing characteristic, q=(1+aR)/(1-aR), giving n.(vi+vr)=0.
+% Exact subcritical velocity construction. With R=1.25 and a=0.32, incident and
+% reflected velocity directions follow the two characteristics dz/dx=-/+1/R.
+% Scaling the equal-base characteristic vectors by q=(1+aR)/(1-aR) makes
+% |v_r|/|v_i|=q and enforces n.(v_i+v_r)=0 exactly for n proportional to (-a,1).
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
-  \def\R{1.25}\def\a{0.32}\pgfmathsetmacro{\q}{(1+\a*\R)/(1-\a*\R)}
+  \def\R{1.25}
+  \def\a{0.32}
+  \def\dx{1.15}
+  \pgfmathsetmacro{\dz}{\dx/\R}
+  \pgfmathsetmacro{\q}{(1+\a*\R)/(1-\a*\R)}
   \coordinate (O) at (4.15,1.40);
-  \draw[line width=1pt] (0.55,0.25)--(8.55,2.81) node[right] {$z=ax$};
-  \draw[densely dashed,->] (O)--++(-0.75,2.35) node[above] {$\hat n$};
-  \draw[->,line width=.9pt] ($(O)+(-2.55,2.04)$)--(O) node[midway,above left] {$\vec v_i$};
-  \draw[->,line width=.9pt] (O)--++({1.10*\q},{0.88*\q}) node[above right] {$\vec v_r$};
-  \node[align=center] at (4.20,0.20) {$|v_r|/|v_i|=(1+aR)/(1-aR)\quad(aR<1)$\\$\hat n\cdot(\vec v_i+\vec v_r)=0$};
+
+  \draw[line width=1pt] ($(O)+(-3.60,{-3.60*\a})$)--($(O)+(4.40,{4.40*\a})$) node[right] {$z=ax$};
+  \draw[densely dashed,->] (O)--++(-0.75,{0.75/\a}) node[above] {$\hat n$};
+
+  % Same unscaled characteristic length on both branches; only q changes magnitude.
+  \draw[->,line width=.9pt] ($(O)+(-\dx,\dz)$)--(O) node[midway,above left] {$\vec v_i$};
+  \draw[->,line width=.9pt] (O)--++({\q*\dx},{\q*\dz}) node[above right] {$\vec v_r$};
+
+  \node[align=center] at (4.20,0.20)
+    {$|v_r|/|v_i|=(1+aR)/(1-aR)$\quad$(aR<1)$\\$\hat n\cdot(\vec v_i+\vec v_r)=0$};
 \end{tikzpicture}
