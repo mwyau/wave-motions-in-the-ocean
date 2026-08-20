@@ -16,14 +16,17 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-26.04
+    timeout-minutes: 45
     concurrency:
       group: publish-build-${{ github.ref }}
-      cancel-in-progress: true
+      cancel-in-progress: false
     env:
       TINYTEX_VERSION: "2026.08"
     steps:
       - name: Check out repository
         uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v9.0.0
@@ -117,6 +120,9 @@ jobs:
 
       - name: Verify publish root and downloads
         run: bash scripts/validate-publication.sh publish-root
+
+      - name: Check build identity
+        run: bash scripts/validate-publication.sh build-identity
 
       - name: Upload publication artifact
         uses: actions/upload-artifact@v7.0.1

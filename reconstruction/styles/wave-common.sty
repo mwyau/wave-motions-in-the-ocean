@@ -1,5 +1,5 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{styles/wave-common}[2026/08/19 shared Wave Motions reconstruction support]
+\ProvidesPackage{styles/wave-common}[2026/08/20 shared Wave Motions reconstruction support]
 
 \RequirePackage[T1]{fontenc}
 \RequirePackage{microtype}
@@ -19,6 +19,24 @@
 \RequirePackage[hidelinks,unicode,hypertexnames=false]{hyperref}
 \setlength{\emergencystretch}{1.5em}
 \raggedbottom
+
+% Build identity is generated under build/ so source files remain stable. A
+% direct TeX compile without the repository build wrapper falls back cleanly.
+\IfFileExists{../build/build-info.tex}{%
+  \input{../build/build-info.tex}%
+}{%
+  \providecommand{\wavebuildsha}{unknown}%
+  \providecommand{\wavebuildshort}{unknown}%
+  \providecommand{\wavebuildversion}{}%
+  \providecommand{\wavebuildlabel}{unknown}%
+  \providecommand{\wavebuildurl}{https://github.com/mwyau/wave-motions-in-the-ocean}%
+}
+\AtBeginDocument{%
+  \hypersetup{%
+    pdfsubject={Digital edition build \wavebuildlabel},%
+    pdfkeywords={Wave Motions in the Ocean, digital edition, build \wavebuildshort}%
+  }%
+}
 
 % Consistent attribution block for modern front matter. Keep the semantic
 % order name / place, year so the HTML conversion can mirror it exactly.

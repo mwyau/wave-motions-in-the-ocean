@@ -34,6 +34,10 @@ else
   exit 1
 fi
 
+prepare_build_info() {
+  python3 "$ROOT/scripts/build_info.py" --tex "$BUILD/build-info.tex"
+}
+
 run_latexmk_cached() {
   local main=$1 kind=$2
   local out="$LATEX_CACHE/$kind"
@@ -63,6 +67,7 @@ build_pdf() {
   rm -f "$DIST/wave-motions.pdf" "$DIST/wave-motions-facsimile.pdf" \
     "$DIST/wave-motions-1989-modern.pdf" "$DIST/wave-motions-1989-facsimile.pdf"
 
+  prepare_build_info
   run_latexmk_cached main-facsimile.tex facsimile
   run_latexmk_cached main-modern.tex modern
 
@@ -95,6 +100,14 @@ finish_html() {
   python3 "$ROOT/scripts/sync-views.py" --check-readme
 }
 
+stamp_html() {
+  python3 "$ROOT/scripts/stamp-build-info.py" --html
+}
+
+stamp_epub() {
+  python3 "$ROOT/scripts/stamp-build-info.py" --epub
+}
+
 clean_html_outputs() {
   rm -rf "$DIST/assets"
   rm -f "$DIST/index.html" "$DIST/references.html" "$DIST"/chapter*.html
@@ -118,8 +131,11 @@ case "$TARGET" in
     prepare_html
     build_epub
     finish_html
+    stamp_html
+    stamp_epub
     if [[ "$SKIP_VALIDATION" != "1" ]]; then
       bash "$ROOT/scripts/validate-publication.sh" publish-root
+      bash "$ROOT/scripts/validate-publication.sh" build-identity
     fi
     ;;
   pdf)
@@ -130,11 +146,13 @@ case "$TARGET" in
     reset_generated
     prepare_html
     finish_html
+    stamp_html
     ;;
   epub)
     reset_generated
     prepare_html
     build_epub
+    stamp_epub
     clean_html_outputs
     ;;
 esac

@@ -93,12 +93,51 @@ check_publish_root() {
   echo "Publish root and download checks OK"
 }
 
+check_build_identity() {
+  need python3
+  need pdfinfo
+  need pdftotext
+  local short label
+  short=$(python3 "$ROOT/scripts/build_info.py" --short)
+  label=$(python3 "$ROOT/scripts/build_info.py" --label)
+  test "$short" != "unknown"
+
+  grep -Fq "GitHub Source" "$DIST/index.html"
+  grep -Fq "$short" "$DIST/index.html"
+
+  mkdir -p "$BUILD/modern"
+  pdftotext -layout "$DIST/wave-motions.pdf" "$BUILD/modern/build-identity.txt"
+  grep -Fq "$short" "$BUILD/modern/build-identity.txt"
+
+  pdfinfo "$DIST/wave-motions-facsimile.pdf" | grep -Fq "$short"
+
+  python3 - "$DIST/wave-motions.epub" "$short" <<'PY'
+import sys
+import zipfile
+from pathlib import Path
+
+epub = Path(sys.argv[1])
+short = sys.argv[2].encode()
+with zipfile.ZipFile(epub) as archive:
+    payload = b"\n".join(
+        archive.read(name)
+        for name in archive.namelist()
+        if name.lower().endswith((".xhtml", ".html", ".opf"))
+    )
+if short not in payload:
+    raise SystemExit("EPUB build identity is missing")
+PY
+
+  printf 'Build identity OK: %s\n' "$label"
+}
+
 case "$MODE" in
   pdf-integrity) check_pdf_integrity ;;
   pdf-destinations) check_pdf_destinations ;;
   pdf-text) check_pdf_text ;;
   pdf-render) check_pdf_render ;;
   publish-root) check_publish_root ;;
+  build-identity) check_build_identity ;;
   pdf)
     check_pdf_integrity
     check_pdf_destinations
@@ -111,9 +150,10 @@ case "$MODE" in
     check_pdf_text
     check_pdf_render
     check_publish_root
+    check_build_identity
     ;;
   *)
-    echo "usage: $0 [pdf-integrity|pdf-destinations|pdf-text|pdf-render|publish-root|pdf|all]" >&2
+    echo "usage: $0 [pdf-integrity|pdf-destinations|pdf-text|pdf-render|publish-root|build-identity|pdf|all]" >&2
     exit 2
     ;;
 esac
