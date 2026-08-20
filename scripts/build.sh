@@ -20,6 +20,35 @@ need() {
 }
 need python3
 
+is_release_build() {
+  [[ "${GITHUB_REF:-}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]] ||
+    [[ "${WAVE_BUILD_VERSION:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+}
+
+development_qa_is_advisory() {
+  [[ "$SKIP_VALIDATION" == "1" ]] && ! is_release_build
+}
+
+warn() {
+  local title=$1 message=$2
+  if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+    echo "::warning title=$title::$message"
+  else
+    echo "warning: $message" >&2
+  fi
+}
+
+html_outputs_exist() {
+  local page
+  for page in index.html references.html chapter1.html chapter2.html chapter3.html chapter4.html chapter5.html chapter6.html; do
+    [[ -s "$DIST/$page" ]] || return 1
+  done
+}
+
+epub_output_exists() {
+  [[ -s "$DIST/wave-motions.epub" ]]
+}
+
 prepare_bibtex() {
   # Some minimal TeX installations expose bibtex8 but not a `bibtex` executable.
   # latexmk expects `bibtex`, so provide a temporary compatibility command only
@@ -93,13 +122,33 @@ build_pdf() {
 
 prepare_html() {
   for cmd in pandoc pdftocairo; do need "$cmd"; done
-  python3 "$ROOT/scripts/build-html.py"
+  if python3 "$ROOT/scripts/build-html.py"; then
+    return
+  fi
+  if development_qa_is_advisory && html_outputs_exist; then
+    warn "Embedded HTML QA" "build-html.py reported a post-generation validation failure; complete HTML outputs were retained for development QA."
+    return
+  fi
+  return 1
 }
 
 build_epub() {
   need pandoc
-  python3 "$ROOT/scripts/build-epub.py"
-  python3 "$ROOT/scripts/set-epub-accessibility.py"
+  if ! python3 "$ROOT/scripts/build-epub.py"; then
+    if development_qa_is_advisory && epub_output_exists; then
+      warn "Embedded EPUB QA" "build-epub.py reported a post-generation validation failure; the generated EPUB was retained for development QA."
+    else
+      return 1
+    fi
+  fi
+
+  if ! python3 "$ROOT/scripts/set-epub-accessibility.py"; then
+    if development_qa_is_advisory && epub_output_exists; then
+      warn "EPUB accessibility post-processing" "accessibility post-processing reported a validation failure; the generated EPUB was retained for development QA."
+    else
+      return 1
+    fi
+  fi
 }
 
 finish_html() {
