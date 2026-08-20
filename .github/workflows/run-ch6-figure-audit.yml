@@ -1,4 +1,5 @@
 name: Run Chapter 6 figure audit finalizer
+# refreshed after the p.159 pre-state changed under the broader scientific audit
 
 on:
   push:
@@ -111,4 +112,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          gh issue comment 9 --body "Chapter 6 p.159 integrated in \`$FINAL_SHA\` and canonical publication validation run \`$BUILD_RUN_ID\` passed. FIGURES.md is now 83 Validated / 6 Partial / 1 Pending / 15 N/A; only Ch.4 p.91 remains pending on issue #7. Both temporary p.159 workflows deleted themselves in the source commit."
+          gh issue comment 9 --body "Chapter 6 p.159 integrated in \`$FINAL_SHA\` and canonical publication validation run \`$BUILD_RUN_ID\` passed. FIGURES.md is now 83 Validated / 6 Partial / 1 Pending / 15 N/A; only Ch.4 p.91 remains pending. Both temporary p.159 workflows deleted themselves in the source commit."
