@@ -1,3 +1,4 @@
 issue=14
 purpose=manual-scientific-equation-numbering
-prepared=706b89e02316dbbbe1d3484fb9ca98bc78042bcd
+prepared=8e9e479651571bb381e8b8066193fd85acab2468
+session=Meridian
