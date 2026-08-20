@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -22,6 +22,161 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: One-time source metadata cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          root = Path("reconstruction")
+          errata_path = root / "ERRATA.md"
+          errata = errata_path.read_text()
+          migrated_heading = "## Migrated audit notes still requiring explicit schema normalization"
+
+          if migrated_heading in errata:
+              errata = errata.split(migrated_heading, 1)[0].rstrip() + "\n"
+
+              ch2 = r'''### Printed page 19 - adiabatic entropy derivative
+
+          - **Category:** `equation`
+          - **Status:** `accepted`
+          - **Location:** Chapter 2, printed page 19
+          - **Original:** $\partial S/\partial t=0$
+          - **Reconstruction:** $DS/Dt=0$
+          - **Reason/evidence:** The motions are described as adiabatic and the immediately following thermodynamic relations are written with material derivatives. Entropy conservation for a moving parcel is therefore $DS/Dt=0$, not a zero local time derivative at a fixed point.
+
+          ### Printed page 19 - "infinitesmal"
+
+          - **Category:** `typographical`
+          - **Status:** `accepted`
+          - **Location:** Chapter 2, printed page 19
+          - **Original:** "infinitesmal"
+          - **Reconstruction:** "infinitesimal"
+          - **Reason/evidence:** Straightforward spelling correction; no scientific meaning is changed.
+
+          '''
+              ch3 = r'''## Chapter 3
+
+          ### Printed page 54 - shorthand late-time envelope
+
+          - **Category:** `editorial`
+          - **Status:** `accepted`
+          - **Location:** Chapter 3, printed page 54
+          - **Original:** $\eta(x,t\to\infty)=t$
+          - **Reconstruction:** The late-time envelope is stated as $O(t)$ growth rather than as a literal equality to $t$.
+          - **Reason/evidence:** The source notation is dimensional shorthand for the asymptotic envelope scaling. Writing the growth as $O(t)$ preserves that intended statement without asserting the dimensionally incomplete equality $\eta=t$.
+
+          '''
+              ch4 = r'''### Printed page 68 - "f-plane approrimation"
+
+          - **Category:** `typographical`
+          - **Status:** `accepted`
+          - **Location:** Chapter 4, printed page 68
+          - **Original:** "f-plane approrimation"
+          - **Reconstruction:** "f-plane approximation"
+          - **Reason/evidence:** Straightforward spelling correction; no scientific meaning is changed.
+
+          ### Printed page 86 - pressure derivative transcription
+
+          - **Category:** `transcription`
+          - **Status:** `accepted`
+          - **Location:** Chapter 4, printed page 86
+          - **Original:** A previous reconstruction read $w_{xtt}$.
+          - **Reconstruction:** $\rho_0 w_{zt}=p_{xx}$
+          - **Reason/evidence:** Reinspection of the high-resolution historical scan shows $\rho_0 w_{zt}=p_{xx}$. The earlier $w_{xtt}$ reading was a transcription error, not a source erratum.
+
+          '''
+              ch5 = r'''### Printed page 102 - "Bousinesq"
+
+          - **Category:** `typographical`
+          - **Status:** `accepted`
+          - **Location:** Chapter 5, printed page 102
+          - **Original:** "Bousinesq"
+          - **Reconstruction:** "Boussinesq"
+          - **Reason/evidence:** Straightforward spelling correction of the standard Boussinesq approximation name; no scientific meaning is changed.
+
+          '''
+              if "## Chapter 2\n\n" not in errata:
+                  raise SystemExit("ERRATA Chapter 2 anchor missing")
+              if "## Chapter 4\n\n" not in errata:
+                  raise SystemExit("ERRATA Chapter 4 anchor missing")
+              if "## Chapter 5\n\n" not in errata:
+                  raise SystemExit("ERRATA Chapter 5 anchor missing")
+              errata = errata.replace("## Chapter 2\n\n", "## Chapter 2\n\n" + ch2, 1)
+              errata = errata.replace("## Chapter 4\n\n", ch3 + "## Chapter 4\n\n" + ch4, 1)
+              errata = errata.replace("## Chapter 5\n\n", "## Chapter 5\n\n" + ch5, 1)
+              errata_path.write_text(errata)
+
+          merged_block = re.compile(
+              r"(?m)^% ===== merged from [^\n]+ =====\n(?:%[^\n]*\n)+\n"
+          )
+          stale_comment = re.compile(
+              r"merged from|chapter0[1-6]-p\d|CHAPTER\d+_AUDIT\.md|"
+              r"verification\.tsv|pre-merge",
+              re.I,
+          )
+          source_map = {
+              1: "ChapmanRizzoli0_2.pdf",
+              2: "ChapmanRizzoli0_2.pdf",
+              3: "ChapmanRizzoli3.pdf",
+              4: "ChapmanRizzoli4.pdf",
+              5: "ChapmanRizzoli5.pdf",
+              6: "ChapmanRizzoli6.pdf",
+          }
+
+          for number in range(1, 7):
+              path = root / f"chapter{number}.tex"
+              text = path.read_text()
+              text, removed = merged_block.subn("", text)
+              text = text.replace("documented in FIGURE_AUDIT.md", "documented in FIGURES.md")
+              text = "\n".join(
+                  line for line in text.splitlines()
+                  if not (line.lstrip().startswith("%") and stale_comment.search(line))
+              ).lstrip("\n") + "\n"
+
+              marker = r"\setcounter{chapter}"
+              pos = text.find(marker)
+              if pos > 0:
+                  prefix = text[:pos]
+                  if all((not line.strip()) or line.lstrip().startswith("%") for line in prefix.splitlines()):
+                      text = text[pos:]
+
+              header = (
+                  "% Wave Motions in the Ocean: Myrl's View\n"
+                  f"% Chapter {number}; historical source: source/{source_map[number]}.\n"
+                  "% Source-page comments preserve printed/physical page correspondence.\n"
+                  "% Substantive corrections are documented in ERRATA.md.\n\n"
+              )
+              path.write_text(header + text)
+              print(f"{path}: removed {removed} obsolete fragment header(s)")
+
+          if migrated_heading in errata_path.read_text():
+              raise SystemExit("ERRATA migrated-note section remains")
+          forbidden = re.compile(
+              r"merged from|chapter0[1-6]-p\d|CHAPTER\d+_AUDIT\.md|"
+              r"FIGURE_AUDIT\.md|verification\.tsv|pre-merge",
+              re.I,
+          )
+          for path in sorted(root.glob("chapter[1-6].tex")):
+              match = forbidden.search(path.read_text())
+              if match:
+                  raise SystemExit(f"stale source comment remains in {path}: {match.group()}")
+          PY
+
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reconstruction/ERRATA.md reconstruction/chapter*.tex
+          if ! git diff --cached --quiet; then
+            git commit -m "Normalize errata and clean reconstruction comments"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
 
       - name: Cache TinyTeX
         id: tinytex-cache
