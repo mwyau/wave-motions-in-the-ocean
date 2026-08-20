@@ -6,8 +6,9 @@
   \draw[densely dashed,line width=0.35pt] (0.60,2.20) -- (9.00,2.20);
   \draw[line width=0.78pt,smooth,domain=0.60:9.00,samples=110,variable=\x]
     plot ({\x},{2.20+0.13*sin(155*\x)});
-  \draw[<->,line width=0.55pt] (4.70,2.20) -- (4.70,2.33);
-  \node[anchor=west] at (4.82,2.34) {$\eta$};
+  % 155 x = 810 deg here, so the eta arrow terminates on an exact crest.
+  \draw[<->,line width=0.55pt] (5.2258,2.20) -- (5.2258,2.33);
+  \node[anchor=west] at (5.3458,2.34) {$\eta$};
   \node[anchor=east] at (1.45,2.82) {$\rho_1$};
   \node[anchor=east] at (1.45,1.55) {$\rho_2$};
   \node at (6.15,2.82) {$\nabla^2\phi_1=0$};

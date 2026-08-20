@@ -5,14 +5,21 @@
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
   \coordinate (O) at (0,0);
   \def\ang{18}
+  \def\klen{3.10}
+  \def\ulen{1.81}
+  \def\fmag{2.20}
+  % f is vertical, so its projection on k has magnitude f sin(ang).
+  \pgfmathsetmacro{\fparmag}{\fmag*sin(\ang)}
+  \coordinate (F) at (0,\fmag);
+  \coordinate (Fp) at ({\fparmag*cos(\ang)},{\fparmag*sin(\ang)});
   \draw (-0.65,0)--(3.35,0);
-  \draw[->,line width=0.8pt] (O)--(2.95,0.96) node[right] {$\vec k$};
-  \draw[->,line width=0.8pt] (O)--(-0.56,1.72) node[left] {$\vec u$};
-  \draw[->,line width=0.75pt] (O)--(0,2.20) node[above] {$\vec f$};
-  % f_parallel is along k; f_perp is normal to k.
-  \draw[->,line width=0.65pt] (O)--(1.03,0.33) node[below right] {$\vec f_{\parallel}$};
-  \draw[->,line width=0.65pt] (1.03,0.33)--(0,2.20) node[midway,right] {$\vec f_{\perp}$};
-  \draw (0.56,0.18) arc[start angle=18,end angle=90,radius=0.59];
+  \draw[->,line width=0.8pt] (O)--({\klen*cos(\ang)},{\klen*sin(\ang)}) node[right] {$\vec k$};
+  \draw[->,line width=0.8pt] (O)--({\ulen*cos(\ang+90)},{\ulen*sin(\ang+90)}) node[left] {$\vec u$};
+  \draw[->,line width=0.75pt] (O)--(F) node[above] {$\vec f$};
+  % Exact orthogonal decomposition: Fp is the projection of f onto k.
+  \draw[->,line width=0.65pt] (O)--(Fp) node[below right] {$\vec f_{\parallel}$};
+  \draw[->,line width=0.65pt] (Fp)--(F) node[midway,right] {$\vec f_{\perp}$};
+  \draw ({0.59*cos(\ang)},{0.59*sin(\ang)}) arc[start angle=\ang,end angle=90,radius=0.59];
   \node at (0.32,0.57) {$\theta$};
   \node[anchor=west] at (1.55,0.73) {$\hat k\prime$};
 \end{tikzpicture}

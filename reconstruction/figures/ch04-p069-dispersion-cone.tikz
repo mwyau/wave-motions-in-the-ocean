@@ -9,22 +9,20 @@
   \coordinate (O) at (0,0);
   \def\topz{3.00}
   \def\rad{0.95}
+  \pgfmathsetmacro{\genang}{atan(\topz/\rad)}
 
-  % Projected coordinate axes.
   \draw[->,line width=0.80pt] (O) -- (0,3.75) node[above] {$m$};
   \draw[->,line width=0.80pt] (O) -- (2.35,0) node[right] {$\ell$};
   \draw[->,line width=0.80pt] (O) -- (-1.55,-1.30) node[below left] {$k$};
 
-  % Equation-constrained cone: top ellipse is the projected circle of radius m/R.
   \draw[line width=0.80pt] (O) -- (-\rad,\topz);
   \draw[line width=0.80pt] (O) -- (\rad,\topz);
   \draw[line width=0.75pt] (0,\topz) ellipse[x radius=\rad,y radius=0.22];
-
   \node[anchor=west] at (0.98,3.18) {$m/R$};
   \draw[->,line width=0.55pt] (0.93,3.02) -- (0.72,3.01);
 
-  % theta is the angle between the cone generator/wavevector and vertical m-axis.
-  \draw[line width=0.55pt] (0,0.92) arc[start angle=90,end angle=72,radius=0.92];
+  % theta is derived from the same displayed cone radius/height, not rounded independently.
+  \draw[line width=0.55pt] (0,0.92) arc[start angle=90,end angle=\genang,radius=0.92];
   \node at (0.27,1.08) {$\theta$};
 \end{tikzpicture}
 \end{center}

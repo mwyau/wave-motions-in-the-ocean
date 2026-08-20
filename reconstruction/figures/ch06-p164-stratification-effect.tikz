@@ -9,8 +9,9 @@
 \begin{tikzpicture}[x=1.05cm,y=1.05cm,>=stealth,line cap=round,line join=round,font=\small]
   \draw[->,line width=0.8pt] (-4.80,0) -- (1.10,0) node[right] {$\ell$};
   \draw[->,line width=0.8pt] (0,-0.10) -- (0,2.85) node[above] {$\omega$};
-  \draw[dashed,line width=0.65pt] (-4.45,2.15) -- (0.30,2.15);
-  \node[anchor=west] at (0.36,2.15) {$1\ (\sigma=f)$};
+  \def\omegaf{2.15}
+  \draw[dashed,line width=0.65pt] (-4.45,\omegaf) -- (0.30,\omegaf);
+  \node[anchor=west] at (0.36,\omegaf) {$1\ (\sigma=f)$};
 
   % Weak stratification: branch turns over and tends toward a low short-wave limit.
   \draw[line width=0.78pt,samples=140,domain=0:4.15,variable=\q]
@@ -22,11 +23,13 @@
     plot ({-\q},{0.78*(1-exp(-1.10*\q))+0.88*\q*exp(-0.78*\q)});
   \node[font=\footnotesize] at (-2.70,1.15) {$n=1$};
 
-  % Strong stratification: draw only until the branch reaches omega=1, consistent
-  % with the source statement that this is the short-wave cutoff for free waves.
-  \draw[line width=0.82pt,samples=120,domain=0:2.30,variable=\q]
-    plot ({-\q},{1.42*(1-exp(-1.0*\q))+0.82*\q*exp(-0.72*\q)});
-  \fill (-2.30,2.13) circle (1.2pt);
+  % Strong stratification: schematic curvature normalized to reach omega=1
+  % exactly at the finite cutoff required by the free-wave limit.
+  \def\qcut{2.30}
+  \def\rate{0.75}
+  \draw[line width=0.82pt,samples=120,domain=0:\qcut,variable=\q]
+    plot ({-\q},{\omegaf*(1-exp(-\rate*\q))/(1-exp(-\rate*\qcut))});
+  \fill (-\qcut,\omegaf) circle (1.2pt);
   \node[anchor=south] at (-2.55,2.20) {$n=1\quad S>1$};
 
   \draw[->,line width=0.70pt] (-4.25,0.72) -- (-4.25,1.50);
