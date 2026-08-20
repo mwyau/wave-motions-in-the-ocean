@@ -60,6 +60,7 @@ def canonical_inputs() -> list[Path]:
     credit_source = RECON / "cover-credit.tex"
     if not credit_source.is_file():
         raise SystemExit(f"missing cover credit source: {credit_source}")
+
     epub_frontmatter = BUILD / "frontmatter.tex"
     text = frontmatter.read_text()
     marker = r"\wavecovercredit"
@@ -67,7 +68,26 @@ def canonical_inputs() -> list[Path]:
         raise SystemExit("EPUB front matter is missing the cover-credit marker")
     text = text.replace(marker, credit_source.read_text().strip(), 1)
     epub_frontmatter.write_text(text)
-    return [epub_frontmatter, *chapters]
+
+    # Keep EPUB-specific compatibility normalization generated-only. Pandoc's
+    # TeX-math reader rejects the legacy declaration form used by the source in
+    # p_{\rm atmosphere}; the equivalent \mathrm form preserves the notation.
+    epub_chapters: list[Path] = []
+    for i, chapter in enumerate(chapters, 1):
+        epub_chapter = BUILD / f"chapter{i}.tex"
+        chapter_text = chapter.read_text().replace(
+            r"\rm atmosphere", r"\mathrm{atmosphere}"
+        )
+        epub_chapter.write_text(chapter_text)
+        epub_chapters.append(epub_chapter)
+
+    # Citeproc appends the bibliography after the document body. Give it a real
+    # level-1 heading immediately beforehand so Pandoc's EPUB navigation always
+    # contains References. `reference-section-title` metadata alone does not add
+    # the generated bibliography to nav.xhtml on the Ubuntu Pandoc used by CI.
+    references = BUILD / "references.tex"
+    references.write_text("\\chapter{References}\n")
+    return [epub_frontmatter, *epub_chapters, references]
 
 
 def render_cover() -> None:
@@ -131,7 +151,6 @@ def write_metadata() -> Path:
         "rights: \"CC BY-NC-SA 4.0\"\n"
         "identifier: \"https://mwyau.github.io/wave-motions-in-the-ocean/\"\n"
         f"contributor: \"{EDITOR}\"\n"
-        "reference-section-title: \"References\"\n"
         "---\n"
     )
     return path
