@@ -1,0 +1,126 @@
+name: Finish audited errata tail v3
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+  finish:
+    if: github.event.head_commit.message == 'Run audited errata tail v3'
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Apply audited patch in a quiet main interval
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Reuse the already-reviewed v2 Python patch, but normalize the one physical
+          # line break that prevented its p.129 exact match.
+          python3 - <<'PY'
+          from pathlib import Path
+          import textwrap
+
+          workflow = Path('.github/workflows/finish-errata-tail-v2.yml').read_text()
+          marker = "cat > /tmp/apply_errata_tail.py <<'PY'\n"
+          script = workflow.split(marker, 1)[1].split("\n          PY\n", 1)[0]
+          Path('/tmp/apply_errata_tail.py').write_text(textwrap.dedent(script))
+          PY
+
+          success=false
+          for attempt in $(seq 1 12); do
+            git fetch origin main
+            first=$(git rev-parse origin/main)
+            sleep 3
+            git fetch origin main
+            second=$(git rev-parse origin/main)
+            if [ "$first" != "$second" ]; then
+              echo "main moved during quiet check; retrying"
+              continue
+            fi
+
+            git reset --hard "$second"
+
+            python3 - <<'PY'
+          from pathlib import Path
+          p = Path('reconstruction/chapter5.tex')
+          text = p.read_text()
+          old = "If $\\ell=0$, then\n$\\sigma=-\\beta/k$ and $c=\\sigma/k=-\\beta/k^2$."
+          new = "If $\\ell=0$, then $\\sigma=-\\beta/k$ and $c=\\sigma/k=-\\beta/k^2$."
+          if old in text:
+              text = text.replace(old, new, 1)
+          p.write_text(text)
+          PY
+
+            if ! python3 /tmp/apply_errata_tail.py; then
+              echo "audited patch failed"
+              exit 1
+            fi
+            python3 scripts/sync-views.py --readme
+            python3 scripts/sync-views.py --check-readme
+            git diff --check
+
+            rm -f \
+              .github/workflows/errata-audit-corrections.yml \
+              .github/workflows/finish-errata-tail.yml \
+              .github/workflows/finish-errata-tail-v2.yml \
+              .github/workflows/finish-errata-tail-v3.yml \
+              .github/errata-tail.trigger \
+              .github/errata-tail-v2.trigger \
+              .github/errata-tail-v3.trigger
+
+            git add -- \
+              reconstruction/chapter4.tex \
+              reconstruction/chapter5.tex \
+              reconstruction/ERRATA.md \
+              reconstruction/FIGURES.md \
+              reconstruction/PLAN.md \
+              README.md \
+              .github/workflows/errata-audit-corrections.yml \
+              .github/workflows/finish-errata-tail.yml \
+              .github/workflows/finish-errata-tail-v2.yml \
+              .github/workflows/finish-errata-tail-v3.yml \
+              .github/errata-tail.trigger \
+              .github/errata-tail-v2.trigger \
+              .github/errata-tail-v3.trigger
+            git diff --cached --check
+            git commit -m "Resolve audited source errata"
+
+            if git push origin HEAD:main; then
+              success=true
+              break
+            fi
+            echo "main advanced before push; retrying from newest main"
+          done
+
+          test "$success" = true
+          git push origin --delete __invalid_unused || true
+
+      - name: Validate canonical publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          final_sha=$(git rev-parse HEAD)
+          gh workflow run publish.yml --ref main
+          run_id=""
+          for _ in $(seq 1 30); do
+            run_id=$(gh run list --workflow publish.yml --branch main --event workflow_dispatch --limit 20 \
+              --json databaseId,headSha --jq ".[] | select(.headSha == \"$final_sha\") | .databaseId" | head -n1)
+            [ -n "$run_id" ] && break
+            sleep 2
+          done
+          test -n "$run_id"
+          gh run watch "$run_id" --exit-status
