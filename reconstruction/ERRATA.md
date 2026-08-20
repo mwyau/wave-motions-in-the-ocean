@@ -145,16 +145,16 @@ provenance belong in `FIGURES.md`.
 ### Printed page 111 — “Lamb (1832)”
 
 - **Category:** `reference`
-- **Status:** `pending-review`
+- **Status:** `accepted`
 - **Location:** Chapter 5, printed page 111
 - **Original:** “Lamb (1832)”
-- **Reconstruction:** Unchanged pending review.
-- **Reason/evidence:** The year cannot refer to Horace Lamb (1849--1934). Authoritative
-  catalogues date the Cambridge sixth edition of *Hydrodynamics* to 1932, and later
-  literature specifically cites Lamb (1932) for the long-wave step result. The current
-  bibliography cites the 1945 Dover reprint of the same sixth edition. Resolve whether
-  the intended in-text citation should be 1932 or should match the cited 1945 reprint
-  before changing the text.
+- **Reconstruction:** “Lamb (1932)”
+- **Reason/evidence:** Horace Lamb lived from 1849 to 1934, so 1832 is impossible. The
+  sixth edition of *Hydrodynamics* was published by Cambridge University Press in 1932,
+  and later literature specifically cites Lamb (1932) for the long-wave step matching
+  result discussed here. The bibliography's 1945 Dover volume is an unabridged reprint
+  of that sixth edition, so retaining the reprint in the bibliography is compatible with
+  correcting the historical in-text year to 1932.
 
 ### Printed page 113 — reversed depth and cross-step-wavenumber labels
 
