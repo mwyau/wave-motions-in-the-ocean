@@ -1,0 +1,19 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=7; trim=185bp 350bp 170bp 240bp
+% Source: Wave Motions in the Ocean, printed p.70 (physical p.7).
+% Rotation-vector decomposition relative to k for N=0.
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \coordinate (O) at (0,0);
+  \def\ang{18}
+  \draw (-0.65,0)--(3.35,0);
+  \draw[->,line width=0.8pt] (O)--(2.95,0.96) node[right] {$\vec k$};
+  \draw[->,line width=0.8pt] (O)--(-0.56,1.72) node[left] {$\vec u$};
+  \draw[->,line width=0.75pt] (O)--(0,2.20) node[above] {$\vec f$};
+  % f_parallel is along k; f_perp is normal to k.
+  \draw[->,line width=0.65pt] (O)--(1.03,0.33) node[below right] {$\vec f_{\parallel}$};
+  \draw[->,line width=0.65pt] (1.03,0.33)--(0,2.20) node[midway,right] {$\vec f_{\perp}$};
+  \draw (0.56,0.18) arc[start angle=18,end angle=90,radius=0.59];
+  \node at (0.32,0.57) {$\theta$};
+  \node[anchor=west] at (1.55,0.73) {$\hat k\prime$};
+\end{tikzpicture}
+\end{center}

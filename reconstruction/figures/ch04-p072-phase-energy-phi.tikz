@@ -1,0 +1,22 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=9; trim=90bp 470bp 80bp 60bp
+% Source: Wave Motions in the Ocean, printed p.72 (physical p.9), upper pair.
+% k (phase propagation) and energy propagation are perpendicular; sign reverses across f=N.
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \foreach \dx/\title/\edir in {0/{$f>N$}/135,5.2/{$f<N$}/-45} {
+    \begin{scope}[shift={(\dx,0)}]
+      \node[draw,inner sep=3pt] at (1.65,2.75) {\title};
+      \draw (0,-0.35)--(0,2.35);
+      \draw (-0.55,0)--(3.35,0);
+      \draw[->,line width=0.8pt] (0,0)--(2.75,1.55) node[right] {$\vec k$};
+      \node[anchor=west] at (2.28,0.95) {(phases)};
+      \draw (0,0.57) arc[start angle=90,end angle=29.4,radius=0.57];
+      \node at (0.35,0.55) {$\theta$};
+      \draw[->,line width=0.8pt] (1.35,0.76)--++(\edir:1.25);
+      \node at ($(1.35,0.76)+(\edir:1.55)$) {energy};
+      % short crest marker normal to k
+      \draw[line width=0.7pt] (1.08,0.99)--(1.55,0.16);
+    \end{scope}
+  }
+\end{tikzpicture}
+\end{center}

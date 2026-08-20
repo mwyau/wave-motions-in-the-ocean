@@ -46,6 +46,14 @@ There are no committed replacement/vector assets. All retained Chapter 3 figures
 | `ch04-p065-parcel-displacement.tikz` | 65 | **vector-complete** | Background-density profile, equilibrium location, and upward displacement `xi` are preserved; curvature is schematic. |
 | `ch04-p068-boundary-value-problem.tikz` | 68 | **vector-complete** | Free-surface, interior, and bottom boundary conditions follow the adjacent derivation. |
 | `ch04-p069-dispersion-cone.tikz` | 69 | **vector-complete** | Cone satisfies `m^2=R^2(k^2+ell^2)` and the projected axes/angle are consistent. |
+| `ch04-p069-nonrotating-transverse.tikz` | 69 | **vector-complete** | Replaces a crop that also contained the following displayed equation. The redraw keeps `u` perpendicular to `k`, the source angle, and `w=u sin(theta)` without duplicated surrounding text. |
+| `ch04-p070-rotating-transverse.tikz` | 70 | **vector-complete** | Replaces a crop that extended into the following algebra. `f` is decomposed into components parallel/perpendicular to `k`; `u` remains transverse and the source `k-hat-prime` direction is retained. |
+| `ch04-p072-phase-energy-theta.tikz` | 72 | **vector-complete** | Upper `f>N` / `f<N` pair: phase direction and energy direction are perpendicular; the energy arrow reverses side exactly as in the source. |
+| `ch04-p072-phase-energy-phi.tikz` | 72 | **vector-complete** | Lower `f>N` / `f<N` pair: `c_g` is the energy direction and phase propagation is perpendicular; replacing the crop prevents the first prose line below the source drawing from entering the figure. |
+| `ch04-p073-rotation-only-limits.tikz` | 73 | **vector-complete** | Rotation-only endpoint sketch is reconstructed from the stated limits (`phi=0` Taylor-column limit and `phi=90 deg` inertial limit), excluding the duplicated equation above and prose below. |
+| `ch04-p074-stratification-only-limits.tikz` | 74 | **vector-complete** | Stratification-only endpoint sketch preserves the buoyancy-oscillation and steady limits without surrounding source prose. |
+| `ch04-p075-rotation-stratification-limits.tikz` | 75 | **vector-complete** | Combined rotation/stratification endpoint sketch preserves the buoyancy and inertial limits and their wavenumber orientations. |
+| `ch04-p076-waveguide-boundary-problem.tikz` | 76 | **vector-complete** | Replaces an over-tall crop. The free-surface condition, interior field equation, flat-bottom `w=0`, and `z=0,-D` boundaries are isolated vector content with no section text and no clipped lower annotation. |
 | `ch04-p078-case-a-intersections.tikz` | 78 | **vector-complete** | Curves use the stated normalized equations and yield the two symmetric real roots. |
 | `ch04-p078-case-a1-no-intersections.tikz` | 78 | **vector-complete** | Curves have opposite sign for every nonzero real `k`, so no propagating real root is implied. |
 
@@ -66,9 +74,9 @@ Chapter 5 was re-audited first on 2026-08-20. Four previously accepted drawings 
 | `ch05-p118-coastal-seiche-modes.tikz` | 118 | **vector-complete** | Both modes have the common shelf-break elevation node; the higher mode adds one shelf zero as required. |
 | `ch05-p119-particle-motion.tikz` | 119 | **vector-complete** | Phase planes are normal to `k`; no-rotation displacement is parallel to `k`, while rotating trajectories are clockwise ellipses consistent with `u/v=i sigma/f`. |
 | `ch05-p123-waveguide-channel.tikz` | 123 | **vector-complete** | Two channel walls and `v=0`, `y=0,a` labels reproduce the source geometry. |
-| `ch05-p124-amphidromic-pattern.png` | 124 | **edited-raster** | Native embedded 300-ppi CCITT page strips were extracted and deskewed; only the final lossless PNG is retained. Pixel-level source comparison remains an appropriate future provenance check, not a reason to redraw the field. |
+| `ch05-p124-amphidromic-pattern.png` | 124 | **edited-raster** | Native 300-ppi CCITT source art is cropped to the figure band and deskewed losslessly; no surrounding page prose is intended in the retained raster. A future vector version is plausible only by plotting the superposed Kelvin-wave solution and amphidromic geometry, not by tracing the scan. |
 | `ch05-p125-closed-channel.tikz` | 125 | **vector-complete** | Three closed-channel boundaries and `u=0`, `v=0`, `x=0`, `y=0,a` labels are preserved. |
-| `ch05-p126-kelvin-turning-corner.png` | 126 | **edited-raster** | Native embedded 300-ppi CCITT page strips were extracted and deskewed; only the final lossless PNG is retained. |
+| `ch05-p126-kelvin-turning-corner.png` | 126 | **edited-raster** | Native 300-ppi CCITT source art is cropped to the figure band and deskewed losslessly; no surrounding page prose is intended in the retained raster. Vectorization should be attempted only from the Kelvin-plus-Poincare boundary-value solution, because a freehand trace could alter the near-corner field. |
 | `ch05-p129-rossby-cg.tikz` | 129 | **vector-complete** | Constant-frequency circle follows the stated Rossby relation; group-velocity direction is normal to the circle. |
 | `ch05-p130-westward-propagation.tikz` | 130 | **vector-complete** | Panels use the stated sinusoidal field and time tendency, producing westward phase displacement. |
 | `ch05-p132-divergent-dispersion.tikz` | 132 | **vector-complete** | Fixed-frequency solutions lie on the stated constant-`k` line with arbitrary `ell`. |
@@ -103,68 +111,62 @@ Chapter 5 was re-audited first on 2026-08-20. Four previously accepted drawings 
 
 ## Direct source-PDF crop placements — complete inventory
 
-These 56 placements are real figures even though no separate image file is committed. They are rendered directly from the source PDFs. Retaining a source crop is a positive scientific decision when vectorization would add interpretation risk; it is not an incomplete reconstruction by itself.
+These 48 placements are real figures even though no separate image file is committed. They are rendered directly from the source PDFs. Retaining a source crop is a positive scientific decision when vectorization would add interpretation risk; it is not an incomplete reconstruction by itself.
+
+The 2026-08-20 source-art pass also treats crop isolation as part of acceptance: surrounding prose/equations must not be embedded in a figure, and no scientific label or line may be cut by the trim. Eight Chapter 4 crops (printed pp. 69--76) failed or were unnecessarily fragile under that criterion and were replaced by isolated vectors. The remaining direct crops below are classified explicitly as vector candidates or deliberate source-art retentions.
 
 Chapter 5 p.97 is a particularly important example: the sphere drawing was reviewed as a vector candidate and retained as source art because the local `u/v/z` tangencies, latitude/longitude circles, point `P`, rotation axis, and projected angle geometry are exactly the sort of subtle relationships that a cleaner redraw can accidentally change.
 
 | Chapter | Printed page | Source PDF | Physical page | Status / vectorization disposition |
 |---|---:|---|---:|---|
-| 2 | 23 | `ChapmanRizzoli0_2.pdf` | 33 | **source-pdf** — retained after review; no scientific need for redraw. |
-| 2 | 24 | `ChapmanRizzoli0_2.pdf` | 34 | **source-pdf** — retained after review. |
-| 2 | 26 | `ChapmanRizzoli0_2.pdf` | 36 | **source-pdf** — retained after review. |
-| 2 | 28 | `ChapmanRizzoli0_2.pdf` | 38 | **source-pdf** — retained after review. |
-| 2 | 32 | `ChapmanRizzoli0_2.pdf` | 42 | **source-pdf** — retained after review. |
-| 2 | 34 | `ChapmanRizzoli0_2.pdf` | 44 | **source-pdf** — retained after review. |
-| 2 | 35 | `ChapmanRizzoli0_2.pdf` | 45 | **source-pdf** — retained after review. |
-| 2 | 36 | `ChapmanRizzoli0_2.pdf` | 46 | **source-pdf** — retained after review. |
-| 3 | 39 | `ChapmanRizzoli3.pdf` | 3 | **source-pdf** — retained after review. |
-| 3 | 42 | `ChapmanRizzoli3.pdf` | 7 | **source-pdf** — retained after review. |
-| 3 | 44 | `ChapmanRizzoli3.pdf` | 9 | **source-pdf** — retained after review. |
-| 3 | 52 | `ChapmanRizzoli3.pdf` | 17 | **source-pdf 1/2** — retained after review. |
-| 3 | 52 | `ChapmanRizzoli3.pdf` | 17 | **source-pdf 2/2** — retained after review. |
-| 3 | 55 | `ChapmanRizzoli3.pdf` | 20 | **source-pdf** — retained after review. |
-| 3 | 56 | `ChapmanRizzoli3.pdf` | 21 | **source-pdf 1/2** — retained after review. |
-| 3 | 56 | `ChapmanRizzoli3.pdf` | 21 | **source-pdf 2/2** — retained after review. |
-| 3 | 61 | `ChapmanRizzoli3.pdf` | 26 | **source-pdf** — retained after review. |
-| 3 | 62 | `ChapmanRizzoli3.pdf` | 27 | **source-pdf** — retained after review. |
-| 3 | 63 | `ChapmanRizzoli3.pdf` | 28 | **source-pdf** — retained after review. |
-| 4 | 69 | `ChapmanRizzoli4.pdf` | 6 | **source-pdf** — retained after review. |
-| 4 | 70 | `ChapmanRizzoli4.pdf` | 7 | **source-pdf** — retained after review. |
-| 4 | 72 | `ChapmanRizzoli4.pdf` | 9 | **source-pdf 1/2** — retained after review. |
-| 4 | 72 | `ChapmanRizzoli4.pdf` | 9 | **source-pdf 2/2** — retained after review. |
-| 4 | 73 | `ChapmanRizzoli4.pdf` | 10 | **source-pdf** — retained after review. |
-| 4 | 74 | `ChapmanRizzoli4.pdf` | 11 | **source-pdf** — retained after review. |
-| 4 | 75 | `ChapmanRizzoli4.pdf` | 12 | **source-pdf** — retained after review. |
-| 4 | 76 | `ChapmanRizzoli4.pdf` | 13 | **source-pdf** — retained after review. |
-| 4 | 77 | `ChapmanRizzoli4.pdf` | 14 | **source-pdf** — retained after review. |
-| 4 | 79 | `ChapmanRizzoli4.pdf` | 16 | **source-pdf** — retained after review. |
-| 4 | 80 | `ChapmanRizzoli4.pdf` | 17 | **source-pdf** — retained after review. |
-| 4 | 81 | `ChapmanRizzoli4.pdf` | 18 | **source-pdf 1/2** — retained after review. |
-| 4 | 81 | `ChapmanRizzoli4.pdf` | 18 | **source-pdf 2/2** — retained after review. |
-| 4 | 83 | `ChapmanRizzoli4.pdf` | 20 | **source-pdf** — retained after review. |
-| 4 | 84 | `ChapmanRizzoli4.pdf` | 21 | **source-pdf** — retained after review. |
-| 4 | 85 | `ChapmanRizzoli4.pdf` | 22 | **source-pdf** — retained after review. |
-| 4 | 88 | `ChapmanRizzoli4.pdf` | 25 | **source-pdf** — retained after review. |
-| 4 | 89 | `ChapmanRizzoli4.pdf` | 26 | **source-pdf 1/2** — retained after review. |
-| 4 | 89 | `ChapmanRizzoli4.pdf` | 26 | **source-pdf 2/2** — retained after review. |
-| 4 | 90 | `ChapmanRizzoli4.pdf` | 27 | **source-pdf 1/2** — retained after review. |
-| 4 | 90 | `ChapmanRizzoli4.pdf` | 27 | **source-pdf 2/2** — retained after review. |
-| 4 | 91 | `ChapmanRizzoli4.pdf` | 28 | **source-pdf** — retained after review. |
-| 4 | 92 | `ChapmanRizzoli4.pdf` | 29 | **source-pdf** — retained after review. |
-| 4 | 93 | `ChapmanRizzoli4.pdf` | 30 | **source-pdf** — retained after review. |
-| 4 | 94 | `ChapmanRizzoli4.pdf` | 31 | **source-pdf** — retained after review. |
-| 5 | 97 | `ChapmanRizzoli5.pdf` | 2 | **source-pdf** — vectorization reviewed and deferred because the sphere/tangent/longitude-latitude geometry is scientifically dense. |
-| 5 | 113 | `ChapmanRizzoli5.pdf` | 18 | **source-pdf 1/2** — historical labels retained beside corrected text; do not silently redraw the erratum away. |
-| 5 | 113 | `ChapmanRizzoli5.pdf` | 18 | **source-pdf 2/2** — same disposition. |
-| 6 | 151 | `ChapmanRizzoli6.pdf` | 4 | **source-pdf** — retained after review. |
-| 6 | 152 | `ChapmanRizzoli6.pdf` | 5 | **source-pdf** — retained after review. |
-| 6 | 154 | `ChapmanRizzoli6.pdf` | 7 | **source-pdf** — retained after review. |
-| 6 | 157 | `ChapmanRizzoli6.pdf` | 10 | **source-pdf** — retained after review. |
-| 6 | 159 | `ChapmanRizzoli6.pdf` | 12 | **source-pdf 1/2** — retained after review. |
-| 6 | 159 | `ChapmanRizzoli6.pdf` | 12 | **source-pdf 2/2** — retained after review. |
-| 6 | 161 | `ChapmanRizzoli6.pdf` | 15 | **source-pdf** — retained because the full coastal-wave spectrum combines several physical branches; vectorization would require a dedicated equation-by-equation spectrum reconstruction. |
-| 6 | 167 | `ChapmanRizzoli6.pdf` | 21 | **source-pdf** — retained after review. |
-| 6 | 168 | `ChapmanRizzoli6.pdf` | 22 | **source-pdf** — retained after review. |
+| 2 | 23 | `ChapmanRizzoli0_2.pdf` | 33 | **vector-candidate** — simple analytic acoustic-wave geometry/dispersion; suitable for a constrained TikZ redraw; source crop remains authoritative until replacement is compared. |
+| 2 | 24 | `ChapmanRizzoli0_2.pdf` | 34 | **vector-candidate** — simple analytic acoustic-wave geometry/dispersion; suitable for a constrained TikZ redraw; source crop remains authoritative until replacement is compared. |
+| 2 | 26 | `ChapmanRizzoli0_2.pdf` | 36 | **vector-candidate** — simple analytic acoustic-wave geometry/dispersion; suitable for a constrained TikZ redraw; source crop remains authoritative until replacement is compared. |
+| 2 | 28 | `ChapmanRizzoli0_2.pdf` | 38 | **vector-candidate** — simple analytic acoustic-wave geometry/dispersion; suitable for a constrained TikZ redraw; source crop remains authoritative until replacement is compared. |
+| 2 | 32 | `ChapmanRizzoli0_2.pdf` | 42 | **vector-candidate** — simple analytic acoustic-wave geometry/dispersion; suitable for a constrained TikZ redraw; source crop remains authoritative until replacement is compared. |
+| 2 | 34 | `ChapmanRizzoli0_2.pdf` | 44 | **source-pdf** — retain the source-specific sound-speed profile; generic smoothing would invent profile detail. |
+| 2 | 35 | `ChapmanRizzoli0_2.pdf` | 45 | **source-pdf** — retain the source-specific sound-speed profile; generic smoothing would invent profile detail. The p.35 crop was already tightened specifically to exclude duplicated prose. |
+| 2 | 36 | `ChapmanRizzoli0_2.pdf` | 46 | **vector-candidate** — simple analytic acoustic-wave geometry/dispersion; suitable for a constrained TikZ redraw; source crop remains authoritative until replacement is compared. |
+| 3 | 39 | `ChapmanRizzoli3.pdf` | 3 | **vector-candidate** — analytic surface-wave geometry or equation-defined schematic; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
+| 3 | 42 | `ChapmanRizzoli3.pdf` | 7 | **vector-candidate** — analytic surface-wave geometry or equation-defined schematic; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
+| 3 | 44 | `ChapmanRizzoli3.pdf` | 9 | **vector-candidate** — analytic surface-wave geometry or equation-defined schematic; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
+| 3 | 52 | `ChapmanRizzoli3.pdf` | 17 | **vector-candidate** — analytic surface-wave geometry or equation-defined schematic; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
+| 3 | 52 | `ChapmanRizzoli3.pdf` | 17 | **vector-candidate** — analytic surface-wave geometry or equation-defined schematic; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
+| 3 | 55 | `ChapmanRizzoli3.pdf` | 20 | **vector-candidate** — analytic surface-wave geometry or equation-defined schematic; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
+| 3 | 56 | `ChapmanRizzoli3.pdf` | 21 | **vector-candidate** — analytic surface-wave geometry or equation-defined schematic; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
+| 3 | 56 | `ChapmanRizzoli3.pdf` | 21 | **vector-candidate** — analytic surface-wave geometry or equation-defined schematic; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
+| 3 | 61 | `ChapmanRizzoli3.pdf` | 26 | **vector-candidate** — analytic surface-wave geometry or equation-defined schematic; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
+| 3 | 62 | `ChapmanRizzoli3.pdf` | 27 | **vector-candidate** — analytic surface-wave geometry or equation-defined schematic; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
+| 3 | 63 | `ChapmanRizzoli3.pdf` | 28 | **vector-candidate** — analytic surface-wave geometry or equation-defined schematic; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
+| 4 | 77 | `ChapmanRizzoli4.pdf` | 14 | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
+| 4 | 79 | `ChapmanRizzoli4.pdf` | 16 | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
+| 4 | 80 | `ChapmanRizzoli4.pdf` | 17 | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
+| 4 | 81 | `ChapmanRizzoli4.pdf` | 18 | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
+| 4 | 81 | `ChapmanRizzoli4.pdf` | 18 | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
+| 4 | 83 | `ChapmanRizzoli4.pdf` | 20 | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
+| 4 | 84 | `ChapmanRizzoli4.pdf` | 21 | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
+| 4 | 85 | `ChapmanRizzoli4.pdf` | 22 | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
+| 4 | 88 | `ChapmanRizzoli4.pdf` | 25 | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
+| 4 | 89 | `ChapmanRizzoli4.pdf` | 26 | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
+| 4 | 89 | `ChapmanRizzoli4.pdf` | 26 | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
+| 4 | 90 | `ChapmanRizzoli4.pdf` | 27 | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
+| 4 | 90 | `ChapmanRizzoli4.pdf` | 27 | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
+| 4 | 91 | `ChapmanRizzoli4.pdf` | 28 | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
+| 4 | 92 | `ChapmanRizzoli4.pdf` | 29 | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
+| 4 | 93 | `ChapmanRizzoli4.pdf` | 30 | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
+| 4 | 94 | `ChapmanRizzoli4.pdf` | 31 | **vector-candidate** — analytic internal-wave diagram/dispersion sketch; suitable for equation- or geometry-driven TikZ; source crop remains authoritative until replacement is compared. |
+| 5 | 97 | `ChapmanRizzoli5.pdf` | 2 | **vector-candidate (high-risk)** — feasible only with exact spherical projection/tangency construction for longitude/latitude circles and local `u/v/z`; keep source art until then. |
+| 5 | 113 | `ChapmanRizzoli5.pdf` | 18 | **source-pdf** — retain the historical labels because this figure participates in the documented source erratum; a corrected redraw would erase evidence. |
+| 5 | 113 | `ChapmanRizzoli5.pdf` | 18 | **source-pdf** — same disposition. |
+| 6 | 151 | `ChapmanRizzoli6.pdf` | 4 | **vector-candidate** — analytic topographic/coastal-wave geometry or dispersion sketch; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
+| 6 | 152 | `ChapmanRizzoli6.pdf` | 5 | **vector-candidate** — analytic topographic/coastal-wave geometry or dispersion sketch; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
+| 6 | 154 | `ChapmanRizzoli6.pdf` | 7 | **vector-candidate** — analytic topographic/coastal-wave geometry or dispersion sketch; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
+| 6 | 157 | `ChapmanRizzoli6.pdf` | 10 | **vector-candidate** — analytic topographic/coastal-wave geometry or dispersion sketch; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
+| 6 | 159 | `ChapmanRizzoli6.pdf` | 12 | **vector-candidate** — analytic topographic/coastal-wave geometry or dispersion sketch; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
+| 6 | 159 | `ChapmanRizzoli6.pdf` | 12 | **vector-candidate** — analytic topographic/coastal-wave geometry or dispersion sketch; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
+| 6 | 161 | `ChapmanRizzoli6.pdf` | 15 | **source-pdf** — retain the information-dense full coastal-wave spectrum until every branch/cutoff is reconstructed equation-by-equation. |
+| 6 | 167 | `ChapmanRizzoli6.pdf` | 21 | **vector-candidate** — analytic topographic/coastal-wave geometry or dispersion sketch; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
+| 6 | 168 | `ChapmanRizzoli6.pdf` | 22 | **vector-candidate** — analytic topographic/coastal-wave geometry or dispersion sketch; suitable for a constrained redraw; source crop remains authoritative until replacement is compared. |
 
 ## Sizing and acceptance rules
 
@@ -184,10 +186,11 @@ For every changed vector:
 1. inspect the full source page at high resolution;
 2. read the nearby equations/prose and list the geometric constraints;
 3. encode those constraints in coordinates/equations where practical;
-4. compile the TikZ independently;
-5. inspect arrowheads, labels, tangencies, crossings, wavelength, amplitude ratios, and final scale;
-6. compile both PDF editions and generated HTML/EPUB at the batch checkpoint;
-7. compare affected pages/assets with the source;
-8. record intentional schematic simplifications here.
+4. for equation-defined charts or curves, independently evaluate or plot the stated equation when practical and compare it to the vector reconstruction;
+5. compile the TikZ independently;
+6. inspect arrowheads, labels, tangencies, crossings, wavelength, amplitude ratios, and final scale;
+7. compile both PDF editions and generated HTML/EPUB at the batch checkpoint;
+8. compare affected pages/assets with the source;
+9. record intentional schematic simplifications here.
 
 Direct source crops use the committed PDF page through `\includegraphics[page=...,trim=...,clip]`; no permanent raster intermediary is committed.

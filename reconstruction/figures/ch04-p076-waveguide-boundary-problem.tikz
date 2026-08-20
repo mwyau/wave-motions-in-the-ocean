@@ -1,0 +1,19 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=13; trim=105bp 330bp 90bp 245bp
+% Source: Wave Motions in the Ocean, printed p.76 (physical p.13).
+% Waveguide field equation and free-surface/flat-bottom boundary conditions.
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  % Free surface: slight waviness is purely schematic.
+  \draw[line width=0.8pt,samples=120,domain=0:7.2] plot (\x,{2.35+0.035*sin(420*\x)});
+  \node[anchor=west] at (7.35,2.35) {$z=0$};
+  \node[align=center] at (3.70,3.12) {$(\sigma^2-f^2)w_z+g(w_{xx}+w_{yy})=0$};
+  \draw[->] (2.40,2.87)--(2.25,2.42);
+
+  \node at (3.65,1.40) {$w_{zz}-\dfrac{N^2-\sigma^2}{\sigma^2-f^2}(w_{xx}+w_{yy})=0$};
+
+  \draw[line width=0.8pt] (0,0)--(7.2,0);
+  \node[anchor=west] at (7.35,0) {$z=-D$};
+  \node at (2.55,-0.62) {$w=0$};
+  \draw[->] (2.55,-0.42)--(2.20,-0.05);
+\end{tikzpicture}
+\end{center}

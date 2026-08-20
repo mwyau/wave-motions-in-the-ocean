@@ -1,0 +1,11 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=12; trim=145bp 360bp 135bp 180bp
+% Source: Wave Motions in the Ocean, printed p.75 (physical p.12).
+% Endpoint limits with both rotation and constant stratification.
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \draw[->,line width=0.8pt] (0,0)--(0,3.25);
+  \draw[->,line width=0.8pt] (0,0)--(4.50,0);
+  \node[anchor=west,align=left] at (0.18,2.90) {$\phi=0^\circ$\\$\sigma=N$ (buoyancy oscillations)\\$|\vec c_g|=0$\\wavenumber = arbitrary horizontal, $m=0$\\(columnar structure)};
+  \node[anchor=west,align=left] at (4.10,1.42) {$\phi=90^\circ$\\$\sigma=f$ (inertial oscillations)\\$|\vec c_g|=0$\\wavenumber = vertical, $k=\ell=0$\\(layers uncoupled)};
+\end{tikzpicture}
+\end{center}
