@@ -1,0 +1,3 @@
+issue=14
+purpose=manual-scientific-equation-numbering
+prepared=706b89e02316dbbbe1d3484fb9ca98bc78042bcd
