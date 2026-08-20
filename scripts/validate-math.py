@@ -37,6 +37,14 @@ EPUB_VARIABLE_SENTINELS = ("σ", "ρ", "ℓ", "k", "m", "x", "y", "t")
 EPUB_OPERATOR_SENTINELS = ("sin", "cos", "tanh")
 NAMED_FUNCTIONS = ("sin", "cos", "tan", "sinh", "cosh", "tanh", "exp", "log", "ln")
 NUMBERED_ENV_RE = re.compile(r"\\begin\{(?:waveequation|wavealign)\}")
+MATH_ENV_RE = re.compile(
+    r"\\begin\{(?P<env>waveequation|wavealign|align\*?|equation\*?|gather\*?|multline\*?)\}"
+    r"(?P<body>.*?)\\end\{(?P=env)\}",
+    re.S,
+)
+MATH_TEXT_COMMAND_RE = re.compile(
+    r"\\(?:text|textrm|textsf|texttt|textit|textbf|mathrm|operatorname)\{[^{}]*\}"
+)
 
 # This single legacy source form is historically faithful and currently
 # normalized only in generated EPUB input. Any additional legacy declaration is
@@ -62,6 +70,17 @@ def strip_tex_comments(text: str) -> str:
     return "\n".join(lines)
 
 
+def tex_math_regions(text: str) -> list[str]:
+    """Return TeX regions that are actually interpreted as mathematics."""
+    regions = [m.group(1) for m in re.finditer(r"\\\[(.*?)\\\]", text, re.S)]
+    regions.extend(m.group("body") for m in MATH_ENV_RE.finditer(text))
+    regions.extend(
+        m.group(1)
+        for m in re.finditer(r"(?<!\\)\$(?!\$)(.*?)(?<!\\)\$", text, re.S)
+    )
+    return regions
+
+
 def check_canonical_source() -> None:
     frontmatter = (RECON / "frontmatter-modern.tex").read_text()
     for sentinel in PAOLA_SOURCE_SENTINELS:
@@ -82,8 +101,9 @@ def check_canonical_source() -> None:
             if text.count(item) > 1:
                 fail(f"{chapter.name}: duplicated known legacy math form {item!r}")
 
+        math_text = "\n".join(MATH_TEXT_COMMAND_RE.sub("", region) for region in tex_math_regions(text))
         for function in NAMED_FUNCTIONS:
-            bare = re.search(rf"(?<!\\)\b{function}\b", text)
+            bare = re.search(rf"(?<![\\A-Za-z]){function}(?![A-Za-z])", math_text)
             if bare:
                 fail(
                     f"{chapter.name}: named math function {function!r} appears without a TeX operator command"
@@ -107,10 +127,14 @@ def canonical_equation_labels() -> dict[int, tuple[str, ...]]:
 
 
 def require_labels(text: str, labels: tuple[str, ...], *, artifact: str) -> None:
-    missing = [label for label in labels if label not in text]
-    if missing:
-        preview = ", ".join(missing[:12])
-        fail(f"{artifact}: missing {len(missing)} numbered equation label(s): {preview}")
+    positions: list[int] = []
+    for label in labels:
+        count = text.count(label)
+        if count != 1:
+            fail(f"{artifact}: equation label {label} occurs {count} times; expected exactly once")
+        positions.append(text.find(label))
+    if positions != sorted(positions):
+        fail(f"{artifact}: numbered equation labels are not in canonical order")
 
 
 def github_math_patterns(expr: str) -> tuple[re.Pattern[str], re.Pattern[str]]:
@@ -234,7 +258,7 @@ def check_epub_mathml() -> None:
         if not {"inline", "block"}.issubset(displays):
             fail(f"EPUB lacks inline or block MathML: {sorted(str(v) for v in displays)}")
 
-        required_structures = ("mi", "mn", "mo", "msub", "msup", "mfrac", "mover")
+        required_structures = ("mi", "mn", "mo", "msub", "msup", "mfrac", "mover", "mtable")
         counts: dict[str, int] = {}
         for tag in required_structures:
             count = sum(len(math.findall(f".//{ns}{tag}")) for math in math_elements)
@@ -242,25 +266,19 @@ def check_epub_mathml() -> None:
             if count == 0:
                 fail(f"EPUB MathML has no <{tag}> structure")
 
-        mi_text = [
-            "".join(node.itertext()).strip()
-            for math in math_elements
-            for node in math.findall(f".//{ns}mi")
-        ]
-        mo_text = [
-            "".join(node.itertext()).strip()
-            for math in math_elements
-            for node in math.findall(f".//{ns}mo")
-        ]
+        mi_nodes = [node for math in math_elements for node in math.findall(f".//{ns}mi")]
+        mo_nodes = [node for math in math_elements for node in math.findall(f".//{ns}mo")]
+        mi_text = ["".join(node.itertext()).strip() for node in mi_nodes]
+        mo_text = ["".join(node.itertext()).strip() for node in mo_nodes]
         for symbol in EPUB_VARIABLE_SENTINELS:
             if symbol not in mi_text:
                 fail(f"EPUB variable {symbol!r} is not represented as <mi>")
-        if "ℓ" in mo_text:
-            fail("EPUB variable ℓ regressed to operator <mo>")
+            if symbol in mo_text:
+                fail(f"EPUB variable {symbol!r} is incorrectly represented as operator <mo>")
 
-        operator_hits = {op for op in EPUB_OPERATOR_SENTINELS if op in mo_text}
-        if not operator_hits:
-            fail("EPUB has no representative named operator serialized as <mo>")
+        for operator in EPUB_OPERATOR_SENTINELS:
+            if operator not in mo_text:
+                fail(f"EPUB named operator {operator!r} is not represented as <mo>")
 
         atmosphere_math = [
             math
@@ -269,13 +287,27 @@ def check_epub_mathml() -> None:
         ]
         if not atmosphere_math:
             fail("EPUB lost the p_atmosphere mathematical expression")
+        if not any(
+            "atmosphere"
+            in "".join(
+                "".join(node.itertext()).strip()
+                for node in math.findall(f".//{ns}mi")
+                if node.get("mathvariant") == "normal"
+            )
+            for math in atmosphere_math
+        ):
+            fail("EPUB p_atmosphere subscript is not upright semantic math text")
 
         epub_text = " ".join(
             " ".join(ET.fromstring(archive.read(name)).itertext())
             for name in xhtml_items
         )
-        for labels in canonical_equation_labels().values():
-            require_labels(epub_text, labels, artifact="EPUB")
+        all_labels = tuple(
+            label
+            for labels in canonical_equation_labels().values()
+            for label in labels
+        )
+        require_labels(epub_text, all_labels, artifact="EPUB")
 
         print(
             "EPUB MathML semantics OK: "
@@ -314,8 +346,12 @@ def check_pdf() -> None:
                 fail(f"{path.name}: Paola-preface PDF text sentinel is missing: {sentinel!r}")
 
     modern_text = extracted[MODERN_PDF]
-    for labels in canonical_equation_labels().values():
-        require_labels(modern_text, labels, artifact=MODERN_PDF.name)
+    all_labels = tuple(
+        label
+        for labels in canonical_equation_labels().values()
+        for label in labels
+    )
+    require_labels(modern_text, all_labels, artifact=MODERN_PDF.name)
 
     modern_log = Path(os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motions"))) / "latex" / "modern" / "main-modern.log"
     if modern_log.is_file():
