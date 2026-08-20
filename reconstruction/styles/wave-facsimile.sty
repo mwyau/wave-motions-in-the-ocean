@@ -1,7 +1,10 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{styles/wave-facsimile}[2026/08/20 source-page facsimile layout]
 \RequirePackage{styles/wave-common}
-\RequirePackage[letterpaper,top=0.85in,bottom=0.60in,left=0.95in,right=0.95in]{geometry}
+% Keep the 12 pt type and open leading while giving dense historical pages
+% slightly more usable vertical room. This preserves the source-page boundaries
+% without shrinking the reading size or allowing content to spill to page 185.
+\RequirePackage[letterpaper,top=0.80in,bottom=0.50in,left=0.95in,right=0.95in]{geometry}
 \RequirePackage{lmodern}
 
 \setlength{\parindent}{1.75em}
