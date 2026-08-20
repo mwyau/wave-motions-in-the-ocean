@@ -135,7 +135,7 @@ def frontmatter_markdown(text: str) -> str:
         src = Path(td) / "frontmatter.tex"
         src.write_text(body)
         proc = subprocess.run(
-            ["pandoc", str(src), "-f", "latex", "-t", "gfm", "--wrap=none"],
+            ["pandoc", str(src), "-f", "latex", "-t", "gfm", "--wrap=preserve"],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
