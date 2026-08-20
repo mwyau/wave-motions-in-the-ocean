@@ -6,7 +6,6 @@ import argparse
 import html
 import shutil
 import tempfile
-import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 
@@ -44,14 +43,6 @@ def stamp_html() -> None:
     print(f"HTML build identity OK: {info.label}")
 
 
-def _epub_rootfile(archive: zipfile.ZipFile) -> str:
-    root = ET.fromstring(archive.read("META-INF/container.xml"))
-    node = root.find(".//{*}rootfile")
-    if node is None or not node.get("full-path"):
-        raise SystemExit("EPUB container has no package rootfile")
-    return node.get("full-path") or ""
-
-
 def stamp_epub() -> None:
     info = current_build()
     if not EPUB.is_file():
@@ -62,7 +53,6 @@ def stamp_epub() -> None:
         if not names or names[0] != "mimetype":
             raise SystemExit("EPUB mimetype entry is not first")
         entries = [(item, source.read(item.filename)) for item in source.infolist()]
-        opf_name = _epub_rootfile(source)
 
     label = html.escape(info.label)
     url = html.escape(info.commit_url, quote=True)
@@ -84,23 +74,6 @@ def stamp_epub() -> None:
             if pos >= 0:
                 data = data[:pos] + paragraph + b"\n" + data[pos:]
                 stamped_xhtml = True
-
-        if item.filename == opf_name:
-            try:
-                root = ET.fromstring(data)
-            except ET.ParseError as exc:
-                raise SystemExit(f"invalid EPUB package document: {exc}") from exc
-            metadata = root.find("{*}metadata")
-            if metadata is None:
-                raise SystemExit("EPUB package metadata is missing")
-            dc = "http://purl.org/dc/elements/1.1/"
-            existing = metadata.findall(f"{{{dc}}}source")
-            for node in existing:
-                metadata.remove(node)
-            source_node = ET.SubElement(metadata, f"{{{dc}}}source")
-            source_node.text = info.commit_url
-            data = ET.tostring(root, encoding="utf-8", xml_declaration=True)
-
         rewritten.append((item, data))
 
     if not stamped_xhtml:
@@ -130,11 +103,8 @@ def stamp_epub() -> None:
             for name in archive.namelist()
             if name.lower().endswith((".xhtml", ".html"))
         )
-        if info.short_sha.encode() not in xhtml:
+        if info.short_sha.encode() not in xhtml or info.commit_url.encode() not in xhtml:
             raise SystemExit("EPUB visible build identity is missing")
-        opf = archive.read(_epub_rootfile(archive))
-        if info.commit_url.encode() not in opf:
-            raise SystemExit("EPUB source-revision metadata is missing")
 
     print(f"EPUB build identity OK: {info.label}")
 
