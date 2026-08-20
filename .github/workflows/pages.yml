@@ -32,6 +32,14 @@ jobs:
           restore-keys: |
             wave-motions-tinytex-${{ runner.os }}-
 
+      - name: Cache LaTeX intermediates
+        uses: actions/cache@v5
+        with:
+          path: .cache/wave-motions/latex
+          key: wave-motions-latex-v1-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            wave-motions-latex-v1-${{ runner.os }}-
+
       - name: Detect restored TinyTeX
         id: tinytex-state
         shell: bash

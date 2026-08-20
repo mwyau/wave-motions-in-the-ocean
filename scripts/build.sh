@@ -5,6 +5,8 @@ ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 RECON="$ROOT/reconstruction"
 BUILD="$ROOT/build"
 DIST="$ROOT/dist"
+CACHE=${WAVE_CACHE_DIR:-"$ROOT/.cache/wave-motions"}
+LATEX_CACHE="$CACHE/latex"
 TARGET=${1:-all}
 
 case "$TARGET" in
@@ -22,11 +24,10 @@ for cmd in latexmk pdflatex pdfinfo pdftotext pdftoppm python3; do need "$cmd"; 
 TOOLBIN="$BUILD/toolbin"
 mkdir -p "$TOOLBIN"
 if command -v bibtex >/dev/null 2>&1; then
-  BIBTEX_CMD=bibtex
+  :
 elif command -v bibtex8 >/dev/null 2>&1; then
   ln -sf "$(command -v bibtex8)" "$TOOLBIN/bibtex"
   export PATH="$TOOLBIN:$PATH"
-  BIBTEX_CMD=bibtex
 else
   echo "missing required BibTeX executable (bibtex or bibtex8)" >&2
   exit 1
@@ -42,22 +43,40 @@ validate_pdf() {
   fi
 }
 
+run_latexmk_cached() {
+  local main=$1 kind=$2
+  local out="$LATEX_CACHE/$kind"
+  local base=${main%.tex}
+  local had_state=false
+  [[ -f "$out/$base.fdb_latexmk" ]] && had_state=true
+  mkdir -p "$out"
+
+  if (cd "$RECON" && latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir="$out" "$main"); then
+    return
+  fi
+
+  if [[ "$had_state" == true ]]; then
+    echo "cached latexmk state for $kind failed; retrying clean" >&2
+    rm -rf "$out"
+    mkdir -p "$out"
+    (cd "$RECON" && latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir="$out" "$main")
+    return
+  fi
+
+  return 1
+}
+
 build_pdf() {
   rm -rf "$BUILD/facsimile" "$BUILD/modern"
-  mkdir -p "$BUILD/facsimile" "$BUILD/modern" "$DIST"
+  mkdir -p "$BUILD/facsimile" "$BUILD/modern" "$LATEX_CACHE/facsimile" "$LATEX_CACHE/modern" "$DIST"
   rm -f "$DIST/wave-motions.pdf" "$DIST/wave-motions-facsimile.pdf" \
     "$DIST/wave-motions-1989-modern.pdf" "$DIST/wave-motions-1989-facsimile.pdf"
 
-  (
-    cd "$RECON"
-    latexmk -pdf -interaction=nonstopmode -halt-on-error \
-      -outdir="$BUILD/facsimile" main-facsimile.tex
-    latexmk -pdf -interaction=nonstopmode -halt-on-error \
-      -outdir="$BUILD/modern" main-modern.tex
-  )
+  run_latexmk_cached main-facsimile.tex facsimile
+  run_latexmk_cached main-modern.tex modern
 
-  cp "$BUILD/facsimile/main-facsimile.pdf" "$DIST/wave-motions-facsimile.pdf"
-  cp "$BUILD/modern/main-modern.pdf" "$DIST/wave-motions.pdf"
+  cp "$LATEX_CACHE/facsimile/main-facsimile.pdf" "$DIST/wave-motions-facsimile.pdf"
+  cp "$LATEX_CACHE/modern/main-modern.pdf" "$DIST/wave-motions.pdf"
 
   validate_pdf "$DIST/wave-motions-facsimile.pdf"
   validate_pdf "$DIST/wave-motions.pdf"
@@ -68,8 +87,8 @@ build_pdf() {
   test "$fac_pages" = "184" || { echo "facsimile page count is $fac_pages; expected 184" >&2; exit 1; }
   test "$mod_pages" -gt 0
 
-  ! grep -q "destination with the same identifier" "$BUILD/facsimile/main-facsimile.log"
-  ! grep -q "destination with the same identifier" "$BUILD/modern/main-modern.log"
+  ! grep -q "destination with the same identifier" "$LATEX_CACHE/facsimile/main-facsimile.log"
+  ! grep -q "destination with the same identifier" "$LATEX_CACHE/modern/main-modern.log"
 
   pdftotext -layout "$DIST/wave-motions-facsimile.pdf" "$BUILD/facsimile/text.txt"
   pdftotext -layout "$DIST/wave-motions.pdf" "$BUILD/modern/text.txt"
