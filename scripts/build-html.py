@@ -22,6 +22,8 @@ from pathlib import Path
 
 from PIL import Image
 
+from book_views import DOWNLOADS, html_contents, html_license
+
 ROOT = Path(__file__).resolve().parents[1]
 RECON = ROOT / "reconstruction"
 SOURCE = ROOT / "source"
@@ -274,7 +276,7 @@ def transform_tex(text: str) -> str:
 def pandoc_page(source_tex: Path, output: Path, title: str) -> None:
     run([
         "pandoc", str(source_tex), "-f", "latex", "-t", "html5", "-s",
-        "--mathjax=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js",
+        "--mathjax=https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js",
         "--metadata", f"title={title}", "--metadata", "lang=en-US", "-o", str(output),
     ])
 
@@ -295,7 +297,7 @@ def inject_css_and_nav(page: Path, nav: str) -> None:
 
 
 def make_nav(index: int | None = None) -> str:
-    links = ['<a href="index.html">Contents</a>']
+    links = ['<a href="index.html#contents">Contents</a>']
     if index is not None and index > 1:
         links.append(f'<a href="chapter{index-1}.html">Previous chapter</a>')
     if index is not None and index < 6:
@@ -312,27 +314,9 @@ def build_index(temp: Path) -> None:
     src.write_text(transform_tex(text))
     page = OUT / "index.html"
     pandoc_page(src, page, "Wave Motions in the Ocean: Myrl's View")
-    downloads = []
-    for filename, label in (
-        ("wave-motions.pdf", "PDF"),
-        ("wave-motions-facsimile.pdf", "Facsimile PDF"),
-    ):
-        if (OUT / filename).exists():
-            downloads.append(f'<li><a href="{filename}">{label}</a></li>')
-    download_html = (
-        '<h2>Downloads</h2><ul>' + "".join(downloads) + '</ul>' if downloads else ""
-    )
-    toc = '<section class="book-toc"><h2>Contents</h2><ol>' + "".join(
-        f'<li><a href="chapter{i}.html">Chapter {i}</a></li>' for i in range(1, 7)
-    ) + '</ol><p><a href="references.html">References</a></p>' + download_html + '</section>'
-    license_html = (
-        '<p class="license">This work is licensed under '
-        '<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>'
-        '<img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">'
-        '<img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">'
-        '<img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">'
-        '<img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"></p>'
-    )
+    available_downloads = tuple(item for item in DOWNLOADS if (OUT / item[0]).is_file())
+    toc = html_contents(downloads=available_downloads)
+    license_html = html_license()
     html_text = page.read_text(errors="replace")
     html_text = html_text.replace("</body>", toc + "\n" + license_html + "\n</body>")
     page.write_text(html_text)
@@ -347,7 +331,7 @@ def build_references(temp: Path) -> None:
         "pandoc", str(md), "-s", "-t", "html5", "--citeproc",
         f"--bibliography={RECON / 'references.bib'}", "-o", str(page),
     ])
-    nav = '<nav class="book-nav" aria-label="Book navigation"><a href="index.html">Contents</a> · <a href="chapter6.html">Previous chapter</a></nav>'
+    nav = '<nav class="book-nav" aria-label="Book navigation"><a href="index.html#contents">Contents</a> · <a href="chapter6.html">Previous chapter</a></nav>'
     inject_css_and_nav(page, nav)
 
 
