@@ -1,55 +1,45 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{styles/wave-facsimile}[2026/08/20 source-page facsimile layout]
+\ProvidesPackage{styles/wave-facsimile}[2026/08/21 source-page facsimile layout]
 \RequirePackage{styles/wave-common}
-% Keep the 12 pt type and open leading while giving dense historical pages
-% slightly more usable vertical room. This preserves the source-page boundaries
-% without shrinking the reading size or allowing content to spill to page 185.
+
+% Preserve the 12 pt reading size while keeping enough uniform vertical reserve
+% for every historical source page. Page fit is controlled globally rather than
+% with page-specific figure or crop exceptions.
 \RequirePackage[letterpaper,top=0.80in,bottom=0.50in,left=0.95in,right=0.95in]{geometry}
 \RequirePackage{lmodern}
 
-% Preserve the historical source-page edition: the canonical source carries
-% modern editorial numbering semantics, but the facsimile renders the original
-% unnumbered display/figure presentation. Keep the alignment body inside a
-% matching outer environment so LaTeX does not see mismatched environment names.
+% Preserve the historical source-page edition: suppress modern editorial
+% equation/figure numbering while keeping the shared canonical source unchanged.
 \renewenvironment{waveequation}{\begin{equation*}}{\end{equation*}}
 \renewenvironment{wavealign}{\begin{equation*}\begin{aligned}}{\end{aligned}\end{equation*}}
 \renewcommand{\wavefiguremark}{}
 
-% Two dense source pages need facsimile-only presentation adjustments. Keep the
-% shared chapter source and flowing editions unchanged: p.84 needs the validated
-% vector at the source-page scale, while the p.161 source crop must omit prose
-% already reconstructed immediately above it.
-\NewCommandCopy\WaveFacsimileOriginalVectorArt\wavevectorart
-\renewcommand{\wavevectorart}[2][0.72]{%
-  \def\WaveFacsimileFigureName{#2}%
-  \def\WaveFacsimileCompactFigure{ch04-p084-evanescent-case-b}%
-  \ifx\WaveFacsimileFigureName\WaveFacsimileCompactFigure
-    \WaveFacsimileOriginalVectorArt[0.66]{#2}%
-  \else
-    \WaveFacsimileOriginalVectorArt[#1]{#2}%
-  \fi
+% Figure placements use one compact facsimile spacing policy. The requested
+% figure scale and crop remain untouched; only surrounding vertical whitespace
+% is reduced uniformly on every source page.
+\newcommand{\WaveFacsimileFigureSpacing}{%
+  \setlength{\smallskipamount}{1.5pt plus 0.5pt minus 0.5pt}%
+  \setlength{\topsep}{2pt plus 1pt minus 1pt}%
+  \setlength{\partopsep}{0pt}%
 }
-
-\NewCommandCopy\WaveFacsimileOriginalSourceArt\sourceart
+\NewCommandCopy\WaveFacsimileSourceArt\sourceart
 \renewcommand{\sourceart}[4][0.72]{%
-  \def\WaveFacsimileSourceFile{#2}%
-  \def\WaveFacsimileShelfWaveSource{ChapmanRizzoli6.pdf}%
-  \def\WaveFacsimileSourcePage{#3}%
-  \def\WaveFacsimileShelfWavePage{15}%
-  \ifx\WaveFacsimileSourceFile\WaveFacsimileShelfWaveSource
-    \ifx\WaveFacsimileSourcePage\WaveFacsimileShelfWavePage
-      \WaveFacsimileOriginalSourceArt[#1]{#2}{#3}{105bp 325bp 85bp 290bp}%
-    \else
-      \WaveFacsimileOriginalSourceArt[#1]{#2}{#3}{#4}%
-    \fi
-  \else
-    \WaveFacsimileOriginalSourceArt[#1]{#2}{#3}{#4}%
-  \fi
+  \begingroup
+    \WaveFacsimileFigureSpacing
+    \WaveFacsimileSourceArt[#1]{#2}{#3}{#4}%
+  \endgroup
+}
+\NewCommandCopy\WaveFacsimileVectorArt\wavevectorart
+\renewcommand{\wavevectorart}[2][0.72]{%
+  \begingroup
+    \WaveFacsimileFigureSpacing
+    \WaveFacsimileVectorArt[#1]{#2}%
+  \endgroup
 }
 
 \setlength{\parindent}{1.75em}
 \setlength{\parskip}{0pt}
-\setlength{\jot}{6pt}
+\setlength{\jot}{5.5pt}
 \pagestyle{plain}
 \flushbottom
 
@@ -69,26 +59,24 @@
 \makeatother
 
 \AtBeginDocument{%
-  % Make the custom reading size durable: chapter/section machinery calls
-  % \normalsize, so setting \fontsize only once would silently revert later.
+  % Chapter/section machinery calls \normalsize, so make the facsimile reading
+  % size durable. Sparse source pages may stretch modestly under \flushbottom;
+  % dense pages use the 12.9 pt minimum leading.
   \let\WaveClassNormalSize\normalsize
   \renewcommand{\normalsize}{%
     \WaveClassNormalSize
-    % The source is unusually open-set. Keep a readable 12 pt floor, then let
-    % sparse source pages stretch the interline glue instead of leaving a large
-    % dead area at the bottom. Dense pages remain close to the 13.2 pt minimum.
-    \fontsize{12.0pt}{13.2pt}\selectfont
-    \setlength{\baselineskip}{13.2pt plus 7.0pt minus 0.4pt}%
-    \setlength{\abovedisplayskip}{10pt plus 2pt minus 3pt}%
-    \setlength{\belowdisplayskip}{10pt plus 2pt minus 3pt}%
-    \setlength{\abovedisplayshortskip}{7pt plus 2pt minus 2pt}%
-    \setlength{\belowdisplayshortskip}{7pt plus 2pt minus 2pt}%
+    \fontsize{12.0pt}{12.9pt}\selectfont
+    \setlength{\baselineskip}{12.9pt plus 6.0pt minus 0.4pt}%
+    \setlength{\abovedisplayskip}{9.5pt plus 2pt minus 3pt}%
+    \setlength{\belowdisplayskip}{9.5pt plus 2pt minus 3pt}%
+    \setlength{\abovedisplayshortskip}{6.5pt plus 2pt minus 2pt}%
+    \setlength{\belowdisplayshortskip}{6.5pt plus 2pt minus 2pt}%
   }%
   \normalsize
 }
 
-% Unlike \clearpage/\newpage, \pagebreak lets \flushbottom use the
-% stretchable leading above to fill a sparse historical source page.
+% Unlike \clearpage/\newpage, \pagebreak lets \flushbottom use the stretchable
+% leading above to fill a sparse historical source page.
 \newcommand{\sourcepagebreak}{\par\pagebreak[4]}
 \newcommand{\sourceinput}[1]{\input{#1}\clearpage}
 
