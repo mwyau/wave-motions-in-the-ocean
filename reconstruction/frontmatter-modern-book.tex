@@ -4,8 +4,8 @@
 
 % Flag the paged modern edition so the shared source can omit the duplicate
 % flowing-output photograph later in frontmatter-modern.tex.
-\def\WaveModernBookFrontMatter{1}
-\let\WaveModernOriginalTableOfContents\tableofcontents
+\NewDocumentCommand{\WaveModernBookFrontMatter}{}{}
+\NewCommandCopy{\WaveModernOriginalTableOfContents}{\tableofcontents}
 
 % Exterior cover. It is intentionally outside the Roman-numbered preliminaries.
 \WaveModernCover
@@ -15,7 +15,7 @@
 % Count preliminary leaves in the conventional way while suppressing folios on
 % the half-title, frontispiece, title, and edition-notice pages. Contents begins
 % visibly on page v.
-\wavepagenumbering{roman}
+\pagenumbering{roman}
 
 % Half-title (i)
 \thispagestyle{empty}
@@ -90,4 +90,4 @@ The digital reconstruction is a work in progress.\par
 
 % frontmatter-modern.tex retains a source-level \tableofcontents for the
 % generated README/HTML pipeline. Suppress that later duplicate in the PDF.
-\renewcommand{\tableofcontents}{}
+\RenewDocumentCommand{\tableofcontents}{}{}

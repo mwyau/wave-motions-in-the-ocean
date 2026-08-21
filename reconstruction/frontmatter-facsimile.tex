@@ -2,8 +2,8 @@
 % Verbatim front matter reconstructed from ChapmanRizzoli0_2.pdf physical pages 1--10.
 % Title, prefaces, contents entries, page breaks, and signatures follow the source.
 
-\newcommand{\sourceblankpage}{\thispagestyle{empty}\null\clearpage}
-\newcommand{\tocentry}[3]{%
+\NewDocumentCommand{\sourceblankpage}{}{\thispagestyle{empty}\null\clearpage}
+\NewDocumentCommand{\tocentry}{m m m}{%
   \noindent\makebox[0.55in][l]{#1}%
   \parbox[t]{5.55in}{#2\dotfill\ #3}\par\vspace{0.24em}}
 
@@ -121,7 +121,6 @@ not least, dear friend. I hope I absorbed from him some of the positive qualitie
 % Source physical page 7 -- Contents i
 % -----------------------------------------------------------------------------
 \pagenumbering{roman}
-\setcounter{page}{1}
 \setstretch{1.12}
 \vspace*{0.55in}
 \begin{center}{\LARGE\bfseries Contents}\end{center}
@@ -183,7 +182,7 @@ not least, dear friend. I hope I absorbed from him some of the positive qualitie
 \tocentry{5.4}{Seiches in a box}{108}
 \tocentry{5.5}{Propagation over a step}{110}
 \tocentry{5.6}{Edge waves and coastal seiches}{114}
-\tocentry{5.7}{Sverdrup and Poincar\'e waves}{118}
+\tocentry{5.7}{Sverdrup and Poincaré waves}{118}
 \tocentry{5.8}{Kelvin waves}{121}
 \tocentry{5.9}{Waveguide modes}{122}
 \tocentry{5.10}{Kelvin wave reflection}{125}

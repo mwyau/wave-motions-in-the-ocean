@@ -1,27 +1,20 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{styles/wave-common}[2026/08/21 shared LuaLaTeX/STIX Two reconstruction support]
 
-% All TeX publication paths use one Unicode/OpenType engine and one scientific
-% text/math system. Do not add pdfLaTeX font fallbacks here: the publication
-% build, EPUB cover, and standalone TikZ renderers are all LuaLaTeX-only.
 \RequirePackage{iftex}
 \RequireLuaTeX
 \RequirePackage{fontspec}
 \RequirePackage{microtype}
-\RequirePackage{setspace}
 \RequirePackage{amsmath}
 \RequirePackage{mathtools}
-\RequirePackage{unicode-math}
-\setmainfont{STIX Two Text}
+\RequirePackage[math-style=TeX,bold-style=TeX]{unicode-math}
+\setmainfont{STIX Two Text}[Ligatures=TeX]
+\setsansfont{Source Sans 3}[Ligatures=TeX,Scale=0.94]
 \setmathfont{STIX Two Math}
-% The current SourceSans package retains sourcesanspro.sty as its compatibility
-% entry point; under LuaLaTeX this explicitly selects its OpenType fonts.
-\RequirePackage[opentype,scaled=0.94]{sourcesanspro}
 \RequirePackage{tikz}
 \usetikzlibrary{calc,decorations.pathreplacing}
 \RequirePackage{graphicx}
 \RequirePackage{enumitem}
-\RequirePackage{fancyhdr}
 \RequirePackage{xcolor}
 \RequirePackage{natbib}
 \setcitestyle{authoryear}
@@ -29,23 +22,25 @@
 \setlength{\bibsep}{0.45\baselineskip}
 \RequirePackage[hidelinks,unicode,hypertexnames=false]{hyperref}
 \setlength{\emergencystretch}{1.5em}
-\raggedbottom
 
-% Editorial numbering in the modern PDF and flowing reader editions. Only
-% durable equations are wrapped in these environments; transient algebra remains
-% unnumbered. The facsimile style suppresses these added editorial numbers.
+% Durable equations receive editorial numbering in the modern and flowing
+% editions; the facsimile style suppresses that numbering.
 \numberwithin{equation}{chapter}
-\newenvironment{waveequation}{\begin{equation}}{\end{equation}}
-\newenvironment{wavealign}{\begin{equation}\begin{aligned}}{\end{aligned}\end{equation}}
-\newcommand{\wavefiguremark}{%
+\NewDocumentEnvironment{waveequation}{}{\begin{equation}}{\end{equation}}
+\NewDocumentEnvironment{wavealign}{}{\begin{equation}\begin{aligned}}{\end{aligned}\end{equation}}
+\NewDocumentCommand{\wavefiguremark}{}{%
   \refstepcounter{figure}%
   \par\nobreak\smallskip
   \noindent\hfill{\small\sffamily Figure \thefigure}\hfill\null\par
   \smallskip
 }
 
-% Build identity is generated under build/ so source files remain stable. A
-% direct TeX compile without the repository build wrapper falls back cleanly.
+% Source-page counters are provenance. Flowing editions ignore them; the
+% facsimile style gives this command page-boundary semantics.
+\NewDocumentCommand{\sourcesetpage}{m}{}
+
+% Build identity is generated under build/ while direct TeX compilation remains
+% usable without the repository build wrapper.
 \IfFileExists{../build/build-info.tex}{%
   \input{../build/build-info.tex}%
 }{%
@@ -62,9 +57,8 @@
   }%
 }
 
-% Consistent attribution block for modern front matter. Keep the semantic
-% order name / place, year so the HTML conversion can mirror it exactly.
-\newcommand{\wavesignature}[3]{%
+% Shared semantic markup also drives generated HTML/EPUB transformations.
+\NewDocumentCommand{\wavesignature}{m m m}{%
   \par\medskip
   \begin{flushright}
     \textit{#1}\\
@@ -72,9 +66,9 @@
   \end{flushright}
 }
 
-% Direct crop from an authoritative committed source PDF. Arguments are
-% width fraction, source filename, physical PDF page, and trim rectangle.
-\newcommand{\sourceart}[4][0.72]{%
+% Direct crop from an authoritative source PDF: width, filename, physical page,
+% and trim rectangle.
+\NewDocumentCommand{\sourceart}{O{0.72} m m m}{%
   \par\smallskip
   \begin{center}
     \includegraphics[page=#3,trim=#4,clip,width=#1\linewidth]{../source/#2}%
@@ -83,13 +77,11 @@
   \smallskip
 }
 
-% Explicit vector reconstruction. The requested width scales only the geometric
-% TikZ coordinate system. Labels keep one physical \small size, and line weights
-% and arrowheads are not silently magnified or shrunk with the figure width.
-% The small safety factor leaves room for unscaled text at the picture boundary.
+% The requested width scales only TikZ geometry. Labels retain one physical
+% \small size, and line weights/arrowheads are not scaled with the picture.
 \newsavebox{\wavevectorbox}
 \makeatletter
-\newcommand{\wavevectorart}[2][0.72]{%
+\NewDocumentCommand{\wavevectorart}{O{0.72} m}{%
   \par\smallskip
   \begin{center}
     \begingroup
@@ -116,5 +108,4 @@
 }
 \makeatother
 
-% Use a stable heading name in PDF and HTML bibliography output.
 \renewcommand{\bibname}{References}

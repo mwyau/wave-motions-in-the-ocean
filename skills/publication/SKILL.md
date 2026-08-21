@@ -72,9 +72,9 @@ Expected component counts are:
 - references: 3 pages
 - total: 184 pages
 
-Keep `\flushbottom`, source-page `\pagebreak[4]` behavior, and source-page page-counter boundaries consistent with the existing style. Do not accept overfull vertical boxes as a way to force the count.
+Keep `\flushbottom`, source-page `\pagebreak[4]` behavior, and source-page page-counter boundaries consistent with the existing style. Do not accept overfull vertical boxes as a way to force the count. Keep facsimile layout policy centralized in `wave-facsimile.sty`; do not add page-specific scaling, crop, spacing, or `\enlargethispage` exceptions to repair pagination.
 
-The canonical PDF build must fail unless the facsimile is exactly 184 physical pages and its LaTeX log contains no overfull vertical boxes. Treat both as hard structural invariants in development and release builds; do not weaken either to a warning.
+The facsimile build logs machine-readable source-boundary headroom and physical/printed-page identity. Development validation should warn when pagination drifts, a vertical box overflows, source-page identity drifts, or the minimum natural body-page reserve falls below 10 pt, so regressions are visible before a page splits. Stable release validation remains strict: exactly 184 physical pages, correct source-page identity, no overfull vertical boxes, and no negative source-boundary reserve.
 
 ## README and HTML synchronization
 

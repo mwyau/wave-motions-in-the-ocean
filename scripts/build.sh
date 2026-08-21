@@ -28,9 +28,8 @@ validation_enabled() {
 }
 
 prepare_bibtex() {
-  # Some minimal TeX installations expose bibtex8 but not a `bibtex` executable.
-  # latexmk expects `bibtex`, so provide a temporary compatibility command only
-  # for PDF builds that can actually invoke the bibliography tool.
+  # latexmk requires a `bibtex` executable; minimal TinyTeX installs may
+  # expose only bibtex8, so provide the expected command name for this build.
   if command -v bibtex >/dev/null 2>&1; then
     return
   fi
@@ -78,8 +77,7 @@ build_pdf() {
   mkdir -p "$BUILD/facsimile" "$BUILD/modern" "$LATEX_CACHE/facsimile" "$LATEX_CACHE/modern" "$DIST"
 
   prepare_build_info
-  # One TeX engine for every paged edition. Both facsimile and modern output use
-  # the shared LuaLaTeX/STIX Two stack; there is no pdfLaTeX fallback path.
+  # Both paged editions use the shared LuaLaTeX/STIX Two stack.
   run_latexmk_cached main-facsimile.tex facsimile
   run_latexmk_cached main-modern.tex modern
   cp "$LATEX_CACHE/facsimile/main-facsimile.pdf" "$DIST/wave-motions-facsimile.pdf"

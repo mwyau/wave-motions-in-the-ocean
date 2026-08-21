@@ -110,7 +110,6 @@ def frontmatter_markdown(text: str) -> str:
         raise ValueError("modern front matter has no title-page boundary")
     body = text.split(r"\clearpage", 1)[1]
     body = body.split(r"\tableofcontents", 1)[0]
-    body = re.sub(r"\\wavepagenumbering\{[^}]+\}\s*", "", body)
     body = re.sub(r"\\addcontentsline\{toc\}\{chapter\}\{[^\n]*\}\s*", "", body)
     body = body.replace(r"\clearpage", "")
 

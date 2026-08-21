@@ -2,13 +2,13 @@
 \ProvidesPackage{styles/wave-modern}[2026/08/21 LuaLaTeX/STIX Two modern reading layout]
 \RequirePackage{styles/wave-common}
 \RequirePackage[letterpaper,top=0.70in,bottom=0.72in,left=0.82in,right=0.82in,headsep=0.22in]{geometry}
-\newfontfamily\WaveCoverHeadline{STIX Two Text SemiBold}[LetterSpace=1.5]
 \RequirePackage{titlesec}
 \RequirePackage{comment}
 \RequirePackage{float}
+\RequirePackage{fancyhdr}
+\newfontfamily\WaveCoverHeadline{STIX Two Text SemiBold}[Ligatures=TeX,LetterSpace=1.5]
 
-% PDF-only and generated-web-only front-matter branches share one canonical
-% source file. HTML generation unwraps wavewebonly and removes wavepdfonly.
+% PDF and flowing reader front matter share one canonical source.
 \includecomment{wavepdfonly}
 \excludecomment{wavewebonly}
 
@@ -17,10 +17,8 @@
 \setlength{\parskip}{0.18em plus 0.05em minus 0.03em}
 \setlength{\jot}{7pt}
 \setlength{\headheight}{22pt}
+\raggedbottom
 
-% Keep the generous 11.5 pt reading size and existing Source Sans hierarchy.
-% STIX Two Text and STIX Two Math carry the body and equations throughout the
-% LuaLaTeX publication pipeline.
 \titleformat{\chapter}[display]
   {\normalfont\sffamily\color{WaveAccent}}
   {\fontsize{14.5pt}{17pt}\selectfont\bfseries Chapter \thechapter}
@@ -45,8 +43,8 @@
 \renewcommand{\headrule}{\hbox to\headwidth{\color{WaveAccent}\leaders\hrule height \headrulewidth\hfill}}
 
 \AtBeginDocument{%
-  % Keep the modern reading size after chapter/section commands invoke
-  % \normalsize; a one-time \fontsize assignment is not sufficient.
+  % Chapter/section commands invoke \normalsize, so the reading size must be
+  % part of \normalsize rather than a one-time document setting.
   \let\WaveClassNormalSize\normalsize
   \renewcommand{\normalsize}{%
     \WaveClassNormalSize
@@ -59,33 +57,12 @@
   \normalsize
 }
 
-% Concise cover credit shown only in paged modern output. Pandoc-based
-% README/HTML views drop the unknown command; EPUB expands it explicitly.
-\newcommand{\wavecovercredit}{%
+% Paged output places the cover credit on the edition-notice verso; flowing
+% output expands the same source in its own front matter.
+\NewDocumentCommand{\wavecovercredit}{}{%
   \par\vfill
   {\footnotesize\input{cover-credit}\par}%
 }
 
-\newcommand{\sourcepagebreak}{\par}
-\newcommand{\sourceinput}[1]{\input{#1}}
-
-% Source fragments retain historical page counter resets as provenance. Ignore
-% only those page resets in the modern continuous edition. Modern front/main
-% matter still needs deliberate page-numbering resets, so expose a dedicated
-% wrapper that temporarily restores the class's original \setcounter.
-\makeatletter
-\let\WaveOriginalSetCounter\setcounter
-\newcommand{\WaveModernSetCounter}[2]{%
-  \def\WaveCounterName{#1}%
-  \def\WavePageCounter{page}%
-  \ifx\WaveCounterName\WavePageCounter
-  \else
-    \WaveOriginalSetCounter{#1}{#2}%
-  \fi}
-\renewcommand{\setcounter}[2]{\WaveModernSetCounter{#1}{#2}}
-\newcommand{\wavepagenumbering}[1]{%
-  \let\setcounter\WaveOriginalSetCounter
-  \pagenumbering{#1}%
-  \let\setcounter\WaveModernSetCounter
-}
-\makeatother
+\NewDocumentCommand{\sourcepagebreak}{}{\par}
+\NewDocumentCommand{\sourceinput}{m}{\input{#1}}

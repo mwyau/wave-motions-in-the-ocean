@@ -3,7 +3,6 @@
 \begin{document}
 \input{frontmatter-facsimile}
 \pagenumbering{arabic}
-\setcounter{page}{1}
 \input{chapter1}
 \input{chapter2}
 \input{chapter3}
@@ -13,21 +12,24 @@
 \clearpage
 \setcounter{page}{172}
 \nocite{*}
-% Preserve the source bibliography's printed-page boundaries while keeping a
-% single canonical BibTeX database shared with the modern and HTML editions.
-\makeatletter
-\let\waveoriginalbibitem\bibitem
-\newcommand{\wavemaybebibbreak}[1]{%
-  \def\wavebibkey{#1}%
-  \def\wavehoughkey{hough1897}%
-  \def\waverossbykey{rossby1939}%
-  \ifx\wavebibkey\wavehoughkey\clearpage\fi
-  \ifx\wavebibkey\waverossbykey\clearpage\fi
+% Preserve the source bibliography's printed-page boundaries while sharing the
+% canonical BibTeX database with the modern and flowing editions.
+\NewCommandCopy{\WaveOriginalBibItem}{\bibitem}
+\ExplSyntaxOn
+\NewDocumentCommand{\WaveMaybeBibBreak}{m}{%
+  \str_case:nn {#1}
+    {
+      {hough1897}{\clearpage}
+      {rossby1939}{\clearpage}
+    }%
 }
-\def\bibitem{\@ifnextchar[{\wavebibitemopt}{\wavebibitemplain}}
-\def\wavebibitemopt[#1]#2{\wavemaybebibbreak{#2}\waveoriginalbibitem[#1]{#2}}
-\def\wavebibitemplain#1{\wavemaybebibbreak{#1}\waveoriginalbibitem{#1}}
-\makeatother
+\ExplSyntaxOff
+\RenewDocumentCommand{\bibitem}{o m}{%
+  \WaveMaybeBibBreak{#2}%
+  \IfNoValueTF{#1}
+    {\WaveOriginalBibItem{#2}}
+    {\WaveOriginalBibItem[#1]{#2}}%
+}
 \bibliographystyle{plainnat}
 \bibliography{references}
 \end{document}

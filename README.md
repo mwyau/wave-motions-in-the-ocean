@@ -83,7 +83,16 @@ authorized by Paola Malanotte-Rizzoli for release under the Creative Commons
 Attribution-NonCommercial-ShareAlike 4.0 International license
 (CC BY-NC-SA 4.0).
 
-The reconstruction is a work in progress, with assistance from OpenAI’s GPT-5.6 Sol.
+The edition uses STIX Two for text and mathematics, with Source Sans 3 for
+headings and other structural text. Both typefaces are used under the SIL Open
+Font License 1.1.
+
+The cover features Katsushika Hokusai’s *Under the Wave off Kanagawa
+(The Great Wave)*, ca. 1830–32, from The Metropolitan Museum of Art’s Open
+Access collection. The image is Public Domain/CC0.
+
+The reconstruction is a work in progress, with assistance from OpenAI’s GPT-5.6 Sol
+and GPT-5.6 Luna.
 
 *Stony Brook — Albert M. W. Yau, 2026*
 

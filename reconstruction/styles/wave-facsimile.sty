@@ -1,19 +1,14 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{styles/wave-facsimile}[2026/08/21 source-page facsimile layout]
 \RequirePackage{styles/wave-common}
-
-% Preserve the 12 pt reading size while keeping enough uniform vertical reserve
-% for every historical source page. Page fit is controlled globally rather than
-% with page-specific figure or crop exceptions. The shared LuaLaTeX/STIX Two
-% stack supplies the text and mathematics; the facsimile has no separate font
-% engine or legacy font fallback.
 \RequirePackage[letterpaper,top=0.76in,bottom=0.46in,left=0.95in,right=0.95in]{geometry}
+\RequirePackage{setspace}
 
-% Preserve the historical source-page edition: suppress modern editorial
-% equation/figure numbering while keeping the shared canonical source unchanged.
-\renewenvironment{waveequation}{\begin{equation*}}{\end{equation*}}
-\renewenvironment{wavealign}{\begin{equation*}\begin{aligned}}{\end{aligned}\end{equation*}}
-\renewcommand{\wavefiguremark}{}
+% The facsimile preserves historical source-page structure and suppresses
+% editorial equation/figure numbering added for the modern edition.
+\RenewDocumentEnvironment{waveequation}{}{\begin{equation*}}{\end{equation*}}
+\RenewDocumentEnvironment{wavealign}{}{\begin{equation*}\begin{aligned}}{\end{aligned}\end{equation*}}
+\RenewDocumentCommand{\wavefiguremark}{}{}
 
 \setlength{\parindent}{1.75em}
 \setlength{\parskip}{0pt}
@@ -36,9 +31,8 @@
 \makeatother
 
 \AtBeginDocument{%
-  % Chapter/section machinery calls \normalsize, and the class resets list
-  % spacing there as well. Reapply the complete facsimile rhythm after the class
-  % setup so figures, lists, prose, and displays keep one durable global policy.
+  % The class resets list spacing through \normalsize; reapply the complete
+  % facsimile rhythm there so every source page follows one global policy.
   \let\WaveClassNormalSize\normalsize
   \renewcommand{\normalsize}{%
     \WaveClassNormalSize
@@ -56,25 +50,15 @@
   \normalsize
 }
 
-% Unlike \clearpage/\newpage, \pagebreak lets \flushbottom use the stretchable
-% leading above to fill a sparse historical source page.
-\newcommand{\sourcepagebreak}{\par\pagebreak[4]}
-\newcommand{\sourceinput}[1]{\input{#1}\clearpage}
+% \pagebreak lets \flushbottom use stretchable leading to fill sparse source
+% pages without changing the historical figure scales or crop geometry.
+\NewDocumentCommand{\sourcepagebreak}{}{\par\pagebreak[4]}
+\NewDocumentCommand{\sourceinput}{m}{\input{#1}\clearpage}
 
-% Fragment files retain historical page-counter resets. A reset encountered
-% after material has begun is also a source-page boundary; break first so
-% independently reconstructed fragments cannot merge two source pages.
-\makeatletter
-\let\WaveFacsimileOriginalSetCounter\setcounter
-\newcommand{\WaveFacsimileSetCounter}[2]{%
-  \def\WaveFacsimileCounterName{#1}%
-  \def\WaveFacsimilePageCounter{page}%
-  \ifx\WaveFacsimileCounterName\WaveFacsimilePageCounter
-    \ifdim\pagetotal>0pt\relax
-      \par\pagebreak[4]%
-    \fi
+% A source-page reset is also a boundary when material is already present.
+\RenewDocumentCommand{\sourcesetpage}{m}{%
+  \ifdim\pagetotal>0pt\relax
+    \par\pagebreak[4]%
   \fi
-  \WaveFacsimileOriginalSetCounter{#1}{#2}%
+  \setcounter{page}{#1}%
 }
-\AtBeginDocument{\let\setcounter\WaveFacsimileSetCounter}
-\makeatother

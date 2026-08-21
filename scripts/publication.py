@@ -58,10 +58,10 @@ CC_ICONS = ("cc", "by", "nc", "sa")
 TIKZ_STANDALONE_TEMPLATE = r"""\documentclass[border=5pt]{standalone}
 \usepackage{fontspec}
 \usepackage{amsmath,mathtools}
-\usepackage{unicode-math}
-\setmainfont{STIX Two Text}
+\usepackage[math-style=TeX,bold-style=TeX]{unicode-math}
+\setmainfont{STIX Two Text}[Ligatures=TeX]
+\setsansfont{Source Sans 3}[Ligatures=TeX,Scale=0.94]
 \setmathfont{STIX Two Math}
-\usepackage[opentype,scaled=0.94]{sourcesanspro}
 \usepackage{graphicx,xcolor,tikz}
 \usetikzlibrary{calc,decorations.pathreplacing}
 \begin{document}
@@ -409,7 +409,7 @@ def transform_tex(
     text = text.replace(r"\begin{wavewebonly}", "").replace(r"\end{wavewebonly}", "")
     text = text.replace(r"\nopagecolor", "")
     text = text.replace(r"\sourcepagebreak", "")
-    text = re.sub(r"\\setcounter\{page\}\{[^}]+\}", "", text)
+    text = re.sub(r"\\sourcesetpage\{[^}]+\}", "", text)
 
     def signature_sub(match: re.Match[str]) -> str:
         return (
