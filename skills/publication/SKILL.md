@@ -151,7 +151,7 @@ Do not add one-time migration, cleanup, source-editing, reconciliation, or bot-c
 
 Publication automation should remain reproducible from the triggering commit. Build once and promote that exact validated output to Pages/releases rather than rebuilding downstream.
 
-Direct pushes to `main` should trigger on actual reader/build inputs. Tracking-only files such as `reconstruction/ERRATA.md`, `reconstruction/FIGURES.md`, `reconstruction/PLAN.md`, and `reconstruction/RENDER_QA.md` need not by themselves trigger a full publication build. Pull-request validation remains unfiltered when needed for a required Build check. Source scans are immutable; including them defensively in trigger paths is acceptable so accidental changes cannot bypass CI.
+Direct pushes to `main` should trigger on actual reader/build inputs. Tracking-only files such as `reconstruction/ERRATA.md`, `reconstruction/FIGURES.md`, and `reconstruction/RENDER_QA.md` need not by themselves trigger a full publication build. Pull-request validation remains unfiltered when needed for a required Build check. Source scans are immutable; including them defensively in trigger paths is acceptable so accidental changes cannot bypass CI.
 
 Keep exact dependency/tool pins and TinyTeX cache semantics aligned with repository manifests. Missing/incomplete artifacts and generation/dependency failures are fatal. Development QA categories may warn where deliberately configured; stable `vX.Y.Z` release gates are strict, including exact facsimile pagination and release asset/checksum validation.
 
