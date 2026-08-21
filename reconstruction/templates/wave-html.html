@@ -1,13 +1,19 @@
 <a class="skip-link" href="#main-content">Skip to content</a>
 <header class="reader-header page-shell">
   <nav class="book-nav" aria-label="Book navigation">
-    <span class="book-nav-links">
-      <a href="index.html#contents">Contents</a>
+    <span class="book-nav-links book-nav-start">
+      <a class="contents-link" href="index.html#contents" data-global-contents>Contents</a>
+      <button class="toc-toggle" type="button" popovertarget="chapter-contents" hidden data-toc-toggle>Contents</button>
       <a href="$previous_url"$previous_hidden aria-label="Previous chapter">← Previous</a>
+    </span>
+    <span class="reader-context" data-reader-context hidden aria-label="Current reading position">
+      <span class="reader-context-chapter" data-chapter-context></span>
+      <span class="reader-context-separator" aria-hidden="true"> · </span>
+      <span class="reader-context-section" data-current-section></span>
+    </span>
+    <span class="book-controls book-nav-end">
       <a href="$next_url"$next_hidden aria-label="Next chapter">Next →</a>
       <a href="$references_url"$references_hidden>References</a>
-    </span>
-    <span class="book-controls">
       <a class="source-link" href="$source_url" aria-label="GitHub Source">Source</a>
       <span class="book-control-divider" aria-hidden="true"></span>
       <label class="appearance-control">
@@ -21,6 +27,19 @@
     </span>
   </nav>
 </header>
+<aside class="chapter-contents" id="chapter-contents" popover hidden aria-label="Chapter contents">
+  <div class="chapter-contents-inner">
+    <div class="chapter-contents-header">
+      <div>
+        <strong data-toc-chapter>Contents</strong>
+        <span data-toc-title></span>
+      </div>
+      <button class="toc-close" type="button" popovertarget="chapter-contents" popovertargetaction="hide" aria-label="Close contents">Close</button>
+    </div>
+    <nav class="chapter-contents-nav" aria-label="On this page" data-chapter-toc></nav>
+    <a class="chapter-contents-all" href="index.html#contents">All contents</a>
+  </div>
+</aside>
 <main id="main-content">
 $body
 </main>
