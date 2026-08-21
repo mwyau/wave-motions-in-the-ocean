@@ -1,11 +1,22 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{styles/wave-common}[2026/08/20 shared Wave Motions reconstruction support]
+\ProvidesPackage{styles/wave-common}[2026/08/21 shared LuaLaTeX/STIX Two reconstruction support]
 
-\RequirePackage[T1]{fontenc}
+% All TeX publication paths use one Unicode/OpenType engine and one scientific
+% text/math system. Do not add pdfLaTeX font fallbacks here: the publication
+% build, EPUB cover, and standalone TikZ renderers are all LuaLaTeX-only.
+\RequirePackage{iftex}
+\RequireLuaTeX
+\RequirePackage{fontspec}
 \RequirePackage{microtype}
 \RequirePackage{setspace}
-\RequirePackage{amsmath,amssymb,bm}
+\RequirePackage{amsmath}
 \RequirePackage{mathtools}
+\RequirePackage{unicode-math}
+\setmainfont{STIX Two Text}
+\setmathfont{STIX Two Math}
+% The current SourceSans package retains sourcesanspro.sty as its compatibility
+% entry point; under LuaLaTeX this explicitly selects its OpenType fonts.
+\RequirePackage[opentype,scaled=0.94]{sourcesanspro}
 \RequirePackage{tikz}
 \usetikzlibrary{calc,decorations.pathreplacing}
 \RequirePackage{graphicx}

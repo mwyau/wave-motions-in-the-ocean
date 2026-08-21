@@ -127,7 +127,7 @@ def render_cover() -> None:
     env["TEXINPUTS"] = texinputs
     run(
         [
-            "pdflatex",
+            "lualatex",
             "-interaction=nonstopmode",
             "-halt-on-error",
             "-jobname=cover",
@@ -619,7 +619,7 @@ def finalize(epub: Path) -> None:
 def main() -> int:
     if len(sys.argv) != 1:
         raise SystemExit("build_epub.py does not accept options; use validate.py epub to validate")
-    for command in ("pandoc", "pdflatex", "pdftoppm"):
+    for command in ("pandoc", "lualatex", "pdftoppm"):
         if shutil.which(command) is None:
             raise SystemExit(f"missing required command: {command}")
     if not CSS.is_file():

@@ -2,11 +2,12 @@
 \ProvidesPackage{styles/wave-facsimile}[2026/08/21 source-page facsimile layout]
 \RequirePackage{styles/wave-common}
 
-% Preserve the 12 pt reading size while keeping uniform vertical reserve for
-% every historical source page. Page fit is controlled globally, never through
-% page-specific figure, crop, or text exceptions.
+% Preserve the 12 pt reading size while keeping enough uniform vertical reserve
+% for every historical source page. Page fit is controlled globally rather than
+% with page-specific figure or crop exceptions. The shared LuaLaTeX/STIX Two
+% stack supplies the text and mathematics; the facsimile has no separate font
+% engine or legacy font fallback.
 \RequirePackage[letterpaper,top=0.76in,bottom=0.46in,left=0.95in,right=0.95in]{geometry}
-\RequirePackage{lmodern}
 
 % Preserve the historical source-page edition: suppress modern editorial
 % equation/figure numbering while keeping the shared canonical source unchanged.

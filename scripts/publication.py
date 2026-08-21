@@ -36,7 +36,7 @@ CACHE = Path(os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motion
 SOURCE_PAGE_CACHE = CACHE / "source-pages"
 TIKZ_CACHE = CACHE / "tikz"
 SOURCE_RENDER_DPI = 170
-TIKZ_CACHE_VERSION = "v1"
+TIKZ_CACHE_VERSION = "v2"
 FIGURE_ASSET_PREFIX = "assets/figures"
 BOOK_TITLE = "Wave Motions in the Ocean"
 PUBLICATION_TITLE = f"{BOOK_TITLE}: Myrl's View"
@@ -56,8 +56,12 @@ DOWNLOADS = (
 CC_ICONS = ("cc", "by", "nc", "sa")
 
 TIKZ_STANDALONE_TEMPLATE = r"""\documentclass[border=5pt]{standalone}
-\usepackage[T1]{fontenc}
-\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage{fontspec}
+\usepackage{amsmath,mathtools}
+\usepackage{unicode-math}
+\setmainfont{STIX Two Text}
+\setmathfont{STIX Two Math}
+\usepackage[opentype,scaled=0.94]{sourcesanspro}
 \usepackage{graphicx,xcolor,tikz}
 \usetikzlibrary{calc,decorations.pathreplacing}
 \begin{document}
@@ -281,7 +285,7 @@ def _compile_tikz_pdf(stem: str, workdir: Path, *, quiet: bool = True) -> Path:
     run(
         [
             "latexmk",
-            "-pdf",
+            "-lualatex",
             "-interaction=nonstopmode",
             "-halt-on-error",
             "figure.tex",

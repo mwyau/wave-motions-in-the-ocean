@@ -351,7 +351,7 @@ def validate() -> None:
 
 
 def main() -> int:
-    for command in ("pandoc", "latexmk", "pdflatex", "pdftocairo", "pdftoppm", "pdfinfo"):
+    for command in ("pandoc", "latexmk", "lualatex", "pdftocairo", "pdftoppm", "pdfinfo"):
         require(command)
     shutil.rmtree(BUILD, ignore_errors=True)
     shutil.rmtree(ASSETS, ignore_errors=True)

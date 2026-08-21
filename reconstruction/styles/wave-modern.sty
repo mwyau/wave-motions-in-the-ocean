@@ -1,9 +1,8 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{styles/wave-modern}[2026/08/20 continuous modern reading layout]
+\ProvidesPackage{styles/wave-modern}[2026/08/21 LuaLaTeX/STIX Two modern reading layout]
 \RequirePackage{styles/wave-common}
 \RequirePackage[letterpaper,top=0.70in,bottom=0.72in,left=0.82in,right=0.82in,headsep=0.22in]{geometry}
-\RequirePackage{newtxtext,newtxmath}
-\RequirePackage[scaled=0.94]{sourcesanspro}
+\newfontfamily\WaveCoverHeadline{STIX Two Text SemiBold}[LetterSpace=1.5]
 \RequirePackage{titlesec}
 \RequirePackage{comment}
 \RequirePackage{float}
@@ -19,9 +18,9 @@
 \setlength{\jot}{7pt}
 \setlength{\headheight}{22pt}
 
-% Keep the generous 11.5 pt reading size while giving the modern edition a
-% clearer hierarchy than the report-class defaults. Source Sans Pro carries
-% structure; New TX remains the body and mathematics face.
+% Keep the generous 11.5 pt reading size and existing Source Sans hierarchy.
+% STIX Two Text and STIX Two Math carry the body and equations throughout the
+% LuaLaTeX publication pipeline.
 \titleformat{\chapter}[display]
   {\normalfont\sffamily\color{WaveAccent}}
   {\fontsize{14.5pt}{17pt}\selectfont\bfseries Chapter \thechapter}

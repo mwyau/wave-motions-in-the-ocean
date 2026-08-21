@@ -57,7 +57,7 @@ run_latexmk_cached() {
   [[ -f "$out/$base.fdb_latexmk" ]] && had_state=true
   mkdir -p "$out"
 
-  if (cd "$ROOT/reconstruction" && latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir="$out" "$main"); then
+  if (cd "$ROOT/reconstruction" && latexmk -lualatex -interaction=nonstopmode -halt-on-error -outdir="$out" "$main"); then
     return
   fi
 
@@ -65,19 +65,21 @@ run_latexmk_cached() {
     echo "cached latexmk state for $kind failed; retrying clean" >&2
     rm -rf "$out"
     mkdir -p "$out"
-    (cd "$ROOT/reconstruction" && latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir="$out" "$main")
+    (cd "$ROOT/reconstruction" && latexmk -lualatex -interaction=nonstopmode -halt-on-error -outdir="$out" "$main")
     return
   fi
   return 1
 }
 
 build_pdf() {
-  for command in latexmk pdflatex pdfinfo; do need "$command"; done
+  for command in latexmk lualatex pdfinfo; do need "$command"; done
   prepare_bibtex
   rm -rf "$BUILD/facsimile" "$BUILD/modern"
   mkdir -p "$BUILD/facsimile" "$BUILD/modern" "$LATEX_CACHE/facsimile" "$LATEX_CACHE/modern" "$DIST"
 
   prepare_build_info
+  # One TeX engine for every paged edition. Both facsimile and modern output use
+  # the shared LuaLaTeX/STIX Two stack; there is no pdfLaTeX fallback path.
   run_latexmk_cached main-facsimile.tex facsimile
   run_latexmk_cached main-modern.tex modern
   cp "$LATEX_CACHE/facsimile/main-facsimile.pdf" "$DIST/wave-motions-facsimile.pdf"
