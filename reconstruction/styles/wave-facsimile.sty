@@ -39,7 +39,7 @@
 
 \setlength{\parindent}{1.75em}
 \setlength{\parskip}{0pt}
-\setlength{\jot}{5.5pt}
+\setlength{\jot}{5pt}
 \pagestyle{plain}
 \flushbottom
 
@@ -61,16 +61,16 @@
 \AtBeginDocument{%
   % Chapter/section machinery calls \normalsize, so make the facsimile reading
   % size durable. Sparse source pages may stretch modestly under \flushbottom;
-  % dense pages use the 12.9 pt minimum leading.
+  % dense pages use the 12.7 pt minimum leading.
   \let\WaveClassNormalSize\normalsize
   \renewcommand{\normalsize}{%
     \WaveClassNormalSize
-    \fontsize{12.0pt}{12.9pt}\selectfont
-    \setlength{\baselineskip}{12.9pt plus 6.0pt minus 0.4pt}%
-    \setlength{\abovedisplayskip}{9.5pt plus 2pt minus 3pt}%
-    \setlength{\belowdisplayskip}{9.5pt plus 2pt minus 3pt}%
-    \setlength{\abovedisplayshortskip}{6.5pt plus 2pt minus 2pt}%
-    \setlength{\belowdisplayshortskip}{6.5pt plus 2pt minus 2pt}%
+    \fontsize{12.0pt}{12.7pt}\selectfont
+    \setlength{\baselineskip}{12.7pt plus 6.0pt minus 0.4pt}%
+    \setlength{\abovedisplayskip}{9pt plus 2pt minus 3pt}%
+    \setlength{\belowdisplayskip}{9pt plus 2pt minus 3pt}%
+    \setlength{\abovedisplayshortskip}{6pt plus 2pt minus 2pt}%
+    \setlength{\belowdisplayshortskip}{6pt plus 2pt minus 2pt}%
   }%
   \normalsize
 }
