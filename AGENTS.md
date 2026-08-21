@@ -7,6 +7,7 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 - Source fidelity, text/equation transcription, scientific verification, errata, and references: `skills/source-audit/SKILL.md`
 - Figure extraction, vector/raster reconstruction, comparison, and scientific figure review: `skills/figure-audit/SKILL.md`
 - Front matter, reader formats, README/HTML synchronization, builds, CI, Pages, and releases: `skills/publication/SKILL.md`
+- Post-build PDF/HTML/EPUB visual and structural review: `skills/render-qa/SKILL.md`
 - For equation-defined or scientifically constrained figures, read both `source-audit` and `figure-audit`.
 - For publication work that could alter historical or scientific content, also read `source-audit`.
 
