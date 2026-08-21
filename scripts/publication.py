@@ -55,7 +55,7 @@ DOWNLOADS = (
 )
 CC_ICONS = ("cc", "by", "nc", "sa")
 
-TIKZ_STANDALONE_TEMPLATE = r"""\documentclass[border=5pt]{standalone}
+TIKZ_RENDER_TEMPLATE = r"""\documentclass{article}
 \usepackage{fontspec}
 \usepackage{amsmath,mathtools}
 \usepackage[math-style=TeX,bold-style=TeX]{unicode-math}
@@ -65,13 +65,25 @@ TIKZ_STANDALONE_TEMPLATE = r"""\documentclass[border=5pt]{standalone}
 \usepackage{graphicx,xcolor,tikz}
 \usetikzlibrary{calc,decorations.pathreplacing}
 \begin{document}
+\newbox\wavefigurebox
+\setbox\wavefigurebox=\hbox{%
 \begingroup
 \let\par\relax
 \let\smallskip\relax
 \def\center{}
 \def\endcenter{}
-\input{%s}
-\endgroup\end{document}
+\input{%s}%
+\endgroup}
+\pagewidth=\dimexpr\wd\wavefigurebox+10pt\relax
+\pageheight=\dimexpr\ht\wavefigurebox+\dp\wavefigurebox+10pt\relax
+\pdfvariable horigin 0pt
+\pdfvariable vorigin 0pt
+\shipout\vbox to \pageheight{%
+  \offinterlineskip
+  \vskip5pt
+  \hbox to \pagewidth{\hskip5pt\box\wavefigurebox\hss}%
+  \vss}
+\end{document}
 """
 
 SOURCEART_RE = re.compile(
@@ -265,7 +277,7 @@ def _tikz_digest(stem: str) -> str:
     return hashlib.sha256(
         TIKZ_CACHE_VERSION.encode()
         + b"\0"
-        + TIKZ_STANDALONE_TEMPLATE.encode()
+        + TIKZ_RENDER_TEMPLATE.encode()
         + b"\0"
         + (ROOT / "tex-packages.txt").read_bytes()
         + b"\0"
@@ -281,7 +293,7 @@ def _compile_tikz_pdf(stem: str, workdir: Path, *, quiet: bool = True) -> Path:
         shutil.rmtree(workdir)
     workdir.mkdir(parents=True)
     tex = workdir / "figure.tex"
-    tex.write_text(TIKZ_STANDALONE_TEMPLATE % tikz.as_posix())
+    tex.write_text(TIKZ_RENDER_TEMPLATE % tikz.as_posix())
     run(
         [
             "latexmk",

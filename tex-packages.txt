@@ -17,7 +17,6 @@ natbib
 pgf
 setspace
 sourcesans
-standalone
 stix2-otf
 titlesec
 unicode-math
