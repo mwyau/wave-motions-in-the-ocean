@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import argparse
 import re
-import shutil
 import sys
 import tempfile
 from pathlib import Path
@@ -94,9 +93,6 @@ def compare(stem: str, dpi: int) -> Path:
         raise FileNotFoundError(f"No retained vector or edited raster named {stem!r}")
 
     OUTROOT.mkdir(parents=True, exist_ok=True)
-    legacy_dir = OUTROOT / stem
-    if legacy_dir.is_dir():
-        shutil.rmtree(legacy_dir)
     comparison = OUTROOT / f"{stem}.png"
 
     with tempfile.TemporaryDirectory(prefix="wave-figure-comparison-") as td:

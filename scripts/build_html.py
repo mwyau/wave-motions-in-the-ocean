@@ -19,7 +19,12 @@ from pathlib import Path
 from string import Template
 
 from publication import (
+    BOOK_TITLE,
     DOWNLOADS,
+    LANGUAGE,
+    MATHJAX_URL,
+    PUBLICATION_TITLE,
+    REPOSITORY_URL,
     book_structure,
     current_build,
     html_contents,
@@ -35,9 +40,6 @@ BUILD = ROOT / "build" / "html-pandoc"
 OUT = ROOT / "dist"
 ASSETS = OUT / "assets"
 HTML_TEMPLATE = RECON / "templates" / "wave-html.html"
-REPOSITORY_URL = "https://github.com/mwyau/wave-motions-in-the-ocean"
-BOOK_TITLE = "Wave Motions in the Ocean"
-MATHJAX_URL = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"
 EXPECTED_PAGES = [
     OUT / "index.html",
     *(OUT / f"chapter{i}.html" for i in range(1, 7)),
@@ -93,7 +95,7 @@ def pandoc_page(source_tex: Path, output: Path, title: str) -> None:
             "--metadata",
             f"title={title}",
             "--metadata",
-            "lang=en-US",
+            f"lang={LANGUAGE}",
             "--resource-path",
             resource_path,
             "-o",
@@ -234,7 +236,7 @@ def install_stable_section_ids() -> None:
 
 def build_index(source_dir: Path) -> None:
     page = OUT / "index.html"
-    pandoc_page(source_dir / "frontmatter.tex", page, f"{BOOK_TITLE}: Myrl's View")
+    pandoc_page(source_dir / "frontmatter.tex", page, PUBLICATION_TITLE)
     text = page.read_text(errors="replace")
     text = text.replace("</body>", html_contents() + "\n" + html_license() + "\n</body>", 1)
     page.write_text(text)
@@ -242,7 +244,7 @@ def build_index(source_dir: Path) -> None:
 
 def build_references(source_dir: Path) -> None:
     references = source_dir / "references.md"
-    references.write_text("---\ntitle: References\nlang: en-US\nnocite: |\n  @*\n---\n")
+    references.write_text(f"---\ntitle: References\nlang: {LANGUAGE}\nnocite: |\n  @*\n---\n")
     resource_path = os.pathsep.join((str(OUT), str(source_dir), str(RECON)))
     run(
         [
@@ -318,7 +320,7 @@ def validate() -> None:
     url = html.escape(info.commit_url, quote=True)
     for page in EXPECTED_PAGES:
         text = page.read_text(errors="replace")
-        if not re.search(r'<html[^>]+lang="en-US"', text, flags=re.I):
+        if not re.search(rf'<html[^>]+lang="{re.escape(LANGUAGE)}"', text, flags=re.I):
             raise SystemExit(f"HTML language metadata missing from {page.name}")
         for required in (
             '<main id="main-content">',

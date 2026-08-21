@@ -76,8 +76,6 @@ build_pdf() {
   prepare_bibtex
   rm -rf "$BUILD/facsimile" "$BUILD/modern"
   mkdir -p "$BUILD/facsimile" "$BUILD/modern" "$LATEX_CACHE/facsimile" "$LATEX_CACHE/modern" "$DIST"
-  rm -f "$DIST/wave-motions.pdf" "$DIST/wave-motions-facsimile.pdf" \
-    "$DIST/wave-motions-1989-modern.pdf" "$DIST/wave-motions-1989-facsimile.pdf"
 
   prepare_build_info
   run_latexmk_cached main-facsimile.tex facsimile
@@ -122,7 +120,6 @@ reset_generated() {
 finish_all() {
   write_checksums
   if validation_enabled; then
-    check_readme
     python3 "$ROOT/scripts/validate.py" all
   else
     echo "Dedicated validation skipped (WAVE_SKIP_VALIDATION=1; builders retained structural checks)."
