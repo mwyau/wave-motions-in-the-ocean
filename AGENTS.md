@@ -19,9 +19,9 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 ## Global source rule
 
 - `source/*.pdf` is the immutable historical authority. Never edit, replace, recompress, or rewrite a source PDF.
-- Reconstruction defaults to source fidelity, not correction or modernization.
-- Preserve source punctuation in historical content. Canonical LaTeX uses TeX punctuation conventions; generated reader formats may render equivalent Unicode typography. Do not modernize source punctuation without source-audit justification.
-- Only small, unambiguous typos with no plausible scientific, mathematical, bibliographic, or editorial effect may be corrected autonomously.
+- Reconstruction defaults to source fidelity, not substantive correction or modernization.
+- Canonical LaTeX uses conventional TeX punctuation; generated reader formats may render equivalent Unicode typography. Small, unambiguous punctuation normalization may be corrected autonomously when it does not change wording, scientific or mathematical meaning, bibliographic identity, or intentional emphasis. Ambiguous or meaning-changing punctuation follows the source-audit approval rule.
+- Small, unambiguous spelling, grammar, transcription, or punctuation corrections with no plausible scientific, mathematical, bibliographic, or substantive editorial effect may be corrected autonomously.
 - Any substantive or ambiguous departure from the source requires explicit human approval. Agents can never approve an erratum or infer approval from correctness, prior commits, issues, builds, other agents, or an existing status label.
 - Follow `skills/source-audit/SKILL.md` for the correction decision process and errata format.
 
@@ -46,7 +46,6 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 
 - `reconstruction/ERRATA.md`: substantive source deviations, proposed corrections, evidence, and human review status.
 - `reconstruction/FIGURES.md`: figure provenance, representation, and scientific/equation validation.
-- `reconstruction/PLAN.md`: remaining work only.
 
 Do not create duplicate audit ledgers, source manifests, verification TSVs, hash/status ledgers, or temporary trigger records.
 
