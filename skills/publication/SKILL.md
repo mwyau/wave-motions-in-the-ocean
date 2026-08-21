@@ -1,6 +1,15 @@
 # Publication skill
 
-Use this skill for modern/facsimile presentation, front matter, README/HTML synchronization, EPUB, builds, and GitHub Pages/CI.
+Use this skill for modern/facsimile presentation, front matter, README/HTML synchronization, EPUB, builds, GitHub Pages/CI, and releases.
+
+## Content boundary
+
+Publication work controls presentation and generated editions. It must not silently rewrite historical/scientific content.
+
+- Shared body text comes from `reconstruction/chapter1.tex` … `chapter6.tex` and remains governed by `skills/source-audit/SKILL.md`.
+- The committed `source/*.pdf` files remain the historical authority.
+- Do not alter prose, equations, figure labels, references, or scientific meaning merely to improve style, satisfy a validator, make a derivation more correct, or simplify a build.
+- A substantive source correction requires explicit human approval under the source-audit rules. Publication tooling/build success never constitutes approval.
 
 ## Canonical publication sources
 
@@ -11,26 +20,24 @@ Use this skill for modern/facsimile presentation, front matter, README/HTML sync
 - Shared body: `reconstruction/chapter1.tex` … `chapter6.tex`
 - Bibliography: `reconstruction/references.bib`
 
-README, HTML, and EPUB are generated publication views; none is a separate prose source.
+README, HTML, and EPUB are generated/synchronized publication views, not separate prose sources.
 
 ## Modern cover and front matter
 
-The modern PDF and EPUB use the **same cover design**. The cover is generated from `cover-modern.tex`; EPUB rasterizes that exact TeX cover rather than maintaining a second cover source.
+The modern PDF and EPUB use the same cover generated from `cover-modern.tex`; EPUB rasterizes that TeX cover rather than maintaining another cover source.
 
-Cover invariants:
+Preserve these cover invariants unless explicitly redesigned by the owner:
 
-1. `WAVE MOTIONS IN THE OCEAN` is dominant, very large, dark ocean blue.
-2. `Myrl's View` is an italic subtitle at roughly half the title's visual size.
-3. The full rectangular Met image of Hokusai's *Under the Wave off Kanagawa* is reproduced without color correction and with only a thin frame.
-4. `Presented to Myrl C. Hendershott` appears **below the image and above the authors**.
-5. **David C. Chapman and Paola Malanotte-Rizzoli** appear prominently on two lines.
-6. Do not put years, the digital editor's name, license marks, museum credit, or badges on the front cover.
+1. `WAVE MOTIONS IN THE OCEAN` is the dominant dark-ocean-blue title.
+2. `Myrl's View` is the italic subtitle.
+3. The full rectangular Met image of Hokusai's *Under the Wave off Kanagawa* is reproduced without speculative color correction or generative reconstruction.
+4. `Presented to Myrl C. Hendershott` appears below the image and above the authors.
+5. David C. Chapman and Paola Malanotte-Rizzoli are the authors.
+6. Years, digital-editor credit, license marks, museum credit, and badges do not belong on the front cover.
 
-The cover text/frame color `#213E5E` is derived from the dark blue in the supplied Met image; the cover paper is warm ivory `#FBF7EC`.
+The committed Hokusai source image is `reconstruction/figures/frontmatter/great-wave-met-dp130155.jpg`. Preserve its composition.
 
-The Met image is committed as `reconstruction/figures/frontmatter/great-wave-met-dp130155.jpg`. Preserve it as the source image; do not color-correct, crop away the original composition, or replace it with AI-generated art.
-
-The paged modern PDF uses conventional book preliminaries after the exterior cover:
+The paged modern PDF preliminaries are:
 
 1. half-title,
 2. Lake Como frontispiece,
@@ -42,83 +49,68 @@ The paged modern PDF uses conventional book preliminaries after the exterior cov
 8. Editor's note,
 9. Chapter 1.
 
-`frontmatter-modern-book.tex` owns that PDF-only sequence. The half-title, frontispiece, title, and edition-notice leaves are counted as Roman preliminary pages but suppress their folios; Contents is the first visibly numbered preliminary page and begins at **v**. Chapter 1 resets to Arabic page `1`.
+`frontmatter-modern-book.tex` owns that PDF-only sequence. Preliminary leaves count in Roman pagination; Contents begins visibly at v; Chapter 1 resets to Arabic page 1.
 
-On modern page iii, keep the digital-editor credit at the bottom of the title page. Use the same serif family as the author line, but smaller/lower prominence so Albert M. W. Yau does not read as a third author. Keep the credit concise: `Digital edition by Albert M. W. Yau, August 2026.`
+Keep the digital-editor credit subordinate to the authors: `Digital edition by Albert M. W. Yau, August 2026.` Do not assert ownership of the original lecture-note copyright.
 
-The edition-notice verso lists the original authors and presentation date, digital editor and date, the authorized CC BY-NC-SA 4.0 release, the original source scan, and the concise Hokusai cover credit. Do not assert that the digital editor owns copyright in the original lecture notes. Keep this page bibliographic/legal rather than repeating the GPT assistance statement there.
-
-Use plain publication wording in reader-facing text. Prefer `Digital edition by` to `Digital edition prepared by` and `original source scan` to `historical source scan`. Avoid inflated words such as `provenance` when a simpler phrase is equally precise.
-
-The generated web/README title block may continue to state original/digital dates and the digital editor even though those details are deliberately absent from the front cover. In `frontmatter-modern.tex`, `wavepdfonly` selects the paged book preliminaries and `wavewebonly` retains the web/README title metadata. Do not let the two branches diverge in authorship/title facts.
-
-The Editor's note keeps `\wavesignature{Albert M. W. Yau}{Stony Brook}{2026}`, while its contents entry is simply `Editor's note`. Keep the CC BY-NC-SA 4.0 statement and the brief GPT-5.6 Sol reconstruction-assistance sentence in the Editor's note.
-
-The concise Hokusai cover credit belongs on the PDF edition-notice verso. The EPUB builder expands the same credit marker in its flowing front matter because the EPUB includes the shared Hokusai cover. README and HTML may omit the cover credit because they do not display that cover.
-
-The historical Lake Como photograph is the modern PDF **frontispiece**, unnumbered, with the established caption identifying Rick Salmon (left) and Myrl Hendershott at Villa Carlotta during the International School of Physics “Enrico Fermi,” Course LXXX, *Topics in Ocean Physics*, July 1980. In flowing README/HTML/EPUB output, retain the same photograph with the Editor's note rather than forcing print page geometry into a reflowable format. Preserve the committed JPEG as the source image; do not add unsupported photographer attribution such as “Photograph by George,” perform speculative color correction, generatively reconstruct faces/details, or replace it with an AI-generated image.
+The Lake Como photograph remains the modern PDF frontispiece with its established Villa Carlotta caption. Preserve the committed JPEG; do not invent photographer attribution, generatively reconstruct details, or apply speculative restoration.
 
 Modern contents use Chapter → Section only (`tocdepth=1`).
 
 ## Facsimile PDF
 
-The facsimile is a source-page edition, not merely the modern text with old-style fonts. Preserve the **184 physical-page** structure and the historical printed page numbers.
+The facsimile is a source-page edition. Preserve the 184-physical-page structure and historical printed page numbers.
 
-`styles/wave-facsimile.sty` intentionally uses a larger 12 pt body font and stretchable leading. The minimum baseline is compact enough for dense historical pages, while sparse pages may stretch substantially so the reconstructed text occupies the page vertically like the scans instead of collecting at the top. Keep `\flushbottom` and source-page `\pagebreak[4]` behavior together; replacing those breaks with `\newpage` or `\clearpage` defeats the vertical justification by inserting bottom fill.
+Expected component counts are:
 
-Historical fragment-level `\setcounter{page}{...}` resets are also source-page boundaries when encountered after material has begun. The facsimile style enforces that boundary before resetting the printed page number so separately reconstructed fragments cannot merge two original pages.
+- front matter: 10 pages
+- Chapters 1–6: 17 + 20 + 26 + 32 + 53 + 23 = 171 pages
+- references: 3 pages
+- total: 184 pages
 
-When changing facsimile typography, validate the components as well as the full build: front matter = 10 pages, Chapters 1–6 = 17 + 20 + 26 + 32 + 53 + 23 = 171 pages, references = 3 pages, total = 184. Do not accept overfull vertical boxes as a way to preserve the count.
+Keep `\flushbottom`, source-page `\pagebreak[4]` behavior, and source-page page-counter boundaries consistent with the existing style. Do not accept overfull vertical boxes as a way to force the count.
 
-While figure/vector geometry is still changing, canonical CI may report facsimile page-count drift as a **warning** so otherwise-valid publication builds can complete. This does not relax the final publication requirement: before release, restore and verify the exact 184-page source-compatible structure. A stable release tag must fail rather than warn if the facsimile is not exactly 184 pages.
+Development CI may warn about facsimile page-count drift while figure geometry is changing; a stable release must enforce exactly 184 pages.
 
 ## README and HTML synchronization
 
-`scripts/book_views.py` derives chapter titles, `\section{}` headings, Contents, Downloads, source links, and license presentation. `scripts/sync-views.py` applies that model.
+`scripts/book_views.py` derives shared titles, section headings, Contents, Downloads, source links, and license presentation. `scripts/sync-views.py` applies the model.
 
-README and `index.html` must have the same substantive front matter/publication navigation except:
+README and HTML must remain substantively synchronized, with format-specific differences such as absolute/relative URLs, README badges, and HTML reader controls.
 
-- README uses absolute Pages URLs; HTML uses relative URLs.
-- README alone has the Shields badge row.
-- HTML has web navigation/theme controls.
+The original online source link belongs in README/HTML navigation only unless the owner explicitly requests it in book editions.
 
-Link `https://oxbow.sr.unh.edu/ChapmanRizzoli/Wave_Motions_in_the_Ocean.html` as **Original online source** in README and HTML only. It is web navigation/reference material, not part of the reconstructed book; do not add it to either PDF or the EPUB unless the owner requests it.
+Shared downloads are:
 
-Shared Downloads are:
+- `wave-motions.pdf`
+- `wave-motions-facsimile.pdf`
+- `wave-motions.epub`
 
-- `wave-motions.pdf` — PDF
-- `wave-motions-facsimile.pdf` — Facsimile PDF
-- `wave-motions.epub` — EPUB
-
-README badges are **Read | Online**, **Read | PDF**, **Read | EPUB**, **License | CC BY-NC-SA 4.0**, and the native GitHub Actions **Build** status badge for `.github/workflows/publish.yml`. Keep the badge row after the complete title/dedication/authorship block. Do not add a facsimile badge unless explicitly requested.
-
-Section anchors are public links; keep them stable.
+Keep public section anchors stable.
 
 ## HTML
 
-Preserve the responsive/mobile reader, Auto/Light/Dark theme selection, **GitHub Source** navigation, Contents navigation, wide-math/table overflow handling, and stable chapter/section navigation unless explicitly redesigned.
+Preserve the responsive reader, Auto/Light/Dark themes, GitHub Source navigation, Contents navigation, wide-math/table overflow behavior, and stable chapter/section navigation unless explicitly redesigned.
 
-Do not dark-mode invert/filter the historical front-matter JPEG. Generated black-on-white scientific diagrams may be theme-adjusted for legibility.
-
-The HTML edition is the browser reading/preview experience.
+Do not dark-mode invert/filter the historical front-matter photograph. Generated black-on-white scientific diagrams may be theme-adjusted for legibility without changing their content.
 
 ## EPUB
 
-Build EPUB from the transformed canonical LaTeX prepared by the HTML pipeline, not by reparsing MathJax HTML. This preserves mathematical structure for MathML output and avoids a parallel content tree.
+Build EPUB from transformed canonical LaTeX, not by reparsing MathJax HTML. Preserve mathematical structure as MathML.
 
-The EPUB metadata title must remain `Wave Motions in the Ocean: Myrl's View`, with David C. Chapman and Paola Malanotte-Rizzoli as authors and Albert M. W. Yau identified as digital editor/contributor. Validation must confirm package metadata and the presence of MathML.
+Metadata must keep the title `Wave Motions in the Ocean: Myrl's View`, David C. Chapman and Paola Malanotte-Rizzoli as authors, and Albert M. W. Yau as digital editor/contributor.
 
-EPUB TOC depth is Chapter → Section. Check metadata, shared cover, navigation, math, figures, tables, links, and reflow in representative readers as iteration proceeds.
+EPUB TOC depth is Chapter → Section. Validate metadata, cover, navigation, MathML, figures, tables, links, accessibility metadata, and reflow. Do not change source mathematics merely to satisfy a MathML validator; fix the transformation/validator unless the source itself was mistranscribed.
 
-Publish EPUB as a direct download. Browsers do not provide a consistent native EPUB reader, and the existing HTML edition already serves the web-reading use case. Do not add epub.js or another embedded EPUB reader unless explicitly requested.
+Publish EPUB as a direct download; the HTML edition is the web-reading experience.
 
 ## Figure and equation numbering
 
-The modern PDF, HTML, and EPUB use chapter-based figure and equation numbers. The facsimile suppresses these added editorial numbers so its historical source-page presentation remains unchanged.
+Modern PDF, HTML, and EPUB use chapter-based figure/equation numbering. The facsimile suppresses added editorial numbers.
 
-Number every scientific body figure, but number displayed equations selectively. An equation is important enough to number when it has a durable identity in the exposition: a governing equation/system, boundary or eigenvalue problem, dispersion or modal/root relation, conservation law, ray equation, or named physical definition/result such as phase speed, group velocity, sound speed, wave action, or energy flux. Keep transient algebra, intermediate substitutions/rearrangements, generic parameter-definition lists, and one-off evaluation steps unnumbered. A multi-line governing system normally receives one number unless its component equations have independent roles.
+Number every scientific body figure. Number displayed equations selectively when they have durable identity in the exposition: governing systems, boundary/eigenvalue problems, dispersion/modal/root relations, conservation laws, ray equations, or named physical definitions/results. Keep transient algebra and one-off substitutions unnumbered.
 
-Do not add equation/figure cross-references or hyperlinks merely because numbers exist. Add those later, selectively, after numbering is stable across formats.
+Do not use numbering changes as an opportunity to alter historical equation content.
 
 ## Build interface and outputs
 
@@ -131,54 +123,34 @@ Use:
 ./scripts/build.sh all
 ```
 
-The flat `dist/` publish root contains:
+`build/` and `dist/` are generated and untracked. The flat `dist/` publication root contains HTML, assets, the modern PDF, facsimile PDF, EPUB, and `SHA256SUMS`.
 
-```text
-dist/
-  index.html
-  chapter1.html ... chapter6.html
-  references.html
-  assets/
-  wave-motions.pdf
-  wave-motions-facsimile.pdf
-  wave-motions.epub
-  SHA256SUMS
-```
+Generated reader artifacts carry exact source build identity. Stable releases use semantic tags such as `v1.0.0`; short commit IDs are build provenance, not release tags.
 
-`build/` and `dist/` are generated and untracked.
+`SHA256SUMS` must cover exactly the two PDFs and EPUB in canonical `dist/`. Release packaging adds the HTML-only ZIP and verifies the expected asset set.
 
-Generated reader artifacts carry an exact source build identity. HTML and EPUB display the short commit identifier linked to that commit; the modern PDF places it on the copyright/edition-notice page; the facsimile keeps it non-visible in PDF metadata so historical page appearance is unchanged. The short commit identifier is **build provenance, not a Git tag**. Stable releases use semantic Git tags such as `v1.0.0`; an exact release-tag build displays both, for example `v1.0.0 (abc1234)`.
-
-`SHA256SUMS` covers exactly the two PDFs and EPUB in the canonical `dist/` artifact. Release packaging requires that exact manifest before promotion, then emits a release manifest covering exactly the two direct PDFs, direct EPUB, and HTML-only ZIP. Duplicate, missing, unexpected, or mismatched checksum entries are fatal.
-
-After any reconstruction `.tex` change, regenerate the README before committing:
+After any reconstruction `.tex` change:
 
 ```bash
 python3 scripts/sync-views.py --readme
 ```
 
-Include any resulting README update with the source change. A full local validation is `./scripts/build.sh all`. Canonical CI deliberately separates artifact generation from QA: `Build publication` uses `WAVE_SKIP_VALIDATION=1`, then runs the QA categories as explicit steps so development artifacts can still be produced when an audit check warns.
+Include resulting README synchronization in the same commit. A coherent local validation is `./scripts/build.sh all`.
 
 ## Publish workflow
 
-`.github/workflows/publish.yml` is the single publication workflow. It builds and validates the complete publication for relevant publication-input pushes to `main`, every pull request targeting `main`, stable semantic release tags such as `v1.0.0`, and manual runs. Tag pushes are release builds and must not depend on changed-path filtering.
+`.github/workflows/publish.yml` is the single publication workflow. It may build, validate, package, deploy, and publish artifacts; it must never edit tracked source files, create repository commits, or push source changes.
 
-For direct pushes to `main`, trigger on actual reader/build inputs: reconstruction TeX and BibTeX sources, `reconstruction/styles/**`, `reconstruction/figures/**`, immutable `source/**` scans, `scripts/**`, `.python-version`, `requirements.txt`, `tex-packages.txt`, `README.md`, and `.github/workflows/publish.yml`. Tracking-only records such as `reconstruction/ERRATA.md`, `reconstruction/FIGURES.md`, `reconstruction/PLAN.md`, and `reconstruction/RENDER_QA.md` do not by themselves require a full main-push publication build. Keep pull requests unfiltered so a future required Build check cannot remain indefinitely Pending merely because GitHub skipped the workflow. Source scans remain immutable; including `source/**` in the trigger is defensive so an accidental source-file change cannot bypass canonical CI.
+**Never create a temporary GitHub Actions workflow, trigger file, issue-comment trigger, self-removing workflow, or other automation to mutate repository contents.** All agent repository edits are made directly against the latest `main` and committed there through the normal Git object/ref path.
 
-`Publish` must be reproducible from the triggering commit and must not edit tracked source files, create commits, or push repository changes. Do not append chat/session migrations, one-time cleanup scripts, or other repository-mutating automation to it.
+Do not add one-time migration, cleanup, source-editing, reconciliation, or bot-commit logic to `publish.yml`.
 
-If your task genuinely requires GitHub Actions to modify tracked repository contents, create a separate purpose-specific workflow and any needed trigger file. Remove automation created by your task when that task is complete unless the owner asks to retain it. Treat unfamiliar temporary workflows and triggers as potentially active; do not remove another session's automation merely because it looks temporary.
+Publication automation should remain reproducible from the triggering commit. Build once and promote that exact validated output to Pages/releases rather than rebuilding downstream.
 
-During periods of frequent direct pushes, do **not** cancel the active publication build for the same ref. Use `cancel-in-progress: false` so one run can finish while GitHub coalesces pending work toward the newest commit instead of repeatedly terminating every build. The **Pages deployment** must also use `cancel-in-progress: false` so an active deployment is not interrupted.
+Direct pushes to `main` should trigger on actual reader/build inputs. Tracking-only files such as `reconstruction/ERRATA.md`, `reconstruction/FIGURES.md`, `reconstruction/PLAN.md`, and `reconstruction/RENDER_QA.md` need not by themselves trigger a full publication build. Pull-request validation remains unfiltered when needed for a required Build check. Source scans are immutable; including them defensively in trigger paths is acceptable so accidental changes cannot bypass CI.
 
-An exact TinyTeX cache hit is a complete, pinned TeX environment for the matching TinyTeX version, runner OS, and `tex-packages.txt` hash. Skip `tlmgr update --self` and package installation on that exact hit. A cache miss or prefix restore must run dependency installation before building.
+Keep exact dependency/tool pins and TinyTeX cache semantics aligned with repository manifests. Missing/incomplete artifacts and generation/dependency failures are fatal. Development QA categories may warn where deliberately configured; stable `vX.Y.Z` release gates are strict, including exact facsimile pagination and release asset/checksum validation.
 
-CI should surface build/validation categories as separate named steps where practical so findings are visible without reading a monolithic log. On ordinary `main`, pull-request, and manual builds, QA findings are **advisory**: README synchronization, EPUB accessibility/standards/math checks, PDF integrity/pagination/destination/text/render checks, publish-root checks, build-identity checks, and checksum verification may warn without failing the Build job. The build script may likewise retain a complete generated HTML set or nonempty EPUB when an embedded post-generation self-check reports an error during development CI. Missing/incomplete artifacts, dependency failures, LaTeX/Pandoc generation failures that do not produce the expected outputs, and checksum generation remain fatal. On stable `vX.Y.Z` tag builds, the same QA and embedded checks are strict, the facsimile must be exactly 184 pages, and the release gate is fatal.
+Release publication is append-once. Published release assets must not be replaced or deleted by automation. A rerun may verify an existing published release but must fail rather than mutate it on mismatch. Use repository-level release immutability when available before stable public releases.
 
-Build once and promote that exact validated output. Pages and GitHub Releases must consume the `wave-motions-editions` artifact from the successful Build job rather than rebuilding the book. A release tag must be an exact stable `vX.Y.Z` semantic version and its commit must be reachable from `main`; reject malformed or off-main tags before expensive environment setup. The release gate additionally requires the exact semantic version/commit build identity and exactly 184 facsimile pages. The release publishes `wave-motions.pdf`, `wave-motions-facsimile.pdf`, and `wave-motions.epub` as direct assets plus `wave-motions-html.zip` and `SHA256SUMS`. Do not manufacture short-SHA Git tags.
-
-Release publication is append-once. A draft release may be resumed only when it contains no unexpected assets; expected assets may be replaced while the release remains a draft. Once a release is published, automation must never replace or delete its assets. A rerun may succeed only after downloading the published assets and verifying the exact expected asset set and checksum manifest against the newly validated build; otherwise fail rather than mutate the published release. For stable public releases, enable GitHub's repository-level **release immutability** setting before the first release when available so GitHub itself locks the published tag and assets in addition to these workflow safeguards.
-
-GitHub Pages is temporarily disabled while the repository remains private. Keep the existing Pages steps/deploy job dormant rather than removing them; when Pages is restored, remove only the temporary false guards so deployment promotes the same validated `dist/` output.
-
-CI must verify `index.html` plus all three downloadable formats. Keep `tex-packages.txt` at repository root as the TeX dependency manifest.
+GitHub Pages is currently disabled while the repository is private. Keep dormant Pages deployment logic only if it remains part of the intended publication workflow; it must consume the same validated artifact and must not modify tracked repository content.

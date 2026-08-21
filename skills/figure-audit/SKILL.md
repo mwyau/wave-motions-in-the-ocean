@@ -2,74 +2,86 @@
 
 Use this skill for figure extraction, direct source crops, TikZ/vector reconstruction, intentional raster editing, comparison, and scientific figure review.
 
-## Source authority and decision order
+## Source authority and correction boundary
 
-The committed source PDFs are the visual authority. Choose the least destructive representation that preserves the scientific information:
+The committed source PDFs are the historical visual authority. A figure audit may identify a scientific or geometric problem, but that finding does not authorize silently correcting the historical figure.
+
+Choose the least destructive faithful representation:
 
 1. **Untouched complex/historical art:** use a direct crop from the committed source PDF. Do not commit an intermediate raster.
-2. **Simple analytic diagrams:** use TikZ/vector source only when geometry, labels, orientation, and scientific meaning can be preserved reliably.
+2. **Simple analytic or geometric diagrams:** use TikZ/vector source only when the visible geometry, labels, orientation, and scientific meaning can be reproduced reliably.
 3. **Genuinely damaged/skewed raster art:** extract at native embedded resolution where practical, make only controlled edits, and commit only the final edited raster.
 
-Do **not** use generative image synthesis to reconstruct scientific figures. If source geometry or labeling is ambiguous, preserve the source or mark the issue for review rather than inventing information.
+Do **not** use generative image synthesis to reconstruct scientific figures. Do not invent missing geometry or labels.
 
-Avoid screenshots, repeated lossy recompression, and committed “before/after” copies. Temporary comparisons belong under `build/`.
+A scientifically “better” redraw is not automatically a faithful reconstruction. If the source figure, nearby equation, and physical interpretation disagree, preserve the historical source representation and record a `pending-review` erratum. Only an explicit human-approved erratum authorizes a substantive corrected redraw.
+
+The only autonomous textual correction inside a figure is the same narrow exception as in the source-audit skill: a small, unambiguous typo with no plausible scientific, mathematical, bibliographic, or editorial effect. If uncertain, preserve the source and ask for human review.
+
+Avoid screenshots, repeated lossy recompression, and committed before/after copies. Temporary comparisons belong under `build/`.
 
 ## Provenance and ledger
 
-Record figure state, provenance, reconstruction choice, review status, and equation-validation status in `reconstruction/FIGURES.md`.
+Record figure state, provenance, representation choice, review status, and equation-validation status in `reconstruction/FIGURES.md`.
 
-Use the `Equation validation` column consistently:
+Use `Equation validation` consistently:
 
-- **Validated** — all materially equation-constrained content in the figure has been independently checked against the governing equation(s), analytically or numerically as appropriate. This records that the comparison was performed; a historical source mismatch may still be `Validated` when the mismatch is explicitly documented in `ERRATA.md`.
-- **Partial** — some equation-constrained content has been independently checked, but another material part is intentionally schematic or still lacks a direct equation check.
-- **Pending** — an equation check is materially applicable but has not yet been independently completed and recorded.
-- **N/A** — there is no meaningful equation-defined quantity or relation to validate; visual, geometric, provenance, or source-fidelity checks still apply.
+- **Validated** — all materially equation-constrained content has been independently checked against the governing equation(s), analytically or numerically as appropriate.
+- **Partial** — some equation-constrained content has been independently checked, but another material part is schematic or still lacks a direct check.
+- **Pending** — an equation check materially applies but has not yet been independently completed and recorded.
+- **N/A** — no meaningful equation-defined quantity or relation applies; visual, geometric, provenance, and source-fidelity checks still do.
 
-Do not infer `Validated` merely because a TikZ implementation contains a formula or because the redraw visually resembles the source. Record `Validated` only after an independent equation evaluation, calculation, or reference plot has been compared with the figure. When practical, state the equation or constrained quantities in the scientific-audit text so the evidence for the status is recoverable.
+`Validated` means the scientific comparison was performed. It does **not** mean an erratum is approved, and it does not permit the vector to depart from an unapproved historical source error. A historical mismatch may therefore be scientifically `Validated` while the rendered reconstruction still preserves the source and `ERRATA.md` records the discrepancy as pending human review.
 
-Retained TikZ figures should carry their `wave-source` provenance comment. Intentionally edited rasters should retain equivalent embedded source metadata when the existing tooling supports it.
+Do not infer `Validated` merely because a TikZ file contains a formula or visually resembles the scan. Record it only after an independent equation evaluation, calculation, or reference plot has been compared with the figure.
 
-A substantive discrepancy between source and reconstruction also belongs in `reconstruction/ERRATA.md`; do not use the figure ledger as a substitute for errata.
+Retained TikZ figures should carry their `wave-source` provenance comment. Intentionally edited rasters should retain equivalent embedded source metadata when tooling supports it.
+
+A substantive discrepancy between source and reconstruction also belongs in `reconstruction/ERRATA.md`; the figure ledger is not an approval mechanism or substitute errata ledger.
 
 ## Scientific figure audit
 
-Check more than visual resemblance. Verify:
+Check more than visual resemblance. Verify as applicable:
 
 - axes, coordinates, units, signs, and orientation;
 - wavevector, phase, group-velocity, propagation, and circulation directions;
 - normals, reflection/refraction geometry, slopes, depths, coast/bottom orientation;
-- nodes/antinodes, mode order, turning points, asymptotes, cutoffs, and dispersion branches;
+- nodes/antinodes, mode order, turning points, asymptotes, cutoffs, roots, extrema, and dispersion branches;
 - labels and mathematical annotations against nearby equations/prose;
 - boundary and matching conditions represented by the drawing;
-- any normalized/display-only geometry versus physically constrained geometry.
+- normalized/display-only geometry versus physically constrained geometry.
 
-If a curve, surface, dispersion diagram, mode shape, or other plotted quantity is defined by an equation in the notes, independently evaluate or plot that equation whenever practical and compare the result with both the historical source and the vector reconstruction. Do not accept a freehand vector curve merely because it resembles the scan when the mathematical curve can be checked directly.
+If a curve, surface, dispersion diagram, mode shape, ray path, or other plotted quantity is defined by an equation, independently evaluate or plot that equation whenever practical and compare:
 
-For simple analytic geometry, an independent symbolic or numerical check is sufficient when a plotted reference curve would add no information: for example, verify reflection angles from constructed vectors, boundary-condition values at the drawn boundary, or continuity/flux matching on both sides of an interface. Record which quantities were checked.
+**governing equation → historical source figure → reconstructed figure**.
 
-If a redraw is schematic, state which geometric properties are schematic and which are enforced by the equations. Use `Partial` rather than `Validated` if a material equation-defined part remains schematic without an independent equation check.
+Do not freehand an equation-defined curve merely to resemble the scan. Conversely, do not replace a historical source curve with a mathematically corrected one without human approval when the two disagree.
+
+For simple analytic geometry, an independent symbolic or numerical check is sufficient when a plotted reference curve adds no information. Record which quantities were checked.
+
+If a redraw is schematic, state which properties are schematic and which are equation-constrained. Use `Partial` rather than `Validated` if a material equation-defined part remains unchecked.
 
 ## Vector verification workflow
 
 For each new or materially changed vector:
 
 1. Inspect the full source page at high resolution.
-2. Reproduce all scientifically meaningful geometry and labels.
-3. Identify every governing equation or equation-derived constraint that materially controls the figure. If none applies, record `N/A` rather than manufacturing an equation test.
-4. For equation-defined charts or curves, independently generate numerical/analytic reference values or a reference plot from the stated equation when practical, and verify branches, roots, extrema, slopes, asymptotes, cutoffs, intersections, and relative scale against the vector reconstruction.
-5. For equation-constrained geometry, independently calculate the relevant angles, ratios, intersections, boundary values, continuity conditions, or vector directions rather than checking only by eye.
+2. Inspect surrounding equations and prose.
+3. List the scientifically meaningful constraints shown by the figure.
+4. Independently check applicable equations/geometry.
+5. Build a faithful TikZ/vector representation without silently repairing source errors.
 6. Compile the TikZ independently.
-7. Inspect at final publication scale for label/line collisions and legibility.
-8. Regenerate the source/reconstruction comparison:
+7. Inspect at final publication scale for labels, arrows, line contact, clipping, scale, and whitespace.
+8. Regenerate the comparison:
 
 ```bash
 python3 scripts/compare-figures.py <figure-name>
 ```
 
 9. Inspect the affected full PDF/HTML/EPUB output as appropriate.
-10. Record the result and the `Equation validation` state in `FIGURES.md`; record substantive corrections in `ERRATA.md`.
+10. Update `FIGURES.md`; record any substantive source problem in `ERRATA.md` as pending unless explicit human approval already exists.
 
-Use `python3 scripts/compare-figures.py --all` for a deliberate whole-ledger comparison pass, not routinely for every small edit.
+Use `python3 scripts/compare-figures.py --all` only for a deliberate whole-ledger pass.
 
 ## Raster editing
 
@@ -77,13 +89,13 @@ When an intentional raster edit is necessary:
 
 - prefer the PDF's native embedded image over a rendered screenshot;
 - preserve resolution and use lossless output where practical;
-- perform only defensible operations such as crop, deskew, cleanup, or contrast correction;
+- perform only defensible crop, deskew, cleanup, or contrast operations that do not change scientific content;
 - keep only the final edited book image in Git;
 - record the source page/crop and edit in `FIGURES.md` and embedded metadata where supported;
-- if the raster depicts an equation-defined chart or field, audit that scientific content against the governing equation separately from the raster-quality check and record its equation-validation state.
+- audit equation-defined scientific content separately from raster quality.
 
 ## Completion
 
-After figure work, run the relevant comparison plus the publication build that contains the figure. For a coherent repository batch, finish with `./scripts/build.sh all`.
+After figure work, run the relevant comparison plus the publication build containing the figure. For a coherent batch, finish with `./scripts/build.sh all`.
 
-Before considering a figure audit complete, confirm that `FIGURES.md` has an explicit `Equation validation` value for every figure or direct source crop and that every `Validated`/`Partial` claim is supported by a recoverable calculation, equation reference, or reference plot rather than visual similarity alone.
+Before considering a figure audit complete, confirm that every figure/direct source crop has an explicit equation-validation state and that every `Validated`/`Partial` claim has recoverable calculation/equation evidence. Scientific validation is never a substitute for the separate human-approval requirement for substantive source corrections.
