@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Publication validation with math, artifact, release, and all modes."""
+"""Publication validation with EPUB, math, artifact, release, and all modes."""
 from __future__ import annotations
 
 import argparse
+import html
 import os
+import posixpath
 import re
 import shutil
 import subprocess
@@ -14,6 +16,29 @@ import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 
+from build_epub import (
+    ACCESSIBILITY_METADATA,
+    AUTHORS,
+    COVER_ALTERNATIVE,
+    DC_NS,
+    EDITOR,
+    EPUB_TYPE,
+    FRONTISPIECE_ALTERNATIVE,
+    LANGUAGE,
+    SVG_NS,
+    TITLE,
+    XML_NS,
+    cover_image_basename,
+    first_bodymatter_member,
+    manifest_member,
+    manifest_xhtml_members,
+    navigation_member,
+    package_document,
+    ref_basename,
+    svg_image_ref,
+    text_content,
+    validate_structure,
+)
 from publication import current_build
 from release import DEFAULT_FILES, verify_manifest
 
@@ -42,6 +67,17 @@ PAOLA_SOURCE_SENTINELS = (
 README_MATH_SENTINELS = (r"\ell", "x", "k", "y", "j,k,x,y,w")
 EPUB_VARIABLE_SENTINELS = ("σ", "ρ", "ℓ", "k", "m", "x", "y", "t")
 EPUB_OPERATOR_SENTINELS = ("sin", "cos", "tanh")
+EPUB_NAV_SENTINELS = (
+    "Basic concepts",
+    "Acoustic waves",
+    "Surface gravity waves",
+    "Internal gravity waves",
+    "Shallow water dynamics",
+    "Topographic effects",
+    "References",
+)
+EPUB_FALSE_ACCESSIBILITY_FEATURES = {"alternativeText", "longDescription", "taggedPDF"}
+EPUB_GENERIC_ALT_TEXT = {"image", "figure"}
 NAMED_FUNCTIONS = ("sin", "cos", "tan", "sinh", "cosh", "tanh", "exp", "log", "ln")
 NUMBERED_ENV_RE = re.compile(r"\\begin\{(?:waveequation|wavealign)\}")
 NATIVE_TAG_RE = re.compile(r"\\tag\{(?P<tag>\d+\.\d+)\}")
@@ -53,6 +89,9 @@ MATH_ENV_RE = re.compile(
 MATH_TEXT_COMMAND_RE = re.compile(
     r"\\(?:text|textrm|textsf|texttt|textit|textbf|mathrm|operatorname)\{[^{}]*\}"
 )
+SMART_PUNCTUATION_RE = re.compile(r"[“”‘’–—…−]")
+PUNCTUATION_ENTITY_RE = re.compile(r"&(?:ldquo|rdquo|lsquo|rsquo|ndash|mdash|hellip);")
+SMART_ANCHOR_RE = re.compile(r'\bid=["\'][^"\']*[“”‘’–—…−]')
 
 
 def fail(message: str) -> None:
@@ -110,6 +149,57 @@ def check_canonical_source() -> None:
                 )
 
     print("Canonical TeX math audit OK")
+
+
+def check_punctuation() -> None:
+    canonical_paths = [
+        RECON / "frontmatter-modern.tex",
+        RECON / "frontmatter-modern-book.tex",
+        RECON / "frontmatter-facsimile.tex",
+        *(RECON / f"chapter{number}.tex" for number in range(1, 7)),
+    ]
+    for path in canonical_paths:
+        text = strip_tex_comments(path.read_text())
+        if SMART_PUNCTUATION_RE.search(text):
+            fail(f"{path.name}: literal smart punctuation is not canonical TeX source syntax")
+        if "Attribution--NonCommercial--ShareAlike" in text:
+            fail(f"{path.name}: Creative Commons license name uses TeX en dashes instead of hyphens")
+        if any("−" in region for region in tex_math_regions(text)):
+            fail(f"{path.name}: Unicode mathematical minus found in canonical math")
+
+    html_pages = sorted(DIST.glob("*.html"))
+    html_text = "\n".join(path.read_text(errors="replace") for path in html_pages)
+    if PUNCTUATION_ENTITY_RE.search(html_text):
+        fail("generated HTML contains a named typographic punctuation entity")
+    if SMART_ANCHOR_RE.search(html_text):
+        fail("generated HTML contains smart punctuation in a public anchor id")
+    for punctuation in ("“", "’", "–", "—"):
+        if punctuation not in html_text:
+            fail(f"generated HTML is missing reader-facing punctuation {punctuation!r}")
+
+    require_file(README)
+    readme = README.read_text(errors="replace")
+    if "# Wave Motions in the Ocean: Myrl’s View" not in readme:
+        fail("README display metadata did not render the subtitle apostrophe typographically")
+    if PUNCTUATION_ENTITY_RE.search(readme):
+        fail("README contains a named typographic punctuation entity")
+
+    require_file(EPUB)
+    with zipfile.ZipFile(EPUB) as archive:
+        epub_text = "\n".join(
+            archive.read(name).decode("utf-8", errors="replace")
+            for name in archive.namelist()
+            if name.lower().endswith((".xhtml", ".html"))
+        )
+    if PUNCTUATION_ENTITY_RE.search(epub_text):
+        fail("generated EPUB contains a named typographic punctuation entity")
+    if SMART_ANCHOR_RE.search(epub_text):
+        fail("generated EPUB contains smart punctuation in a public anchor id")
+    for punctuation in ("“", "’", "–", "—"):
+        if punctuation not in epub_text:
+            fail(f"generated EPUB is missing reader-facing punctuation {punctuation!r}")
+
+    print("Cross-format punctuation invariants OK")
 
 
 def canonical_equation_labels() -> dict[int, tuple[str, ...]]:
@@ -223,23 +313,6 @@ def check_html() -> None:
         f"HTML MathJax markup/accessibility invariants OK: "
         f"inline={inline_count}, display={display_count}"
     )
-
-
-def package_document(archive: zipfile.ZipFile) -> tuple[str, ET.Element]:
-    try:
-        container = ET.fromstring(archive.read("META-INF/container.xml"))
-    except (KeyError, ET.ParseError) as exc:
-        fail(f"cannot read EPUB package container: {exc}")
-    rootfile = container.find(".//{*}rootfile")
-    if rootfile is None or not rootfile.get("full-path"):
-        fail("EPUB container has no package rootfile")
-    name = rootfile.get("full-path")
-    assert name is not None
-    try:
-        return name, ET.fromstring(archive.read(name))
-    except (KeyError, ET.ParseError) as exc:
-        fail(f"cannot read EPUB package document {name}: {exc}")
-
 
 def check_epub_mathml() -> None:
     require_file(EPUB)
@@ -372,6 +445,255 @@ def check_epub_mathml() -> None:
             f"expressions={len(math_elements)}, docs={len(math_docs)}, "
             + ", ".join(f"{tag}={counts[tag]}" for tag in required_structures)
         )
+
+
+def epub_accessibility_metadata(opf_root: ET.Element) -> dict[str, list[str]]:
+    metadata = opf_root.find("{*}metadata")
+    if metadata is None:
+        fail("EPUB package metadata is missing")
+    actual: dict[str, list[str]] = {}
+    for element in metadata.findall("{*}meta"):
+        property_name = element.get("property")
+        if property_name:
+            actual.setdefault(property_name, []).append((element.text or "").strip())
+    return actual
+
+
+def validate_epub_document_languages(
+    archive: zipfile.ZipFile, opf_name: str, opf_root: ET.Element
+) -> None:
+    for member in manifest_xhtml_members(opf_name, opf_root):
+        root = ET.fromstring(archive.read(member))
+        xml_lang = root.get(f"{{{XML_NS}}}lang")
+        html_lang = root.get("lang")
+        if xml_lang != LANGUAGE or (html_lang is not None and html_lang != LANGUAGE):
+            fail(f"EPUB XHTML {member} does not declare {LANGUAGE}")
+
+
+def validate_epub_bodymatter_landmark(
+    archive: zipfile.ZipFile, opf_name: str, opf_root: ET.Element
+) -> None:
+    nav_member = navigation_member(opf_name, opf_root)
+    expected = first_bodymatter_member(archive, opf_name, opf_root)
+    assert nav_member is not None and expected is not None
+    root = ET.fromstring(archive.read(nav_member))
+    landmarks = [
+        nav
+        for nav in root.findall(".//{*}nav")
+        if "landmarks" in (nav.get(EPUB_TYPE) or "").split()
+    ]
+    if len(landmarks) != 1:
+        fail(f"expected one EPUB landmarks navigation element, found {len(landmarks)}")
+    links = [
+        link
+        for link in landmarks[0].findall(".//{*}a")
+        if "bodymatter" in (link.get(EPUB_TYPE) or "").split()
+    ]
+    if len(links) != 1:
+        fail(f"expected one EPUB bodymatter landmark, found {len(links)}")
+    target = urllib.parse.unquote(urllib.parse.urlsplit(links[0].get("href") or "").path)
+    resolved = posixpath.normpath(posixpath.join(posixpath.dirname(nav_member), target))
+    if resolved != expected:
+        fail(f"EPUB bodymatter landmark resolves to {resolved!r}; expected {expected!r}")
+
+
+def epub_alternative_bucket(value: str | None) -> str:
+    if value is None:
+        return "missing"
+    value = value.strip()
+    if not value:
+        return "empty"
+    if value.casefold() in EPUB_GENERIC_ALT_TEXT:
+        return "generic"
+    return "meaningful"
+
+
+def epub_image_alternative_inventory(
+    archive: zipfile.ZipFile, opf_name: str, opf_root: ET.Element
+) -> tuple[int, int, int, int, int, set[str]]:
+    total = meaningful = generic = empty = missing = 0
+    alternatives: set[str] = set()
+    for member in manifest_xhtml_members(opf_name, opf_root):
+        root = ET.fromstring(archive.read(member))
+        for image in root.findall(".//{*}img"):
+            total += 1
+            value = image.get("alt")
+            bucket = epub_alternative_bucket(value)
+            if bucket == "meaningful":
+                meaningful += 1
+                alternatives.add((value or "").strip())
+            elif bucket == "generic":
+                generic += 1
+            elif bucket == "empty":
+                empty += 1
+            else:
+                missing += 1
+        for svg in root.findall(".//{*}svg"):
+            if not svg.findall(".//{*}image"):
+                continue
+            total += 1
+            value = svg.get("aria-label")
+            if not value:
+                title = svg.find(f"{{{SVG_NS}}}title")
+                value = " ".join("".join(title.itertext()).split()) if title is not None else None
+            bucket = epub_alternative_bucket(value)
+            if bucket == "meaningful":
+                meaningful += 1
+                alternatives.add((value or "").strip())
+            elif bucket == "generic":
+                generic += 1
+            elif bucket == "empty":
+                empty += 1
+            else:
+                missing += 1
+    return total, meaningful, generic, empty, missing, alternatives
+
+
+def check_epub_policy() -> None:
+    """Validate the completed EPUB policy after the builder's final rewrite."""
+    require_file(EPUB)
+    validate_structure(EPUB)
+    with zipfile.ZipFile(EPUB) as archive:
+        opf_name, opf_root = package_document(archive)
+        metadata = opf_root.find("{*}metadata")
+        manifest = opf_root.find("{*}manifest")
+        spine = opf_root.find("{*}spine")
+        if metadata is None or manifest is None or spine is None:
+            fail("EPUB package metadata/manifest/spine is incomplete")
+
+        title = metadata.find(f"{{{DC_NS}}}title")
+        if title is None or text_content(title) != TITLE:
+            got = text_content(title) if title is not None else "<missing>"
+            fail(f"EPUB metadata title is incorrect: {got!r}")
+        creators = [
+            text_content(item) for item in metadata.findall(f"{{{DC_NS}}}creator")
+        ]
+        if not all(author in creators for author in AUTHORS):
+            fail(f"EPUB author metadata is incomplete: {creators!r}")
+        contributors = [
+            text_content(item) for item in metadata.findall(f"{{{DC_NS}}}contributor")
+        ]
+        if EDITOR not in contributors:
+            fail(f"EPUB editor metadata is missing: {contributors!r}")
+
+        if opf_root.get(f"{{{XML_NS}}}lang") != LANGUAGE:
+            fail("EPUB package language is missing")
+        languages = [
+            (element.text or "").strip()
+            for element in metadata.findall(f"{{{DC_NS}}}language")
+        ]
+        if languages != [LANGUAGE]:
+            fail(f"EPUB publication language is incomplete: {languages!r}")
+        validate_epub_document_languages(archive, opf_name, opf_root)
+        validate_epub_bodymatter_landmark(archive, opf_name, opf_root)
+
+        actual = epub_accessibility_metadata(opf_root)
+        expected: dict[str, list[str]] = {}
+        for property_name, value in ACCESSIBILITY_METADATA:
+            expected.setdefault(property_name, []).append(value)
+        for property_name, values in expected.items():
+            if actual.get(property_name) != values:
+                fail(
+                    f"EPUB accessibility metadata {property_name!r} is "
+                    f"{actual.get(property_name)!r}; expected {values!r}"
+                )
+        features = set(actual.get("schema:accessibilityFeature", []))
+        if features & EPUB_FALSE_ACCESSIBILITY_FEATURES:
+            fail("EPUB claims accessibility features that are not fully audited")
+        for element in metadata.findall("{*}meta"):
+            if (
+                element.get("property") == "dcterms:conformsTo"
+                and (element.text or "").strip().startswith("EPUB Accessibility")
+            ):
+                fail("EPUB must not claim accessibility conformance before the audit is complete")
+
+        manifest_items = list(manifest.findall("{*}item"))
+        cover_items = [
+            item
+            for item in manifest_items
+            if "cover-image" in (item.get("properties") or "").split()
+        ]
+        if len(cover_items) != 1:
+            fail(f"expected one EPUB cover image, found {len(cover_items)}")
+        cover_member = manifest_member(opf_name, cover_items[0])
+        if cover_member not in archive.namelist():
+            fail(f"EPUB cover image member is missing: {cover_member}")
+
+        nav_member = navigation_member(opf_name, opf_root)
+        assert nav_member is not None
+        nav_root = ET.fromstring(archive.read(nav_member))
+        nav_text = " ".join(text_content(a) for a in nav_root.findall(".//{*}a"))
+        for sentinel in EPUB_NAV_SENTINELS:
+            if sentinel not in nav_text:
+                fail(f"EPUB navigation is missing: {sentinel}")
+        if nav_text.strip() == "References":
+            fail("EPUB navigation regressed to a References-only title")
+
+        spine_ids = [item.get("idref") for item in spine.findall("{*}itemref")]
+        by_id = {item.get("id"): item for item in manifest_items if item.get("id")}
+        if len(spine_ids) < 8 or any(item_id not in by_id for item_id in spine_ids):
+            fail("EPUB spine is unexpectedly short or references missing manifest items")
+
+        xhtml_names = manifest_xhtml_members(opf_name, opf_root)
+        xhtml = b"\n".join(archive.read(name) for name in xhtml_names)
+        if b"David C. Chapman" not in xhtml or b"Paola Malanotte-Rizzoli" not in xhtml:
+            fail("EPUB text sentinel is missing")
+        if b"JP1847" not in xhtml:
+            fail("EPUB cover credit is missing")
+        if b"<table" not in xhtml:
+            fail("EPUB contains no table markup")
+        image_count = sum(
+            1 for item in manifest_items if (item.get("media-type") or "").startswith("image/")
+        )
+        if image_count < 5:
+            fail(f"EPUB contains only {image_count} image asset(s)")
+
+        total, meaningful, generic, empty, missing, alternatives = epub_image_alternative_inventory(
+            archive, opf_name, opf_root
+        )
+        if total == 0:
+            fail("EPUB contains no images to audit for alternative text")
+        for required in (FRONTISPIECE_ALTERNATIVE, COVER_ALTERNATIVE):
+            if required not in alternatives:
+                fail("EPUB lost a known accessible image description: " + required)
+
+        cover_basename = cover_image_basename(opf_root)
+        assert cover_basename is not None
+        cover_svg_seen = False
+        cover_title_found = False
+        for member in xhtml_names:
+            root = ET.fromstring(archive.read(member))
+            for svg in root.findall(".//{*}svg"):
+                if not any(
+                    ref_basename(svg_image_ref(image)) == cover_basename
+                    for image in svg.findall(".//{*}image")
+                ):
+                    continue
+                cover_svg_seen = True
+                title = svg.find(f"{{{SVG_NS}}}title")
+                if (
+                    svg.get("aria-label") == COVER_ALTERNATIVE
+                    and title is not None
+                    and " ".join(title.itertext()).strip() == COVER_ALTERNATIVE
+                ):
+                    cover_title_found = True
+        if cover_svg_seen and not cover_title_found:
+            fail("EPUB cover SVG is missing its native accessible title")
+
+        info = current_build()
+        label = html.escape(info.label).encode()
+        url = html.escape(info.commit_url, quote=True).encode()
+        if xhtml.count(b'class="build-info"') != 1 or label not in xhtml or url not in xhtml:
+            fail("EPUB exact build identity is missing or duplicated")
+
+    print("EPUB accessibility/finalization policy OK")
+    print(
+        "EPUB image-alternative baseline: "
+        f"total={total}, meaningful={meaningful}, generic={generic}, "
+        f"empty={empty}, missing={missing}"
+    )
+    if generic or missing:
+        print("Accessibility audit remains open: scientific figure alternatives are incomplete")
 
 
 def pdf_text(path: Path) -> str:
@@ -667,6 +989,7 @@ def check_release_gate() -> None:
 
 def check_publication() -> None:
     check_pdf_artifacts()
+    check_epub_policy()
     check_publish_root()
     check_build_identity()
     check_checksums()
@@ -681,6 +1004,7 @@ def check_pdf_artifacts() -> None:
 
 def check_math(require_epubcheck: bool) -> None:
     check_canonical_source()
+    check_punctuation()
     check_readme()
     check_html()
     check_epub_mathml()
@@ -689,11 +1013,18 @@ def check_math(require_epubcheck: bool) -> None:
     print("Cross-format math validation OK")
 
 
+def check_epub(require_epubcheck: bool) -> None:
+    check_epub_policy()
+    check_epub_mathml()
+    run_epubcheck(require_epubcheck)
+    print("EPUB validation OK")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Validate publication artifacts")
     parser.add_argument(
         "mode",
-        choices=("math", "pdf", "publication", "release", "all"),
+        choices=("epub", "math", "pdf", "publication", "release", "all"),
         nargs="?",
         default="all",
         help="validation scope (default: all non-release checks)",
@@ -701,11 +1032,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--require-epubcheck",
         action="store_true",
-        help="fail math validation unless EPUBCheck is installed and passes",
+        help="fail EPUB/math validation unless EPUBCheck is installed and passes",
     )
     args = parser.parse_args(argv)
     if args.mode in {"math", "all"}:
         check_math(args.require_epubcheck)
+    if args.mode == "epub":
+        check_epub(args.require_epubcheck)
     if args.mode in {"publication", "all"}:
         check_publication()
     if args.mode == "pdf":

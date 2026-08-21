@@ -77,7 +77,7 @@ def pandoc_page(source_tex: Path, output: Path, title: str) -> None:
             "pandoc",
             str(source_tex),
             "-f",
-            "latex",
+            "latex+smart",
             "-t",
             "html5",
             "-s",
@@ -115,8 +115,6 @@ def navigation_links(index: int | None) -> list[str]:
         links.append(f'<a href="chapter{index + 1}.html">Next chapter</a>')
     if index == 6:
         links.append('<a href="references.html">References</a>')
-    if index is None and not links:
-        links.append('<a href="index.html#contents">Contents</a>')
     links.append(f'<a class="source-link" href="{REPOSITORY_URL}">GitHub Source</a>')
     return links
 

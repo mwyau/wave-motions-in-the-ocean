@@ -16,7 +16,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from publication import RECON, ROOT, markdown_contents, markdown_license
+from publication import RECON, ROOT, markdown_contents, markdown_license, reader_punctuation
 
 README = ROOT / "README.md"
 FRONTMATTER = RECON / "frontmatter-modern.tex"
@@ -131,7 +131,7 @@ def frontmatter_markdown(text: str) -> str:
         source = Path(temporary) / "frontmatter.tex"
         source.write_text(body)
         process = subprocess.run(
-            ["pandoc", str(source), "-f", "latex", "-t", "gfm", "--wrap=preserve"],
+            ["pandoc", str(source), "-f", "latex+smart", "-t", "gfm", "--wrap=preserve"],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -146,10 +146,10 @@ def expected_readme(current: str) -> str:
     title, subtitle, dedicatee, authors, original_date, editor, digital_date = title_metadata(source)
     badges = preserve_badges(current)
     header = (
-        f"# {title}: {subtitle}\n\n"
-        f"*Presented to* **{dedicatee}**\n\n"
-        f"**{authors}** — {original_date}\n\n"
-        f"Digital edition by **{editor}** — {digital_date}\n\n"
+        f"# {reader_punctuation(title)}: {reader_punctuation(subtitle)}\n\n"
+        f"*Presented to* **{reader_punctuation(dedicatee)}**\n\n"
+        f"**{reader_punctuation(authors)}** — {reader_punctuation(original_date)}\n\n"
+        f"Digital edition by **{reader_punctuation(editor)}** — {reader_punctuation(digital_date)}\n\n"
         f"{BADGES_START}\n{badges}\n{BADGES_END}"
     )
     return (

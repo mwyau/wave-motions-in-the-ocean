@@ -147,10 +147,6 @@ jobs:
         continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         run: python3 scripts/sync_readme.py --check
 
-      - name: Check EPUB accessibility/finalization policy
-        continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        run: python3 scripts/build_epub.py --check
-
       - name: Install EPUBCheck
         continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         shell: bash
@@ -168,13 +164,9 @@ jobs:
           echo "EPUBCHECK_JAR=$EPUBCHECK_JAR" >> "$GITHUB_ENV"
           java -jar "$EPUBCHECK_JAR" --version
 
-      - name: Check mathematical rendering
+      - name: Validate publication
         continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        run: python3 scripts/validate.py math --require-epubcheck
-
-      - name: Check publication
-        continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        run: python3 scripts/validate.py publication
+        run: python3 scripts/validate.py all --require-epubcheck
 
       - name: Check release gate
         if: startsWith(github.ref, 'refs/tags/v')

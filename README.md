@@ -1,4 +1,4 @@
-# Wave Motions in the Ocean: Myrl's View
+# Wave Motions in the Ocean: Myrl’s View
 
 *Presented to* **Myrl C. Hendershott**
 
@@ -80,7 +80,7 @@ not least, dear friend. I hope I absorbed from him some of the positive qualitie
 These lecture notes have been preserved on James Pringle’s website and have
 recently been reconstructed in LaTeX. This digital edition has been
 authorized by Paola Malanotte-Rizzoli for release under the Creative Commons
-Attribution–NonCommercial–ShareAlike 4.0 International license
+Attribution-NonCommercial-ShareAlike 4.0 International license
 (CC BY-NC-SA 4.0).
 
 The reconstruction is a work in progress, with assistance from OpenAI’s GPT-5.6 Sol.
@@ -129,7 +129,7 @@ during the International School of Physics “Enrico Fermi,” Course LXXX,
    - [Reflection from a solid boundary](https://mwyau.github.io/wave-motions-in-the-ocean/chapter4.html#reflection-from-a-solid-boundary)
    - [Variable buoyancy frequency](https://mwyau.github.io/wave-motions-in-the-ocean/chapter4.html#variable-buoyancy-frequency)
 5. [Shallow water dynamics](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html)
-   - [Laplace's tidal equations](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html#laplaces-tidal-equations)
+   - [Laplace’s tidal equations](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html#laplaces-tidal-equations)
    - [Shallow water equations with rotation](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html#shallow-water-equations-with-rotation)
    - [Reflection at a solid wall](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html#reflection-at-a-solid-wall)
    - [Seiches in a box](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html#seiches-in-a-box)

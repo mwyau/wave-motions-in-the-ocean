@@ -142,6 +142,53 @@ def _asset_path(assets_root: Path, asset_prefix: str, name: str) -> Path:
     return assets_root / Path(asset_prefix) / name
 
 
+def _render_pdf_page(pdf: Path, page: int, dpi: int, prefix: Path, *, quiet: bool = True) -> Path:
+    run(
+        [
+            "pdftoppm",
+            "-f",
+            str(page),
+            "-l",
+            str(page),
+            "-singlefile",
+            "-r",
+            str(dpi),
+            "-png",
+            str(pdf),
+            str(prefix),
+        ],
+        quiet=quiet,
+    )
+    return prefix.with_suffix(".png")
+
+
+def _crop_source_image(
+    pdf: Path,
+    page: int,
+    trim: str,
+    image_path: Path,
+    destination: Path,
+    *,
+    angle: float = 0.0,
+    optimize: bool = False,
+) -> None:
+    with Image.open(image_path) as source:
+        image = source.convert("RGB")
+    page_width, page_height = page_size_points(pdf, page)
+    left, bottom, right, top = parse_trim(trim)
+    x0 = round(left / page_width * image.width)
+    x1 = round(image.width - right / page_width * image.width)
+    y0 = round(top / page_height * image.height)
+    y1 = round(image.height - bottom / page_height * image.height)
+    if not (0 <= x0 < x1 <= image.width and 0 <= y0 < y1 <= image.height):
+        raise ValueError(f"invalid crop for {pdf.name} page {page}: {trim}")
+    image = image.crop((x0, y0, x1, y1))
+    if angle:
+        image = image.rotate(angle, expand=True, fillcolor="white")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    image.save(destination, optimize=optimize)
+
+
 def source_crop(
     pdf_name: str,
     page: int,
@@ -170,37 +217,17 @@ def source_crop(
     )
     page_cache.parent.mkdir(parents=True, exist_ok=True)
     if not page_cache.exists():
-        prefix = page_cache.with_suffix("")
-        run(
-            [
-                "pdftoppm",
-                "-f",
-                str(page),
-                "-l",
-                str(page),
-                "-singlefile",
-                "-r",
-                str(dpi),
-                "-png",
-                str(pdf),
-                str(prefix),
-            ]
-        )
+        _render_pdf_page(pdf, page, dpi, page_cache.with_suffix(""))
 
-    image = Image.open(page_cache).convert("RGB")
-    page_width, page_height = page_size_points(pdf, page)
-    left, bottom, right, top = parse_trim(trim)
-    x0 = round(left / page_width * image.width)
-    x1 = round(image.width - right / page_width * image.width)
-    y0 = round(top / page_height * image.height)
-    y1 = round(image.height - bottom / page_height * image.height)
-    if not (0 <= x0 < x1 <= image.width and 0 <= y0 < y1 <= image.height):
-        raise ValueError(f"invalid crop for {pdf_name} page {page}: {trim}")
-    image = image.crop((x0, y0, x1, y1))
-    if angle:
-        image = image.rotate(angle, expand=True, fillcolor="white")
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    image.save(destination, optimize=True)
+    _crop_source_image(
+        pdf,
+        page,
+        trim,
+        page_cache,
+        destination,
+        angle=angle,
+        optimize=True,
+    )
     return f"{asset_prefix}/{name}"
 
 
@@ -219,36 +246,8 @@ def render_source_crop(
         raise FileNotFoundError(pdf)
     with tempfile.TemporaryDirectory(prefix="wave-source-") as temporary:
         prefix = Path(temporary) / "page"
-        run(
-            [
-                "pdftoppm",
-                "-f",
-                str(page),
-                "-l",
-                str(page),
-                "-singlefile",
-                "-r",
-                str(dpi),
-                "-png",
-                str(pdf),
-                str(prefix),
-            ],
-            quiet=False,
-        )
-        image = Image.open(prefix.with_suffix(".png")).convert("RGB")
-        page_width, page_height = page_size_points(pdf, page)
-        left, bottom, right, top = parse_trim(trim)
-        x0 = round(left / page_width * image.width)
-        x1 = round(image.width - right / page_width * image.width)
-        y0 = round(top / page_height * image.height)
-        y1 = round(image.height - bottom / page_height * image.height)
-        if not (0 <= x0 < x1 <= image.width and 0 <= y0 < y1 <= image.height):
-            raise ValueError(f"invalid crop for {pdf_name} page {page}: {trim}")
-        image = image.crop((x0, y0, x1, y1))
-        if angle:
-            image = image.rotate(angle, expand=True, fillcolor="white")
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        image.save(destination)
+        image_path = _render_pdf_page(pdf, page, dpi, prefix, quiet=False)
+        _crop_source_image(pdf, page, trim, image_path, destination, angle=angle)
 
 
 def _tikz_digest(stem: str) -> str:
@@ -262,6 +261,29 @@ def _tikz_digest(stem: str) -> str:
         + b"\0"
         + tikz.read_bytes()
     ).hexdigest()[:16]
+
+
+def _compile_tikz_pdf(stem: str, workdir: Path, *, quiet: bool = True) -> Path:
+    tikz = FIGURES / f"{stem}.tikz"
+    if not tikz.exists():
+        raise FileNotFoundError(tikz)
+    if workdir.exists():
+        shutil.rmtree(workdir)
+    workdir.mkdir(parents=True)
+    tex = workdir / "figure.tex"
+    tex.write_text(TIKZ_STANDALONE_TEMPLATE % tikz.as_posix())
+    run(
+        [
+            "latexmk",
+            "-pdf",
+            "-interaction=nonstopmode",
+            "-halt-on-error",
+            "figure.tex",
+        ],
+        cwd=workdir,
+        quiet=quiet,
+    )
+    return workdir / "figure.pdf"
 
 
 def render_tikz_svg(
@@ -285,23 +307,9 @@ def render_tikz_svg(
         return
 
     workdir = work_root / "tikz" / stem
-    if workdir.exists():
-        shutil.rmtree(workdir)
-    workdir.mkdir(parents=True)
-    tex = workdir / "figure.tex"
-    tex.write_text(TIKZ_STANDALONE_TEMPLATE % tikz.as_posix())
-    run(
-        [
-            "latexmk",
-            "-pdf",
-            "-interaction=nonstopmode",
-            "-halt-on-error",
-            "figure.tex",
-        ],
-        cwd=workdir,
-    )
+    pdf = _compile_tikz_pdf(stem, workdir)
     svg = workdir / "figure.svg"
-    run(["pdftocairo", "-svg", str(workdir / "figure.pdf"), str(svg)])
+    run(["pdftocairo", "-svg", str(pdf), str(svg)])
     cached_svg.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(svg, cached_svg)
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -314,20 +322,8 @@ def render_tikz_png(stem: str, destination: Path, dpi: int) -> None:
     if not tikz.exists():
         raise FileNotFoundError(tikz)
     with tempfile.TemporaryDirectory(prefix="wave-vector-") as temporary:
-        workdir = Path(temporary)
-        tex = workdir / "figure.tex"
-        tex.write_text(TIKZ_STANDALONE_TEMPLATE % tikz.as_posix())
-        run(
-            [
-                "latexmk",
-                "-pdf",
-                "-interaction=nonstopmode",
-                "-halt-on-error",
-                "figure.tex",
-            ],
-            cwd=workdir,
-            quiet=False,
-        )
+        workdir = Path(temporary) / "compile"
+        pdf = _compile_tikz_pdf(stem, workdir, quiet=False)
         prefix = workdir / "render"
         run(
             [
@@ -336,7 +332,7 @@ def render_tikz_png(stem: str, destination: Path, dpi: int) -> None:
                 "-r",
                 str(dpi),
                 "-png",
-                str(workdir / "figure.pdf"),
+                str(pdf),
                 str(prefix),
             ],
             quiet=False,
@@ -582,6 +578,13 @@ def _balanced_command_args(text: str, command: str) -> list[str]:
     return out
 
 
+def reader_punctuation(text: str) -> str:
+    """Render TeX/text punctuation for generated reader-facing display strings."""
+    text = text.replace("``", "“").replace("''", "”")
+    text = text.replace("`", "‘").replace("'", "’")
+    return text
+
+
 def tex_plain(text: str) -> str:
     """Normalize TeX enough for headings, anchors, and reader metadata."""
     text = text.replace("---", "—").replace("--", "–")
@@ -594,7 +597,7 @@ def tex_plain(text: str) -> str:
     text = re.sub(r"\\[A-Za-z]+\*?", "", text)
     text = text.replace("{", "").replace("}", "")
     text = text.replace(r"\&", "&").replace(r"\%", "%").replace(r"\_", "_")
-    return " ".join(text.split()).strip()
+    return reader_punctuation(" ".join(text.split()).strip())
 
 
 def section_slug(title: str) -> str:

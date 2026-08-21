@@ -33,14 +33,6 @@ META_RE = re.compile(
 )
 
 
-def render_original(pdf_name: str, page: int, trim: str, out_png: Path, dpi: int) -> None:
-    render_source_crop(pdf_name, page, trim, out_png, dpi)
-
-
-def render_tikz(stem: str, out_png: Path, dpi: int) -> None:
-    render_tikz_png(stem, out_png, dpi)
-
-
 def side_by_side(left_path: Path, right_path: Path, out_path: Path) -> None:
     left = Image.open(left_path).convert("RGB")
     right = Image.open(right_path).convert("RGB")
@@ -111,9 +103,9 @@ def compare(stem: str, dpi: int) -> Path:
         tmpdir = Path(td)
         original = tmpdir / "original.png"
         reconstruction = tmpdir / "reconstruction.png"
-        render_original(pdf_name, page, trim, original, dpi)
+        render_source_crop(pdf_name, page, trim, original, dpi)
         if kind == "vector":
-            render_tikz(stem, reconstruction, dpi)
+            render_tikz_png(stem, reconstruction, dpi)
         else:
             with Image.open(raster) as img:
                 img.convert("RGB").save(reconstruction)

@@ -105,14 +105,6 @@ check_readme() {
   python3 "$ROOT/scripts/sync_readme.py" --check
 }
 
-check_epub_finalization() {
-  python3 "$ROOT/scripts/build_epub.py" --check
-}
-
-check_publication() {
-  python3 "$ROOT/scripts/validate.py" publication
-}
-
 write_checksums() {
   python3 "$ROOT/scripts/release.py" checksums --root "$DIST" --write
 }
@@ -126,8 +118,7 @@ finish_all() {
   write_checksums
   if validation_enabled; then
     check_readme
-    check_epub_finalization
-    check_publication
+    python3 "$ROOT/scripts/validate.py" all
   else
     echo "Dedicated validation skipped (WAVE_SKIP_VALIDATION=1; builders retained structural checks)."
   fi
@@ -159,7 +150,7 @@ case "$TARGET" in
     reset_generated
     build_epub
     if validation_enabled; then
-      check_epub_finalization
+      python3 "$ROOT/scripts/validate.py" epub
     fi
     ;;
 esac

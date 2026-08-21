@@ -29,6 +29,8 @@ Preserve historical wording, organization, notation, and derivation style. Do no
 
 If a source reading is uncertain, inspect the highest-quality source view available and leave the reconstruction at the best-supported literal source reading. Record genuine ambiguity as `pending-review` rather than guessing.
 
+Punctuation is part of scan fidelity. Canonical historical `.tex` should use conventional TeX punctuation forms for quote pairs, `--`, `---`, and `\ldots{}` where appropriate, while preserving the source's actual punctuation and range conventions. Do not modernize historical punctuation without source evidence. An ambiguous punctuation difference follows the same human-approval rule as any other substantive source deviation.
+
 ## Equation transcription
 
 For every audited equation, compare every sign, coefficient, derivative, index, exponent, vector mark, delimiter, and equality with the scan. Check that definitions immediately before and after the equation use the same symbols and conventions.

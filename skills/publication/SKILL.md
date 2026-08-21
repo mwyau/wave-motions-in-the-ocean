@@ -11,6 +11,10 @@ Publication work controls presentation and generated editions. It must not silen
 - Do not alter prose, equations, figure labels, references, or scientific meaning merely to improve style, satisfy a validator, make a derivation more correct, or simplify a build.
 - A substantive source correction requires explicit human approval under the source-audit rules. Publication tooling/build success never constitutes approval.
 
+### Cross-format punctuation
+
+Canonical `.tex` uses TeX punctuation conventions; Markdown, HTML, and EPUB should render the equivalent reader-facing UTF-8 smart punctuation. Generated formats are views, never independent punctuation sources. Conversion tooling owns format-specific punctuation rendering: use the explicit `latex+smart` Pandoc reader where LaTeX is converted to a reader format, and keep identifiers, URLs, slugs, and mathematical source syntax out of smart-punctuation normalization.
+
 ## Canonical publication sources
 
 - Shared modern PDF/EPUB cover: `reconstruction/cover-modern.tex`
