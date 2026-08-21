@@ -58,6 +58,14 @@ LATEX_CACHE = Path(
     os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motions"))
 ) / "latex"
 MATHML_NS = "http://www.w3.org/1998/Math/MathML"
+FACSIMILE_EXPECTED_PAGES = 184
+FACSIMILE_FRONT_MATTER_PAGES = 10
+FACSIMILE_BODY_BOUNDARIES = 170
+FACSIMILE_HEADROOM_WARNING_PT = 10.0
+FACSIMILE_BOUNDARY_RE = re.compile(
+    r"^FACSIMILE_B n=(\d+) p=(\d+) s=(-?\d+(?:\.\d+)?)pt$"
+)
+FACSIMILE_SHIPOUT_RE = re.compile(r"^FACSIMILE_P n=(\d+) p=(\d+)$")
 
 # Paola's preface is a compact cross-format sentinel because it intentionally
 # distinguishes ordinary prose from mathematical variable glyphs.
@@ -104,6 +112,13 @@ def fail(message: str) -> None:
 def require_file(path: Path) -> None:
     if not path.is_file() or path.stat().st_size == 0:
         fail(f"missing required generated artifact: {path}")
+
+
+def warning(title: str, message: str) -> None:
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        print(f"::warning title={title}::{message}")
+    else:
+        print(f"warning: {message}", file=sys.stderr)
 
 
 def strip_tex_comments(text: str) -> str:
@@ -816,6 +831,91 @@ def pdf_pages(path: Path) -> int:
     return int(match.group(1))
 
 
+def facsimile_log_path() -> Path:
+    return LATEX_CACHE / "facsimile" / "main-facsimile.log"
+
+
+def facsimile_layout_diagnostics(*, strict: bool) -> None:
+    log_path = facsimile_log_path()
+    require_file(log_path)
+    text = log_path.read_text(errors="replace")
+
+    boundaries: list[tuple[int, int, float]] = []
+    shipouts: list[tuple[int, int]] = []
+    for line in text.splitlines():
+        if match := FACSIMILE_BOUNDARY_RE.fullmatch(line.strip()):
+            boundaries.append(
+                (
+                    int(match.group(1)),
+                    int(match.group(2)),
+                    float(match.group(3)),
+                )
+            )
+        elif match := FACSIMILE_SHIPOUT_RE.fullmatch(line.strip()):
+            shipouts.append((int(match.group(1)), int(match.group(2))))
+
+    problems: list[str] = []
+    if len(boundaries) != FACSIMILE_BODY_BOUNDARIES:
+        problems.append(
+            f"logged {len(boundaries)} body source-page boundaries; "
+            f"expected {FACSIMILE_BODY_BOUNDARIES}"
+        )
+    else:
+        for expected, (index, page, _spare) in enumerate(
+            boundaries, start=1
+        ):
+            if index != expected or page != expected:
+                problems.append(
+                    "source-page boundary drift: "
+                    f"boundary {index} closed printed page {page}; expected {expected}"
+                )
+                break
+
+    fac_pages = pdf_pages(FACSIMILE_PDF)
+    if len(shipouts) != fac_pages:
+        problems.append(
+            f"logged {len(shipouts)} facsimile shipouts but PDF contains {fac_pages} pages"
+        )
+    else:
+        for physical, page in shipouts[FACSIMILE_FRONT_MATTER_PAGES:]:
+            expected_page = physical - FACSIMILE_FRONT_MATTER_PAGES
+            if page != expected_page:
+                problems.append(
+                    "physical/printed page drift: "
+                    f"physical page {physical} shipped as printed page {page}; "
+                    f"expected {expected_page}"
+                )
+                break
+
+    if "Overfull \\vbox" in text:
+        problems.append("facsimile LaTeX log contains an overfull vertical box")
+
+    negative = [entry for entry in boundaries if entry[2] < 0.0]
+    if negative:
+        index, page, spare = min(negative, key=lambda entry: entry[2])
+        problems.append(
+            f"printed page {page} has negative natural vertical reserve "
+            f"({spare:.2f} pt) at source boundary {index}"
+        )
+
+    if problems:
+        message = "; ".join(problems)
+        if strict:
+            fail(f"facsimile layout validation failed: {message}")
+        warning("Facsimile layout", message)
+
+    if boundaries:
+        index, page, spare = min(boundaries, key=lambda entry: entry[2])
+        summary = (
+            f"minimum facsimile body-page reserve: {spare:.2f} pt "
+            f"(printed page {page}, boundary {index})"
+        )
+        if spare < FACSIMILE_HEADROOM_WARNING_PT:
+            warning("Facsimile headroom", summary)
+        else:
+            print(summary)
+
+
 def check_pdf_integrity() -> None:
     require_command("pdfinfo")
     for path in (FACSIMILE_PDF, MODERN_PDF):
@@ -829,15 +929,13 @@ def check_pdf_integrity() -> None:
 
     fac_pages = pdf_pages(FACSIMILE_PDF)
     mod_pages = pdf_pages(MODERN_PDF)
-    if fac_pages != 184:
-        message = (
-            f"Facsimile page count is {fac_pages}; expected 184. "
-            "Pagination remains a final publication requirement."
+    if fac_pages != FACSIMILE_EXPECTED_PAGES:
+        warning(
+            "Facsimile pagination",
+            f"Facsimile page count is {fac_pages}; expected "
+            f"{FACSIMILE_EXPECTED_PAGES}. Pagination remains a final "
+            "publication requirement.",
         )
-        if os.environ.get("GITHUB_ACTIONS") == "true":
-            print(f"::warning title=Facsimile pagination::{message}")
-        else:
-            print(f"warning: {message}", file=sys.stderr)
     if mod_pages <= 0:
         fail("modern PDF has no pages")
     print(f"PDF integrity OK: facsimile={fac_pages} pages, modern={mod_pages} pages")
@@ -971,8 +1069,12 @@ def check_release_gate() -> None:
     ):
         fail("release build identity does not match the stable release tag")
     fac_pages = pdf_pages(FACSIMILE_PDF)
-    if fac_pages != 184:
-        fail(f"release blocked: facsimile page count is {fac_pages}; expected exactly 184")
+    if fac_pages != FACSIMILE_EXPECTED_PAGES:
+        fail(
+            f"release blocked: facsimile page count is {fac_pages}; "
+            f"expected exactly {FACSIMILE_EXPECTED_PAGES}"
+        )
+    facsimile_layout_diagnostics(strict=True)
     check_checksums()
     print(f"Release gate OK: {info.label}, facsimile={fac_pages} pages")
 
@@ -987,6 +1089,7 @@ def check_publication() -> None:
 
 def check_pdf_artifacts() -> None:
     check_pdf_integrity()
+    facsimile_layout_diagnostics(strict=False)
     check_pdf_destinations()
     check_pdf_text()
     check_pdf_render()
