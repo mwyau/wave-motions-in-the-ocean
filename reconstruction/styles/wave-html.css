@@ -187,7 +187,7 @@ div.flushright { text-align: right; margin-top: -0.85em; }
   font-size: .82rem;
 }
 .book-toc { margin: 3rem 0; padding-top: 1rem; border-top: 1px solid var(--wave-rule); }
-figure { max-width: 100%; }
+figure { max-width: 100%; margin: 1.5rem 0; }
 figcaption { color: var(--wave-muted); font-size: .9em; }
 img, svg { display: block; max-width: 100%; height: auto; margin: 1.1rem auto; }
 .math.display,
