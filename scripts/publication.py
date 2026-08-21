@@ -72,7 +72,7 @@ TIKZ_RENDER_TEMPLATE = r"""\documentclass{article}
 \let\smallskip\relax
 \def\center{}
 \def\endcenter{}
-\input{%s}%
+\input{__WAVE_TIKZ_PATH__}%
 \endgroup}
 \pagewidth=\dimexpr\wd\wavefigurebox+10pt\relax
 \pageheight=\dimexpr\ht\wavefigurebox+\dp\wavefigurebox+10pt\relax
@@ -293,7 +293,7 @@ def _compile_tikz_pdf(stem: str, workdir: Path, *, quiet: bool = True) -> Path:
         shutil.rmtree(workdir)
     workdir.mkdir(parents=True)
     tex = workdir / "figure.tex"
-    tex.write_text(TIKZ_RENDER_TEMPLATE % tikz.as_posix())
+    tex.write_text(TIKZ_RENDER_TEMPLATE.replace("__WAVE_TIKZ_PATH__", tikz.as_posix()))
     run(
         [
             "latexmk",
