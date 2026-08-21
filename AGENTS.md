@@ -39,7 +39,7 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 - Never force-push, reset `main` backwards, create merge commits, or overwrite newer work.
 - Do not create agent coordination sessions, claims, handoff branches, or competing workstreams.
 - Never create temporary workflows, trigger files, bot commit paths, or other automation to mutate tracked repository files.
-- `.github/workflows/publish.yml` is publication automation only and must never edit tracked source, create commits, or push source changes.
+- `.github/workflows/publish.yml` is publication automation only: it builds and validates editions, deploys the `main` publication artifact to GitHub Pages, and publishes stable-tag release artifacts. It must never edit tracked source, create commits, or push source changes.
 - Treat current `main` as authoritative; history may be rewritten or squashed.
 
 ## Project records
