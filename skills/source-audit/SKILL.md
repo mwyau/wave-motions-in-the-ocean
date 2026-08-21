@@ -4,22 +4,22 @@ Use this skill for scan fidelity, text/equation transcription, scientific verifi
 
 ## Governing rule
 
-The committed historical PDFs under `source/` are the source authority. The purpose of the reconstruction is to reproduce them faithfully, not to silently improve them.
+The committed historical PDFs under `source/` are the source authority. The purpose of the reconstruction is to reproduce them faithfully, not to silently make substantive changes.
 
-Scientific review is diagnostic. It can identify a likely error and support a proposed erratum, but it does not authorize changing the historical content.
+Scientific review is diagnostic. It can identify a likely error and support a proposed erratum, but it does not authorize changing substantive historical content.
 
 ## Correction decision order
 
 For every difference or suspected error, use this order:
 
-1. **Reconstruction differs from the PDF unintentionally:** restore the PDF reading.
-2. **Small unambiguous typo:** an obvious typographical/transcription typo may be corrected autonomously only when there is no plausible change in scientific, mathematical, bibliographic, or editorial meaning. If uncertain, do not use this exception.
-3. **Substantive or ambiguous source problem:** keep or restore the source reading in the reconstruction, record the proposed correction and evidence in `reconstruction/ERRATA.md` with `pending-review`, and ask the human owner for approval.
-4. **Explicit human approval:** only then apply the substantive correction and record it as accepted, with enough context to identify what was approved.
+1. **Reconstruction differs from the PDF unintentionally:** restore the PDF reading unless the difference is a minor mechanical correction allowed by item 2.
+2. **Small unambiguous mechanical correction:** spelling, grammar, transcription, punctuation, or TeX punctuation syntax may be corrected autonomously when there is no plausible change in scientific, mathematical, bibliographic, or substantive editorial meaning. If uncertain, do not use this exception.
+3. **Substantive or ambiguous source problem:** keep or restore the source reading in the reconstruction, record the proposed correction and evidence in `reconstruction/ERRATA.md` with `pending-human-approval`, and ask the human owner for approval.
+4. **Explicit human approval:** only then apply the substantive correction and record it as `human-approved`, with enough context to identify what was approved.
 
-Agents can never approve an erratum. Do not infer approval from mathematical correctness, external literature, issue closure, another agent's judgment, an existing commit, or an existing `accepted` status. If an older substantive `accepted` entry has no traceable explicit human approval, do not treat it as precedent or permission; flag it for human review when encountered.
+Agents can never approve an erratum. Do not infer approval from mathematical correctness, external literature, issue closure, another agent's judgment, an existing commit, or an existing status. If an older substantive entry lacks traceable explicit human approval, do not treat it as precedent or permission; flag it for human review when encountered.
 
-A trivial autonomous typo correction need not be promoted into an `accepted` erratum. The `accepted` status is reserved for explicit human approval of a source deviation.
+A minor autonomous correction need not be added to `ERRATA.md`. If it is useful to retain one there, use the existing `minor-typo-correction` status.
 
 ## Text fidelity
 
@@ -27,9 +27,9 @@ Compare scan ↔ canonical LaTeX directly. Check wording, punctuation, capitaliz
 
 Preserve historical wording, organization, notation, and derivation style. Do not modernize prose, terminology, equations, or references merely because another form appears clearer or more correct.
 
-If a source reading is uncertain, inspect the highest-quality source view available and leave the reconstruction at the best-supported literal source reading. Record genuine ambiguity as `pending-review` rather than guessing.
+If a source reading is uncertain, inspect the highest-quality source view available and leave the reconstruction at the best-supported literal source reading. Record genuine ambiguity as `pending-human-approval` rather than guessing.
 
-Punctuation is part of scan fidelity. Canonical historical `.tex` should use conventional TeX punctuation forms for quote pairs, `--`, `---`, and `\ldots{}` where appropriate, while preserving the source's actual punctuation and range conventions. Do not modernize historical punctuation without source evidence. An ambiguous punctuation difference follows the same human-approval rule as any other substantive source deviation.
+Canonical `.tex` uses conventional TeX punctuation. Minor punctuation normalization is allowed when the intended punctuation is unambiguous and the change is purely mechanical: for example, correct quote pairing/apostrophes, distinguish hyphen/en dash/em dash by context, normalize an obvious prose ellipsis, or fix punctuation spacing. Use `-` for hyphens and math minus, `--` for ranges/en dashes, and `---` for parenthetical em dashes. Do not use a blind global replacement: punctuation that could change meaning, scope, emphasis, a citation/title, or mathematical notation is ambiguous and follows the human-approval rule.
 
 ## Equation transcription
 
@@ -59,8 +59,8 @@ The outcome of this audit is one of:
 
 - source and reconstruction agree and the science checks;
 - reconstruction mistranscribed the source and must be restored;
-- source appears questionable and a **pending** erratum should be proposed;
-- a human-approved erratum authorizes a minimal departure from the source.
+- source appears questionable and a `pending-human-approval` erratum should be proposed;
+- a `human-approved` erratum authorizes a minimal departure from the source.
 
 Never let a scientific audit silently rewrite chapter prose or equations.
 
@@ -69,12 +69,12 @@ Never let a scientific audit silently rewrite chapter prose or equations.
 Substantive entries should state:
 
 - **Category:** `transcription`, `typographical`, `equation`, `figure`, `reference`, or `editorial`
-- **Status:** normally `pending-review`; `accepted` only after explicit human approval; `reverted` when the source reading is restored or the finding is withdrawn
+- **Status:** `pending-human-approval` for a substantive proposal; `human-approved` only after explicit human approval; `minor-typo-correction` only for a retained record of an autonomous minor correction
 - **Location:** source PDF/physical page and/or printed page/chapter
 - **Original**
 - **Proposed/approved reconstruction**
 - **Reason/evidence**
-- **Human approval evidence** when status is `accepted`
+- **Human approval evidence** when status is `human-approved`
 
 Simple confirmed-no-change checks do not belong in `ERRATA.md`. Do not create a second audit ledger.
 
@@ -82,7 +82,7 @@ Simple confirmed-no-change checks do not belong in `ERRATA.md`. Do not create a 
 
 Maintain bibliography data only in `reconstruction/references.bib`. Verify metadata against primary records when auditing, but source fidelity still governs the rendered reconstruction.
 
-A change that alters a historical author name, title, year, citation, quotation, or other bibliographic content is substantive unless it merely restores a mistranscription of the scan. Do not silently normalize a historical bibliographic error from an external database; propose it for human approval.
+A change that alters a historical author name, title, year, citation, quotation, or other bibliographic content is substantive unless it merely restores a mistranscription or makes a clearly mechanical punctuation correction without changing bibliographic identity. Do not silently normalize a historical bibliographic error from an external database; propose it for human approval.
 
 ## Batch completion
 
@@ -93,4 +93,4 @@ python3 scripts/sync_readme.py
 ./scripts/build.sh all
 ```
 
-Update `reconstruction/PLAN.md` only when remaining work changes. If the audit affects a figure, also follow `skills/figure-audit/SKILL.md`.
+If the audit affects a figure, also follow `skills/figure-audit/SKILL.md`.
