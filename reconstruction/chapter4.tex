@@ -1,7 +1,7 @@
 % Wave Motions in the Ocean: Myrl's View
 % Chapter 4; historical source: source/ChapmanRizzoli4.pdf.
 % Source-page comments preserve printed/physical page correspondence.
-% Substantive corrections are documented in ERRATA.md.
+% Suspected substantive source errors are documented in ERRATA.md; source text is retained unless explicitly human-approved.
 
 \setcounter{chapter}{3}
 \setcounter{page}{64}
@@ -939,15 +939,12 @@ After some algebra, the result is
 \begin{waveequation}
  |\vec k_r|=|\vec k_i|\left(\frac{1+aR}{1-aR}\right).
 \end{waveequation}
-The incident and reflected wavenumbers lie on the two characteristic directions
-$m_i=Rk_i$ and $m_r=-Rk_r$, so this also gives
 \[
- m_r=-m_i\left(\frac{1+aR}{1-aR}\right).
+ m_r=\pm m_i\left(\frac{1+aR}{1-aR}\right)
+ \left(\frac{R+a}{R-a}\right).
 \]
-The typeset source includes an additional factor $(R+a)/(R-a)$ in the expression for
-$m_r$; that factor is inconsistent with the characteristic directions above and is
-recorded in \texttt{ERRATA.md}. This gives the new wavenumbers in terms of the old
-ones. Because waves of a given frequency $\sigma$ can only go in the two
+where the signs have been taken from the sketch. This gives the new wavenumbers in
+terms of the old ones. Because waves of a given frequency $\sigma$ can only go in the two
 directions $\pm\tan^{-1}R$, reflection occurs not in the normal to the reflecting surface, but
 rather in the direction of the stability gradient, i.e. in the $z$ direction, or in the
 rotation vector. We have

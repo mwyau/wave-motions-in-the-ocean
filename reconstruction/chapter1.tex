@@ -1,7 +1,7 @@
 % Wave Motions in the Ocean: Myrl's View
 % Chapter 1; historical source: source/ChapmanRizzoli0_2.pdf.
 % Source-page comments preserve printed/physical page correspondence.
-% Substantive corrections are documented in ERRATA.md.
+% Suspected substantive source errors are documented in ERRATA.md; source text is retained unless explicitly human-approved.
 
 \setcounter{chapter}{0}
 \setcounter{page}{1}
@@ -79,9 +79,9 @@ Since $A$ is complex, it carries with it not only amplitude but also phase infor
 We could, of course, write
 \[
  \phi(\vec{x},t)=|A|\cos\left(\vec{k}\cdot\vec{x}-\sigma t
- +\arg A\right)
+ +\tan^{-1}\frac{\Im A}{\Re A}\right)
 \]
-where $\arg A$ denotes the complex argument of $A$. However, it is often much
+where $\Im$ refers to the imaginary part of the expression. However, it is often much
 more convenient to work with the complex form of all variables and to take the real
 parts only at the very end. This is always possible because we have linearized the field
 equations.
@@ -106,12 +106,11 @@ In two dimensions we have
 \end{center}
 \smallskip
 
-The speed at which phase planes move normal to themselves is the \emph{phase speed}
+The speed at which phase planes move along $\vec{k}$ is the \emph{phase speed}
 \[
  c=\sigma/|\vec{k}|=\lambda/T.
 \]
-For the stated $\sigma>0$ convention the associated normal phase-velocity vector is
-$\vec c_p=c\,\hat{\vec k}=\sigma\vec k/|\vec k|^2$. Note that the speed of phase plane intersection with the
+It is directed along $\vec{k}$. Note that the speed of phase plane intersection with the
 $x$-axis is not $c\cos\theta$ but rather is
 \[
  \frac{c}{\cos\theta}
@@ -173,13 +172,11 @@ relations.
 Each linearized equation is a statement of approximate dynamical and thermodynamical
 conservation laws. All are solved using plane waves of the type discussed above. All
 require different dispersion relations, and the solutions have different properties. For
-cases (a), (b), and (d), the phase speed $c=\sigma/|\vec{k}|$ is independent
-of wavelength, frequency or direction. In case (c),
-$c=\vec c_0\cdot\hat{\vec k}$, so the phase speed is independent of wavelength and
-frequency but depends on propagation direction relative to $\vec c_0$. For any fixed
-propagation direction, cases (a)--(d) are nondispersive with respect to wavenumber
-magnitude. In case (e), the phase speed $c$ is dependent upon the wavelength and the
-direction, so these waves are dispersive. As we will see, this basically means that a group of such
+cases (a)--(d), the phase speed $c=\sigma/|\vec{k}|$ is independent of wavelength,
+frequency or direction. Such waves are nondispersive or dispersionless because all waves
+(for each case individually) travel with the same speed. In case (e), the phase speed $c$
+is dependent upon the wavelength and the direction, so these waves are dispersive. As we
+will see, this basically means that a group of such
 
 \sourcepagebreak
 
@@ -440,9 +437,9 @@ Let us consider a locally periodic solution of the form
 \[
  \phi=a(\vec{x},t)e^{i\Theta(\vec{x},t)}
 \]
-in which the amplitude $a$ and the local wave parameters vary slowly, while the phase
-$\Theta$ itself varies on the wave scale. More precisely, $a$ and the derivatives of
-$\Theta$ change with the large space and time scales of the medium or of the wave groups
+in which the amplitude $a$ and the phase $\Theta$ are slowly varying functions of
+$\vec{x}$ and $t$; i.e., they vary with the large space and time scales of the medium or
+of the wave groups
 
 \sourcepagebreak
 
@@ -457,10 +454,8 @@ wavenumber $\vec{k}$ and the local frequency $N$ by
  N=-\left.\Theta_t\right|_{\vec{x}}
 \]
 where $\nabla$ is the gradient operator and $|_t$, $|_{\vec{x}}$ indicate that the
-partial derivatives are carried out keeping the other coordinate constant. The WKB
-assumption is that $a$, $\vec{k}$, and $N$ change only by small fractions over local
-distances and times of order $|\vec{k}|^{-1}$ and $|N|^{-1}$; $\Theta$ itself need not
-vary slowly.
+partial derivatives are carried out keeping the other coordinate constant. Thus,
+$\Delta a/a\ll1$ and $\Delta\Theta/\Theta\ll1$ over $|\vec{k}|^{-1}$ and $N^{-1}$.
 
 For these definitions, we see first that
 \[

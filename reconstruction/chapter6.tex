@@ -1,7 +1,7 @@
 % Wave Motions in the Ocean: Myrl's View
 % Chapter 6; historical source: source/ChapmanRizzoli6.pdf.
 % Source-page comments preserve printed/physical page correspondence.
-% Substantive corrections are documented in ERRATA.md.
+% Suspected substantive source errors are documented in ERRATA.md; source text is retained unless explicitly human-approved.
 
 \setcounter{chapter}{5}
 \setcounter{page}{149}
@@ -397,18 +397,14 @@ coast on their right in the northern hemisphere. The dispersion diagram looks li
 
 \sourceart[0.58]{ChapmanRizzoli6.pdf}{12}{135bp 265bp 120bp 350bp}
 
-Each mode is constrained to be below some maximum frequency where the alongshore
-group velocity $d\sigma_n/d\ell$ vanishes along that matched mode. Because the matching
-condition makes $k=k_n(\ell)$, differentiating the dispersion relation along a branch gives
+Each mode is constrained to be below some maximum frequency where $\partial\sigma/\partial\ell=0$.
+This occurs at
 \begin{waveequation}
- k^2+b^2-\ell^2=2\ell k\frac{dk_n}{d\ell}.
+ \left.\ell\right|_{\sigma_{\max}}=-(k^2+b^2)^{1/2}.
 \end{waveequation}
-The source obtains $\ell=-(k^2+b^2)^{1/2}$ by differentiating at fixed $k$; that is not
-the stationarity condition along a matched modal branch and is recorded in
-\texttt{ERRATA.md}.
-At the maximum frequency, the alongshore group velocity is zero, meaning that energy does not
+At the maximum frequency, the group velocity is zero meaning that energy does not
 propagate even though phases still do. For waves that are longer than this wavelength
-(smaller $|\ell|$), the wave energy propagates with the phase. For very long waves
+(smaller $\ell$), the wave energy propagates with the phase. For very long waves
 $\ell\to0$, the dispersion relation becomes
 \[
  \sigma=-\frac{2bf\ell}{k^2+b^2}
@@ -426,11 +422,11 @@ but the group moves in the direction with the coast on the \emph{left} in the no
 hemisphere. This is essentially identical to the result for planetary Rossby waves in
 which phase always propagates to the west, but the group velocity may be westward or
 eastward depending on the wavelength of the Rossby wave. One difference is that
-continental shelf waves have discrete cross-shelf modes whereas unbounded Rossby waves
-form a continuum. Of course, Rossby waves would be discretized if they were constrained
+continental shelf waves occur at discrete frequencies whereas Rossby waves form a
+continuum. Of course, Rossby waves would be discretized if they were constrained
 to a channel of some sort. The coast acts as this sort of constraint for continental
 shelf waves. Notice that the frequency for each mode approaches zero as the waves
-become very short, i.e. $\sigma\to0$ as $\ell\to-\infty$.
+become very short, i.e. $\sigma\to0$ as $\ell\to\infty$.
 
 We have made a special choice for the bottom topography which made the problem rather
 simple by giving constant coefficients to the equation for $\psi$. It can be shown that
@@ -672,11 +668,8 @@ ocean bottom at $z=-1$ is
 Remember that $\ell<0$ in the present formulation, so the solution does decay offshore.
 The surface boundary condition provides the dispersion relation of
 \begin{waveequation}
- \boxed{\omega=-\frac{S\ell}{n\pi}},
- \qquad n=1,2,\ldots
+ \omega=\frac{S\ell}{n\pi}.
 \end{waveequation}
-where the minus sign is the positive-frequency form for the source's $\ell<0$ convention;
-the source prints the same relation without the minus sign. See \texttt{ERRATA.md}.
 This is precisely the same dispersion relation as for baroclinic Kelvin waves with
 constant $N$.
 
