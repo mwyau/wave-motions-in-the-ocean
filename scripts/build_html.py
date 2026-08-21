@@ -2,9 +2,8 @@
 """Build the complete chapter-split modern HTML edition.
 
 Pandoc supplies the document markup after the shared canonical publication
-preparation. This script owns the final reader shell, navigation, contents,
-assets, and build identity in one generation path; no later HTML mutation
-stage is required.
+preparation. This script owns dynamic publication data and final assembly; the
+maintained reader shell lives in reconstruction/templates/wave-html.html.
 """
 from __future__ import annotations
 
@@ -17,6 +16,7 @@ import sys
 import unicodedata
 import urllib.parse
 from pathlib import Path
+from string import Template
 
 from publication import (
     DOWNLOADS,
@@ -34,6 +34,7 @@ RECON = ROOT / "reconstruction"
 BUILD = ROOT / "build" / "html-pandoc"
 OUT = ROOT / "dist"
 ASSETS = OUT / "assets"
+HTML_TEMPLATE = RECON / "templates" / "wave-html.html"
 REPOSITORY_URL = "https://github.com/mwyau/wave-motions-in-the-ocean"
 BOOK_TITLE = "Wave Motions in the Ocean"
 MATHJAX_URL = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"
@@ -63,7 +64,14 @@ def require(command: str) -> None:
 
 def run(cmd: list[str], *, cwd: Path | None = None) -> None:
     try:
-        subprocess.run(cmd, cwd=cwd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+        subprocess.run(
+            cmd,
+            cwd=cwd,
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
     except subprocess.CalledProcessError as exc:
         if exc.stderr:
             sys.stderr.write(exc.stderr[-12000:])
@@ -107,49 +115,6 @@ def page_context(path: Path) -> str:
     raise ValueError(f"unexpected publication page: {path.name}")
 
 
-def navigation_links(index: int | None) -> list[str]:
-    links = ['<a href="index.html#contents">Contents</a>']
-    if index is not None and index > 1:
-        links.append(f'<a href="chapter{index - 1}.html">Previous chapter</a>')
-    if index is not None and index < 6:
-        links.append(f'<a href="chapter{index + 1}.html">Next chapter</a>')
-    if index == 6:
-        links.append('<a href="references.html">References</a>')
-    links.append(f'<a class="source-link" href="{REPOSITORY_URL}">GitHub Source</a>')
-    return links
-
-
-def book_nav(index: int | None) -> str:
-    context_path = (
-        OUT / "index.html"
-        if index is None
-        else OUT / "references.html"
-        if index == 0
-        else OUT / f"chapter{index}.html"
-    )
-    context = html.escape(page_context(context_path))
-    if index == 0:
-        links = [
-            '<a href="index.html#contents">Contents</a>',
-            '<a href="chapter6.html">Previous chapter</a>',
-            f'<a class="source-link" href="{REPOSITORY_URL}">GitHub Source</a>',
-        ]
-    else:
-        links = navigation_links(index)
-    link_text = " · ".join(links)
-    return (
-        '<nav class="book-nav" aria-label="Book navigation">'
-        '<span class="book-context">'
-        f'<a class="book-title" href="index.html">{BOOK_TITLE}</a>'
-        f'<span class="book-location">{context}</span>'
-        "</span>"
-        '<span class="book-controls"><span class="book-nav-links">'
-        + link_text
-        + '</span><button class="theme-toggle" type="button" data-theme-toggle '
-        'aria-label="Color theme: Auto">Theme: Auto</button></span></nav>'
-    )
-
-
 def page_index(path: Path) -> int | None:
     if path.name == "index.html":
         return None
@@ -159,6 +124,32 @@ def page_index(path: Path) -> int | None:
     if not match:
         raise ValueError(f"unexpected publication page: {path.name}")
     return int(match.group(1))
+
+
+def navigation_state(index: int | None) -> dict[str, str]:
+    previous_url = ""
+    next_url = ""
+    references_url = ""
+
+    if index == 0:
+        previous_url = "chapter6.html"
+    elif index is not None:
+        if index > 1:
+            previous_url = f"chapter{index - 1}.html"
+        if index < 6:
+            next_url = f"chapter{index + 1}.html"
+        else:
+            references_url = "references.html"
+
+    return {
+        "previous_url": html.escape(previous_url, quote=True),
+        "previous_hidden": "" if previous_url else " hidden",
+        "next_url": html.escape(next_url, quote=True),
+        "next_hidden": "" if next_url else " hidden",
+        "references_url": html.escape(references_url, quote=True),
+        "references_hidden": "" if references_url else " hidden",
+        "chapter_nav_hidden": " hidden" if index is None else "",
+    }
 
 
 def build_shell(path: Path) -> None:
@@ -174,26 +165,32 @@ def build_shell(path: Path) -> None:
         flags=re.S,
     )
     if "assets/wave.css" not in text:
-        text = text.replace("</head>", '<link rel="stylesheet" href="assets/wave.css" />\n</head>', 1)
+        text = text.replace(
+            "</head>",
+            '<link rel="stylesheet" href="assets/wave.css" />\n</head>',
+            1,
+        )
     if "assets/wave.js" not in text:
-        text = text.replace("</head>", '<script defer src="assets/wave.js"></script>\n</head>', 1)
-    nav = book_nav(index)
-    top = '<a class="skip-link" href="#main-content">Skip to content</a>\n' + nav + '\n<main id="main-content">'
-    bottom = "</main>\n" + nav
-    if text.count("<body>") != 1 or text.count("</body>") != 1:
+        text = text.replace(
+            "</head>",
+            '<script defer src="assets/wave.js"></script>\n</head>',
+            1,
+        )
+
+    match = re.search(r"<body>\s*(?P<body>.*?)\s*</body>", text, flags=re.S)
+    if match is None or text.count("<body>") != 1 or text.count("</body>") != 1:
         raise SystemExit(f"HTML body boundaries are not unique in {path.name}")
-    text = text.replace("<body>", "<body>\n" + top, 1)
-    text = text.replace("</body>", bottom + "\n</body>", 1)
 
     info = current_build()
-    label = html.escape(info.label)
-    url = html.escape(info.commit_url, quote=True)
-    footer = (
-        '<footer class="build-info">Digital edition build: '
-        f'<a href="{url}"><code>{label}</code></a></footer>'
-    )
-    text = re.sub(r'<footer class="build-info">.*?</footer>\s*', "", text, flags=re.S)
-    text = text.replace("</body>", footer + "\n</body>", 1)
+    values = {
+        "body": match.group("body"),
+        "source_url": html.escape(REPOSITORY_URL, quote=True),
+        "build_label": html.escape(info.label),
+        "build_url": html.escape(info.commit_url, quote=True),
+        **navigation_state(index),
+    }
+    shell = Template(HTML_TEMPLATE.read_text()).substitute(values)
+    text = text[: match.start()] + "<body>\n" + shell + "\n</body>" + text[match.end() :]
     path.write_text(text)
 
 
@@ -274,7 +271,11 @@ def validate_local_references() -> None:
         if path not in ids_by_page:
             ids_by_page[path] = {
                 html.unescape(value)
-                for value in re.findall(r'\bid=["\']([^"\']+)["\']', path.read_text(errors="replace"), flags=re.I)
+                for value in re.findall(
+                    r'\bid=["\']([^"\']+)["\']',
+                    path.read_text(errors="replace"),
+                    flags=re.I,
+                )
             }
         return ids_by_page[path]
 
@@ -305,6 +306,9 @@ def validate() -> None:
     missing = [path.name for path in EXPECTED_PAGES if not path.is_file() or path.stat().st_size == 0]
     if missing:
         raise SystemExit("missing HTML outputs: " + ", ".join(missing))
+    if not HTML_TEMPLATE.is_file() or HTML_TEMPLATE.stat().st_size == 0:
+        raise SystemExit(f"missing HTML reader template: {HTML_TEMPLATE}")
+
     combined = "\n".join(path.read_text(errors="replace") for path in EXPECTED_PAGES)
     for sentinel in ("David C. Chapman", "Paola Malanotte-Rizzoli", "CC BY-NC-SA 4.0", "Apel"):
         if sentinel not in combined:
@@ -319,10 +323,12 @@ def validate() -> None:
         for required in (
             '<main id="main-content">',
             'class="skip-link"',
-            'class="book-context"',
-            'class="theme-toggle"',
+            'class="reader-header page-shell"',
+            'class="book-nav"',
+            'class="appearance-control"',
+            'data-theme-select',
             'class="build-info"',
-            "GitHub Source",
+            '>Source</a>',
             "assets/wave.css",
             "assets/wave.js",
             label,
@@ -332,6 +338,8 @@ def validate() -> None:
                 raise SystemExit(f"HTML requirement {required!r} is missing from {page.name}")
         if text.count('class="build-info"') != 1:
             raise SystemExit(f"HTML build stamp count is not one in {page.name}")
+        if 'class="book-context"' in text or 'class="theme-toggle"' in text:
+            raise SystemExit(f"obsolete HTML header controls remain in {page.name}")
     index = (OUT / "index.html").read_text(errors="replace")
     if 'id="contents"' not in index or "wave-motions.epub" not in index:
         raise SystemExit("HTML Contents/Downloads block is incomplete")

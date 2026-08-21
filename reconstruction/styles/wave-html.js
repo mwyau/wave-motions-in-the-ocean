@@ -11,16 +11,15 @@
   const apply = () => {
     if (mode === "auto") delete root.dataset.theme;
     else root.dataset.theme = mode;
-    const label = mode[0].toUpperCase() + mode.slice(1);
-    document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
-      button.textContent = `Theme: ${label}`;
-      button.setAttribute("aria-label", `Color theme: ${label}. Activate to change.`);
+    document.querySelectorAll("[data-theme-select]").forEach((select) => {
+      select.value = mode;
     });
   };
 
-  document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
-    button.addEventListener("click", () => {
-      mode = modes[(modes.indexOf(mode) + 1) % modes.length];
+  document.querySelectorAll("[data-theme-select]").forEach((select) => {
+    select.addEventListener("change", () => {
+      if (!modes.includes(select.value)) return;
+      mode = select.value;
       try {
         if (mode === "auto") localStorage.removeItem(key);
         else localStorage.setItem(key, mode);
