@@ -14,19 +14,16 @@ import tempfile
 import urllib.parse
 import xml.etree.ElementTree as ET
 import zipfile
+from functools import lru_cache
 from pathlib import Path
 
 from build_epub import (
     ACCESSIBILITY_METADATA,
-    AUTHORS,
     COVER_ALTERNATIVE,
     DC_NS,
-    EDITOR,
     EPUB_TYPE,
     FRONTISPIECE_ALTERNATIVE,
-    LANGUAGE,
     SVG_NS,
-    TITLE,
     XML_NS,
     cover_image_basename,
     first_bodymatter_member,
@@ -39,7 +36,14 @@ from build_epub import (
     text_content,
     validate_structure,
 )
-from publication import current_build
+from publication import (
+    AUTHORS,
+    EDITOR,
+    LANGUAGE,
+    MATHJAX_URL as MATHJAX_PINNED,
+    PUBLICATION_TITLE as TITLE,
+    current_build,
+)
 from release import DEFAULT_FILES, verify_manifest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,7 +58,6 @@ LATEX_CACHE = Path(
     os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motions"))
 ) / "latex"
 MATHML_NS = "http://www.w3.org/1998/Math/MathML"
-MATHJAX_PINNED = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"
 
 # Paola's preface is a compact cross-format sentinel because it intentionally
 # distinguishes ordinary prose from mathematical variable glyphs.
@@ -313,6 +316,7 @@ def check_html() -> None:
         f"HTML MathJax markup/accessibility invariants OK: "
         f"inline={inline_count}, display={display_count}"
     )
+
 
 def check_epub_mathml() -> None:
     require_file(EPUB)
@@ -696,10 +700,11 @@ def check_epub_policy() -> None:
         print("Accessibility audit remains open: scientific figure alternatives are incomplete")
 
 
+@lru_cache(maxsize=None)
 def pdf_text(path: Path) -> str:
     if shutil.which("pdftotext") is None:
-        fail("pdftotext is required for PDF math smoke checks")
-    with tempfile.TemporaryDirectory(prefix="wave-math-pdf-") as td:
+        fail("pdftotext is required for PDF text checks")
+    with tempfile.TemporaryDirectory(prefix="wave-pdf-text-") as td:
         out = Path(td) / "text.txt"
         subprocess.run(
             ["pdftotext", "-layout", str(path), str(out)],
@@ -795,6 +800,7 @@ def require_command(command: str) -> None:
         fail(f"missing required command: {command}")
 
 
+@lru_cache(maxsize=None)
 def pdf_pages(path: Path) -> int:
     require_command("pdfinfo")
     proc = subprocess.run(
@@ -849,23 +855,8 @@ def check_pdf_destinations() -> None:
     print("PDF destination checks OK")
 
 
-def _write_pdf_text(path: Path, destination: Path) -> str:
-    require_command("pdftotext")
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    subprocess.run(
-        ["pdftotext", "-layout", str(path), str(destination)],
-        check=True,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
-    return destination.read_text(errors="replace")
-
-
 def check_pdf_text() -> None:
-    facsimile_text = _write_pdf_text(FACSIMILE_PDF, BUILD / "facsimile" / "text.txt")
-    modern_text = _write_pdf_text(MODERN_PDF, BUILD / "modern" / "text.txt")
-    for text in (facsimile_text, modern_text):
+    for text in (pdf_text(FACSIMILE_PDF), pdf_text(MODERN_PDF)):
         for sentinel in (
             "When I volunteered to teach the MIT/WHOI",
             "These notes have been collected and assembled",
@@ -935,8 +926,7 @@ def check_build_identity() -> None:
     index = (DIST / "index.html").read_text(errors="replace")
     if "GitHub Source" not in index or label not in index:
         fail("HTML build identity is missing")
-    modern_text = _write_pdf_text(MODERN_PDF, BUILD / "modern" / "build-identity.txt")
-    if label not in modern_text:
+    if label not in pdf_text(MODERN_PDF):
         fail("modern PDF build identity is missing")
     pdfinfo = subprocess.run(
         ["pdfinfo", str(FACSIMILE_PDF)],

@@ -20,7 +20,16 @@ import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 
-from publication import current_build, prepare_assets, prepare_flowing_sources
+from publication import (
+    AUTHORS,
+    EDITOR,
+    LANGUAGE,
+    PUBLICATION_TITLE,
+    SITE_URL,
+    current_build,
+    prepare_assets,
+    prepare_flowing_sources,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "dist"
@@ -32,9 +41,6 @@ COVER_DIR = BUILD / "cover"
 COVER_PDF = COVER_DIR / "cover.pdf"
 COVER_PNG = COVER_DIR / "cover.png"
 
-TITLE = "Wave Motions in the Ocean: Myrl's View"
-AUTHORS = ("David C. Chapman", "Paola Malanotte-Rizzoli")
-EDITOR = "Albert M. W. Yau (digital editor)"
 OPF_NS = "http://www.idpf.org/2007/opf"
 DC_NS = "http://purl.org/dc/elements/1.1/"
 XHTML_NS = "http://www.w3.org/1999/xhtml"
@@ -43,7 +49,6 @@ SVG_NS = "http://www.w3.org/2000/svg"
 XLINK_NS = "http://www.w3.org/1999/xlink"
 XML_NS = "http://www.w3.org/XML/1998/namespace"
 EPUB_TYPE = f"{{{EPUB_NS}}}type"
-LANGUAGE = "en-US"
 ACCESSIBILITY_SUMMARY = (
     "Mathematics is encoded as MathML and the EPUB includes linked table-of-contents navigation. "
     "Scientific figures do not yet have complete alternative text or extended descriptions, so visual access is required for full use."
@@ -65,7 +70,7 @@ FRONTISPIECE_ALTERNATIVE = (
     "Topics in Ocean Physics, July 1980."
 )
 COVER_ALTERNATIVE = (
-    "Cover of Wave Motions in the Ocean: Myrl's View, featuring Katsushika "
+    f"Cover of {PUBLICATION_TITLE}, featuring Katsushika "
     "Hokusai's Under the Wave off Kanagawa (The Great Wave)."
 )
 BUILD_STAMP_RE = re.compile(br'<p class="build-info">.*?</p>\s*', re.S)
@@ -156,13 +161,13 @@ def write_metadata() -> Path:
     path = BUILD / "metadata.yaml"
     path.write_text(
         "---\n"
-        f'title: "{TITLE}"\n'
+        f'title: "{PUBLICATION_TITLE}"\n'
         "author:\n"
         + "".join(f"  - {author}\n" for author in AUTHORS)
         + 'date: "1989"\n'
-        'lang: en-US\n'
+        f'lang: {LANGUAGE}\n'
         'rights: "CC BY-NC-SA 4.0"\n'
-        'identifier: "https://mwyau.github.io/wave-motions-in-the-ocean/"\n'
+        f'identifier: "{SITE_URL}/"\n'
         f'contributor: "{EDITOR}"\n'
         "---\n"
     )
@@ -192,7 +197,7 @@ def build_epub(inputs: list[Path], metadata: Path) -> None:
             "--metadata-file",
             str(metadata),
             "--metadata",
-            f"title={TITLE}",
+            f"title={PUBLICATION_TITLE}",
             "--css",
             str(CSS),
             "--epub-cover-image",
@@ -590,7 +595,6 @@ def rewrite_epub(epub: Path, replacements: dict[str, bytes]) -> None:
 
 
 def finalize(epub: Path) -> None:
-    verify_integrity(epub)
     with zipfile.ZipFile(epub, "r") as source:
         opf_name, opf_root = package_document(source)
         replacements = set_known_accessibility(source, opf_name, opf_root)

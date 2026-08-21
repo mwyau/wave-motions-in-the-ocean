@@ -19,11 +19,11 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import unicodedata
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-import unicodedata
 
 from PIL import Image
 
@@ -38,6 +38,12 @@ TIKZ_CACHE = CACHE / "tikz"
 SOURCE_RENDER_DPI = 170
 TIKZ_CACHE_VERSION = "v1"
 FIGURE_ASSET_PREFIX = "assets/figures"
+BOOK_TITLE = "Wave Motions in the Ocean"
+PUBLICATION_TITLE = f"{BOOK_TITLE}: Myrl's View"
+AUTHORS = ("David C. Chapman", "Paola Malanotte-Rizzoli")
+EDITOR = "Albert M. W. Yau (digital editor)"
+LANGUAGE = "en-US"
+MATHJAX_URL = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"
 SITE_URL = "https://mwyau.github.io/wave-motions-in-the-ocean"
 ORIGINAL_SOURCE_URL = "https://oxbow.sr.unh.edu/ChapmanRizzoli/Wave_Motions_in_the_Ocean.html"
 LICENSE_URL = "https://creativecommons.org/licenses/by-nc-sa/4.0/"
@@ -592,7 +598,7 @@ def tex_plain(text: str) -> str:
     text = text.replace(r'\"a', "ä").replace(r'\"o', "ö").replace(r'\"u', "ü")
     text = text.replace(r"\ell", "ℓ").replace(r"\pi", "π").replace(r"\beta", "β")
     text = text.replace("$", "")
-    for cmd in ("textit", "emph", "textbf", "mathrm", "rm", "mbox"):
+    for cmd in ("textit", "emph", "textbf", "mathrm", "mbox"):
         text = re.sub(rf"\\{cmd}\{{([^{{}}]*)\}}", r"\1", text)
     text = re.sub(r"\\[A-Za-z]+\*?", "", text)
     text = text.replace("{", "").replace("}", "")
