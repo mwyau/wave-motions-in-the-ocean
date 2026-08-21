@@ -74,7 +74,7 @@ Expected component counts are:
 
 Keep `\flushbottom`, source-page `\pagebreak[4]` behavior, and source-page page-counter boundaries consistent with the existing style. Do not accept overfull vertical boxes as a way to force the count.
 
-Development CI may warn about facsimile page-count drift while figure geometry is changing; a stable release must enforce exactly 184 pages.
+The canonical PDF build must fail unless the facsimile is exactly 184 physical pages and its LaTeX log contains no overfull vertical boxes. Treat both as hard structural invariants in development and release builds; do not weaken either to a warning.
 
 ## README and HTML synchronization
 
