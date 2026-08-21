@@ -37,6 +37,7 @@ html {
 }
 body {
   margin: 0;
+  max-width: none; /* Override Pandoc's standalone reader width. */
   padding: 1.5rem 2rem 4rem;
   background: var(--wave-bg);
   color: var(--wave-text);
