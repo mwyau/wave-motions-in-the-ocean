@@ -1,0 +1,27 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=27; trim=130bp 590bp 110bp 70bp
+% Source: Wave Motions in the Ocean, printed p.90 (physical p.27).
+% Exact subcritical construction. With R=1.25 and a=0.32, the incident and
+% reflected wavenumber directions are +/-atan(R), the wall angle is atan(a), and
+% |k_r|/|k_i|=(1+aR)/(1-aR). No supercritical magnitude convention is encoded.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
+  \def\R{1.25}
+  \def\a{0.32}
+  \def\kilen{1.55}
+  \pgfmathsetmacro{\th}{atan(\R)}
+  \pgfmathsetmacro{\al}{atan(\a)}
+  \pgfmathsetmacro{\q}{(1+\a*\R)/(1-\a*\R)}
+  \coordinate (O) at (4.0,1.35);
+
+  \draw[line width=1pt] ($(O)+(-3.45,{-3.45*\a})$)--($(O)+(4.45,{4.45*\a})$) node[right] {wall};
+  \draw[->,line width=.85pt] (O)--++(\th:\kilen) node[above] {$|\vec k_i|$};
+  \draw[->,line width=.85pt] (O)--++(-\th:{\q*\kilen}) node[below right] {$|\vec k_r|$};
+  \draw[dashed] (O)--++(\al:4.0);
+
+  \draw[->] ($(O)+(\al:0.78)$) arc[start angle=\al,end angle=\th,radius=.78];
+  \node at ($(O)+({(\al+\th)/2}:1.12)$) {$\tan^{-1}R-\tan^{-1}a$};
+  \draw[->] ($(O)+(-\th:1.0)$) arc[start angle=-\th,end angle=\al,radius=1.0];
+  \node[anchor=west] at (5.05,0.82) {$\tan^{-1}R+\tan^{-1}a$};
+
+  \node[align=center] at (4.15,0.08)
+    {$|\vec k_r|/|\vec k_i|=(1+aR)/(1-aR)$\quad$(aR<1)$};
+\end{tikzpicture}

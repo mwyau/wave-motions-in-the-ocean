@@ -1,9 +1,7 @@
-% ===== merged from chapter06-p149-155.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 6, printed pages 149--155.
-% Source authority: ChapmanRizzoli6.pdf, physical pages 1,3--8.
-% Source wording is retained except for corrections explicitly logged in ERRATA.md.
-% Original diagrams are cropped directly from the committed source PDF.
+% Wave Motions in the Ocean: Myrl's View
+% Chapter 6; historical source: source/ChapmanRizzoli6.pdf.
+% Source-page comments preserve printed/physical page correspondence.
+% Suspected substantive source errors are documented in ERRATA.md; source text is retained unless explicitly human-approved.
 
 \setcounter{chapter}{5}
 \setcounter{page}{149}
@@ -73,7 +71,8 @@ Now consider motions confined to a channel along the $x$ axis.
 % -----------------------------------------------------------------------------
 % Source printed page 151 / source physical page 4
 % -----------------------------------------------------------------------------
-\sourceart[0.70]{ChapmanRizzoli6.pdf}{4}{155bp 515bp 145bp 125bp}
+% Constraint-generated sloping-channel geometry.
+\wavevectorart[0.70]{ch06-p151-sloping-channel}
 
 The bottom slopes gradually across the channel with bottom slope $\alpha$. The normal
 velocity must vanish at the sidewalls and at the bottom, while a rigid lid is assumed at
@@ -115,12 +114,12 @@ motions.
 For the present case, we consider low frequency motions ($\omega\ll1$) over a gently
 sloping bottom ($\delta\ll1$). This allows us to write the field equation and boundary
 conditions as
-\begin{align*}
+\begin{wavealign}
  p_{xx}+p_{yy}+\frac{1}{S^2}p_{zz}&=0,\\
  p_x&=0 &&\text{at }y=0,1,\\
  p_z&=0 &&\text{at }z=0,\\
  i\omega p_z&=\delta S^2p_x &&\text{at }z=-1.
-\end{align*}
+\end{wavealign}
 The last boundary condition is appropriate because the fractional depth change across
 the channel is small. A solution to this problem which is freely propagating in the
 $x$ direction is
@@ -130,12 +129,13 @@ $x$ direction is
 where $\mu^2=S^2(n^2\pi^2+k^2)$ gives the vertical decay scale. Thus, strong
 stratification and/or short spatial scales leads to strong bottom trapping.
 
-\sourceart[0.46]{ChapmanRizzoli6.pdf}{5}{175bp 145bp 185bp 470bp}
+% Equation-generated bottom-trapped vertical mode.
+\wavevectorart[0.52]{ch06-p152-bottom-trapped-mode}
 
 The dispersion relation is obtained by applying the bottom boundary condition
-\[
+\begin{waveequation}
  \omega=-\frac{\delta kS^2}{\mu\tanh\mu}.
-\]
+\end{waveequation}
 
 \sourcepagebreak
 
@@ -155,10 +155,10 @@ The limit of weak stratification, $S\to0$, leads to $\mu\to0$ and
  \omega=-\frac{\delta k}{n^2\pi^2+k^2}
 \]
 or in dimensional form
-\[
+\begin{waveequation}
  \sigma=-\frac{\alpha kf}
  {H\{(n\pi/L)^2+k^2\}}.
-\]
+\end{waveequation}
 This is the dispersion relation for Topographic Rossby waves, so named because of the
 obvious similarity to planetary Rossby waves. The vertical structure, in this case,
 disappears as $\mu\to0$.
@@ -182,7 +182,8 @@ equation for pressure is
 % -----------------------------------------------------------------------------
 where $N$ is constant. The bottom is along $z=\alpha x$ where $w=\alpha u$.
 
-\sourceart[0.76]{ChapmanRizzoli6.pdf}{7}{120bp 500bp 85bp 105bp}
+% Constraint-generated effective-slope geometry.
+\wavevectorart[0.76]{ch06-p154-effective-slope}
 
 The boundary condition along the bottom is
 \[
@@ -236,17 +237,17 @@ into the field equation relates $k,\ell$ and $m$ as
 \]
 This, along with the bottom boundary condition, yields expressions for $k$ and $m$ in
 terms of $\omega,\ell$ and $S$, i.e. the dispersion relation;
-\[
+\begin{waveequation}
  m=\frac{\ell}{\omega}
  \left(\frac{S^2}{1-\omega^2+S^2}\right)^{1/2}
-\]
-\[
+\end{waveequation}
+\begin{waveequation}
  k=\frac{\ell}{\omega}
  \left[
  \frac{(S^2-\omega^2)(1-\omega^2)}
  {1-\omega^2+S^2}
  \right]^{1/2}.
-\]
+\end{waveequation}
 Note that for decay away from the bottom ($m>0$), $\ell$ and $\omega$ must have the
 same sign. Thus, the waves propagate only in the $+y$ direction, i.e. with shoaling
 water on their right just like Topographic Rossby waves. For $\omega<1$, we see that
@@ -260,13 +261,6 @@ the bottom.
 
 These properties suggest some interesting possibilities. Suppose a wave with frequency
 $\omega<S$ propagates along the bottom and encounters a change in bottom
-
-% ===== merged from chapter06-p156-162.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 6, printed pages 156--162.
-% Source authority: ChapmanRizzoli6.pdf, physical pages 9--13,15--16.
-% Source wording is retained except for corrections explicitly logged in ERRATA.md.
-% Original diagrams are cropped directly from the committed source PDF.
 
 % -----------------------------------------------------------------------------
 % Source printed page 156 / source physical page 9
@@ -299,7 +293,8 @@ was first considered by Buchwald and Adams (1968).
 % -----------------------------------------------------------------------------
 % Source printed page 157 / source physical page 10
 % -----------------------------------------------------------------------------
-\sourceart[0.56]{ChapmanRizzoli6.pdf}{10}{155bp 520bp 140bp 80bp}
+% Equation-generated continental-shelf depth profile.
+\wavevectorart[0.62]{ch06-p157-continental-shelf}
 
 The $x$ axis points offshore while the $y$ axis is alongshore. The shelf-slope region has
 width $L$. We start with the shallow water equations over variable topography. We
@@ -368,9 +363,9 @@ The solution over the shelf can be written
  \psi=Ae^{b(x-L)}\sin kx.
 \]
 Substituting this into the $\psi$ equation yields the dispersion relation
-\[
+\begin{waveequation}
  \sigma=-\frac{2bf\ell}{\ell^2+k^2+b^2}
-\]
+\end{waveequation}
 which looks almost identical to the Rossby wave dispersion relation showing the close
 correspondence of these waves to both planetary Rossby waves and topographic Rossby
 waves.
@@ -393,7 +388,8 @@ requires that $\psi$ and $\psi_x$ be continuous at $x=L$ which leads to
 This relation is satisfied at an infinite set of discrete values of $k$ for given $\ell$
 and $b$. For large $k$, the roots approach $(n+\tfrac12)\pi/L$.
 
-\sourceart[0.82]{ChapmanRizzoli6.pdf}{12}{75bp 450bp 65bp 135bp}
+% Equation-generated matching-condition root plot.
+\wavevectorart[0.82]{ch06-p159-shelf-root-condition}
 
 These solutions are called \emph{continental shelf waves}. They are very much like
 planetary Rossby waves and equatorial Rossby waves. Their phases all travel with the
@@ -401,14 +397,14 @@ coast on their right in the northern hemisphere. The dispersion diagram looks li
 
 \sourceart[0.58]{ChapmanRizzoli6.pdf}{12}{135bp 265bp 120bp 350bp}
 
-Each mode is constrained to be below some maximum frequency where
-$\partial\sigma/\partial\ell=0$. This occurs at
-\[
- \ell\big|_{\sigma_{\max}}=-(k^2+b^2)^{1/2}.
-\]
+Each mode is constrained to be below some maximum frequency where $\partial\sigma/\partial\ell=0$.
+This occurs at
+\begin{waveequation}
+ \left.\ell\right|_{\sigma_{\max}}=-(k^2+b^2)^{1/2}.
+\end{waveequation}
 At the maximum frequency, the group velocity is zero meaning that energy does not
 propagate even though phases still do. For waves that are longer than this wavelength
-(smaller $|\ell|$), the wave energy propagates with the phase. For very long waves
+(smaller $\ell$), the wave energy propagates with the phase. For very long waves
 $\ell\to0$, the dispersion relation becomes
 \[
  \sigma=-\frac{2bf\ell}{k^2+b^2}
@@ -426,11 +422,11 @@ but the group moves in the direction with the coast on the \emph{left} in the no
 hemisphere. This is essentially identical to the result for planetary Rossby waves in
 which phase always propagates to the west, but the group velocity may be westward or
 eastward depending on the wavelength of the Rossby wave. One difference is that
-continental shelf waves have discrete cross-shelf modes whereas unbounded Rossby waves
-form a continuum. Of course, Rossby waves would be discretized if they were constrained
+continental shelf waves occur at discrete frequencies whereas Rossby waves form a
+continuum. Of course, Rossby waves would be discretized if they were constrained
 to a channel of some sort. The coast acts as this sort of constraint for continental
 shelf waves. Notice that the frequency for each mode approaches zero as the waves
-become very short, i.e. $\sigma\to0$ as $\ell\to-\infty$.
+become very short, i.e. $\sigma\to0$ as $\ell\to\infty$.
 
 We have made a special choice for the bottom topography which made the problem rather
 simple by giving constant coefficients to the equation for $\psi$. It can be shown that
@@ -444,11 +440,11 @@ equations with arbitrary cross-shelf topography. The equations are
 If we assume that the topography does not vary along the shelf, i.e.
 $\partial D/\partial y=0$, and look for plane waves of the form
 $e^{-i\sigma t+i\ell y}$, then the problem becomes
-\[
+\begin{waveequation}
  (D\eta_x)_x-K\eta=0,
  \qquad
  K=\frac{f\ell}{\sigma}D_x+\ell^2D+\frac{f^2-\sigma^2}{g}.
-\]
+\end{waveequation}
 The boundary conditions are
 \[
  uD=0\quad\Rightarrow\quad
@@ -524,13 +520,6 @@ We have taken $N$ to be constant and applied a rigid lid. However, all of the fo
 analysis can be generalized to the case of variable $N$ and a free surface (see
 Huthnance, 1978).
 
-% ===== merged from chapter06-p163-171.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 6, printed pages 163--171.
-% Source authority: ChapmanRizzoli6.pdf, physical pages 17--25.
-% Source wording is retained except for corrections explicitly logged in ERRATA.md.
-% Original diagrams are cropped directly from the committed source PDF.
-
 % -----------------------------------------------------------------------------
 % Source printed page 163 / source physical page 17
 % -----------------------------------------------------------------------------
@@ -538,14 +527,14 @@ Huthnance, 1978).
 
 We scale the variables as follows: $x,y$ by $L$; $z,D$ by $H$; and
 $\omega=\sigma/f$. The equations become
-\begin{align*}
+\begin{wavealign}
  p_{xx}-\ell^2p+\frac{1-\omega^2}{S^2}p_{zz}&=0,\\
  (1-\omega^2)p_z
  +S^2D_x\left(p_x-\frac{\ell}{\omega}p\right)&=0
  &&\text{at }z=-D(x),\\
  p_z&=0 &&\text{at }z=0,\\
  p&\to0 &&\text{as }x\to\infty,
-\end{align*}
+\end{wavealign}
 where $S=NH/fL$ as before. For general $D(x)$, this eigenvalue problem must be solved
 numerically. In fact, only a couple of special cases of $D$ are known which give
 analytical solutions. And these are rather unusual in their properties, so we will not
@@ -641,9 +630,9 @@ i.e. the solution $p_0$ is vertically uniform. At the next order, we have
 \]
 The field equation can be integrated in $z$, since $p_0$ is independent of $z$, and
 combined with the surface and bottom boundary conditions to yield
-\[
+\begin{waveequation}
  (Dp_{0x})_x-\left(\frac{\ell}{\omega}D_x+\ell^2D\right)p_0=0
-\]
+\end{waveequation}
 which is precisely the same equation that was derived for continental shelf waves, but
 now with a rigid lid. Thus, as we would expect, the stratified problem reduces to the
 barotropic problem in the limit of weak stratification.
@@ -678,12 +667,9 @@ ocean bottom at $z=-1$ is
 % -----------------------------------------------------------------------------
 Remember that $\ell<0$ in the present formulation, so the solution does decay offshore.
 The surface boundary condition provides the dispersion relation of
-\[
- \boxed{\omega=-\frac{S\ell}{n\pi}},
- \qquad n=1,2,\ldots
-\]
-where the minus sign is the positive-frequency form for the source's $\ell<0$ convention;
-the source prints the same relation without the minus sign. See \texttt{ERRATA.md}.
+\begin{waveequation}
+ \omega=\frac{S\ell}{n\pi}.
+\end{waveequation}
 This is precisely the same dispersion relation as for baroclinic Kelvin waves with
 constant $N$.
 
@@ -691,7 +677,8 @@ Thus, each coastal-trapped wave mode behaves like a continental shelf wave when 
 stratification is weak, and then passes smoothly to a baroclinic Kelvin wave when the
 stratification is strong.
 
-\sourceart[0.68]{ChapmanRizzoli6.pdf}{21}{105bp 335bp 90bp 300bp}
+% Constraint-generated weak-to-strong stratification mode transition.
+\wavevectorart[0.68]{ch06-p167-mode-transition}
 
 Consider a free wave travelling north along an eastern ocean boundary with constant
 $N$ and uniform $D(x)$. At low latitudes, the wave looks like a baroclinic Kelvin wave
@@ -718,7 +705,8 @@ more realistic setting.
 
 We consider a barotropic (homogeneous) ocean as we did for the continental shelf waves.
 
-\sourceart[0.54]{ChapmanRizzoli6.pdf}{22}{155bp 420bp 135bp 240bp}
+% Vector reconstruction of the long-wave wind-forcing geometry.
+\wavevectorart[0.58]{ch06-p168-wind-forced-shelf}
 
 In addition, we assume that the motions occur at frequencies much less than the inertial
 frequency, i.e. $\sigma\ll f$, and that the alongshelf variations occur on a much larger
@@ -774,18 +762,18 @@ for which the separation works only if
 \[
  \frac{1}{c}\phi_t-\phi_y=0
 \]
-\[
+\begin{waveequation}
  \left(\frac{F_x}{D}\right)_x
  +\frac{fD_x}{cD^2}F=0
-\]
+\end{waveequation}
 where $c$ is a separation constant. The boundary conditions become $F=0$ at $x=0$
 and $F_x=0$ at $x=L$.
 
 The problem for $F$ is a Sturm--Liouville eigenvalue problem and it can be shown that
 the eigenfunctions, $F_n$, satisfy the orthogonality relation
-\[
+\begin{waveequation}
  \int_0^L\frac{D_x}{D^2}F_nF_m\,dx=\delta_{nm}
-\]
+\end{waveequation}
 where $\delta_{nm}$ is the Kronecker delta. Each $F_n$ corresponds to the cross-shelf
 structure of a free-wave mode. The problem for $\phi$ is just a first-order wave equation
 with the solution
@@ -810,9 +798,9 @@ free-wave modes
 \]
 Substituting this into the field equation and using the orthogonality condition of the
 free modes yields
-\[
+\begin{waveequation}
  \frac{1}{c_n}\phi_{nt}-\phi_{ny}=-b_n\tau^y
-\]
+\end{waveequation}
 where
 \[
  b_n=\frac{1}{f}\int_0^L\frac{D_x}{D^2}F_n\,dx

@@ -15,9 +15,10 @@
     .. controls (4.48,1.55) and (5.22,1.92) .. (5.25,2.85)
     .. controls (5.28,3.36) and (5.48,3.70) .. (5.55,4.22);
 
-  % Wave crests crossing the path.  They do not terminate inside the region.
+  % Extend every crest beyond both A-to-B paths. No crest terminates inside the
+  % region, so each crossing counted by the circulation/wavenumber argument is real.
   \foreach \x/\y in {0.65/0.55,1.25/1.15,1.85/1.72,2.48/2.25,3.12/2.78,3.76/3.28,4.42/3.67} {
-    \draw[line width=0.55pt] (\x-0.55,\y+0.55) -- (\x+1.25,\y-1.25);
+    \draw[line width=0.55pt] (\x-0.70,\y+0.70) -- (\x+1.40,\y-1.40);
   }
 
   % End points and labels.

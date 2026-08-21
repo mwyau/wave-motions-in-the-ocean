@@ -1,0 +1,75 @@
+body {
+  line-height: 1.48;
+  margin: 5%;
+}
+
+h1, h2, h3 {
+  font-family: sans-serif;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+h1 {
+  page-break-before: always;
+  break-before: page;
+  font-size: 1.85em;
+}
+
+h2 {
+  font-size: 1.35em;
+}
+
+h3 {
+  font-size: 1.15em;
+}
+
+p {
+  orphans: 3;
+  widows: 3;
+}
+
+a {
+  text-decoration: underline;
+}
+
+figure {
+  margin: 1.2em auto;
+  text-align: center;
+}
+
+img, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+figcaption {
+  font-size: 0.9em;
+}
+
+math[display="block"] {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin: 1em 0;
+  padding: 0.15em 0;
+}
+
+pre, table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+blockquote {
+  margin-left: 1.25em;
+  margin-right: 1.25em;
+}
+
+div.center {
+  text-align: center;
+}
+
+div.flushright {
+  text-align: right;
+  margin-top: -0.85em;
+}

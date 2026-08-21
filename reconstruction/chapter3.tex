@@ -1,9 +1,7 @@
-% ===== merged from chapter03-p038-049.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 3, printed pages 38--49.
-% Source authority: ChapmanRizzoli3.pdf. Physical pages 1,3,5--14;
-% physical pages 2 and 4 are blank separator sheets in the distributed scan.
-% Source wording, equations, figures, and page breaks are retained.
+% Wave Motions in the Ocean: Myrl's View
+% Chapter 3; historical source: source/ChapmanRizzoli3.pdf.
+% Source-page comments preserve printed/physical page correspondence.
+% Suspected substantive source errors are documented in ERRATA.md; source text is retained unless explicitly human-approved.
 
 \setcounter{chapter}{2}
 \setcounter{page}{38}
@@ -29,7 +27,8 @@ surface near $z=0$ and a flat bottom boundary at $z=-D$.
 % -----------------------------------------------------------------------------
 % Source printed page 39 / source physical page 3
 % -----------------------------------------------------------------------------
-\sourceart[0.66]{ChapmanRizzoli3.pdf}{3}{150bp 505bp 125bp 80bp}
+% Vector reconstruction; source PDF ChapmanRizzoli3.pdf, physical page 3, trim=150bp 505bp 125bp 80bp.
+\wavevectorart[0.66]{ch03-p039-surface-boundaries}
 
 Because the fluid is inviscid
 \[
@@ -87,7 +86,7 @@ The interface is massless. In the absence of surface tension, therefore, it
 supports no pressure differences across it. The appropriate \emph{dynamical} boundary
 condition is
 \[
- p(x,y,\eta,t)=p_{\rm atmosphere}.
+ p(x,y,\eta,t)=p_{\mathrm{atmosphere}}.
 \]
 To write this in terms of $\phi,\eta$ return to
 \[
@@ -131,12 +130,12 @@ Notice how a specified $p_{atm}(x,y,t)$ would enter the problem through this bou
 condition.
 
 The full problem is
-\begin{align*}
+\begin{wavealign}
  \eta_t+\phi_x\eta_x+\phi_y\eta_y&=\phi_z &&\text{at }z=\eta,\\
  \phi_t+\frac12|\nabla\phi|^2+g\eta&=0 &&\text{at }z=\eta,\\
  \nabla^2\phi&=0,\\
  \phi_z&=0 &&\text{at }z=-D.
-\end{align*}
+\end{wavealign}
 
 \section{Linear solutions}
 
@@ -175,12 +174,13 @@ The solution
  \phi=Ae^{-i\sigma t+ikx}\cosh k(z+D)
 \]
 satisfies this provided
-\[
+\begin{waveequation}
  \sigma^2=gk\tanh kD
-\]
+\end{waveequation}
 which is the dispersion relation.
 
-\sourceart[0.40]{ChapmanRizzoli3.pdf}{7}{225bp 250bp 225bp 475bp}
+% Vector reconstruction; source PDF ChapmanRizzoli3.pdf, physical page 7, trim=225bp 250bp 225bp 475bp.
+\wavevectorart[0.50]{ch03-p042-surface-wave-dispersion}
 
 Finally $\eta_t=\phi_z$ and $\phi_t+g\eta=0$ say that if
 $\eta=ae^{-i\sigma t+ikx}$, then
@@ -228,7 +228,8 @@ different densities. We have
 % -----------------------------------------------------------------------------
 % Source printed page 44 / source physical page 9
 % -----------------------------------------------------------------------------
-\sourceart[0.64]{ChapmanRizzoli3.pdf}{9}{165bp 500bp 130bp 85bp}
+% Vector reconstruction; source PDF ChapmanRizzoli3.pdf, physical page 9, trim=165bp 500bp 130bp 85bp.
+\wavevectorart[0.64]{ch03-p044-two-fluid-interface}
 
 At the interface $z=0$
 \[
@@ -254,9 +255,9 @@ which yields
  \rho_1(\sigma^2/k+g)=\rho_2(-\sigma^2/k+g).
 \]
 The latter may be rewritten
-\[
+\begin{waveequation}
  \sigma^2=gk\frac{\rho_2-\rho_1}{\rho_2+\rho_1}.
-\]
+\end{waveequation}
 Note that if $\rho_1=0$, then we recover the deep water dispersion relation of the previous
 section, $\sigma^2=gk$.
 
@@ -482,13 +483,6 @@ This expression is now substituted into the surface boundary conditions to obtai
  \phi_{0t}+\frac12(\phi_{0x}^2+\phi_{0y}^2)+O(\delta^2)+\eta=0.
 \]
 
-% ===== merged from chapter03-p050-056.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 3, printed pages 50--56.
-% Source authority: ChapmanRizzoli3.pdf, physical pages 15--21.
-% Source wording, equations, figures, and page breaks are retained except for
-% explicitly documented corrections in CHAPTER3_AUDIT.md.
-
 \setcounter{page}{50}
 
 % -----------------------------------------------------------------------------
@@ -500,11 +494,11 @@ This expression is now substituted into the surface boundary conditions to obtai
 where $h=1+\eta$. Note that these equations are now the field equations because the
 dependence on $z$ is gone. Recall that $u_0=\phi_{0x}$, $v_0=\phi_{0y}$, etc. Inserting these into the
 above yields
-\begin{align*}
+\begin{wavealign}
  h_t+(u_0h)_x+(v_0h)_y&=0,\\
  u_{0t}+u_0u_{0x}+v_0u_{0y}&=-\eta_x,\\
  v_{0t}+u_0v_{0x}+v_0v_{0y}&=-\eta_y.
-\end{align*}
+\end{wavealign}
 These equations can be converted to the dimensional form by multiplying the right
 hand side of the second and third equations by $g$ and by interpreting $h$ as $D+\eta$.
 These are the \emph{nonlinear shallow water equations}. We previously arrived at their
@@ -601,12 +595,14 @@ If $\eta_0(x,0)=\delta(x)$, then $\bar\eta_0(k_0)=1/2\pi$ and then
 \]
 If we plot $\eta(x,t)$ versus $x$ at a fixed $t$ (snapshot), we see
 
-\sourceart[0.66]{ChapmanRizzoli3.pdf}{17}{145bp 445bp 140bp 285bp}
+% Equation-generated vector reconstruction of the fixed-time asymptotic snapshot.
+\wavevectorart[0.66]{ch03-p052-delta-snapshot}
 
 The wavelength $2\pi/k_0$ increases and the amplitude decreases with $x$. A wavestaff
 record of $\eta(x,t)$ at fixed $x$ shows
 
-\sourceart[0.62]{ChapmanRizzoli3.pdf}{17}{160bp 250bp 150bp 470bp}
+% Equation-generated vector reconstruction of the fixed-position wavestaff record.
+\wavevectorart[0.62]{ch03-p052-delta-wavestaff}
 
 Clearly neither $k_0$ nor $\sigma_0$ is constant at any fixed $x$ or $t$. Yet it turns out that
 \[
@@ -676,7 +672,7 @@ into a slowly varying wave train of the sort postulated beforehand by the ray th
 Neither theory handles the details of how the solution evolves near the initial
 disturbance.
 
-Note that as $t\to\infty$, the foregoing says $\eta(x,t\to\infty)=O(t)$. The solution never
+Note that as $t\to\infty$, the foregoing says $\eta(x,t\to\infty)=t$. The solution never
 `settles down'. This happens because $\eta_0(x,0)=\delta(x)$ contains infinitely short waves
 that travel infinitely slowly. Therefore, at any given $(x,t)$, short waves are still arriving
 and shorter ones are en route. This does not happen for the finite initial displacement.
@@ -705,7 +701,8 @@ travelling delta function which moves with speed $V$.
 % -----------------------------------------------------------------------------
 % Source printed page 55 / physical page 20
 % -----------------------------------------------------------------------------
-\sourceart[0.73]{ChapmanRizzoli3.pdf}{20}{120bp 520bp 95bp 75bp}
+% Constraint-generated ship/source geometry.
+\wavevectorart[0.73]{ch03-p055-ship-wave-geometry}
 
 At time $t=0$, we are at $r,\theta$ relative to the ship. At time $t$ the ship was $\rho(t)$ from us.
 Keep in mind that $t<0$. We have, therefore,
@@ -752,7 +749,8 @@ source.)
 Inside this cone there are two wave systems $e^{iP(t_+)}$ and $e^{iP(t_-)}$. They give rise to
 the system of cross waves seen behind a ship.
 
-\sourceart[0.70]{ChapmanRizzoli3.pdf}{21}{125bp 400bp 115bp 135bp}
+% Stationary-phase Kelvin-wake crest reconstruction.
+\wavevectorart[0.70]{ch03-p056-kelvin-wake}
 
 Details of their shape come from $P(t_+)=\text{constant}$ and $P(t_-)=\text{constant}$.
 
@@ -761,18 +759,12 @@ dispersive -- some always travel as fast as the ship regardless of its speed. Th
 nondispersive case is different. If all waves travel at $c$ [$=(gD)^{1/2}$ in a shallow sea] and
 a ship moves at $V>c$, then the wave pattern looks like
 
-\sourceart[0.69]{ChapmanRizzoli3.pdf}{21}{130bp 170bp 105bp 430bp}
+% Nondispersive Mach-cone reconstruction.
+\wavevectorart[0.69]{ch03-p056-shallow-mach-cone}
 
 The waves are confined to $\theta<\sin^{-1}(ct/Vt)=\sin^{-1}(c/V)$ which is dependent on the velocity just as
 we would expect. This is because the waves all travel slower than the ship. The waves
 arrive as a sharp discontinuity.
-
-% ===== merged from chapter03-p057-063.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 3, printed pages 57--63.
-% Source authority: ChapmanRizzoli3.pdf, physical pages 22--28.
-% Source wording, equations, figures, and page breaks are retained except for
-% explicitly documented corrections in CHAPTER3_AUDIT.md.
 
 \setcounter{page}{57}
 
@@ -846,6 +838,7 @@ For
 \centering
 \includegraphics[page=22,trim=410bp 95bp 45bp 580bp,clip,width=\linewidth]
  {../source/ChapmanRizzoli3.pdf}
+\wavefiguremark
 \end{minipage}
 
 \sourcepagebreak
@@ -869,13 +862,13 @@ be written
  &=\overline E\,\frac{\partial\sigma}{\partial k}.
 \end{align*}
 That is
-\[
+\begin{waveequation}
  \overline{Eflux}=\overline E\,\vec c_g.
-\]
+\end{waveequation}
 Thus, the period average of the energy equation is, for the plane wave
-\[
+\begin{waveequation}
  \overline E_t+\nabla_H\cdot(\overline E\,\vec c_g)=0.
-\]
+\end{waveequation}
 It may be used to determine $\overline E(\vec x,t)$ from $\overline E(\vec x,0)$ if the wave is slowly varying, i.e. if
 $a=a(\vec x,t)$. This may occur either if $a(\vec x,0)$ is slowly varying or if $D$ is a slowly varying
 function of position.
@@ -952,10 +945,10 @@ current.
 Using this dispersion relation, the ray theory recipe says that we can carry the
 slow space and time variation of $U$ and $D$ parametrically to find
 $N=\Omega(\vec k;x,y,t)$ or
-\[
+\begin{waveequation}
  \sigma=\vec k\cdot\vec U(x,y,t)
  +[g|\vec k|\tanh|\vec k|D(x,y,t)]^{1/2}.
-\]
+\end{waveequation}
 We may write this as $\sigma=\vec k\cdot\vec U+\sigma'$ where
 $\sigma'=(g|\vec k|\tanh|\vec k|D)^{1/2}$ is the frequency seen
 by an observer moving at $\vec U$. Then
@@ -1007,7 +1000,8 @@ tells us $k(x)$, in principle.
 
 Consider $\sigma,k>0$ and $U(x)>0$, i.e. right-going waves and current.
 
-\sourceart[0.80]{ChapmanRizzoli3.pdf}{26}{70bp 80bp 55bp 325bp}
+% Equation-generated following-current reconstruction.
+\wavevectorart[0.80]{ch03-p061-following-current-dispersion}
 
 Clearly, there is always a root $*$. For large $U$, $\sigma\to kU$, i.e. $k\to\sigma/U$. The waves are
 longer in a swifter current.
@@ -1019,7 +1013,8 @@ longer in a swifter current.
 % -----------------------------------------------------------------------------
 Consider $\sigma,k>0$ and $U(x)<0$, i.e. right-going waves in a left-going current.
 
-\sourceart[0.80]{ChapmanRizzoli3.pdf}{27}{75bp 330bp 55bp 95bp}
+% Equation-generated opposing-current/blocking reconstruction.
+\wavevectorart[0.80]{ch03-p062-opposing-current-blocking}
 
 There is a root $*$ for $0<|U|<c_g'(k)$. At the upper limit $c_g'(k)=|U|$. Waves with
 smaller $k$ have larger $c_g'$ and can stem the current, while those with large $k$ go too slow
@@ -1038,7 +1033,8 @@ current.
 % -----------------------------------------------------------------------------
 % The source figure is substantially smaller than the earlier reconstruction's
 % crop.  Matching its printed scale keeps the full p.63 derivation on one sheet.
-\sourceart[0.48]{ChapmanRizzoli3.pdf}{28}{145bp 480bp 110bp 65bp}
+% Equation-generated shear-current refraction reconstruction.
+\wavevectorart[0.48]{ch03-p063-shear-current-refraction}
 
 We have
 \[

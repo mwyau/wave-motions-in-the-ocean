@@ -1,21 +1,44 @@
 % wave-source: pdf=ChapmanRizzoli5.pdf; page=19; trim=124.80bp 198.24bp 131.52bp 436.80bp
 % Source: Wave Motions in the Ocean, printed p.114 (physical p.19).
-% Vector redraw of trapped (A) and incident/reflected (B) shelf ray paths.
+% Equation-generated trapped (A) and incident/reflected (B) shelf ray paths.
+% The illustrative depth ratio D_1/D_2=0.10 fixes the critical angle and Snell
+% refraction. Panel A uses a shelf angle just above critical, so total internal
+% reflection is allowed. Panel B uses a deep-ocean incident angle and computes
+% the shelf angle from Snell's law; coast reflection is exact. Segment lengths
+% are display-only.
 \begin{center}
-\begin{tikzpicture}[x=0.70cm,y=0.70cm,>=stealth,line cap=round,line join=round]
+\begin{tikzpicture}[x=0.78cm,y=0.78cm,>=stealth,line cap=round,line join=round,font=\small]
+  \def\depthratio{0.10}
+  \pgfmathsetmacro{\critical}{asin(sqrt(\depthratio))}
+
   \begin{scope}
+    \def\alphaA{19.2}
+    \pgfmathsetmacro{\dyA}{2.30*tan(\alphaA)}
     \draw[very thick] (0,-1.35)--(0,1.35);
     \draw[dashed] (2.3,-1.35)--(2.3,1.35);
-    \draw[->,thick] (0,-0.80)--(2.3,0.20)--(0.35,1.10);
-    \draw[->,thick] (0.35,-1.10)--(0,-0.80);
+    % alpha_A > alpha_c=asin(sqrt(D_1/D_2)), so the shelf-edge reflection is total.
+    \draw[->,thick] (0.35,{-0.98-0.35*tan(\alphaA)})--(0,-0.98);
+    \draw[->,thick] (0,-0.98)--(2.30,{-0.98+\dyA});
+    \draw[->,thick] (2.30,{-0.98+\dyA})--(0,{-0.98+2*\dyA});
+    \draw[->,thick] (0,{-0.98+2*\dyA})--(0.35,{-0.98+2*\dyA+0.35*tan(\alphaA)});
     \node[below] at (0,-1.35) {$x=0$};
     \node[below] at (2.3,-1.35) {$x=L$};
     \node[above] at (1.15,1.45) {(A)};
   \end{scope}
+
   \begin{scope}[shift={(5.0,0)}]
+    \def\alphaI{25.2}
+    \pgfmathsetmacro{\alphaS}{asin(sqrt(\depthratio)*sin(\alphaI))}
+    \pgfmathsetmacro{\dyS}{2.30*tan(\alphaS)}
+    \pgfmathsetmacro{\dyD}{1.70*tan(\alphaI)}
     \draw[very thick] (0,-1.35)--(0,1.35);
     \draw[dashed] (2.3,-1.35)--(2.3,1.35);
-    \draw[->,thick] (4.0,-0.95)--(2.3,-0.25)--(0,0.05)--(2.3,0.45)--(4.0,1.25);
+    % Deep-ocean incidence refracts toward the normal on entering the shallower shelf.
+    \draw[->,thick] (4.0,{-\dyS-\dyD})--(2.3,{-\dyS});
+    \draw[->,thick] (2.3,{-\dyS})--(0,0);
+    % Exact specular reflection at the vertical coast, followed by reciprocal refraction.
+    \draw[->,thick] (0,0)--(2.3,\dyS);
+    \draw[->,thick] (2.3,\dyS)--(4.0,{\dyS+\dyD});
     \node[below] at (0,-1.35) {$x=0$};
     \node[below] at (2.3,-1.35) {$x=L$};
     \node[above] at (1.15,1.45) {(B)};

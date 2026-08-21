@@ -1,14 +1,17 @@
 % wave-source: pdf=ChapmanRizzoli5.pdf; page=13; trim=206.40bp 570.24bp 222.72bp 81.60bp
 % Source: Wave Motions in the Ocean, printed p.108 (physical p.13).
 % Vector redraw of incident/reflected waves at a vertical wall.
+% Scientific constraint: the reflected endpoint is the exact mirror of the
+% incident endpoint across the x-axis (the wall normal), so incidence and
+% reflection angles and displayed |k| are equal by construction.
 \begin{center}
-\begin{tikzpicture}[scale=1.0,>=stealth,line cap=round,line join=round]
+\begin{tikzpicture}[scale=1.30,>=stealth,line cap=round,line join=round,font=\small]
   \draw[very thick] (0,-1.15)--(0,1.15);
   \draw (0.06,-1.15)--(0.06,1.15);
   \draw[->] (0,0)--(1.45,0) node[right] {$x$};
   \draw[->] (0,0)--(0,1.45) node[above] {$y$};
   \draw[->,thick] (-1.55,-1.05)--(0,0);
-  \draw[->,thick] (0,0)--(-1.75,0.95);
+  \draw[->,thick] (0,0)--(-1.55,1.05);
   \node at (-1.12,-0.70) {$\vec{k}$};
 \end{tikzpicture}
 \end{center}

@@ -45,15 +45,15 @@
   \node at (-1.26,1.55) {$2$};
   \node at (-1.24,2.12) {$3$};
 
-  % Labels are offset from their limiting rays so no dashed/solid line crosses
-  % the glyphs at final page scale.
-  \node[rotate=64,font=\footnotesize,inner sep=0.4pt] at (1.03,3.08)
+  % Keep all ray labels at the common figure size and move them clear of the
+  % limiting lines rather than shrinking their type.
+  \node[rotate=64,inner sep=0.4pt] at (1.12,3.17)
     {$\sigma=\sqrt{gD_2}\,\ell$};
-  \node[rotate=-64,font=\footnotesize,inner sep=0.4pt] at (-1.03,3.08)
+  \node[rotate=-64,inner sep=0.4pt] at (-1.12,3.17)
     {$\sigma=-\sqrt{gD_2}\,\ell$};
-  \node[rotate=36,font=\footnotesize,inner sep=0.4pt] at (3.36,1.62)
+  \node[rotate=36,inner sep=0.4pt] at (3.52,1.76)
     {$\sigma=\sqrt{gD_1}\,\ell$};
-  \node[rotate=-36,font=\footnotesize,inner sep=0.4pt] at (-3.36,1.62)
+  \node[rotate=-36,inner sep=0.4pt] at (-3.52,1.76)
     {$\sigma=-\sqrt{gD_1}\,\ell$};
 \end{tikzpicture}
 \end{center}

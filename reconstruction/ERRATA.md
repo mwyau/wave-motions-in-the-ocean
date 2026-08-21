@@ -1,309 +1,480 @@
 # Errata and editorial deviations
 
-This file records substantive differences between the historical source scans and the shared reconstructed content. It is not an audit-coverage ledger.
+The historical PDFs under `source/` are authoritative for the reconstruction. The canonical
+chapter text follows the source unless a deviation is either an unambiguous minor typo or an
+explicitly human-approved substantive erratum.
 
-For new items use this metadata explicitly:
+Agents may identify and analyze possible errors, but **agents can never approve an erratum**.
+Scientific or mathematical correctness by itself is not approval. Until the human owner approves
+a substantive change, the source reading remains in the canonical reconstruction.
 
-- **Category:** `transcription`, `typographical`, `equation`, `figure`, `reference`, or `editorial`
-- **Status:** `pending-review`, `accepted`, or `reverted`
-- **Location:** source PDF/physical page and/or printed page/chapter
-- **Original:** the historical form
-- **Reconstruction:** the current form
-- **Reason/evidence:** enough detail to review the decision independently
+Statuses used here:
 
-The legacy entries below predate this compact schema but contain their location, original/reconstructed forms, and reasoning. Unless an entry itself says the point is ambiguous or under review, it represents an **accepted** reconstruction correction. Future edits should add explicit category/status metadata rather than creating a second audit ledger.
+- **`pending-human-approval`** — a substantive source issue or proposed correction. The
+  canonical reconstruction follows the historical source until the human owner explicitly approves
+  the deviation.
+- **`minor-typo-correction`** — a small, unambiguous spelling/grammar/transcription typo with no
+  plausible scientific, mathematical, bibliographic, or editorial change in meaning. These may be
+  corrected without separate errata approval.
+- **`human-approved`** — reserved for an explicitly documented human-approved substantive
+  deviation. Agents must never assign this status autonomously.
 
-This file records discrepancies in the 1989 source scans that matter to a faithful technical reconstruction. The scan remains the historical source; corrected forms are used in the reconstructed mathematics or prose only when the correction is independently verifiable.
+False-positive audit findings that were already shown to match the source are omitted rather than
+retained as errata history. Audit coverage belongs in `PLAN.md`; figure provenance and equation
+validation belong in `FIGURES.md`.
 
 ## Chapter 1
 
-### Printed page 5 - direction dependence of vector advection
+### Printed page 5 — direction dependence of vector advection
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 1, printed page 5
+- **Source:** Cases (a)--(d) are said to have phase speed independent of wavelength, frequency, **or direction**.
+- **Proposed correction:** Qualify case (c), since for $\sigma=\vec c_0\cdot\vec k$, $c=\vec c_0\cdot\hat{\vec k}$ depends on propagation direction.
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** The proposed correction is mathematically defensible, but it is substantive.
 
-The source states that for cases (a)--(d) in its example table, the phase speed
+### Printed page 3 — complex-amplitude phase from a one-argument arctangent
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 1, printed page 3
+- **Source:** $\tan^{-1}(\operatorname{Im}A/\operatorname{Re}A)$.
+- **Proposed correction:** Use $\arg A$ or an equivalent `atan2` convention.
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** A one-argument arctangent loses quadrant information; the source scan nevertheless prints this form.
 
-```tex
-c=\sigma/|\vec{k}|
-```
+### Printed page 4 — scalar phase speed described as directed
+- **Category:** `editorial`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 1, printed page 4
+- **Source:** After defining scalar $c=\sigma/|\vec k|=\lambda/T$, the source says, “It is directed along $\vec k$.”
+- **Proposed correction:** Distinguish scalar speed from the phase-velocity vector.
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** Direction belongs to a velocity vector, but changing the prose is editorially substantive.
 
-is independent of wavelength, frequency **or direction**. That is correct for the one-dimensional examples (a) and (b) and the isotropic wave equation (d), but not for example (c), whose dispersion relation is
-
-```tex
-\sigma=\vec c_0\cdot\vec k.
-```
-
-For (c),
-
-```tex
-c=\frac{\sigma}{|\vec k|}
- =\vec c_0\cdot\hat{\vec k},
-```
-
-so the phase speed is independent of wavelength and frequency but depends on propagation direction relative to the background advection velocity `c_0`. It is still nondispersive with respect to wavenumber magnitude for a fixed propagation direction. The reconstruction qualifies the source sentence accordingly.
+### Printed pages 11--12 — WKB scale separation of phase and amplitude
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 1, printed pages 11--12
+- **Source:** Both amplitude $a$ and phase $\Theta$ are described as slowly varying, with $\Delta\Theta/\Theta\ll1$.
+- **Proposed correction:** State that amplitude and local phase gradients vary slowly while phase itself varies on the wave scale.
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** The proposed WKB formulation is more standard, but the historical wording is unambiguous and must be preserved absent approval.
 
 ## Chapter 2
 
-### Printed page 22 - tangential wavenumber projection in specular reflection
+### Printed page 19 — adiabatic entropy derivative
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 2, printed page 19
+- **Source:** $\partial S/\partial t=0$.
+- **Proposed correction:** $DS/Dt=0$.
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** Material conservation is physically preferable, but the change is substantive.
 
-The source sketch labels `theta_i` and `theta_r` as the angles between the incident/reflected wavevectors and the dashed boundary **normal**. It then states that the projection of the incident wavenumber on the boundary equals the projection of the reflected wavenumber on the boundary, but typesets
+### Printed page 19 — “infinitesmal”
+- **Category:** `typographical`
+- **Status:** `minor-typo-correction`
+- **Location:** Chapter 2, printed page 19
+- **Source:** “infinitesmal”
+- **Reconstruction:** “infinitesimal”
+- **Reason/evidence:** Unambiguous spelling correction only.
 
-```tex
-|\vec k_i|\cos\theta_i=|\vec k_r|\cos\theta_r.
-```
+### Printed page 22 — tangential wavenumber projection in specular reflection
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 2, printed page 22
+- **Source:** $|\vec k_i|\cos\theta_i=|\vec k_r|\cos\theta_r$.
+- **Proposed correction:** Use $\sin\theta$ if the angles are measured from the boundary normal.
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** The geometric argument supports the proposal, but the source expression is clear.
 
-For angles measured from the normal, the tangential (along-boundary) projection is instead
+### Printed page 25 — waveguide cutoff indexing
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 2, printed page 25
+- **Source:** Integer $n_{\max}$ is used with $n<n_{\max}$ and $n>n_{\max}$ to separate propagating and evanescent modes.
+- **Proposed correction:** State the exact condition $n<D\sigma/(\pi c_0)$, equality as cutoff, and $n>D\sigma/(\pi c_0)$ as evanescence.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** The integer shorthand mishandles exact equality and can omit the highest propagating integer mode.
 
-```tex
-|\vec k_i|\sin\theta_i=|\vec k_r|\sin\theta_r.
-```
+### Printed pages 27--28 — low-impedance reflection called a solid boundary
+- **Category:** `editorial`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 2, printed pages 27--28
+- **Source:** The $R\to-1$ low-transmitted-impedance pressure-reflection limit is described as consistent with a solid boundary.
+- **Proposed correction:** Describe $R=-1$ as pressure-release/soft rather than rigid/solid, and clarify that $T\to2$ is a pressure-amplitude coefficient.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** Rigid pressure reflection has $R=+1$ under the stated convention.
 
-This is also the component that must match so the incident and reflected phases have the same dependence along the solid boundary. Together with
+## Chapter 3
 
-```tex
-|\vec k_i|=|\vec k_r|=\sigma/c_0,
-```
+### Printed page 54 — shorthand late-time envelope
+- **Category:** `editorial`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 3, printed page 54
+- **Source:** $\eta(x,t\to\infty)=t$.
+- **Proposed correction:** Describe the asymptotic envelope as $O(t)$ growth.
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** The source equality is dimensional shorthand, but changing it alters the historical text.
 
-it gives the source's stated result `theta_r=theta_i`. The reconstruction therefore uses `sin` and the redrawn figure constructs the boundary normal exactly perpendicular to the wall, with the two wavevectors exactly symmetric about that normal.
+### Printed page 49 — finite-depth linear limit called deep water
+- **Category:** `editorial`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 3, printed page 49
+- **Source:** The regime $\epsilon\ll1$, $\delta=1$ is described as deep water.
+- **Proposed correction:** Call this the linear finite-depth regime.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** With $\delta=D/L$, $\delta=O(1)$ is not the asymptotic deep-water limit.
+
+### Printed pages 51--52 — generic stationary-phase amplitude treated as real
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 3, printed pages 51--52
+- **Source:** The generic stationary-phase expression treats $\bar\eta_0(k_0)$ as a real multiplicative amplitude.
+- **Proposed correction:** Retain its complex phase, e.g. through a real-part expression.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** For arbitrary real initial data the Fourier transform is generally complex.
+
+### Printed pages 57 and 59 — bottom kinematic and Leibniz signs
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 3, printed pages 57 and 59
+- **Source:** The bottom kinematic condition and matching lower-limit term use the opposite sign from $w=-(D_t+uD_x+vD_y)$.
+- **Proposed correction:** Reverse both intermediate signs consistently.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** The two apparent sign errors cancel in the displayed integrated-energy result.
+
+### Printed page 57 — local gravitational-energy time derivative
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 3, printed page 57
+- **Source:** The derivation replaces $\rho g w$ by a time derivative of $\rho g z$ using $w=z_t$.
+- **Proposed correction:** Distinguish material and Eulerian derivatives.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** $w=Dz/Dt$ is a parcel derivative; the later period-averaged results remain correct.
+
+### Printed page 59 — gravity retained after hydrostatic pressure subtraction
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 3, printed page 59
+- **Source:** The perturbation vertical momentum equation retains an explicit $-g$ after hydrostatic pressure is split off.
+- **Proposed correction:** Remove the duplicated gravitational term.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** The hydrostatic background pressure gradient already balances gravity.
+
+### Printed page 60 — slowly varying current amplitude from energy conservation
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 3, printed page 60
+- **Source:** Wave-amplitude evolution on a slowly varying current is described using ordinary wave-energy conservation.
+- **Proposed correction:** Use wave-action conservation $E/\sigma'$ where appropriate.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** Wave energy can exchange with the mean flow in a spatially varying current.
 
 ## Chapter 4
 
-### Printed page 90 - reflected vertical-wavenumber ratio
+### Printed page 69 — pressure symbol used instead of density perturbation
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 4, printed page 69
+- **Source:** $u_t=-g p\sin\theta/\rho_0$.
+- **Proposed correction:** $u_t=-g\rho\sin\theta/\rho_0$.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** Only the density-perturbation form combines with the following density equation to produce $u_{tt}+N^2\sin^2\theta\,u=0$; the source scan clearly prints $p$.
 
-The reflection geometry on pages 88--90 fixes the two wavevector directions by
+### Printed pages 73--75 — zero-group-speed endpoints called energy propagation
+- **Category:** `editorial`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 4, printed pages 73--75
+- **Source:** Exact $\sigma=N$ and $\sigma=f$ endpoints are described as directions of “energy propagation.”
+- **Proposed correction:** Describe them as limiting direction/cone cases because $|\vec c_g|=0$ at the exact endpoints.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** The source's own group-speed expression gives zero at those endpoints.
 
-```tex
-m_i=Rk_i,
-\qquad
-m_r=-Rk_r,
-```
+### Printed page 90 — reflected vertical-wavenumber ratio
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 4, printed page 90
+- **Source:** $m_r=\pm m_i[(1+aR)/(1-aR)][(R+a)/(R-a)]$.
+- **Proposed correction:** $m_r=-m_i(1+aR)/(1-aR)$.
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** The surrounding relations imply the proposed result, but the source expression is unambiguous.
 
-while conservation of the component along the sloping wall gives
-
-```tex
-\frac{k_r}{k_i}=\frac{1+aR}{1-aR}.
-```
-
-These relations imply directly
-
-```tex
-m_r=-m_i\frac{1+aR}{1-aR}.
-```
-
-The typeset source instead prints an additional factor,
-
-```tex
-m_r=\pm m_i
-\frac{1+aR}{1-aR}
-\frac{R+a}{R-a}.
-```
-
-That extra factor is incompatible with the characteristic directions `m=+/- R k` stated on page 88 and with the wavevector sketch immediately preceding the formula. The reconstruction retains the historical source expression in the page note, but uses the relation implied by the source's own characteristic geometry as the corrected form.
+### Printed page 90 — signed versus magnitude wavenumber ratio
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 4, printed page 90
+- **Source:** $|\vec k_r|=|\vec k_i|(1+aR)/(1-aR)$.
+- **Proposed correction:** Use a signed component relation or an absolute value for magnitude if supercritical slopes are included.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** The printed magnitude factor becomes negative for $aR>1$.
 
 ## Chapter 5
 
-### Printed page 110 - "free periods" followed by squared frequencies
+### Printed page 98 — sign of the rotating effective potential
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 5, printed page 98
+- **Source:** $gr+\tfrac12\Omega^2r^2\cos^2\theta$.
+- **Proposed correction:** $gr-\tfrac12\Omega^2r^2\cos^2\theta$ for the effective potential whose negative gradient gives gravity plus centrifugal acceleration.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** The sign implied by the laboratory free-surface paraboloid differs from the printed potential.
 
-The source says that the Neumann eigenproblem "results in a sequence of free periods" and then lists
+### Printed page 102 — “Bousinesq”
+- **Category:** `typographical`
+- **Status:** `minor-typo-correction`
+- **Location:** Chapter 5, printed page 102
+- **Source:** “Bousinesq approximation”
+- **Reconstruction:** “Boussinesq approximation”
+- **Reason/evidence:** Unambiguous spelling correction only.
 
-```tex
-\sigma_1^2,\;\sigma_2^2,\;\sigma_3^2,\ldots
-```
+### Printed page 110 — “free periods” followed by squared frequencies
+- **Category:** `editorial`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 5, printed page 110
+- **Source:** “a sequence of free periods $\sigma_1^2,\sigma_2^2,\sigma_3^2,\ldots$”.
+- **Proposed correction:** “a sequence of squared free frequencies”.
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** $\sigma$ is angular frequency and the displayed eigenvalues are $\sigma_n^2$.
 
-The surrounding derivation has consistently used `sigma` for angular frequency and `T=2 pi/sigma` for period. The listed quantities are therefore squared eigenfrequencies, not periods. The reconstruction changes only the noun, reading "a sequence of free frequencies" while preserving the displayed symbols and the rest of the source sentence.
+### Printed page 110 — omitted Neumann zero mode
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 5, printed page 110
+- **Source:** The Neumann Helmholtz problem is described as having a positive lowest squared free frequency.
+- **Proposed correction:** Note the constant $\sigma=0$ mode unless fixed volume/zero mean is imposed.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** The Neumann Laplacian admits a constant eigenfunction.
 
-### Printed page 113 - reversed depth and cross-step-wavenumber labels in the critical-angle argument
+### Printed page 111 — “Lamb (1832)”
+- **Category:** `reference`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 5, printed page 111
+- **Source:** “Lamb (1832)”
+- **Proposed correction:** “Lamb (1932)”
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** Horace Lamb lived 1849–1934 and the sixth edition of *Hydrodynamics* is 1932, but changing a historical citation year is substantive bibliographic editing.
 
-At the end of page 112 the source changes the problem from incidence from the deep side (`D_2`) to incidence from the shallow side (`D_1`), with `D_1 < D_2`. For this reversed problem the incident and transmitted total wavenumbers must therefore be
+### Printed page 113 — reversed depth and cross-step-wavenumber labels
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 5, printed page 113
+- **Source:** The reversed shallow-side-incidence case carries over $\sin\alpha_I'=(D_2/D_1)^{1/2}$ and subsequent $k_1$ labels.
+- **Proposed correction:** $\sin\alpha_I'=(D_1/D_2)^{1/2}$, $\ell=\sigma/(gD_2)^{1/2}=K_T$, and $k_2^2<0$ beyond critical incidence.
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** Snell's law for shallow-side incidence gives the proposed depth ratio.
 
-```tex
-K_I=\frac{\sigma}{(gD_1)^{1/2}},
-\qquad
-K_T=\frac{\sigma}{(gD_2)^{1/2}}.
-```
+### Printed page 113 — reversed-incidence amplitude coefficients
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 5, printed page 113
+- **Source:** On reversing incidence, the text says reflected and transmitted amplitudes are “still given by the above formulas.”
+- **Proposed correction:** State that the matching form is retained only after interchanging incident/transmitted region labels.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** Direct rematching gives $A_R/A_I=(D_1k_1-D_2k_2)/(D_1k_1+D_2k_2)$ and $A_T/A_I=2D_1k_1/(D_1k_1+D_2k_2)$.
 
-At the critical angle, Snell's law gives
+### Printed page 116 — “waves modes”
+- **Category:** `typographical`
+- **Status:** `minor-typo-correction`
+- **Location:** Chapter 5, printed page 116
+- **Source:** “an infinite set of waves modes”
+- **Reconstruction:** “an infinite set of wave modes”
+- **Reason/evidence:** Unambiguous grammatical correction only.
 
-```tex
-K_I\sin\alpha_I'=K_T,
-```
+### Printed page 117 — shelf-scattering amplitude denominator
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 5, printed page 117
+- **Source:** $A=C\,i2D_2k_2/[iD_2k_2\cos(k_1L)-D_1k_1\sin(k_1L)]$.
+- **Proposed correction:** Replace the minus sign in the denominator by plus.
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** Eliminating $B$ from the preceding matching equations gives the proposed plus sign.
 
-so the physically admissible result is
+### Printed page 120 — reflection coefficient
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 5, printed page 120
+- **Source:** The typeset fraction is the inverse of $(\sigma k+i f\ell)/(\sigma k-i f\ell)$.
+- **Proposed correction:** $a_r/a_i=(\sigma k+i f\ell)/(\sigma k-i f\ell)$.
+- **Canonical reconstruction:** Restored to the typeset historical source pending human approval.
+- **Reason/evidence:** The proposed form follows from the wall boundary condition and agrees with a handwritten correction, but the handwritten mark is not human approval for this digital edition.
 
-```tex
-\sin\alpha_I'=\left(\frac{D_1}{D_2}\right)^{1/2}<1.
-```
+### Printed page 120 — inertial-oscillation velocity sign
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 5, printed page 120
+- **Source:** After $u_t-fv=0$ and $v_t+fu=0$, the source gives $u=\cos(ft)$ and $v=\sin(ft)$.
+- **Proposed correction:** $v=-\sin(ft)$ for the stated equations and initial condition.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** Direct substitution supports the proposed sign.
 
-The source page instead typesets `(D_2/D_1)^{1/2}`, apparently carrying the previous deep-side-incidence labels into the reversed problem. That expression is greater than one when `D_1<D_2` and is incompatible with the same page's statement that a real critical incidence angle exists.
+### Printed page 122 — Kelvin-wave propagation direction
+- **Category:** `editorial`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 5, printed page 122
+- **Source:** For the ocean on $x<0$, the source says the wave propagates in the “$+x$ direction.”
+- **Proposed correction:** “$+y$ direction.”
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** The propagating phase is $\exp(i\ell y)$; $x$ controls offshore decay.
 
-For the same reason, at criticality the consistent relation is
+### Printed page 126 — “simply be having”
+- **Category:** `typographical`
+- **Status:** `minor-typo-correction`
+- **Location:** Chapter 5, printed page 126
+- **Source:** “one free mode is obtained simply be having ...”
+- **Reconstruction:** “one free mode is obtained simply by having ...”
+- **Reason/evidence:** Unambiguous grammatical correction only.
 
-```tex
-\ell=\frac{\sigma}{(gD_2)^{1/2}}=K_T,
-```
+### Printed page 129 — coordinate phase speeds described as components
+- **Category:** `editorial`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 5, printed page 129
+- **Source:** $c_x=\sigma/k$ and $c_y=\sigma/\ell$ are described as though they were vector components.
+- **Proposed correction:** Clarify that these are coordinate-axis phase-plane intersection speeds; vector phase velocity is $\sigma\vec k/|\vec k|^2$.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** Chapter 1 already distinguishes the scalar coordinate speed from the true vector component.
 
-and beyond critical incidence it is the transmitted deep-water cross-step wavenumber `k_2` that becomes imaginary:
+### Printed page 130 — “aditional”
+- **Category:** `typographical`
+- **Status:** `minor-typo-correction`
+- **Location:** Chapter 5, printed page 130
+- **Source:** “aditional”
+- **Reconstruction:** “additional”
+- **Reason/evidence:** Unambiguous spelling correction only.
 
-```tex
-k_2^2=K_T^2-\ell^2<0.
-```
+### Printed page 131 — “plane wave sloution”
+- **Category:** `typographical`
+- **Status:** `minor-typo-correction`
+- **Location:** Chapter 5, printed page 131
+- **Source:** “plane wave sloution”
+- **Reconstruction:** “plane wave solution”
+- **Reason/evidence:** Unambiguous spelling correction only.
 
-The source page writes `k_1=0` and then `k_1^2<0`; those labels are also inherited from the preceding incidence direction. The reconstruction uses the relabeled, internally consistent form and records the historical typesetting here.
+### Printed page 131 — implicit zonal-wave restriction
+- **Category:** `editorial`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 5, printed page 131
+- **Source:** “Thus, in a westward propagating wave,” followed by $u=-i\ell\psi=0$.
+- **Proposed correction:** Add the qualifier $\ell=0$.
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** $u=0$ requires $\ell=0$.
 
-### Printed page 116 - "waves modes"
+### Printed page 131 — Rossby-wave group direction stated too generally
+- **Category:** `editorial`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 5, printed page 131
+- **Source:** The text broadly states that a westward-going Rossby wave transmits energy eastward.
+- **Proposed correction:** Restrict the statement to the relevant nearly/purely zonal short-wave geometry.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** $c_{gx}=\beta(k^2-\ell^2)/(k^2+\ell^2)^2$ can have either sign.
 
-The source sentence reads "an infinite set of waves modes". This is a straightforward grammatical/typesetting error; the reconstruction reads **"an infinite set of wave modes"**. No scientific meaning is changed.
+### Printed page 140 — “equations of motions”
+- **Category:** `typographical`
+- **Status:** `minor-typo-correction`
+- **Location:** Chapter 5, printed page 140
+- **Source:** “The equations of motions become”
+- **Reconstruction:** “The equations of motion become”
+- **Reason/evidence:** Unambiguous grammatical correction only.
 
-### Printed page 117 - shelf-scattering amplitude denominator
+### Printed page 141 — $f_0$ in the equatorial-validity sentence
+- **Category:** `editorial`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 5, printed page 141
+- **Source:** After $f_0\to0$ and $f=\beta y$, the source says one cannot move to regions where “$f_0$ becomes large.”
+- **Proposed correction:** Replace that occurrence by $f$.
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** $f_0$ is a constant reference value; $f=\beta y$ grows away from the equator.
 
-The source first gives the matching equations
+### Printed page 142 — $m$ called a wavenumber
+- **Category:** `editorial`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 5, printed page 142
+- **Source:** “For given wavenumbers $m$ and $k$ ...”
+- **Proposed correction:** “For given mode number $m$ and wavenumber $k$ ...”
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** $m=0,1,2,\ldots$ is the discrete Hermite mode index.
 
-```tex
-A\cos k_1L=B+C,
-```
+### Printed page 142 — inconsistent constant-order high-wavenumber asymptotic
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 5, printed page 142
+- **Source:** From $\omega^2-\lambda^2-\lambda/\omega=2m+1$, the source drops $\lambda/\omega$ but retains other $O(1)$ terms.
+- **Proposed correction:** Retain consistent constant-order terms or state only the leading $\omega\sim\pm\lambda$ asymptote.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** If $s=\omega/\lambda\to\pm1$, then $\omega^2-\lambda^2\sim2m+1+1/s$.
 
-and
+### Printed page 146 — local meridional phase with variable wavenumber
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 5, printed page 146
+- **Source:** $v=v_0(y)\exp[-i\sigma t+ikx+i\ell(y)y]$ while treating $\ell(y)$ as local meridional wavenumber.
+- **Proposed correction:** Use $\exp[i\int^y\ell(y')\,dy']$.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** Differentiating $\ell(y)y$ gives $\ell+y\ell_y$, not the assumed local wavenumber $\ell$.
 
-```tex
--D_1k_1A\sin k_1L=iD_2k_2(B-C).
-```
+### Printed pages 146--147 — ray direction identified with wavevector direction
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 5, printed pages 146--147
+- **Source:** The ray path is defined by $dy/dx=\ell/k$ while retaining the $-\beta k/\sigma$ term in the local dispersion relation.
+- **Proposed correction:** Use the group-velocity ray slope $2\ell/(2k+\beta/\sigma)$ and propagate that change consistently through the ray construction.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** Rays follow group velocity under the chapter's earlier ray-theory definition.
 
-Eliminating `B` directly from those equations gives
-
-```tex
-A=C\frac{i\,2D_2k_2}
-        {iD_2k_2\cos k_1L+D_1k_1\sin k_1L}.
-```
-
-The subsequent typeset expression on the source page instead shows a minus sign before the `D_1 k_1 sin(k_1 L)` term. The reconstructed equation uses the algebraically consistent plus sign and retains this note rather than silently changing the source.
-
-### Printed page 120 - reflection coefficient
-
-The typeset source prints the reflected/incident amplitude ratio with numerator and denominator reversed. A handwritten annotation on the source page says that it should instead be
-
-```tex
-\frac{a_r}{a_i}=\frac{\sigma k+i f\ell}{\sigma k-i f\ell}.
-```
-
-This corrected form follows independently from the immediately preceding wall boundary condition
-
-```tex
--i\sigma(ika_i-ika_r)+f(i\ell a_i+i\ell a_r)=0.
-```
-
-It also has unit magnitude for real `sigma`, `f`, `k`, and `ell`, consistent with the text's statement that reflection changes phase but not amplitude magnitude.
-
-### Printed page 122 - Kelvin-wave propagation direction
-
-For a wall occupying `x=0`, the Kelvin solution has phase dependence `exp(i ell y)`. The source correctly states that for the ocean on `x>0`, decay requires `ell<0`, so the wave propagates in the `-y` direction. It then considers the ocean on `x<0`, for which decay requires `ell>0`, but describes the propagation as the `+x` direction. Because `ell` is the along-wall `y` wavenumber and the preceding derivation contains no propagating `x` phase, this should read **`+y` direction**.
-
-The reconstruction uses `+y` and records the source wording here.
-
-### Printed page 126 - "simply be having"
-
-The source sentence reads "one free mode is obtained simply be having an integral number of Kelvin wavelengths around the circumference." The reconstruction changes **"be"** to **"by"**. This is a grammatical correction only.
-
-### Printed page 130 - "aditional"
-
-The source reads "the aditional north-south motion generated by the vorticity". The reconstruction reads "the additional north-south motion". This is a spelling correction only.
-
-### Printed page 131 - "plane wave sloution"
-
-The source reads "for a plane wave sloution". The reconstruction reads "for a plane wave solution". This is a spelling correction only.
-
-### Printed page 131 - zonal-wave shorthand in the velocity example
-
-The source first gives the general nondivergent plane-wave condition
-
-```tex
-(ik\hat i+i\ell\hat j)\cdot\vec u=0,
-```
-
-then says "Thus, in a westward propagating wave" and writes
-
-```tex
-v=ik\psi,
-\qquad
-u=-i\ell\psi=0.
-```
-
-The final equality `u=0` requires `ell=0`; it is therefore the purely zonal westward example, not an arbitrary westward Rossby wave. This is consistent with the earlier `ell=0` discussion on page 129, but the wording on page 131 does not repeat that restriction. The reconstruction preserves the source wording and formula and records the implicit assumption here rather than altering the derivation.
-
-### Printed page 140 - "equations of motions"
-
-The source reads "The equations of motions become". The intended grammatical form is **"The equations of motion become"**. This does not alter the equations.
-
-### Printed page 141 - `f_0` in the equatorial-validity sentence
-
-After setting `f_0 -> 0` and adopting the equatorial approximation `f = beta y`, the source says that the decay boundary condition is needed because "we cannot move to regions where `f_0` becomes large." The constant reference value `f_0` cannot grow with `y`; it is the retained Coriolis parameter `f = beta y` that grows away from the equator. The reconstruction therefore reads **`f` becomes large**.
-
-### Printed page 142 - `m` called a wavenumber
-
-The source says "For given wavenumbers `m` and `k`, three frequencies are generally specified." Here `m` is the discrete Hermite **mode number**, while `k` is the zonal wavenumber. The reconstruction reads **"For given mode number `m` and wavenumber `k`"**.
-
-### Printed page 147 - turning coordinate written as `theta_T`
-
-The source calls the trapping locations `+/- theta_T` and writes
-
-```tex
-\pm\theta_T
-=\pm\frac{(gD)^{1/2}k}{\beta}\tan\theta_0.
-```
-
-With beta measured per unit meridional distance, the right-hand side has dimensions of length. The immediately following bound is also written in the distance coordinate `y`,
-
-```tex
--\sigma/\beta \le y \le \sigma/\beta.
-```
-
-The reconstructed equation therefore denotes the turning coordinate by **`y_T`**. If `theta_T` were intended literally as angular latitude, an additional conversion by the Earth's radius would be required. The original globe sketch is retained and still labels the conceptual trapping latitudes `+/- theta_T`.
-
-### Chapter 5 section numbering in the contents
-
-The source contents list `5.5 Kelvin waves` after section `5.7 Sverdrup and Poincare waves`. The actual heading printed on page 121 is `5.8 Kelvin waves`, confirming that the table-of-contents entry is a numbering typo. The reconstruction follows the heading printed on the chapter page.
+### Printed page 147 — turning coordinate written as $\theta_T$
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 5, printed page 147
+- **Source:** $\pm\theta_T=\pm[(gD)^{1/2}k/\beta]\tan\theta_0$.
+- **Proposed correction:** Write the turning coordinate as $y_T$.
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** With $\beta$ defined per unit meridional distance, the right side has dimensions of length.
 
 ## Chapter 6
 
-### Printed page 160 - "discrete frequencies" versus discrete cross-shelf modes
+### Printed page 159 — modal maximum differentiated at fixed cross-shelf wavenumber
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 6, printed page 159
+- **Source:** The branch maximum is found from $\partial\sigma/\partial\ell=0$ treating $k$ as fixed, giving $\ell=-(k^2+b^2)^{1/2}$.
+- **Proposed correction:** Differentiate along the matched modal branch $k=k_n(\ell)$, giving $k^2+b^2-\ell^2=2\ell k\,dk_n/d\ell$.
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** The boundary condition $\tan(kL)=k/(\ell-b)$ constrains $k$ along each discrete branch.
 
-The source says that "continental shelf waves occur at discrete frequencies whereas Rossby waves form a continuum." In the derivation, however, the alongshore wavenumber `ell` remains continuous and each discrete cross-shelf eigenmode has a dispersion branch `sigma_n(ell)`. Thus the coast discretizes the **cross-shelf modal index/eigenstructure**, not frequency globally. The reconstruction reads "continental shelf waves have discrete cross-shelf modes whereas unbounded Rossby waves form a continuum."
+### Printed pages 163--164 — condition on the short-wave coastal-trapped asymptote
+- **Category:** `editorial`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 6, printed pages 163--164
+- **Source:** $\lim_{\ell\to-\infty}\omega=S\max[D_x]$, followed by the statement that if $S\max[D_x]>1$ the free subinertial branches reach $\omega=1$.
+- **Proposed correction:** Qualify the asymptote to distinguish the $S\max[D_x]<1$ case from inertial cutoff.
+- **Canonical reconstruction:** Follows the historical source pending human approval.
+- **Reason/evidence:** If the formal estimate exceeds unity, the subinertial branch reaches the inertial limit first.
 
-### Printed page 167 - sign of the strong-stratification Kelvin-wave limit
+### Printed page 160 — “discrete frequencies” versus discrete cross-shelf modes
+- **Category:** `editorial`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 6, printed page 160
+- **Source:** “continental shelf waves occur at discrete frequencies whereas Rossby waves form a continuum”.
+- **Proposed correction:** “continental shelf waves have discrete cross-shelf modes whereas unbounded Rossby waves form a continuum”.
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** Alongshore wavenumber remains continuous and each mode has a dispersion branch $\sigma_n(\ell)$.
 
-The source states immediately before the dispersion relation that `ell < 0` in the adopted coastal orientation and the accompanying dispersion sketch shows positive frequency with mode labels `n=1,2,...`. The surface condition applied to
-
-```tex
-p=e^{\ell\xi/\omega}
-  \cos\left[\frac{\ell}{\omega}(\eta+S)\right]
-```
-
-gives
-
-```tex
-\frac{\ell S}{\omega}=q\pi
-```
-
-for an integer `q`. To label the positive-frequency branches with positive mode index `n=1,2,...` when `ell<0`, take `q=-n`, giving
-
-```tex
-\omega=-\frac{S\ell}{n\pi} > 0.
-```
-
-The source prints `omega = S ell/(n pi)` without the minus sign. That form can only be reconciled by allowing a negative integer mode label, contrary to the positive labels used in the figure. The reconstruction uses the positive-frequency form with the minus sign and records the source reading here.
+### Printed page 167 — sign of the strong-stratification Kelvin-wave limit
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 6, printed page 167
+- **Source:** $\omega=S\ell/(n\pi)$ with $n=1,2,\ldots$.
+- **Proposed correction:** $\omega=-S\ell/(n\pi)$ under the preceding $\ell<0$ positive-frequency convention.
+- **Canonical reconstruction:** Restored to the historical source pending human approval.
+- **Reason/evidence:** Applying the displayed surface condition gives the proposed sign for positive mode labels, but the source form is unambiguous.
 
 ## References
 
-### Printed page 172 - Bjerknes title spelling
-
-The source prints the German title as **"Die Theorie der Aussertropischen Zyklonenbuildung."** The correct German word, and the form used in the reconstruction, is **"Zyklonenbildung."** This is a bibliographic spelling correction only.
-
-## Migrated audit notes still requiring explicit schema normalization
-
-The former per-chapter audit documents contained a mixture of confirmed-no-change checks and deviations. Confirmed-no-change derivation checks were intentionally not copied here. The following source deviations were called out there and should remain visible during future review:
-
-- **Chapter 2, printed p.19 — adiabatic entropy derivative.** Category: `equation`; status: `accepted`. Source prints `\partial S/\partial t=0`; reconstruction uses material conservation `DS/Dt=0`, consistent with the immediately following material-derivative equations.
-- **Chapter 2, printed p.19 — “infinitesmal”.** Category: `typographical`; status: `accepted`. Reconstruction uses “infinitesimal”.
-- **Chapter 3, printed p.54 — shorthand late-time envelope.** Category: `editorial`; status: `accepted`. The source shorthand `eta(x,t->infinity)=t` is rendered as an `O(t)` envelope statement; retain source wording/evidence if revisited.
-- **Chapter 4, printed p.68 — “f-plane approrimation”.** Category: `typographical`; status: `accepted`. Reconstruction uses “f-plane approximation”.
-- **Chapter 4, printed p.86 — pressure derivative transcription.** Category: `transcription`; status: `accepted`. High-resolution source read is `rho_0 w_{zt}=p_{xx}`; an earlier reconstruction incorrectly had `w_{xtt}`.
-- **Chapter 5, printed p.102 — “Bousinesq”.** Category: `typographical`; status: `accepted`. Reconstruction uses “Boussinesq”.
-
-Continue normalizing older entries to the explicit metadata format when they are touched; do not create `verification.tsv` or separate chapter errata files.
+### Printed page 172 — Bjerknes title spelling
+- **Category:** `reference`
+- **Status:** `minor-typo-correction`
+- **Location:** References, printed page 172
+- **Source:** “Die Theorie der Aussertropischen Zyklonenbuildung.”
+- **Reconstruction:** “Die Theorie der Aussertropischen Zyklonenbildung.”
+- **Reason/evidence:** Unambiguous spelling correction of `Zyklonenbildung`; no scientific or bibliographic identity changes.

@@ -1,9 +1,7 @@
-% ===== merged from chapter02-p018-025.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 2, printed pages 18--25.
-% Source authority: ChapmanRizzoli0_2.pdf, physical pages 28--35.
-% Prose, equations, headings, figures, and page breaks are transcribed from source.
-% Unambiguous technical/typographic corrections are recorded in ERRATA.md.
+% Wave Motions in the Ocean: Myrl's View
+% Chapter 2; historical source: source/ChapmanRizzoli0_2.pdf.
+% Source-page comments preserve printed/physical page correspondence.
+% Suspected substantive source errors are documented in ERRATA.md; source text is retained unless explicitly human-approved.
 
 \setcounter{chapter}{1}
 \setcounter{page}{18}
@@ -40,7 +38,7 @@ momentum and continuity equations are
 % -----------------------------------------------------------------------------
 An equation relating density and pressure may be obtained from the first law of
 thermodynamics (Batchelor, 1967; Chapter 3). It can be shown that, if
-$\rho^*=\rho^*(p^*,T)$ and the motions are adiabatic so that $DS/Dt=0$ where $S$ is
+$\rho^*=\rho^*(p^*,T)$ and the motions are adiabatic so that $\partial S/\partial t=0$ where $S$ is
 the entropy, then $\rho^*=\rho^*(p^*,S)$ and
 \[
  \left(\frac{D\rho^*}{Dt}\right)_S
@@ -70,9 +68,9 @@ where
  c^2=\left(\frac{\partial\rho^*}{\partial p^*}\right)_S^{-1}.
 \]
 After eliminating $\vec u$ and $\rho$ in favor of $p$, we obtain
-\[
+\begin{waveequation}
  \frac{\partial^2p}{\partial t^2}-c^2\nabla^2p=0.
-\]
+\end{waveequation}
 We recognize this as a wave equation which was listed in Chapter 1. It is easy to show
 that the other variables $\rho,u,v,w$ each satisfy a similar equation.
 
@@ -85,9 +83,9 @@ that the other variables $\rho,u,v,w$ each satisfy a similar equation.
 
 Consider a homogeneous medium; $c(\vec x,t)=c_0$. Then
 $p=a e^{-i\sigma t+ikx+i\ell y+imz}$ solves the wave equation provided
-\[
+\begin{waveequation}
  \sigma^2=c_0^2(k^2+\ell^2+m^2)
-\]
+\end{waveequation}
 which is the dispersion relation. For fixed $\sigma$, the locus of allowed wavenumbers in
 $k,\ell,m$ space is a sphere of radius $\sigma/c_0$. All wavenumbers
 $\vec k=k\hat i+\ell\hat j+m\hat k$ extending from the center of this sphere to its
@@ -156,7 +154,7 @@ approaches along $\vec k_i$ while the reflected energy travels along $\vec k_r$.
 If $p_{inc}$ and $p_{ref}$ are to sum such that $p=p_{inc}+p_{ref}$ satisfies
 $\partial p/\partial n=0$ at the solid boundary, then we must have
 \[
- |\vec k_i|\sin\theta_i=|\vec k_r|\sin\theta_r,
+ |\vec k_i|\cos\theta_i=|\vec k_r|\cos\theta_r,
 \]
 i.e., the projection of the incident wavenumber on the boundary must equal the
 projection of the reflected wavenumber on the boundary. But we know that
@@ -180,7 +178,7 @@ a second boundary.
 % -----------------------------------------------------------------------------
 % Source printed page 23 / physical page 33
 % -----------------------------------------------------------------------------
-\sourceart[0.70]{ChapmanRizzoli0_2.pdf}{33}{100bp 420bp 90bp 95bp}
+% Vector reconstruction; source PDF ChapmanRizzoli0_2.pdf, physical page 33, trim=100bp 420bp 90bp 95bp.\n\wavevectorart[0.70]{ch02-p023-waveguide-boundary-problem}
 
 Now the field equation is still valid in the interior of the channel, but the free waves
 must satisfy $\partial p/\partial z=0$ on both boundaries, at $z=0,-D$. To find a
@@ -202,10 +200,10 @@ This equation has the solution
  P(z)=\cos n\pi z/D
 \]
 provided that
-\[
+\begin{waveequation}
  \sigma^2/c_0^2=k^2+\ell^2+n^2\pi^2/D^2,
  \qquad n=0,1,2,\ldots
-\]
+\end{waveequation}
 
 \sourcepagebreak
 
@@ -238,7 +236,7 @@ The horizontal group velocity $\partial\sigma/\partial k$, $\partial\sigma/\part
 It is parallel to the horizontal wavenumber $k\hat i+\ell\hat j$ but not equal to the
 phase velocity.
 
-\sourceart[0.46]{ChapmanRizzoli0_2.pdf}{34}{145bp 125bp 170bp 455bp}
+% Vector reconstruction; source PDF ChapmanRizzoli0_2.pdf, physical page 34, trim=145bp 125bp 170bp 455bp.\n\wavevectorart[0.58]{ch02-p024-waveguide-dispersion}
 
 The $n=0$ mode actually is nondispersive.
 
@@ -278,19 +276,12 @@ We have considered the effect of a solid boundary on the propagation of sound wa
 Suppose, however, that a plane wave encounters a boundary between two fluids at which
 the properties change abruptly, i.e. a discontinuity.
 
-% ===== merged from chapter02-p026-033.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 2, printed pages 26--33.
-% Source authority: ChapmanRizzoli0_2.pdf, physical pages 36--43.
-% Source prose, equations, figures, and page breaks are retained. Straightforward
-% language/typographic corrections are recorded in CHAPTER2_AUDIT.md.
-
 \setcounter{page}{26}
 
 % -----------------------------------------------------------------------------
 % Source printed page 26 / physical page 36
 % -----------------------------------------------------------------------------
-\sourceart[0.84]{ChapmanRizzoli0_2.pdf}{36}{80bp 515bp 75bp 55bp}
+% Vector reconstruction; source PDF ChapmanRizzoli0_2.pdf, physical page 36, trim=80bp 515bp 75bp 55bp.\n\wavevectorart[0.84]{ch02-p026-interface-scattering}
 
 This discontinuity could represent the air-sea interface or the ocean bottom (which is
 not truly a solid boundary because it transmits sound waves). In both cases the
@@ -335,14 +326,14 @@ condition to
  =\frac{1}{\rho_2c_2}T\cos\theta_T.
 \]
 These can be combined to yield
-\[
+\begin{waveequation}
  R=\frac{\rho_2c_2\cos\theta_I-\rho_1c_1\cos\theta_T}
         {\rho_2c_2\cos\theta_I+\rho_1c_1\cos\theta_T}
-\]
-\[
+\end{waveequation}
+\begin{waveequation}
  T=\frac{2\rho_2c_2\cos\theta_I}
         {\rho_2c_2\cos\theta_I+\rho_1c_1\cos\theta_T}.
-\]
+\end{waveequation}
 Identical expressions for $R$ and $T$ result for the downward propagating incident wave.
 
 We see from these expressions that if the density times the phase speed of the
@@ -373,18 +364,18 @@ This is found by writing the frequency on both sides of the discontinuity as
  \sigma=c_1(k^2+m_1^2)^{1/2}=c_2(k^2+m_2^2)^{1/2}.
 \]
 We can write this in terms of the wave angles since $(k^2+m^2)^{1/2}=k/\sin\theta$. Thus,
-\[
+\begin{waveequation}
  \frac{\sin\theta_I}{c_1}=\frac{\sin\theta_T}{c_2}
-\]
+\end{waveequation}
 which is known as \emph{Snell's Law}. From this we see that, if $c_1<c_2$, then there exists a
 critical angle of incidence
-\[
+\begin{waveequation}
  \theta_{Ic}=\sin^{-1}(c_1/c_2)
-\]
+\end{waveequation}
 beyond which there is total reflection of the incident wave despite the fact that the
 second medium can support sound waves. The boundary is then effectively solid.
 
-\sourceart[0.82]{ChapmanRizzoli0_2.pdf}{38}{80bp 95bp 75bp 535bp}
+% Vector reconstruction; source PDF ChapmanRizzoli0_2.pdf, physical page 38, trim=80bp 95bp 75bp 535bp.\n\wavevectorart[0.82]{ch02-p028-total-internal-reflection}
 
 This is called total internal reflection.
 
@@ -404,9 +395,9 @@ the medium, they can be modelled by body forces $\vec F/\rho_0$ and mass sources
  \rho_t+\rho_0\nabla\cdot\vec u&=Q.
 \end{align*}
 Combining these with $p_t=c^2\rho_t$ yields
-\[
+\begin{waveequation}
  p_{tt}-c^2\nabla^2p=c^2(Q_t-\nabla\cdot\vec F).
-\]
+\end{waveequation}
 We can now consider two types of problems: initial value problems and those forced
 from rest. In both types we solve the homogeneous wave equation while satisfying
 $\partial p/\partial n=0$ on the solid boundaries and requiring outgoing waves at infinity, i.e. a
@@ -518,7 +509,7 @@ interpretable as a specified discontinuity there. So we must solve
 % -----------------------------------------------------------------------------
 % Source printed page 32 / physical page 42
 % -----------------------------------------------------------------------------
-\sourceart[0.78]{ChapmanRizzoli0_2.pdf}{42}{90bp 485bp 80bp 90bp}
+% Vector reconstruction; source PDF ChapmanRizzoli0_2.pdf, physical page 42, trim=90bp 485bp 80bp 90bp.\n\wavevectorart[0.78]{ch02-p032-forced-source-jump}
 
 where $p^L$ and $p^R$ are solutions on the left and right of the discontinuity, respectively.
 Most generally, $p^L$ and $p^R$ are functions of $x\pm ct$. We write them along with the
@@ -594,13 +585,6 @@ We have considered cases in which the speed of sound remains constant in the med
 or changes abruptly at an interface. However, the speed of sound within the ocean
 varies in space because the ocean is not a uniform fluid. In fact the sound speed in the
 
-% ===== merged from chapter02-p034-037.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 2, printed pages 34--37.
-% Source authority: ChapmanRizzoli0_2.pdf, physical pages 44--47.
-% Source prose, equations, figures, and page breaks are retained. Straightforward
-% language corrections are recorded in CHAPTER2_AUDIT.md.
-
 \setcounter{page}{34}
 
 % -----------------------------------------------------------------------------
@@ -670,9 +654,9 @@ with the group velocity, but we will examine the qualitative behavior by conside
 Snell's Law which can be derived in the same manner as for the case of scattering at
 the discontinuity. The frequency can be written in terms of the angle that the
 wavenumber makes with the vertical to obtain
-\[
+\begin{waveequation}
  \frac{\sin\theta_0}{c_0}=\frac{\sin\theta}{c(z)}
-\]
+\end{waveequation}
 or
 \[
  \sin\theta=\frac{c(z)}{c_0}\sin\theta_0
@@ -687,7 +671,7 @@ may also be seen from the ray equations where $-\partial\Omega/\partial z<0$, so
 $m$ must decrease with upward motion. Decreasing $m$ leads to a more horizontal
 propagation path.
 
-\sourceart[0.82]{ChapmanRizzoli0_2.pdf}{46}{80bp 250bp 70bp 465bp}
+% Vector reconstruction; source PDF ChapmanRizzoli0_2.pdf, physical page 46, trim=80bp 250bp 70bp 465bp.\n\wavevectorart[0.82]{ch02-p036-sound-ray-turning}
 
 Similarly if $c$ increases in the deep ocean, sound waves moving downward will be
 turned toward the horizontal.

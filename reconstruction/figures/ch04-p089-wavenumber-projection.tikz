@@ -1,0 +1,12 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=26; trim=170bp 210bp 150bp 345bp
+% Source: Wave Motions in the Ocean, printed p.89 (physical p.26).
+% Exact subcritical construction R=1.25,a=0.32: k_i=(1,R), k_r=q(1,-R), q=(1+aR)/(1-aR), so along-wall phase projections are identical.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
+  \def\R{1.25}\def\a{0.32}\pgfmathsetmacro{\q}{(1+\a*\R)/(1-\a*\R)}
+  \coordinate (O) at (4.10,2.15);
+  \draw[line width=1pt] (0.65,1.05)--(8.55,3.58) node[right] {$z=ax$};
+  \draw[->,line width=.85pt] (O)--++(1.25,1.5625) node[above] {$\vec k_i$};
+  \draw[->,line width=.85pt] (O)--++({0.72*\q},{-0.90*\q}) node[right] {$\vec k_r$};
+  \draw[densely dashed,->] (O)--++(2.25,0.72) node[above right] {wall tangent};
+  \node[align=center] at (4.25,0.45) {$k_i+a m_i=k_r+a m_r$\\$m_i=Rk_i,\quad m_r=-Rk_r$};
+\end{tikzpicture}

@@ -1,7 +1,7 @@
 % wave-source: pdf=ChapmanRizzoli0_2.pdf; page=18; trim=178.08bp 100.08bp 207.84bp 517.92bp
 % Vector redraw of the narrow-band spectrum on printed page 8.
 % Source: ChapmanRizzoli0_2.pdf, physical page 18.
-\begin{tikzpicture}[x=0.82cm,y=0.82cm,>=stealth,line cap=round,line join=round]
+\begin{tikzpicture}[x=0.82cm,y=0.82cm,>=stealth,line cap=round,line join=round,font=\small]
   % Axes as in the original sketch; the vertical axis extends slightly below k=0.
   \draw[line width=0.58pt] (-0.18,0) -- (6.10,0);
   \draw[line width=0.58pt] (0,-0.62) -- (0,4.65);

@@ -1,0 +1,30 @@
+% wave-source: pdf=ChapmanRizzoli6.pdf; page=4; trim=155bp 515bp 145bp 125bp
+% Source: Wave Motions in the Ocean, printed p.151 (physical p.4).
+% Geometry is generated from the stated channel: y=0,L sidewalls, rigid lid z=0,
+% and planar bottom z=-H+alpha y. Perspective is schematic; boundary contacts are exact.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round,line join=round]
+  \coordinate (A) at (0.9,1.2);
+  \coordinate (B) at (7.0,1.2);
+  \coordinate (C) at (8.3,2.4);
+  \coordinate (D) at (2.2,2.4);
+  \coordinate (At) at (0.9,4.15);
+  \coordinate (Bt) at (7.0,4.15);
+  \coordinate (Ct) at (8.3,5.15);
+  \coordinate (Dt) at (2.2,5.15);
+  \fill[white] (A)--(B)--(C)--(D)--cycle;
+  \draw[line width=.9pt] (A)--(B)--(C)--(D)--cycle;
+  \draw[line width=.65pt] (At)--(Bt)--(Ct)--(Dt)--cycle;
+  \draw[densely dashed] (A)--(At) (B)--(Bt) (C)--(Ct) (D)--(Dt);
+  \draw[->,line width=.75pt] (2.0,4.6)--(6.0,4.6) node[midway,above] {$x$};
+  \draw[->,line width=.75pt] (1.45,1.75)--(2.95,3.05) node[above right] {$y$};
+  \draw[->,line width=.75pt] (0.55,1.15)--(0.55,4.45) node[above] {$z$};
+  \node[anchor=east] at (0.78,4.15) {$z=0$};
+  \node[anchor=east] at (0.78,1.2) {$-H$};
+  \node[anchor=west] at (8.45,2.4) {$z=-H+\alpha L$};
+  \node at (1.0,2.45) {$y=0$};
+  \node at (8.0,3.1) {$y=L$};
+  \draw[<->] (7.55,1.45)--(7.55,2.12);
+  \node[anchor=west] at (7.68,1.78) {$\alpha L$};
+  \node at (5.35,4.65) {rigid lid};
+  \node[rotate=11] at (5.1,1.95) {sloping bottom};
+\end{tikzpicture}

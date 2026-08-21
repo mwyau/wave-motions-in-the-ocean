@@ -1,0 +1,11 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=11; trim=150bp 320bp 130bp 230bp
+% Source: Wave Motions in the Ocean, printed p.74 (physical p.11).
+% Endpoint limits for stratification only (f=0).
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \draw[->,line width=0.8pt] (0,0)--(0,3.15);
+  \draw[->,line width=0.8pt] (0,0)--(4.35,0);
+  \node[anchor=west,align=left] at (0.18,2.72) {$\phi=0^\circ$\\$\sigma=N$ (buoyancy oscillations)\\$|\vec c_g|=0$\\wavenumber = arbitrary horizontal, $m=0$};
+  \node[anchor=west,align=left] at (4.05,1.30) {$\phi=90^\circ$\\$\sigma=0$ (steady)\\$|\vec c_g|\ne0$\\wavenumber = vertical, $k=\ell=0$};
+\end{tikzpicture}
+\end{center}

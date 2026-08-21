@@ -1,0 +1,19 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=18; trim=85bp 185bp 75bp 380bp
+% Source: Wave Motions in the Ocean, printed p.81 (physical p.18).
+% Velocity cells use R=D=1, k=pi: u=-sin(pi x)cos(pi(z+1)), w=cos(pi x)sin(pi(z+1)); this is exactly divergence free.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
+  \draw[->] (0.50,1.00)--(8.75,1.00) node[right] {$x$};
+  \draw[->] (0.70,0.55)--(0.70,4.35) node[above] {$z$};
+  \draw[line width=.8pt] (0.70,1.00)--(8.55,1.00) node[right] {$z=-D$};
+  \draw[line width=.8pt] (0.70,4.00)--(8.55,4.00) node[right] {$z=0$};
+  % closed streamlines of psi=-sin(pi x)sin(pi(z+1))/pi, shown schematically but with exact cell boundaries at integer x
+  \foreach \x in {1.7,3.7,5.7,7.7}{\draw[densely dashed] (\x,1.00)--(\x,4.00);}
+  \foreach \cx/\dir in {1.2/1,2.7/-1,4.7/1,6.7/-1,8.2/1}{
+    \draw[->,line width=.7pt] (\cx-0.32,2.50) arc[start angle=180,end angle={180+\dir*280},x radius=.32,y radius=1.05];}
+  % surface flow alternates convergence/divergence
+  \foreach \xa/\xb in {0.95/1.55,2.45/1.85,2.95/3.55,4.45/3.85,4.95/5.55,6.45/5.85,6.95/7.55,8.35/7.85}{\draw[->,line width=.65pt] (\xa,3.82)--(\xb,3.82);}
+  \node[anchor=south] at (1.70,4.03) {convergence};
+  \node[anchor=south] at (3.70,4.03) {convergence};
+  \node[anchor=south] at (5.70,4.03) {convergence};
+  \node at (4.6,0.55) {$n=1$ travelling internal-wave velocity cells};
+\end{tikzpicture}

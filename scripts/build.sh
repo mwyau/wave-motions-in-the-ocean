@@ -2,125 +2,164 @@
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-RECON="$ROOT/reconstruction"
 BUILD="$ROOT/build"
 DIST="$ROOT/dist"
+CACHE=${WAVE_CACHE_DIR:-"$ROOT/.cache/wave-motions"}
+LATEX_CACHE="$CACHE/latex"
 TARGET=${1:-all}
+SKIP_VALIDATION=${WAVE_SKIP_VALIDATION:-0}
 
 case "$TARGET" in
-  pdf|html|all) ;;
-  *) echo "usage: $0 [pdf|html|all]" >&2; exit 2 ;;
+  pdf|html|epub|all) ;;
+  *) echo "usage: $0 [pdf|html|epub|all]" >&2; exit 2 ;;
 esac
 
 need() {
   command -v "$1" >/dev/null 2>&1 || { echo "missing required command: $1" >&2; exit 1; }
 }
-for cmd in latexmk pdflatex pdfinfo pdftotext pdftoppm python3; do need "$cmd"; done
 
-# Some minimal TeX installations expose bibtex8 but not a `bibtex` executable.
-# latexmk expects `bibtex`, so provide a temporary compatibility command.
-TOOLBIN="$BUILD/toolbin"
-mkdir -p "$TOOLBIN"
-if command -v bibtex >/dev/null 2>&1; then
-  BIBTEX_CMD=bibtex
-elif command -v bibtex8 >/dev/null 2>&1; then
-  ln -sf "$(command -v bibtex8)" "$TOOLBIN/bibtex"
-  export PATH="$TOOLBIN:$PATH"
-  BIBTEX_CMD=bibtex
-else
+is_release_build() {
+  [[ "${GITHUB_REF:-}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]] ||
+    [[ "${WAVE_BUILD_VERSION:-}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+}
+
+validation_enabled() {
+  [[ "$SKIP_VALIDATION" != "1" ]] || is_release_build
+}
+
+prepare_bibtex() {
+  # Some minimal TeX installations expose bibtex8 but not a `bibtex` executable.
+  # latexmk expects `bibtex`, so provide a temporary compatibility command only
+  # for PDF builds that can actually invoke the bibliography tool.
+  if command -v bibtex >/dev/null 2>&1; then
+    return
+  fi
+  if command -v bibtex8 >/dev/null 2>&1; then
+    local toolbin="$BUILD/toolbin"
+    mkdir -p "$toolbin"
+    ln -sf "$(command -v bibtex8)" "$toolbin/bibtex"
+    export PATH="$toolbin:$PATH"
+    return
+  fi
   echo "missing required BibTeX executable (bibtex or bibtex8)" >&2
   exit 1
-fi
+}
 
-validate_pdf() {
-  local pdf=$1
-  test -s "$pdf"
-  if command -v qpdf >/dev/null 2>&1; then
-    qpdf --check "$pdf" >/dev/null
-  else
-    # Poppler parse is the local fallback; CI installs qpdf and performs the
-    # stronger structural check.
-    pdfinfo "$pdf" >/dev/null
+prepare_build_info() {
+  python3 "$ROOT/scripts/publication.py" build-info --tex "$BUILD/build-info.tex"
+}
+
+run_latexmk_cached() {
+  local main=$1 kind=$2
+  local out="$LATEX_CACHE/$kind"
+  local base=${main%.tex}
+  local had_state=false
+  [[ -f "$out/$base.fdb_latexmk" ]] && had_state=true
+  mkdir -p "$out"
+
+  if (cd "$ROOT/reconstruction" && latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir="$out" "$main"); then
+    return
   fi
+
+  if [[ "$had_state" == true ]]; then
+    echo "cached latexmk state for $kind failed; retrying clean" >&2
+    rm -rf "$out"
+    mkdir -p "$out"
+    (cd "$ROOT/reconstruction" && latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir="$out" "$main")
+    return
+  fi
+  return 1
 }
 
 build_pdf() {
+  for command in latexmk pdflatex pdfinfo; do need "$command"; done
+  prepare_bibtex
   rm -rf "$BUILD/facsimile" "$BUILD/modern"
-  mkdir -p "$BUILD/facsimile" "$BUILD/modern" "$DIST"
-  rm -f "$DIST/wave-motions-1989-facsimile.pdf" "$DIST/wave-motions-1989-modern.pdf"
+  mkdir -p "$BUILD/facsimile" "$BUILD/modern" "$LATEX_CACHE/facsimile" "$LATEX_CACHE/modern" "$DIST"
+  rm -f "$DIST/wave-motions.pdf" "$DIST/wave-motions-facsimile.pdf" \
+    "$DIST/wave-motions-1989-modern.pdf" "$DIST/wave-motions-1989-facsimile.pdf"
 
-  (
-    cd "$RECON"
-    latexmk -pdf -interaction=nonstopmode -halt-on-error \
-      -outdir="$BUILD/facsimile" main-facsimile.tex
-    latexmk -pdf -interaction=nonstopmode -halt-on-error \
-      -outdir="$BUILD/modern" main-modern.tex
-  )
-
-  cp "$BUILD/facsimile/main-facsimile.pdf" "$DIST/wave-motions-1989-facsimile.pdf"
-  cp "$BUILD/modern/main-modern.pdf" "$DIST/wave-motions-1989-modern.pdf"
-
-  validate_pdf "$DIST/wave-motions-1989-facsimile.pdf"
-  validate_pdf "$DIST/wave-motions-1989-modern.pdf"
+  prepare_build_info
+  run_latexmk_cached main-facsimile.tex facsimile
+  run_latexmk_cached main-modern.tex modern
+  cp "$LATEX_CACHE/facsimile/main-facsimile.pdf" "$DIST/wave-motions-facsimile.pdf"
+  cp "$LATEX_CACHE/modern/main-modern.pdf" "$DIST/wave-motions.pdf"
 
   local fac_pages mod_pages
-  fac_pages=$(pdfinfo "$DIST/wave-motions-1989-facsimile.pdf" | awk '/^Pages:/ {print $2}')
-  mod_pages=$(pdfinfo "$DIST/wave-motions-1989-modern.pdf" | awk '/^Pages:/ {print $2}')
-  test "$fac_pages" = "184" || { echo "facsimile page count is $fac_pages; expected 184" >&2; exit 1; }
-  test "$mod_pages" -gt 0
-
-  ! grep -q "destination with the same identifier" "$BUILD/facsimile/main-facsimile.log"
-  ! grep -q "destination with the same identifier" "$BUILD/modern/main-modern.log"
-
-  pdftotext -layout "$DIST/wave-motions-1989-facsimile.pdf" "$BUILD/facsimile/text.txt"
-  pdftotext -layout "$DIST/wave-motions-1989-modern.pdf" "$BUILD/modern/text.txt"
-  for txt in "$BUILD/facsimile/text.txt" "$BUILD/modern/text.txt"; do
-    grep -Fq "When I volunteered to teach the MIT/WHOI" "$txt"
-    grep -Fq "These notes have been collected and assembled" "$txt"
-  done
-
-  # Renderer sentinels catch gross corruption without producing tracked output.
-  for spec in "facsimile:$fac_pages" "modern:$mod_pages"; do
-    local kind=${spec%%:*}; local pages=${spec##*:}; local middle=$((pages / 2))
-    mkdir -p "$BUILD/$kind/render-check"
-    for p in 1 "$middle" "$pages"; do
-      pdftoppm -f "$p" -l "$p" -singlefile -r 100 -png \
-        "$DIST/wave-motions-1989-$kind.pdf" "$BUILD/$kind/render-check/page-$p" >/dev/null 2>&1
-    done
-    test "$(find "$BUILD/$kind/render-check" -name 'page-*.png' | wc -l | tr -d ' ')" = "3"
-  done
-
-  printf 'PDF build OK: facsimile=%s pages, modern=%s pages\n' "$fac_pages" "$mod_pages"
+  fac_pages=$(pdfinfo "$DIST/wave-motions-facsimile.pdf" | awk '/^Pages:/ {print $2}')
+  mod_pages=$(pdfinfo "$DIST/wave-motions.pdf" | awk '/^Pages:/ {print $2}')
+  printf 'PDF build complete: facsimile=%s pages, modern=%s pages\n' "$fac_pages" "$mod_pages"
 }
 
 build_html() {
-  for cmd in pandoc pdftocairo; do need "$cmd"; done
-  python3 "$ROOT/scripts/build-html.py"
-
-  # Pages deployment from `all` includes the current PDFs at the same root.
-  if [[ -f "$DIST/wave-motions-1989-facsimile.pdf" ]]; then
-    cp "$DIST/wave-motions-1989-facsimile.pdf" "$DIST/html/"
-  fi
-  if [[ -f "$DIST/wave-motions-1989-modern.pdf" ]]; then
-    cp "$DIST/wave-motions-1989-modern.pdf" "$DIST/html/"
-  fi
-
-  echo "HTML build OK"
+  need python3
+  python3 "$ROOT/scripts/build_html.py"
 }
 
-if [[ "$TARGET" == all ]]; then
+build_epub() {
+  need python3
+  python3 "$ROOT/scripts/build_epub.py"
+}
+
+check_readme() {
+  python3 "$ROOT/scripts/sync_readme.py" --check
+}
+
+check_epub_finalization() {
+  python3 "$ROOT/scripts/build_epub.py" --check
+}
+
+check_publication() {
+  python3 "$ROOT/scripts/validate.py" publication
+}
+
+write_checksums() {
+  python3 "$ROOT/scripts/release.py" checksums --root "$DIST" --write
+}
+
+reset_generated() {
   rm -rf "$BUILD" "$DIST"
   mkdir -p "$BUILD" "$DIST"
-  # Recreate tool shim after clean.
-  TOOLBIN="$BUILD/toolbin"; mkdir -p "$TOOLBIN"
-  if ! command -v bibtex >/dev/null 2>&1 && command -v bibtex8 >/dev/null 2>&1; then
-    ln -sf "$(command -v bibtex8)" "$TOOLBIN/bibtex"
-    export PATH="$TOOLBIN:$PATH"
+}
+
+finish_all() {
+  write_checksums
+  if validation_enabled; then
+    check_readme
+    check_epub_finalization
+    check_publication
+  else
+    echo "Dedicated validation skipped (WAVE_SKIP_VALIDATION=1; builders retained structural checks)."
   fi
-  build_pdf
-  build_html
-elif [[ "$TARGET" == pdf ]]; then
-  build_pdf
-else
-  build_html
-fi
+}
+
+case "$TARGET" in
+  all)
+    reset_generated
+    build_pdf
+    build_epub
+    build_html
+    finish_all
+    ;;
+  pdf)
+    reset_generated
+    build_pdf
+    if validation_enabled; then
+      python3 "$ROOT/scripts/validate.py" pdf
+    fi
+    ;;
+  html)
+    reset_generated
+    build_html
+    if validation_enabled; then
+      check_readme
+    fi
+    ;;
+  epub)
+    reset_generated
+    build_epub
+    if validation_enabled; then
+      check_epub_finalization
+    fi
+    ;;
+esac

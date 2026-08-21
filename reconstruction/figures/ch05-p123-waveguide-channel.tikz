@@ -3,7 +3,7 @@
 % Source: ChapmanRizzoli5.pdf, physical page 28.
 \par\smallskip
 \begin{center}
-\begin{tikzpicture}[font=\normalsize]
+\begin{tikzpicture}[font=\small]
   \filldraw[fill=black!18,draw=black,line width=0.45pt]
     (0,1.78) rectangle (9.3,1.92);
   \filldraw[fill=black!18,draw=black,line width=0.45pt]

@@ -1,24 +1,34 @@
 % wave-source: pdf=ChapmanRizzoli5.pdf; page=22; trim=168.00bp 555.84bp 174.72bp 110.40bp
 % Source: Wave Motions in the Ocean, printed p.117 (physical p.22).
-% Vector redraw of the forced shelf/deep-ocean cross-shelf structure.
+% Equation-generated forced shelf/deep-ocean cross-shelf structure.
+% Display parameters choose ell=0, D_1/D_2=0.10 and k_1 L=6 pi. Then
+% k_2=k_1 sqrt(D_1/D_2), and the matching conditions at x=L are satisfied by
+% A=2C and B=C, so the deep field B exp(i k_2 X)+C exp(-i k_2 X)
+% is exactly A cos(k_2 X). Absolute amplitude and chosen mode number are illustrative.
 \par\smallskip
 \begin{center}
 \begin{tikzpicture}[x=0.95cm,y=0.95cm,line cap=round,line join=round,font=\small]
+  \def\shelfL{3.25}
+  \def\depthratio{0.10}
+  \pgfmathsetmacro{\kone}{6*pi/\shelfL}
+  \pgfmathsetmacro{\ktwo}{\kone*sqrt(\depthratio)}
+  \def\amp{0.40}
+
   \filldraw[fill=black!15,draw=black,line width=0.75pt]
-    (0,-0.12) -- (0,0.62) -- (3.25,0.62) -- (3.25,0.08) -- (6.10,0.08)
+    (0,-0.12) -- (0,0.62) -- (\shelfL,0.62) -- (\shelfL,0.08) -- (6.10,0.08)
     -- (6.10,-0.12) -- cycle;
   \draw[line width=0.75pt] (0,0.62) -- (0,1.48);
   \draw[dashed,line width=0.55pt] (0,1.48) -- (6.12,1.48);
   \node at (1.55,0.84) {$D_1$};
   \node at (4.65,0.68) {$D_2$};
 
-  % Equation-constrained schematic: the shelf solution is A cos(k_1 x), while
-  % the deep-ocean incident+reflected field is oscillatory with the longer
-  % wavelength implied by D_2>D_1. The numerical wavelengths are schematic.
-  \draw[line width=0.85pt,samples=140,domain=0:3.25]
-    plot (\x,{1.48+0.40*cos(1080*\x/3.25)});
-  \draw[line width=0.85pt,samples=120,domain=3.25:6.00]
-    plot (\x,{1.48+0.40*cos(360*(\x-3.25)/2.55)});
+  % Shelf: eta=A cos(k_1 x), with k_1 L=6 pi.
+  \draw[line width=0.85pt,samples=180,domain=0:\shelfL,variable=\x]
+    plot (\x,{1.48+\amp*cos(\kone*\x r)});
+  % Deep ocean: B=C=A/2 gives eta=A cos[k_2(x-L)]. At x=L both eta and
+  % D eta_x are continuous exactly; k_2/k_1=sqrt(D_1/D_2) for ell=0.
+  \draw[line width=0.85pt,samples=150,domain=\shelfL:6.00,variable=\x]
+    plot (\x,{1.48+\amp*cos(\ktwo*(\x-\shelfL) r)});
 \end{tikzpicture}
 \end{center}
 \smallskip

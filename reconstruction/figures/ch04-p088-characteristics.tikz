@@ -1,0 +1,16 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=25; trim=85bp 390bp 70bp 150bp
+% Source: Wave Motions in the Ocean, printed p.88 (physical p.25).
+% Exact characteristic slopes dz/dx=+-1/R; wavevectors are normal to characteristics and group/energy directions tangent to them.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
+  \def\R{1.35}
+  \coordinate (O) at (4.5,2.5);
+  \draw[->] (0.6,2.5)--(8.8,2.5) node[right] {$x$};
+  \draw[->] (4.5,0.35)--(4.5,4.75) node[above] {$z$};
+  \draw[line width=.75pt] (1.0,4.35)--(8.0,0.50) node[below right] {$x+Rz=\mathrm{const}$};
+  \draw[line width=.75pt] (1.0,0.65)--(8.0,4.50) node[above right] {$x-Rz=\mathrm{const}$};
+  \draw[->,line width=.8pt] (O)--++(2.15,1.18) node[above] {$\vec c_g$};
+  \draw[->,line width=.8pt] (O)--++(1.30,-1.76) node[right] {$\vec k\;(m=Rk)$};
+  \draw[->,line width=.8pt] (O)--++(2.15,-1.18) node[below] {$\vec c_g$};
+  \draw[->,line width=.8pt] (O)--++(1.30,1.76) node[right] {$\vec k\;(m=-Rk)$};
+  \node[above=4pt] at (7.05,2.50) {$\vec k\cdot\vec c_g=0$};
+\end{tikzpicture}

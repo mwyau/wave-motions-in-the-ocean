@@ -1,10 +1,17 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{styles/wave-modern}[2026/08/19 continuous modern reading layout]
+\ProvidesPackage{styles/wave-modern}[2026/08/20 continuous modern reading layout]
 \RequirePackage{styles/wave-common}
 \RequirePackage[letterpaper,top=0.70in,bottom=0.72in,left=0.82in,right=0.82in,headsep=0.22in]{geometry}
 \RequirePackage{newtxtext,newtxmath}
 \RequirePackage[scaled=0.94]{sourcesanspro}
 \RequirePackage{titlesec}
+\RequirePackage{comment}
+\RequirePackage{float}
+
+% PDF-only and generated-web-only front-matter branches share one canonical
+% source file. HTML generation unwraps wavewebonly and removes wavepdfonly.
+\includecomment{wavepdfonly}
+\excludecomment{wavewebonly}
 
 \definecolor{WaveAccent}{HTML}{245A73}
 \setlength{\parindent}{1.25em}
@@ -12,19 +19,22 @@
 \setlength{\jot}{7pt}
 \setlength{\headheight}{22pt}
 
+% Keep the generous 11.5 pt reading size while giving the modern edition a
+% clearer hierarchy than the report-class defaults. Source Sans Pro carries
+% structure; New TX remains the body and mathematics face.
 \titleformat{\chapter}[display]
   {\normalfont\sffamily\color{WaveAccent}}
-  {\Large\bfseries Chapter \thechapter}
+  {\fontsize{14.5pt}{17pt}\selectfont\bfseries Chapter \thechapter}
   {0.32em}
-  {\Huge\bfseries}
+  {\fontsize{29pt}{31pt}\selectfont\bfseries}
   [\vspace{0.25em}\titlerule]
 \titlespacing*{\chapter}{0pt}{0.2in}{0.38in}
 \titleformat{\section}
-  {\Large\sffamily\bfseries\color{WaveAccent}}
+  {\fontsize{16.5pt}{19.5pt}\selectfont\sffamily\bfseries\color{WaveAccent}}
   {\thesection}{0.65em}{}
 \titlespacing*{\section}{0pt}{1.25em plus .2em minus .1em}{0.50em}
 \titleformat{\subsection}
-  {\large\sffamily\bfseries\color{WaveAccent}}
+  {\fontsize{13.5pt}{16pt}\selectfont\sffamily\bfseries\color{WaveAccent}}
   {\thesubsection}{0.55em}{}
 
 \pagestyle{fancy}
@@ -50,18 +60,33 @@
   \normalsize
 }
 
+% Concise cover credit shown only in paged modern output. Pandoc-based
+% README/HTML views drop the unknown command; EPUB expands it explicitly.
+\newcommand{\wavecovercredit}{%
+  \par\vfill
+  {\footnotesize\input{cover-credit}\par}%
+}
+
 \newcommand{\sourcepagebreak}{\par}
 \newcommand{\sourceinput}[1]{\input{#1}}
 
 % Source fragments retain historical page counter resets as provenance. Ignore
-% only those page resets in the modern continuous edition.
+% only those page resets in the modern continuous edition. Modern front/main
+% matter still needs deliberate page-numbering resets, so expose a dedicated
+% wrapper that temporarily restores the class's original \setcounter.
 \makeatletter
 \let\WaveOriginalSetCounter\setcounter
-\renewcommand{\setcounter}[2]{%
+\newcommand{\WaveModernSetCounter}[2]{%
   \def\WaveCounterName{#1}%
   \def\WavePageCounter{page}%
   \ifx\WaveCounterName\WavePageCounter
   \else
     \WaveOriginalSetCounter{#1}{#2}%
   \fi}
+\renewcommand{\setcounter}[2]{\WaveModernSetCounter{#1}{#2}}
+\newcommand{\wavepagenumbering}[1]{%
+  \let\setcounter\WaveOriginalSetCounter
+  \pagenumbering{#1}%
+  \let\setcounter\WaveModernSetCounter
+}
 \makeatother

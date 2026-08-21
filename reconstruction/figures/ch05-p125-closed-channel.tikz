@@ -3,7 +3,7 @@
 % Vector redraw of the simple closed-channel boundary-condition geometry.
 \par\smallskip
 \begin{center}
-\begin{tikzpicture}[font=\normalsize]
+\begin{tikzpicture}[font=\small]
   \filldraw[fill=black!18,draw=black,line width=0.45pt]
     (0,2.50) rectangle (7.15,2.64);
   \filldraw[fill=black!18,draw=black,line width=0.45pt]

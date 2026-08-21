@@ -1,0 +1,281 @@
+name: Publish
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - "v[0-9]*.[0-9]*.[0-9]*"
+    paths:
+      - "reconstruction/*.tex"
+      - "reconstruction/*.bib"
+      - "reconstruction/styles/**"
+      - "reconstruction/figures/**"
+      - "source/**"
+      - "scripts/**"
+      - ".python-version"
+      - "requirements.txt"
+      - "tex-packages.txt"
+      - "README.md"
+      - ".github/workflows/publish.yml"
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    concurrency:
+      group: publish-build-${{ github.ref }}
+      cancel-in-progress: false
+    env:
+      TINYTEX_VERSION: "2026.08"
+      EPUBCHECK_VERSION: "5.3.0"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Verify release tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="$GITHUB_REF_NAME"
+          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release blocked: tag must be a stable semantic version such as v1.0.0; got $tag." >&2
+            exit 1
+          fi
+
+          status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$GITHUB_SHA...main" --jq .status)
+          case "$status" in
+            identical|ahead)
+              echo "Release tag $tag points to a commit reachable from main ($status)."
+              ;;
+            *)
+              echo "Release blocked: tag commit $GITHUB_SHA is not reachable from main (compare status: $status)." >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v10.0.1
+        with:
+          version: "0.12.1"
+          enable-cache: true
+          cache-dependency-glob: requirements.txt
+
+      - name: Set up Python environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv python install "$(cat .python-version)"
+          uv venv --python "$(cat .python-version)"
+          uv pip sync requirements.txt
+          echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Install system tools
+        env:
+          NEEDRESTART_MODE: a
+        run: |
+          sudo apt-get update
+          sudo -E apt-get install -y --no-install-recommends \
+            qpdf poppler-utils pandoc xz-utils
+
+      - name: Cache TinyTeX
+        id: tinytex-cache
+        uses: actions/cache@v6.1.0
+        with:
+          path: ~/.TinyTeX
+          key: wave-motions-tinytex-2026.08-${{ runner.os }}-${{ hashFiles('tex-packages.txt') }}
+          restore-keys: |
+            wave-motions-tinytex-2026.08-${{ runner.os }}-
+
+      - name: Cache build intermediates
+        uses: actions/cache@v6.1.0
+        with:
+          path: .cache/wave-motions
+          key: wave-motions-build-v2-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            wave-motions-build-v2-${{ runner.os }}-
+
+      - name: Detect restored TinyTeX
+        id: tinytex-state
+        shell: bash
+        run: |
+          if [ -d "$HOME/.TinyTeX/bin" ] && find "$HOME/.TinyTeX/bin" -mindepth 1 -maxdepth 1 -type d | grep -q .; then
+            echo "installed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "installed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install TinyTeX if absent
+        if: steps.tinytex-state.outputs.installed != 'true'
+        uses: r-lib/actions/setup-tinytex@v2.12.1
+
+      - name: Add TinyTeX to PATH
+        shell: bash
+        run: |
+          set -euo pipefail
+          TEXBIN=$(find "$HOME/.TinyTeX/bin" -mindepth 1 -maxdepth 1 -type d | head -n 1)
+          test -n "$TEXBIN"
+          echo "$TEXBIN" >> "$GITHUB_PATH"
+          echo "TEXBIN=$TEXBIN" >> "$GITHUB_ENV"
+
+      - name: Install TeX dependencies
+        if: steps.tinytex-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="$TEXBIN:$PATH"
+          tlmgr update --self
+          mapfile -t PACKAGES < <(grep -Ev '^\s*(#|$)' tex-packages.txt)
+          tlmgr install "${PACKAGES[@]}"
+
+      - name: Build publication
+        env:
+          WAVE_SKIP_VALIDATION: "1"
+        run: ./scripts/build.sh all
+
+      # QA is advisory on development builds, but stable release tags remain strict.
+      - name: Check synchronized README
+        continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        run: python3 scripts/sync_readme.py --check
+
+      - name: Check EPUB accessibility/finalization policy
+        continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        run: python3 scripts/build_epub.py --check
+
+      - name: Install EPUBCheck
+        continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v java >/dev/null
+          command -v curl >/dev/null
+          command -v unzip >/dev/null
+          curl -fL \
+            "https://github.com/w3c/epubcheck/releases/download/v${EPUBCHECK_VERSION}/epubcheck-${EPUBCHECK_VERSION}.zip" \
+            -o "$RUNNER_TEMP/epubcheck.zip"
+          unzip -q "$RUNNER_TEMP/epubcheck.zip" -d "$RUNNER_TEMP"
+          EPUBCHECK_JAR="$RUNNER_TEMP/epubcheck-${EPUBCHECK_VERSION}/epubcheck.jar"
+          test -s "$EPUBCHECK_JAR"
+          echo "EPUBCHECK_JAR=$EPUBCHECK_JAR" >> "$GITHUB_ENV"
+          java -jar "$EPUBCHECK_JAR" --version
+
+      - name: Check mathematical rendering
+        continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        run: python3 scripts/validate.py math --require-epubcheck
+
+      - name: Check publication
+        continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        run: python3 scripts/validate.py publication
+
+      - name: Check release gate
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: python3 scripts/validate.py release
+
+      - name: Upload publication artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: wave-motions-editions
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 1
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-26.04
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - name: Check out release source
+        uses: actions/checkout@v7.0.1
+
+      - name: Download validated publication
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: wave-motions-editions
+          path: dist
+
+      - name: Prepare release assets
+        run: python3 scripts/release.py package --dist dist --output release
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="$GITHUB_REF_NAME"
+          mapfile -t release_names < <(python3 scripts/release.py assets)
+          expected_assets=$(printf '%s\n' "${release_names[@]}" | sort)
+          assets=()
+          checksum_names=()
+          for name in "${release_names[@]}"; do
+            assets+=("release/$name")
+            [[ "$name" == "SHA256SUMS" ]] || checksum_names+=("$name")
+          done
+
+          verify_release_payload() {
+            local verify_dir
+            verify_dir=$(mktemp -d)
+            gh release download "$tag" --repo "$GITHUB_REPOSITORY" --dir "$verify_dir"
+            python3 scripts/release.py checksums --root "$verify_dir" --check "${checksum_names[@]}"
+            if ! cmp -s release/SHA256SUMS "$verify_dir/SHA256SUMS"; then
+              echo "Release $tag has a different checksum manifest; refusing to publish or mutate it." >&2
+              rm -rf "$verify_dir"
+              exit 1
+            fi
+            rm -rf "$verify_dir"
+          }
+
+          if ! is_draft=$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft 2>/dev/null); then
+            gh release create "$tag" \
+              --repo "$GITHUB_REPOSITORY" \
+              --verify-tag \
+              --draft \
+              --generate-notes \
+              --title "$tag"
+            is_draft=true
+          fi
+
+          actual_assets=$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" \
+            --json assets --jq '.assets[].name' | sort)
+          if [[ "$is_draft" == "true" ]]; then
+            while IFS= read -r name; do
+              [[ -z "$name" ]] && continue
+              if ! grep -Fxq "$name" <<< "$expected_assets"; then
+                echo "Draft release $tag contains unexpected asset $name; refusing to publish it." >&2
+                exit 1
+              fi
+            done <<< "$actual_assets"
+            echo "Preparing draft release $tag."
+            gh release upload "$tag" "${assets[@]}" --clobber --repo "$GITHUB_REPOSITORY"
+            actual_assets=$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" \
+              --json assets --jq '.assets[].name' | sort)
+            if [[ "$actual_assets" != "$expected_assets" ]]; then
+              echo "Draft release $tag does not have the exact expected asset set; refusing to publish it." >&2
+              exit 1
+            fi
+            verify_release_payload
+            gh release edit "$tag" --draft=false --repo "$GITHUB_REPOSITORY"
+          else
+            if [[ "$actual_assets" != "$expected_assets" ]]; then
+              echo "Release $tag is already published with a different asset set; refusing to mutate it." >&2
+              exit 1
+            fi
+            verify_release_payload
+            echo "Release $tag is already published with the expected assets; leaving it unchanged."
+          fi
