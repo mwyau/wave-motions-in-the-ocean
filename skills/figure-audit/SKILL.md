@@ -14,9 +14,9 @@ Choose the least destructive faithful representation:
 
 Do **not** use generative image synthesis to reconstruct scientific figures. Do not invent missing geometry or labels.
 
-A scientifically “better” redraw is not automatically a faithful reconstruction. If the source figure, nearby equation, and physical interpretation disagree, preserve the historical source representation and record a `pending-review` erratum. Only an explicit human-approved erratum authorizes a substantive corrected redraw.
+A scientifically “better” redraw is not automatically a faithful reconstruction. If the source figure, nearby equation, and physical interpretation disagree, preserve the historical source representation and record a `pending-human-approval` erratum. Only an explicitly `human-approved` erratum authorizes a substantive corrected redraw.
 
-The only autonomous textual correction inside a figure is the same narrow exception as in the source-audit skill: a small, unambiguous typo with no plausible scientific, mathematical, bibliographic, or editorial effect. If uncertain, preserve the source and ask for human review.
+Autonomous textual corrections inside a reconstructed figure follow the same minor-correction rule as the source-audit skill: small, unambiguous spelling, grammar, transcription, or punctuation fixes are allowed when they cannot plausibly affect scientific, mathematical, bibliographic, or substantive editorial meaning. If uncertain, preserve the source and ask for human review.
 
 Avoid screenshots, repeated lossy recompression, and committed before/after copies. Temporary source renders, comparison images, numerical/reference plots, and scratch audit evidence belong under the ignored `audit/` workspace, preferably in a task-specific subdirectory such as `audit/figures/`.
 
@@ -31,7 +31,7 @@ Use `Equation validation` consistently:
 - **Pending** — an equation check materially applies but has not yet been independently completed and recorded.
 - **N/A** — no meaningful equation-defined quantity or relation applies; visual, geometric, provenance, and source-fidelity checks still do.
 
-`Validated` means the scientific comparison was performed. It does **not** mean an erratum is approved, and it does not permit the vector to depart from an unapproved historical source error. A historical mismatch may therefore be scientifically `Validated` while the rendered reconstruction still preserves the source and `ERRATA.md` records the discrepancy as pending human review.
+`Validated` means the scientific comparison was performed. It does **not** mean an erratum is approved, and it does not permit the vector to depart from an unapproved historical source error. A historical mismatch may therefore be scientifically `Validated` while the rendered reconstruction still preserves the source and `ERRATA.md` records the discrepancy as pending human approval.
 
 Do not infer `Validated` merely because a TikZ file contains a formula or visually resembles the scan. Record it only after an independent equation evaluation, calculation, or reference plot has been compared with the figure.
 
@@ -79,7 +79,7 @@ python3 scripts/compare_figures.py <figure-name>
 ```
 
 9. Inspect the affected full PDF/HTML/EPUB output as appropriate.
-10. Update `FIGURES.md`; record any substantive source problem in `ERRATA.md` as pending unless explicit human approval already exists.
+10. Update `FIGURES.md`; record any substantive source problem in `ERRATA.md` as `pending-human-approval` unless explicit human approval already exists.
 
 Use `python3 scripts/compare_figures.py --all` only for a deliberate whole-ledger pass. Keep generated comparisons under `audit/figures/comparisons/`; do not use `build/` for persistent audit evidence.
 
