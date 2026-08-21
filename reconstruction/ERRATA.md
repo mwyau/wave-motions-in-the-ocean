@@ -1,8 +1,8 @@
 # Errata and editorial deviations
 
 The historical PDFs under `source/` are authoritative for the reconstruction. The canonical
-chapter text follows the source unless a deviation is either an unambiguous minor typo or an
-explicitly human-approved substantive erratum.
+chapter text follows the source unless a deviation is either an unambiguous minor mechanical
+correction or an explicitly human-approved substantive erratum.
 
 Agents may identify and analyze possible errors, but **agents can never approve an erratum**.
 Scientific or mathematical correctness by itself is not approval. Until the human owner approves
@@ -13,15 +13,15 @@ Statuses used here:
 - **`pending-human-approval`** — a substantive source issue or proposed correction. The
   canonical reconstruction follows the historical source until the human owner explicitly approves
   the deviation.
-- **`minor-typo-correction`** — a small, unambiguous spelling/grammar/transcription typo with no
-  plausible scientific, mathematical, bibliographic, or editorial change in meaning. These may be
-  corrected without separate errata approval.
+- **`minor-typo-correction`** — a small, unambiguous spelling, grammar, transcription, or
+  punctuation correction with no plausible scientific, mathematical, bibliographic, or substantive
+  editorial change in meaning. These may be corrected without separate errata approval and need
+  not be recorded here unless retaining the correction is useful.
 - **`human-approved`** — reserved for an explicitly documented human-approved substantive
   deviation. Agents must never assign this status autonomously.
 
 False-positive audit findings that were already shown to match the source are omitted rather than
-retained as errata history. Audit coverage belongs in `PLAN.md`; figure provenance and equation
-validation belong in `FIGURES.md`.
+retained as errata history. Figure provenance and equation validation belong in `FIGURES.md`.
 
 ## Chapter 1
 
