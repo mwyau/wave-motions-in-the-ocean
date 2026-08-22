@@ -182,6 +182,7 @@ def read_download_markdown() -> str:
     for filename, label in DOWNLOADS:
         lines.append(f"- [{label}]({SITE_URL}/{filename})")
     lines.append(f"- [Original online source]({ORIGINAL_SOURCE_URL})")
+    lines.extend(["", "Contact: [albert@mwyau.com](mailto:albert@mwyau.com)"])
     return "\n".join(lines)
 
 

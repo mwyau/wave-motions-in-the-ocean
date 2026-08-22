@@ -729,7 +729,7 @@ def html_license() -> str:
     )
     return (
         '<p class="license">This work is licensed under '
-        f'<a href="{LICENSE_URL}">CC BY-NC-SA 4.0</a>{icons}</p>'
+        f'<a href="{LICENSE_URL}">CC BY-NC-SA 4.0</a>.{icons}</p>'
     )
 
 
