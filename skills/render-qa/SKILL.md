@@ -30,7 +30,7 @@ EPUBCHECK_JAR=/path/to/epubcheck.jar python3 scripts/render_qa.py dist
 
 `--strict` makes structural QA errors return nonzero. Visual warnings remain review items rather than CI gates. Render QA supplements, rather than replaces, the publication validators.
 
-A QA finding does not authorize changing historical or scientific content. Route any apparent source/content error through `skills/source-audit/SKILL.md`.
+A QA finding does not authorize changing source or scientific content. Route any apparent source or content error through `skills/source-audit/SKILL.md`.
 
 ## PDF review
 
@@ -73,4 +73,4 @@ Check:
 
 ## Completion
 
-Treat structural failures as defects to resolve before release. Review visual warnings manually and fix only confirmed presentation or generation defects. Do not alter canonical source content merely to make a render check pass.
+Treat structural failures as defects to resolve before release. Review visual warnings manually and fix only confirmed presentation or generation defects. Do not alter source content merely to make a render check pass.

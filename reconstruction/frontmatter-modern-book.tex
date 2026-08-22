@@ -1,5 +1,5 @@
 % PDF-only book front matter for the modern edition.
-% The exterior cover is followed by conventional interior preliminaries:
+% The exterior cover is followed by the usual interior opening pages:
 % half-title, frontispiece, full title, edition notice, then contents.
 
 % Flag the paged modern edition so the shared source can omit the duplicate
@@ -12,7 +12,7 @@
 \clearpage
 \nopagecolor
 
-% Count preliminary leaves in the conventional way while suppressing folios on
+% Count the opening pages in the usual way while suppressing folios on
 % the half-title, frontispiece, title, and edition-notice pages. Contents begins
 % visibly on page v.
 \pagenumbering{roman}
@@ -59,7 +59,7 @@
 \end{center}
 \clearpage
 
-% Copyright / edition-notice verso (iv). Avoid asserting ownership of the
+% Copyright / edition-notice verso (iv). Do not claim ownership of the
 % original lecture notes; record authorship, edition details, license, and cover
 % credit instead.
 \thispagestyle{empty}
@@ -88,6 +88,6 @@
 \WaveModernOriginalTableOfContents
 \clearpage
 
-% frontmatter-modern.tex retains a source-level \tableofcontents for the
+% frontmatter-modern.tex keeps a source-level \tableofcontents for the
 % generated README/HTML pipeline. Suppress that later duplicate in the PDF.
 \RenewDocumentCommand{\tableofcontents}{}{}

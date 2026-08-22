@@ -1,7 +1,7 @@
 % wave-source: pdf=ChapmanRizzoli3.pdf; page=20; trim=120bp 520bp 95bp 75bp
 % Source: Wave Motions in the Ocean, printed p.55 (physical p.20).
 % Exact triangle for rho(t)^2=r^2+V^2t^2+2Vtr cos(theta), t<0.
-% Display values choose -Vt=5.5, r=4.5, theta=28 deg; labels retain source signs.
+% Display values choose -Vt=5.5, r=4.5, theta=28 deg; labels keep source signs.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
   \coordinate (S0) at (9.00,3.15);
   \coordinate (St) at (3.50,3.15);

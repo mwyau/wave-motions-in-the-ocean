@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a structurally usable EPUB3 from canonical flowing sources.
+"""Build a structurally usable EPUB3 from the main flowing sources.
 
 This builder prepares its own generated TeX and figures, then applies the
 single final EPUB ZIP rewrite for metadata, accessibility, bodymatter,

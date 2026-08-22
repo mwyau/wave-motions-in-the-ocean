@@ -50,7 +50,7 @@ prek run --all-files
 
 ## Files
 
-- `source/*.pdf` — original scans; do not modify them.
+- `references/chapman-rizzoli-1989/*.pdf` — original scans; do not modify them.
 - `reconstruction/chapter1.tex` through `chapter6.tex` — book text and equations.
 - `reconstruction/references.bib` — bibliography.
 - `reconstruction/ERRATA.md` — corrections and supporting evidence.

@@ -35,7 +35,7 @@
 	\smallskip
 }
 
-% Source-page counters are provenance. Flowing editions ignore them; the
+% Source-page counters record source pages. Flowing editions ignore them; the
 % facsimile style gives this command page-boundary semantics.
 \NewDocumentCommand{\sourcesetpage}{m}{}
 
@@ -66,18 +66,18 @@
 	\end{flushright}
 }
 
-% Direct crop from an authoritative source PDF: width, filename, physical page,
+% Direct crop from a source PDF: width, filename, physical page,
 % and trim rectangle.
 \NewDocumentCommand{\sourceart}{O{0.72} m m m}{%
 	\par\smallskip
 	\begin{center}
-		\includegraphics[page=#3,trim=#4,clip,width=#1\linewidth]{../source/#2}%
+		\includegraphics[page=#3,trim=#4,clip,width=#1\linewidth]{../references/chapman-rizzoli-1989/#2}%
 	\end{center}
 	\wavefiguremark
 	\smallskip
 }
 
-% The requested width scales only TikZ geometry. Labels retain one physical
+% The requested width scales only TikZ geometry. Labels keep one physical
 % \small size, and line weights/arrowheads are not scaled with the picture.
 \newsavebox{\wavevectorbox}
 \makeatletter
