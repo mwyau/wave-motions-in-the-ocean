@@ -178,7 +178,7 @@ jobs:
         run: |
           set +e
           status=0
-          uvx --from pre-commit==4.6.1 pre-commit run --all-files --show-diff-on-failure || status=1
+          uvx prek==0.4.12 run --all-files || status=1
           node --check src/styles/wave-html.js || status=1
           if ! git diff --quiet; then
             echo "::warning title=Source quality::Quality hooks changed tracked files; commit their fixes."
