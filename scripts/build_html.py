@@ -187,6 +187,20 @@ def reader_state(index: int | None) -> dict[str, str]:
     }
 
 
+def mark_chapter_title_block(page: Path) -> None:
+    text = page.read_text(errors="replace")
+    marker = '<header id="title-block-header">'
+    if marker not in text:
+        raise SystemExit(f"HTML chapter title block missing from {page.name}")
+    page.write_text(
+        text.replace(
+            marker,
+            '<header id="title-block-header" class="chapter-title-block">',
+            1,
+        )
+    )
+
+
 def build_shell(path: Path) -> None:
     text = path.read_text(errors="replace")
     index = page_index(path)
@@ -386,6 +400,8 @@ def validate() -> None:
             raise SystemExit(
                 f"chapter{chapter.number}.html: chapter contents count does not match source sections"
             )
+        if 'class="chapter-title-block"' not in text:
+            raise SystemExit(f"chapter{chapter.number}.html: chapter title block is missing")
 
     index = (OUT / "index.html").read_text(errors="replace")
     if 'id="contents"' not in index or "wave-motions.epub" not in index:
@@ -412,13 +428,14 @@ def main() -> int:
     shutil.copy2(RECON / "styles" / "wave-html.js", ASSETS / "wave.js")
 
     build_index(source_dir)
-    for chapter_number in range(1, 7):
-        page = OUT / f"chapter{chapter_number}.html"
+    for chapter in book_structure():
+        page = OUT / f"chapter{chapter.number}.html"
         pandoc_page(
-            source_dir / f"chapter{chapter_number}.tex",
+            source_dir / f"chapter{chapter.number}.tex",
             page,
-            f"{BOOK_TITLE} — Chapter {chapter_number}",
+            f"Chapter {chapter.number}",
         )
+        mark_chapter_title_block(page)
     build_references(source_dir)
     for page in EXPECTED_PAGES:
         build_shell(page)
