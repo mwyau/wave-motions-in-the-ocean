@@ -629,7 +629,7 @@ def tex_plain(text: str) -> str:
     """Normalize TeX enough for headings, anchors, and reader metadata."""
     text = text.replace("---", "—").replace("--", "–")
     text = text.replace(r"\'e", "é").replace(r"\'E", "É")
-    text = text.replace(r'\"a', "ä").replace(r'\"o', "ö").replace(r'\"u', "ü")
+    text = text.replace(r"\"a", "ä").replace(r"\"o", "ö").replace(r"\"u", "ü")
     text = text.replace(r"\ell", "ℓ").replace(r"\pi", "π").replace(r"\beta", "β")
     text = text.replace("$", "")
     for cmd in ("textit", "emph", "textbf", "mathrm", "mbox"):
