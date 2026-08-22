@@ -1,0 +1,23 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=9; trim=105bp 95bp 95bp 520bp
+% Source: Wave Motions in the Ocean, printed p.72 (physical p.9), lower pair.
+% c_g is the energy-propagation direction. Since k dot c_g=0, the phase arrow
+% is constructed exactly perpendicular to c_g; its side reverses when the
+% ordering of f and N reverses.
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \def\cgangle{31.908107}
+  \foreach \dx/\title/\pdir in {0/{$f>N$}/-58.091893,5.1/{$f<N$}/121.908107} {
+    \begin{scope}[shift={(\dx,0)}]
+      \node[draw,inner sep=3pt] at (1.55,2.75) {\title};
+      \draw (0,-0.30)--(0,2.35);
+      \draw (-0.55,0)--(3.35,0);
+      \draw[->,line width=0.8pt] (0,0)--(2.65,1.65) node[right] {$\vec c_g$};
+      \node[anchor=west] at (2.12,1.02) {(energy)};
+      \draw (0,0.62) arc[start angle=90,end angle=\cgangle,radius=0.62];
+      \node at (0.35,0.58) {$\phi$};
+      \draw[->,line width=0.8pt] (1.28,0.80)--++(\pdir:1.15);
+      \node at ($(1.28,0.80)+(\pdir:1.43)$) {phases};
+    \end{scope}
+  }
+\end{tikzpicture}
+\end{center}

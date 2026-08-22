@@ -15,9 +15,9 @@
   \draw[->,line width=0.75pt] (290:1.35) arc[start angle=290,end angle=235,radius=1.35];
   \draw[->,line width=0.75pt] (300:0.95) arc[start angle=300,end angle=240,radius=0.95];
 
-  \node[font=\large] at (H) {$H$};
-  \node[font=\large] at (-1.72,0) {$A$};
-  \node[font=\large] at (1.72,0) {$B$};
+  \node at (H) {$H$};
+  \node at (-1.72,0) {$A$};
+  \node at (1.72,0) {$B$};
   \node[anchor=east,align=right] at (-2.05,0.18)
     {Convergence:\\Pressure rises\\at A};
   \node[anchor=west,align=left] at (2.05,0.18)

@@ -1,5 +1,5 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{styles/wave-common}[2026/08/19 shared Wave Motions reconstruction support]
+\ProvidesPackage{styles/wave-common}[2026/08/20 shared Wave Motions reconstruction support]
 
 \RequirePackage[T1]{fontenc}
 \RequirePackage{microtype}
@@ -20,6 +20,47 @@
 \setlength{\emergencystretch}{1.5em}
 \raggedbottom
 
+% Editorial numbering in the modern PDF and flowing reader editions. Only
+% durable equations are wrapped in these environments; transient algebra remains
+% unnumbered. The facsimile style suppresses these added editorial numbers.
+\numberwithin{equation}{chapter}
+\newenvironment{waveequation}{\begin{equation}}{\end{equation}}
+\newenvironment{wavealign}{\begin{equation}\begin{aligned}}{\end{aligned}\end{equation}}
+\newcommand{\wavefiguremark}{%
+  \refstepcounter{figure}%
+  \par\nobreak\smallskip
+  \noindent\hfill{\small\sffamily Figure \thefigure}\hfill\null\par
+  \smallskip
+}
+
+% Build identity is generated under build/ so source files remain stable. A
+% direct TeX compile without the repository build wrapper falls back cleanly.
+\IfFileExists{../build/build-info.tex}{%
+  \input{../build/build-info.tex}%
+}{%
+  \providecommand{\wavebuildsha}{unknown}%
+  \providecommand{\wavebuildshort}{unknown}%
+  \providecommand{\wavebuildversion}{}%
+  \providecommand{\wavebuildlabel}{unknown}%
+  \providecommand{\wavebuildurl}{https://github.com/mwyau/wave-motions-in-the-ocean}%
+}
+\AtBeginDocument{%
+  \hypersetup{%
+    pdfsubject={Digital edition build \wavebuildlabel},%
+    pdfkeywords={Wave Motions in the Ocean, digital edition, build \wavebuildshort}%
+  }%
+}
+
+% Consistent attribution block for modern front matter. Keep the semantic
+% order name / place, year so the HTML conversion can mirror it exactly.
+\newcommand{\wavesignature}[3]{%
+  \par\medskip
+  \begin{flushright}
+    \textit{#1}\\
+    #2, #3
+  \end{flushright}
+}
+
 % Direct crop from an authoritative committed source PDF. Arguments are
 % width fraction, source filename, physical PDF page, and trim rectangle.
 \newcommand{\sourceart}[4][0.72]{%
@@ -27,11 +68,16 @@
   \begin{center}
     \includegraphics[page=#3,trim=#4,clip,width=#1\linewidth]{../source/#2}%
   \end{center}
+  \wavefiguremark
   \smallskip
 }
 
-% Explicit vector reconstruction. This is intentionally not a replacement
-% registry: the chapter names the vector file directly.
+% Explicit vector reconstruction. The requested width scales only the geometric
+% TikZ coordinate system. Labels keep one physical \small size, and line weights
+% and arrowheads are not silently magnified or shrunk with the figure width.
+% The small safety factor leaves room for unscaled text at the picture boundary.
+\newsavebox{\wavevectorbox}
+\makeatletter
 \newcommand{\wavevectorart}[2][0.72]{%
   \par\smallskip
   \begin{center}
@@ -40,11 +86,24 @@
       \let\smallskip\relax
       \def\center{}%
       \def\endcenter{}%
-      \resizebox{#1\linewidth}{!}{\input{figures/#2.tikz}}%
+      \sbox{\wavevectorbox}{%
+        \begingroup
+          \small
+          \input{figures/#2.tikz}%
+        \endgroup
+      }%
+      \pgfmathsetmacro{\wavevectorscale}{%
+        0.975*(#1*\strip@pt\linewidth)/(\strip@pt\wd\wavevectorbox)%
+      }%
+      \tikzset{every picture/.append style={scale=\wavevectorscale}}%
+      \small
+      \input{figures/#2.tikz}%
     \endgroup
   \end{center}
+  \wavefiguremark
   \smallskip
 }
+\makeatother
 
 % Use a stable heading name in PDF and HTML bibliography output.
 \renewcommand{\bibname}{References}

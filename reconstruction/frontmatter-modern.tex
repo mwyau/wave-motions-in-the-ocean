@@ -1,24 +1,28 @@
+\begin{wavepdfonly}
+\input{cover-modern}
+\input{frontmatter-modern-book}
+\end{wavepdfonly}
+\begin{wavewebonly}
 \thispagestyle{empty}
 \begin{center}
-\vspace*{0.95in}
+\vspace*{0.78in}
 {\sffamily\color{WaveAccent}\fontsize{27}{31}\selectfont\bfseries WAVE MOTIONS IN THE OCEAN\par}
-\vspace{0.28in}
-{\large\itshape Myrl's View\par}
-\vspace{0.78in}
-{\normalsize presented to\par}
-\vspace{0.16in}
-{\Large Myrl C. Hendershott\par}
-\vspace{0.62in}
-{\normalsize from\par}
-\vspace{0.16in}
-{\large David C. Chapman and Paola Malanotte-Rizzoli\par}
+\vspace{0.22in}
+{\fontsize{18}{22}\selectfont\itshape Myrl's View\par}
+\vspace{0.82in}
+{\large \textit{Presented to} \textbf{Myrl C. Hendershott}\par}
 \vfill
+{\large \textbf{David C. Chapman and Paola Malanotte-Rizzoli}\par}
+\vspace{0.10in}
 {\normalsize August 1989\par}
-\vspace{0.25in}
-{\small\sffamily Digital edition by Albert M. W. Yau\par}
+\vfill
+{\small\sffamily Digital edition by \textbf{Albert M. W. Yau}\par}
+\vspace{0.08in}
 {\small\sffamily August 2026\par}
 \end{center}
+\end{wavewebonly}
 \clearpage
+\nopagecolor
 
 \chapter*{Preface — David C. Chapman}
 \addcontentsline{toc}{chapter}{Preface — David C. Chapman}
@@ -40,9 +44,7 @@ of some minor modifications, additions and deletions that Paola and I have made,
 notes contained herein are those developed by Myrl for his course. We hope that these
 notes will be as clear and as useful to future readers as they have been to us.
 
-\medskip
-\noindent Woods Hole\hfill David C. Chapman\\
-1989
+\wavesignature{David C. Chapman}{Woods Hole}{1989}
 
 \chapter*{Preface — Paola Malanotte-Rizzoli}
 \addcontentsline{toc}{chapter}{Preface — Paola Malanotte-Rizzoli}
@@ -83,35 +85,39 @@ great deal of the important oceanographic concepts and ideas I learned over the 
 go back to my long association with Myrl as teacher, advisor, colleague and, last but
 not least, dear friend. I hope I absorbed from him some of the positive qualities too.
 
-\medskip
-\noindent Woods Hole\hfill Paola Malanotte-Rizzoli\\
-1989
+\wavesignature{Paola Malanotte-Rizzoli}{Woods Hole}{1989}
 
 \clearpage
 
 \chapter*{Editor's note}
 \addcontentsline{toc}{chapter}{Editor's note}
 
-These lecture notes has been preserved on James Pringle's website and has
+These lecture notes have been preserved on James Pringle's website and have
 recently been reconstructed in \LaTeX. This digital edition has been
 authorized by Paola Malanotte-Rizzoli for release under the Creative Commons
 Attribution--NonCommercial--ShareAlike 4.0 International license
 (CC BY-NC-SA 4.0).
 
-\begin{flushright}
-Stony Brook\\
-Albert M. W. Yau\\
-2026
-\end{flushright}
+The reconstruction is a work in progress, with assistance from OpenAI's GPT-5.6 Sol.
 
-\begin{figure}[htbp]
+\wavesignature{Albert M. W. Yau}{Stony Brook}{2026}
+
+% The paged modern edition uses this photograph as a frontispiece and places the
+% cover credit on the edition-notice verso. Flowing outputs retain the historical
+% photo here and expand the cover-credit marker for EPUB.
+\ifdefined\WaveModernBookFrontMatter
+\else
+\begin{figure}[H]
   \centering
-  \includegraphics[width=0.82\linewidth]
-    {figures/frontmatter/salmon-hendershott-como-1980.jpeg}
-  \caption{Rick Salmon (left) and Myrl Hendershott at Villa Carlotta, Lake Como,
+  \includegraphics[width=0.82\linewidth]{figures/frontmatter/salmon-hendershott-como-1980.jpg}
+  \par\smallskip
+  {\small Rick Salmon (left) and Myrl Hendershott at Villa Carlotta, Lake Como,
   during the International School of Physics ``Enrico Fermi,'' Course LXXX,
-  \textit{Topics in Ocean Physics}, July 1980.}
+  \textit{Topics in Ocean Physics}, July 1980.\par}
 \end{figure}
+
+\wavecovercredit
+\fi
 
 \clearpage
 

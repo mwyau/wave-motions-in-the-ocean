@@ -18,9 +18,9 @@
   }
   % Incident propagation direction.
   \draw[->,line width=0.82pt] (1.85,4.18) -- (3.95,2.08);
-  \node[align=center,font=\bfseries\itshape] at (0.95,3.80) {incident\\wave};
+  \node[align=center] at (0.95,3.80) {incident\\wave};
 
   % Reflected wave direction.
   \draw[->,line width=0.82pt] (5.85,1.10) -- (8.10,3.35);
-  \node[align=center,font=\bfseries\itshape] at (8.10,1.93) {reflected\\wave};
+  \node[align=center] at (8.10,1.93) {reflected\\wave};
 \end{tikzpicture}

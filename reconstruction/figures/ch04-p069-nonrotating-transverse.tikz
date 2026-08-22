@@ -1,0 +1,21 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=6; trim=220bp 60bp 195bp 610bp
+% Source: Wave Motions in the Ocean, printed p.69 (physical p.6).
+% For f=0, particle velocity u is perpendicular to k; vertical component w=u sin(theta).
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \coordinate (O) at (0,0);
+  \def\kx{2.75}
+  \def\ky{0.85}
+  \pgfmathsetmacro{\kang}{atan(\ky/\kx)}
+  \pgfmathsetmacro{\ulen}{sqrt(0.55*0.55+1.75*1.75)}
+  \draw (-0.55,0)--(3.25,0);
+  \draw[->,line width=0.8pt] (O)--(\kx,\ky) node[right] {$\vec k$};
+  \draw[->,line width=0.8pt] (O)--({\ulen*cos(\kang+90)},{\ulen*sin(\kang+90)}) node[left] {$\vec u$};
+  % Unit-vector component in the vertical direction, as in the source sketch.
+  \draw[dashed,->] (O)--(0,1.95) node[above right] {$\hat k\sin\theta$};
+  \draw ({0.55*cos(\kang)},{0.55*sin(\kang)}) arc[start angle=\kang,end angle=90,radius=0.55];
+  \node at (0.30,0.53) {$\theta$};
+  \draw[->,line width=0.7pt] (O)--(-0.35,-1.10);
+  \node[anchor=west] at (0.75,-0.48) {$w=u\sin\theta$};
+\end{tikzpicture}
+\end{center}

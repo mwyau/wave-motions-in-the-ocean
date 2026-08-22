@@ -1,0 +1,24 @@
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=33; trim=100bp 420bp 90bp 95bp
+% Source: Wave Motions in the Ocean, printed p.23 (physical p.33).
+% Equation-constrained waveguide boundary-value problem.  The two horizontal walls
+% are z=0 and z=-D; p_z=0 is imposed at each wall and the acoustic wave equation
+% holds in the interior.  Geometry is schematic; the boundary conditions are exact.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \def\xl{0.65}
+  \def\xr{9.15}
+  \def\yt{3.15}
+  \def\yb{0.45}
+  \draw[line width=1.05pt] (\xl,\yt) -- (\xr,\yt);
+  \draw[line width=0.35pt] (\xl,\yt-0.09) -- (\xr,\yt-0.09);
+  \draw[line width=1.05pt] (\xl,\yb) -- (\xr,\yb);
+  \draw[line width=0.35pt] (\xl,\yb+0.09) -- (\xr,\yb+0.09);
+  \node[anchor=east] at (\xl-0.12,\yt) {$z=0$};
+  \node[anchor=east] at (\xl-0.12,\yb) {$z=-D$};
+  \coordinate (T) at (5.25,\yt);
+  \coordinate (B) at (5.25,\yb);
+  \draw[->,line width=0.55pt] (5.90,3.88) -- (T);
+  \node[anchor=west] at (5.95,3.88) {$p_z=0$};
+  \draw[->,line width=0.55pt] (5.90,-0.25) -- (B);
+  \node[anchor=west] at (5.95,-0.25) {$p_z=0$};
+  \node at (4.90,1.80) {$p_{tt}-c_0^2\nabla^2p=0$};
+\end{tikzpicture}

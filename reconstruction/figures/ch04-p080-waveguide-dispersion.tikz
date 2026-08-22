@@ -1,0 +1,23 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=17; trim=190bp 265bp 160bp 350bp
+% Source: Wave Motions in the Ocean, printed p.80 (physical p.17).
+% Equation-generated normalized branches: sigma_n^2=(N^2+f^2 q_n^2)/(1+q_n^2), q_n=n*pi/(kD), and surface sigma_0^2=f^2+gD k^2.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
+  \draw[->] (0.70,0.55)--(7.10,0.55) node[right] {$k$};
+  \draw[->] (0.70,0.55)--(0.70,4.85) node[above] {$\sigma$};
+  \draw (0.56,1.55)--(0.84,1.55) node[left=3pt] {$f$};
+  \draw (0.56,4.05)--(0.84,4.05) node[left=3pt] {$N$};
+  \draw[densely dashed] (0.72,4.05)--(6.85,4.05);
+  \draw[line width=.8pt,domain=.02:1.36,samples=80,smooth,variable=\x]
+    plot ({0.70+1.25*\x},{0.30+1.25*sqrt(1+4*\x*\x)});
+  \node at (1.65,3.65) {$0$};
+  \draw[line width=.75pt,domain=.20:4.7,samples=120,smooth,variable=\x]
+    plot ({0.70+1.25*\x},{0.30+1.25*sqrt((9+(1*pi/\x)^2)/(1+(1*pi/\x)^2))});
+  \draw[line width=.75pt,domain=.20:4.7,samples=120,smooth,variable=\x]
+    plot ({0.70+1.25*\x},{0.30+1.25*sqrt((9+(2*pi/\x)^2)/(1+(2*pi/\x)^2))});
+  \draw[line width=.75pt,domain=.20:4.7,samples=120,smooth,variable=\x]
+    plot ({0.70+1.25*\x},{0.30+1.25*sqrt((9+(3*pi/\x)^2)/(1+(3*pi/\x)^2))});
+  \node at (3.05,3.17) {$1$};
+  \node at (3.35,2.72) {$2$};
+  \node at (3.65,2.38) {$3$};
+  \node[anchor=west] at (1.55,4.58) {$\sigma\simeq(gD)^{1/2}k$};
+\end{tikzpicture}

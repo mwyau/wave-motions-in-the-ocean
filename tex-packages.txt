@@ -2,9 +2,11 @@ amsfonts
 amsmath
 bibtex
 carlisle
+comment
 enumitem
 etoolbox
 fancyhdr
+float
 fontaxes
 geometry
 hyperref

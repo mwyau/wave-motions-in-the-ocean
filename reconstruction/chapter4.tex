@@ -1,9 +1,7 @@
-% ===== merged from chapter04-p064-075.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 4, printed pages 64--75.
-% Source authority: ChapmanRizzoli4.pdf, physical pages 1--12.
-% Source wording, equations, figures, and page breaks are retained except for
-% explicit corrections recorded in CHAPTER4_AUDIT.md.
+% Wave Motions in the Ocean: Myrl's View
+% Chapter 4; historical source: source/ChapmanRizzoli4.pdf.
+% Source-page comments preserve printed/physical page correspondence.
+% Suspected substantive source errors are documented in ERRATA.md; source text is retained unless explicitly human-approved.
 
 \setcounter{chapter}{3}
 \setcounter{page}{64}
@@ -176,17 +174,17 @@ So we have to solve
 We suppose for the moment that $N^2(z)=\text{constant}$. We also assume that the
 coordinates rotate around the $z$ axis at $\Omega$ so that $f=2\Omega=\text{constant}$ which is the
 $f$-plane approximation. The field equation is
-\[
+\begin{waveequation}
  w_{zz}-\left(\frac{N^2-\sigma^2}{\sigma^2-f^2}\right)(w_{xx}+w_{yy})=0.
-\]
+\end{waveequation}
 Since $N,f$ are constants, exact solutions are
 \[
  w=e^{-i\sigma t+ikx+i\ell y+imz}
 \]
 from which
-\[
+\begin{waveequation}
  m^2=\left(\frac{N^2-\sigma^2}{\sigma^2-f^2}\right)(k^2+\ell^2)
-\]
+\end{waveequation}
 is the dispersion relation. In $k,\ell,m$ space, the dispersion relation is a cone if
 $f^2<\sigma^2<N^2$ or $f^2>\sigma^2>N^2$.
 
@@ -196,7 +194,7 @@ $f^2<\sigma^2<N^2$ or $f^2>\sigma^2>N^2$.
 % Source printed page 69 / physical page 6
 % -----------------------------------------------------------------------------
 % Vector reconstruction; source PDF ChapmanRizzoli4.pdf, physical page 6, trim=190bp 570bp 160bp 60bp.
-\wavevectorart[0.45]{ch04-p069-dispersion-cone}
+\wavevectorart[0.41]{ch04-p069-dispersion-cone}
 
 All possible wave vectors for waves of frequency $\sigma$ lie on this cone. They may have
 any length. Fixing $\sigma$ fixes their direction. If we define $\theta$ as in the sketch, then with
@@ -220,7 +218,7 @@ to $\vec u$, so the pressure gradient forces are normal to fluid flow and accele
 
 If $f=0$, then the momentum equation in any direction normal to $\vec k$
 
-\sourceart[0.40]{ChapmanRizzoli4.pdf}{6}{220bp 60bp 195bp 610bp}
+\wavevectorart[0.46]{ch04-p069-nonrotating-transverse}
 
 becomes
 \[
@@ -245,7 +243,7 @@ and motion is along a straight line perpendicular to $\vec k$.
 
 If $N=0$, then the momentum equation in any direction normal to $\vec k$
 
-\sourceart[0.46]{ChapmanRizzoli4.pdf}{7}{185bp 350bp 170bp 240bp}
+\wavevectorart[0.52]{ch04-p070-rotating-transverse}
 
 becomes
 \[
@@ -314,7 +312,7 @@ This allows us to visualize the direction of $\vec c_g$.
 % -----------------------------------------------------------------------------
 % Source printed page 72 / physical page 9
 % -----------------------------------------------------------------------------
-\sourceart[0.76]{ChapmanRizzoli4.pdf}{9}{90bp 470bp 80bp 60bp}
+\wavevectorart[0.76]{ch04-p072-phase-energy-theta}
 
 Finally, using the dispersion relation,
 \begin{align*}
@@ -336,7 +334,7 @@ An alternative is to define $\phi$ as the angle of energy propagation such that
  |\vec c_g|=|N^2-f^2|\sin\phi\cos\phi/(\sigma K).
 \]
 
-\sourceart[0.70]{ChapmanRizzoli4.pdf}{9}{105bp 95bp 95bp 520bp}
+\wavevectorart[0.72]{ch04-p072-phase-energy-phi}
 
 There is really nothing mysterious about $\vec c_g,\vec c_{ph}$. For deep water waves we had
 
@@ -361,7 +359,7 @@ $\sigma^2=N^2\cos^2\phi+f^2\sin^2\phi$.
  \sigma=f\sin\phi\ ;\qquad |\vec c_g|=f\cos\phi/K.
 \]
 
-\sourceart[0.64]{ChapmanRizzoli4.pdf}{10}{150bp 305bp 135bp 255bp}
+\wavevectorart[0.72]{ch04-p073-rotation-only-limits}
 
 This says that for vertical energy propagation, $\phi=0^\circ$, the flow is steady ($\sigma=0$) but
 the group velocity is nonzero. The wavenumbers are arbitrary but horizontal, i.e.
@@ -392,7 +390,7 @@ oscillations at different depths are entirely independent.
  \sigma=N\cos\phi\ ;\qquad |\vec c_g|=N\sin\phi/K.
 \]
 
-\sourceart[0.64]{ChapmanRizzoli4.pdf}{11}{150bp 320bp 130bp 230bp}
+\wavevectorart[0.72]{ch04-p074-stratification-only-limits}
 
 This says that for vertical energy propagation, $\phi=0^\circ$, the flow oscillates at the
 buoyancy frequency ($\sigma=N$) and the group velocity is zero. The wavenumber is
@@ -424,7 +422,7 @@ very similar in their mathematical expression.
  |\vec c_g|=|N^2-f^2|\sin\phi\cos\phi/(\sigma K).
 \]
 
-\sourceart[0.62]{ChapmanRizzoli4.pdf}{12}{145bp 360bp 135bp 180bp}
+\wavevectorart[0.72]{ch04-p075-rotation-stratification-limits}
 
 For vertical energy propagation, we recover the buoyancy oscillations while for
 horizontal energy propagation, we recover the inertial oscillations. Now there are no
@@ -443,13 +441,6 @@ the coefficient has changed. Our free-wave dispersion relation now becomes
  m^2=-\frac{\sigma^2-N^2}{\sigma^2-f^2}(k^2+\ell^2).
 \]
 
-% ===== merged from chapter04-p076-084.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 4, printed pages 76--84.
-% Source authority: ChapmanRizzoli4.pdf, physical pages 13--21.
-% Source wording, equations, figures, and page breaks are retained except for
-% explicit corrections recorded in CHAPTER4_AUDIT.md.
-
 \setcounter{page}{76}
 
 % -----------------------------------------------------------------------------
@@ -466,7 +457,7 @@ We turn our attention to the full problem introduced at the beginning of the cha
 Instead of an unbounded fluid, there are now surface and bottom boundaries to
 contend with.
 
-\sourceart[0.72]{ChapmanRizzoli4.pdf}{13}{105bp 330bp 90bp 245bp}
+\wavevectorart[0.76]{ch04-p076-waveguide-boundary-problem}
 
 Initially we restrict ourselves to $N^2=\text{constant}$. The signs of
 \[
@@ -480,7 +471,8 @@ are crucial and we have several cases to consider.
 % -----------------------------------------------------------------------------
 % Source printed page 77 / physical page 14
 % -----------------------------------------------------------------------------
-\sourceart[0.78]{ChapmanRizzoli4.pdf}{14}{85bp 495bp 75bp 45bp}
+% Equation/inequality-generated frequency-regime classification.
+\wavevectorart[0.78]{ch04-p077-frequency-regimes}
 
 Evidently the cases $\sigma^2>N^2,f^2$ and $\sigma^2<N^2,f^2$ are identical for either
 $N^2>f^2$ or $N^2<f^2$, but the case where $\sigma^2$ is intermediate between $N^2$ and $f^2$ depends strongly
@@ -505,9 +497,9 @@ Solutions are
  w=e^{-i\sigma t+ikx}\sinh[kR_1(z+D)]
 \]
 and they satisfy the top ($z=0$) boundary condition only if
-\[
+\begin{waveequation}
  \frac{R_1(\sigma^2-f^2)}{gk}=\tanh(kR_1D).
-\]
+\end{waveequation}
 This last relation is effectively the dispersion relation; its solution is $\sigma=\sigma(k)$ or, as we
 have done the problem, $k=k(\sigma)$. To see what solutions exist, plot the left-hand side
 and the right-hand side versus $k$.
@@ -566,7 +558,8 @@ with
 \]
 Again we look at the dispersion relation
 
-\sourceart[0.82]{ChapmanRizzoli4.pdf}{16}{70bp 420bp 55bp 125bp}
+% Equation-generated Case B dispersion intersections.
+\wavevectorart[0.82]{ch04-p079-case-b-intersections}
 
 In both cases there is now an infinite set of oppositely travelling modes $n=1,2,\ldots$. The
 case $\sigma^2>f^2$ has an additional pair of small-$k$ modes not present in the case $\sigma^2<f^2$.
@@ -608,7 +601,8 @@ For the internal modes
  \sigma^2[1+(n\pi/kD)^2]\simeq N^2+f^2(n\pi/kD)^2.
 \]
 
-\sourceart[0.54]{ChapmanRizzoli4.pdf}{17}{190bp 265bp 160bp 350bp}
+% Equation-generated waveguide dispersion branches.
+\wavevectorart[0.58]{ch04-p080-waveguide-dispersion}
 
 Note that all waves have $\sigma>f$ and that all internal modes have $\sigma<N$. These two
 limits are also points of vanishing $\vec c_g$ which is easily seen since $\partial\sigma/\partial k\to0$ there.
@@ -634,12 +628,14 @@ Consider the lowest mode $n=1$. Then from the dispersion relation $k_1\simeq\pi/
 \]
 after taking the real part. The vertical structure looks like
 
-\sourceart[0.70]{ChapmanRizzoli4.pdf}{18}{115bp 430bp 100bp 95bp}
+% Equation-generated n=1 vertical mode structure.
+\wavevectorart[0.70]{ch04-p081-mode-structure}
 
 Thus, we see that the particle motions under the crest and trough of a travelling wave
 consists of a series of convergences and divergences giving a system of vertical cells.
 
-\sourceart[0.78]{ChapmanRizzoli4.pdf}{18}{85bp 185bp 75bp 380bp}
+% Equation-generated n=1 particle-motion cells.
+\wavevectorart[0.78]{ch04-p081-particle-cells}
 
 One common consequence of this pattern is the formation of surface slicks or bands of
 smooth, unrippled surface water, the bands being aligned parallel to the internal wave
@@ -688,7 +684,8 @@ Solutions are
 % -----------------------------------------------------------------------------
 % Source printed page 83 / physical page 20
 % -----------------------------------------------------------------------------
-\sourceart[0.77]{ChapmanRizzoli4.pdf}{20}{85bp 420bp 75bp 80bp}
+% Equation-generated evanescent Case A/A1 roots.
+\wavevectorart[0.77]{ch04-p083-evanescent-case-a}
 
 There is an infinite set of evanescent modes although case A1 has two more than case
 A. Putting on the rigid lid reduces A1 to A, i.e. $\sin(kR_1D)=0$.
@@ -719,7 +716,8 @@ Solutions are
 % -----------------------------------------------------------------------------
 % Source printed page 84 / physical page 21
 % -----------------------------------------------------------------------------
-\sourceart[0.74]{ChapmanRizzoli4.pdf}{21}{95bp 470bp 75bp 65bp}
+% Equation-generated evanescent Case B roots.
+\wavevectorart[0.74]{ch04-p084-evanescent-case-b}
 
 We could have arrived at these same evanescent modes by setting $k=-ik'$ in the
 previous section.
@@ -741,13 +739,6 @@ variations is assumed small so that the dynamics can be linearized. Of course, a
 arbitrarily shaped boundary could be used by first Fourier decomposing it, then
 solving for the flow over each individual component, and then summing the results.
 
-% ===== merged from chapter04-p085-095.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 4, printed pages 85--95.
-% Source authority: ChapmanRizzoli4.pdf, physical pages 22--32.
-% Source wording, equations, figures, and page breaks are retained except for
-% explicit corrections recorded in CHAPTER4_AUDIT.md.
-
 \setcounter{page}{85}
 
 % -----------------------------------------------------------------------------
@@ -755,7 +746,8 @@ solving for the flow over each individual component, and then summing the result
 % -----------------------------------------------------------------------------
 The mean flow has magnitude $U$ in the $x$ direction.
 
-\sourceart[0.82]{ChapmanRizzoli4.pdf}{22}{70bp 500bp 55bp 80bp}
+% Equation-constrained topographic internal-wave generation.
+\wavevectorart[0.82]{ch04-p085-topographic-generation}
 
 The topography has the form $h=h_0\sin(kx)$ with amplitude $h_0$. Moving along with
 the mean flow, the topography has the form
@@ -781,9 +773,9 @@ A solution is
  w=w_0e^{-i\sigma t+ikx+imz}
 \]
 where
-\[
+\begin{waveequation}
  m^2=k^2(N^2-\sigma^2)/\sigma^2=(N/U)^2-k^2
-\]
+\end{waveequation}
 
 \sourcepagebreak
 
@@ -885,7 +877,8 @@ That is
  x\pm Rz=(\sigma/k)t+\text{constant}.
 \]
 
-\sourceart[0.78]{ChapmanRizzoli4.pdf}{25}{85bp 390bp 70bp 150bp}
+% Exact characteristic/wavevector geometry.
+\wavevectorart[0.78]{ch04-p088-characteristics}
 
 Phases propagate at right angles to $x\pm Rz=\text{constant}$. We see that energy flows
 along $x\pm Rz=\text{constant}$ because
@@ -911,7 +904,8 @@ wavenumber is along the normal to that line.
 % -----------------------------------------------------------------------------
 % Source printed page 89 / physical page 26
 % -----------------------------------------------------------------------------
-\sourceart[0.80]{ChapmanRizzoli4.pdf}{26}{75bp 435bp 55bp 100bp}
+% Characteristic-constrained reflection geometry.
+\wavevectorart[0.80]{ch04-p089-slope-reflection}
 
 Energy exits along $x-Rz=0$, so the reflected wavenumber is normal to that line.
 The frequency of the wave is determined solely by the angle to the vertical, and it
@@ -922,7 +916,8 @@ the surface. Therefore, the reflection is not specular.
 Consider the details of the situation. The incident wave is $\vec k_i$ and the reflected
 wave is $\vec k_r$.
 
-\sourceart[0.58]{ChapmanRizzoli4.pdf}{26}{170bp 210bp 150bp 345bp}
+% Exact subcritical along-wall wavenumber projection geometry.
+\wavevectorart[0.58]{ch04-p089-wavenumber-projection}
 
 The projection of incident and reflected wavenumbers along $z=ax$ must be equal.
 \[
@@ -937,15 +932,16 @@ We can evaluate these by geometry and the law of cosines
 % -----------------------------------------------------------------------------
 % Source printed page 90 / physical page 27
 % -----------------------------------------------------------------------------
-\sourceart[0.68]{ChapmanRizzoli4.pdf}{27}{130bp 590bp 110bp 70bp}
+% Exact subcritical wavenumber-ratio triangle.
+\wavevectorart[0.68]{ch04-p090-wavenumber-triangle}
 
 After some algebra, the result is
-\[
- |\vec k_r|=|\vec k_i|\left(\frac{1+aR}{1-aR}\right)
-\]
+\begin{waveequation}
+ |\vec k_r|=|\vec k_i|\left(\frac{1+aR}{1-aR}\right).
+\end{waveequation}
 \[
  m_r=\pm m_i\left(\frac{1+aR}{1-aR}\right)
- \left(\frac{R+a}{R-a}\right)
+ \left(\frac{R+a}{R-a}\right).
 \]
 where the signs have been taken from the sketch. This gives the new wavenumbers in
 terms of the old ones. Because waves of a given frequency $\sigma$ can only go in the two
@@ -953,7 +949,8 @@ directions $\pm\tan^{-1}R$, reflection occurs not in the normal to the reflectin
 rather in the direction of the stability gradient, i.e. in the $z$ direction, or in the
 rotation vector. We have
 
-\sourceart[0.72]{ChapmanRizzoli4.pdf}{27}{95bp 205bp 75bp 500bp}
+% Exact subcritical velocity-reflection construction.
+\wavevectorart[0.72]{ch04-p090-velocity-reflection}
 
 The normal component of velocity must vanish at the wall, so
 \[
@@ -961,9 +958,9 @@ The normal component of velocity must vanish at the wall, so
  =|\vec v_r|\sin(\tan^{-1}R^{-1}-\tan^{-1}a).
 \]
 Again we can use geometry to obtain
-\[
+\begin{waveequation}
  |\vec v_r|=|\vec v_i|\left(\frac{1+aR}{1-aR}\right).
-\]
+\end{waveequation}
 
 \sourcepagebreak
 
@@ -1028,7 +1025,8 @@ $\omega_{zz}/\omega>0$.
 
 Suppose the $R^2(z)$ profile looks like
 
-\sourceart[0.46]{ChapmanRizzoli4.pdf}{30}{195bp 390bp 175bp 160bp}
+% Sign-constrained schematic turning-level profile.
+\wavevectorart[0.50]{ch04-p093-turning-profile}
 
 The system of equations is almost a Sturm--Liouville problem. We won't go into the
 details of Sturm--Liouville theory because it can be found in many textbooks (and you
@@ -1072,16 +1070,17 @@ and have no lower bound to the sequence
 where the superscript $e$ represents an evanescent mode, and the superscript $w$
 represents a travelling wave. The situation corresponds to
 
-\sourceart[0.72]{ChapmanRizzoli4.pdf}{31}{105bp 305bp 90bp 240bp}
+% Generalized Sturm--Liouville eigenvalue spectrum.
+\wavevectorart[0.72]{ch04-p094-eigenvalue-spectrum}
 
 Thus, in this case, both evanescent and travelling modes are present simultaneously.
 
 The effect of the appearance of $k^2$ in the surface boundary condition manifests
 itself as
-\[
+\begin{waveequation}
  \int_{-D}^{0}\omega_i\omega_jR^2(z)\,dz
  =-\omega_i(0)\omega_j(0)g/(\sigma^2-f^2).
-\]
+\end{waveequation}
 This says that the eigenfunctions $\omega_i$ are not orthogonal unless the surface boundary is
 the rigid lid, i.e. $\omega_i(0)=0$.
 

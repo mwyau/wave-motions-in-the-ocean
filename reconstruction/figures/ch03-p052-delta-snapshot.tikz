@@ -1,0 +1,22 @@
+% wave-source: pdf=ChapmanRizzoli3.pdf; page=17; trim=145bp 445bp 140bp 285bp
+% Source: Wave Motions in the Ocean, printed p.52 (physical p.17), upper figure.
+% Generated from eta proportional to t*x^(-3/2) cos(g t^2/(4x)+pi/4) at fixed t.
+% The dimensionless choice g t^2/4=12 and vertical scale only set display spacing.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \draw[->,line width=0.62pt] (0.65,2.15) -- (8.05,2.15) node[right] {$x$};
+  \draw[->,line width=0.62pt] (0.75,0.35) -- (0.75,3.95) node[above] {$\eta$};
+  \draw[line width=0.82pt,samples=360,smooth,domain=0.7:2.8,variable=\q]
+    plot ({0.75+6.9*(\q-0.7)/2.1},
+          {2.15+0.95*pow(\q,-1.5)*cos(deg(12/\q+pi/4))});
+  \draw[line width=0.46pt,domain=0.7:2.8,samples=100,variable=\q]
+    plot ({0.75+6.9*(\q-0.7)/2.1},{2.15+0.95*pow(\q,-1.5)});
+  \node[anchor=west] at (4.55,2.95) {$x^{-3/2}$};
+
+  % Adjacent equal-phase positions: 12/q_a - 12/q_b = 2 pi exactly.
+  \def\qa{0.9}
+  \pgfmathsetmacro{\qb}{12/(12/\qa-2*pi)}
+  \pgfmathsetmacro{\xa}{0.75+6.9*(\qa-0.7)/2.1}
+  \pgfmathsetmacro{\xb}{0.75+6.9*(\qb-0.7)/2.1}
+  \draw[<->,line width=0.40pt] (\xa,3.42) -- (\xb,3.42);
+  \node[above] at ({(\xa+\xb)/2},3.42) {$\lambda$};
+\end{tikzpicture}

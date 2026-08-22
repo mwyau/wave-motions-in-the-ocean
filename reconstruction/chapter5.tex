@@ -1,9 +1,7 @@
-% ===== merged from chapter05.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 5, printed pages 96--105.
-% Source authority: ChapmanRizzoli5.pdf, physical pages 1--10.
-% Source wording, equations, and page breaks are retained except for explicit
-% corrections recorded in CHAPTER5_AUDIT.md.
+% Wave Motions in the Ocean: Myrl's View
+% Chapter 5; historical source: source/ChapmanRizzoli5.pdf.
+% Source-page comments preserve printed/physical page correspondence.
+% Suspected substantive source errors are documented in ERRATA.md; source text is retained unless explicitly human-approved.
 
 \setcounter{chapter}{4}
 \setcounter{page}{96}
@@ -186,7 +184,7 @@ The separation is completed by choosing
 % Source printed page 101 / source physical page 6
 % -----------------------------------------------------------------------------
 which results in
-\begin{align*}
+\begin{wavealign}
  -i\sigma U-2\Omega\sin\theta\,V
  &=-\frac{gP_\phi}{a\cos\theta},\\
  -i\sigma V+2\Omega\sin\theta\,U
@@ -196,7 +194,7 @@ which results in
  G_{zz}+\frac{N^2-\sigma^2}{g d_n}G&=0,\\
  G_z-\frac{1}{d_n}G&=0 &&\text{at }z=0,\\
  G&=0 &&\text{at }z=-D.
-\end{align*}
+\end{wavealign}
 The first three equations contain variables which depend on $\phi$ and $\theta$ only. That is,
 they contain all of the horizontal dependence of $u,v,w$ and $p$. The vertical dependence
 is entirely contained in the fourth equation which, along with the boundary conditions,
@@ -301,11 +299,11 @@ Combining these with continuity yields
 % -----------------------------------------------------------------------------
 If we assume that the surface deviations are much smaller than the water depth, i.e.
 $\eta\ll D$, then the final linearized set of equations is
-\begin{align*}
+\begin{wavealign}
  u_t-fv&=-g\eta_x,\\
  v_t+fu&=-g\eta_y,\\
  \eta_t+[uD]_x+[vD]_y&=0.
-\end{align*}
+\end{wavealign}
 These are the linear shallow water equations with rotation. We derived the
 nonrotating version with constant depth in the chapter on surface gravity waves.
 Notice that, for constant depth $D$, they have the same form as LTE but written in
@@ -365,13 +363,6 @@ The real point here is that, in a flat-bottom ocean, stratification makes possib
 an infinite sequence of internal replicas of the barotropic, long, shallow water gravity
 waves. The horizontal variations of these internal modes are described by the same
 equations that describe the barotropic mode, except that the equivalent depth $d_n$
-
-% ===== merged from chapter05-p106-107.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 5, printed pages 106--107.
-% Source authority: ChapmanRizzoli5.pdf, physical pages 11--12.
-% Source wording, equations, and page breaks are retained except for explicit
-% corrections recorded in CHAPTER5_AUDIT.md.
 
 % -----------------------------------------------------------------------------
 % Source printed page 106 / source physical page 11
@@ -440,9 +431,9 @@ Free wave solutions have the form $\eta=e^{-i\sigma t+ikx+i\ell y}$ which leads 
  v=\frac{g\ell}{\sigma}\eta.
 \]
 Substitution into continuity gives the dispersion relation
-\[
+\begin{waveequation}
  \sigma^2=gD(k^2+\ell^2)=gDK^2.
-\]
+\end{waveequation}
 These are nothing more than surface gravity waves in shallow water which are
 nondispersive with
 \[
@@ -453,13 +444,6 @@ nondispersive with
 
 Suppose the wave is incident upon a solid wall at $x=0$.
 
-% ===== merged from chapter05-p108-110.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 5, printed pages 108--110.
-% Source authority: ChapmanRizzoli5.pdf, physical pages 13--15.
-% Prose, equations, headings, and page breaks are transcribed from the source.
-% Simple source diagrams on pp. 108 and 110 are redrawn in TikZ from the scan.
-
 % -----------------------------------------------------------------------------
 % Source printed page 108 / source physical page 13
 % -----------------------------------------------------------------------------
@@ -467,6 +451,7 @@ Suppose the wave is incident upon a solid wall at $x=0$.
 
 % Vector redraw of the incident/reflected-wave sketch at the vertical wall.
 \input{figures/ch05-p108-wall-reflection.tikz}
+\wavefiguremark
 
 The velocity normal to the wall must vanish, i.e. $u=0$ at $x=0$. The total solution
 may be constructed by adding a reflected wave with the same amplitude and no phase
@@ -485,6 +470,7 @@ Now consider a domain bounded by four solid walls.
 
 % Vector redraw of the rectangular-basin geometry.
 \input{figures/ch05-p108-rectangular-basin.tikz}
+\wavefiguremark
 
 We assume a periodic time dependence of $e^{-i\sigma t}$ so that the equations become
 \begin{align*}
@@ -522,10 +508,10 @@ The solution is then
  \qquad n,m=0,1,\ldots
 \]
 When substituted into the equation for $\eta$, we get
-\[
+\begin{waveequation}
  \sigma^2
  =gD\left(\frac{n^2}{a^2}+\frac{m^2}{b^2}\right)\pi^2.
-\]
+\end{waveequation}
 
 These are the normal, or free modes, of the nonrotating basin. They are standing waves
 with $n,m$ zero crossings in $\eta$ across the basin. Suppose the basin is forced by an
@@ -556,7 +542,7 @@ equation
  \partial\eta/\partial n=0
  \quad\text{at boundaries}
 \]
-results in a sequence of free frequencies $\sigma_1^2,\sigma_2^2,\sigma_3^2,\ldots$
+results in a sequence of free periods $\sigma_1^2,\sigma_2^2,\sigma_3^2,\ldots$
 having a positive lowest member and no upper limit.
 
 \section{Propagation over a step}
@@ -565,20 +551,13 @@ Consider a free wave encountering a step change in depth.
 
 % Vector redraw of the source's depth-step section and ray diagram.
 \input{figures/ch05-p110-depth-step-rays.tikz}
+\wavefiguremark
 
 This can be thought of as a shelf of infinite width. At the step, there are two new
 waves which can be generated. One is a reflected wave and one is a transmitted wave.
 In a sense, the step acts as a permeable or leaky wall rather than a solid wall. There
 are no variations along the step in the $y$ direction, so we may assume that all three
 waves have the same alongstep wavenumber, as well as the same frequency. Thus, $\eta$
-
-% ===== merged from chapter05-p111-115.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 5, printed pages 111--115.
-% Source authority: ChapmanRizzoli5.pdf, physical pages 16--20.
-% Source wording is retained. Unambiguous mathematical corrections are applied
-% only where documented in ERRATA.md; complex source art is cropped from source,
-% while simple shelf and modal sketches are redrawn in TikZ.
 
 % -----------------------------------------------------------------------------
 % Source printed page 111 / source physical page 16
@@ -616,18 +595,18 @@ matching of pressure and transport leads to erroneous results.
 
 To continue, the matching allows the reflected and transmitted amplitudes to be
 written in terms of the incident amplitude
-\[
+\begin{waveequation}
  A_T=2A_I/(1+D_1k_1/D_2k_2).
-\]
+\end{waveequation}
 
 \sourcepagebreak
 
 % -----------------------------------------------------------------------------
 % Source printed page 112 / source physical page 17
 % -----------------------------------------------------------------------------
-\[
+\begin{waveequation}
  A_R=A_I(1-D_1k_1/D_2k_2)/(1+D_1k_1/D_2k_2).
-\]
+\end{waveequation}
 Notice that, if $D_1\to0$, then $A_R=A_I$ which is reasonable. But $A_T=2A_I$ which
 appears incorrect. This occurs because the shallow side of the step does not vanish
 unless the depth is identically zero. Otherwise, the transmitted amplitude simply gets
@@ -652,9 +631,9 @@ so the reflection is specular. Since
  \frac{\sin\alpha_I}{(gD_2)^{1/2}}
  =\frac{\sin\alpha_T}{(gD_1)^{1/2}},
 \]
-\[
+\begin{waveequation}
  \frac{\sin\alpha_I}{c_I}=\frac{\sin\alpha_T}{c_T},
-\]
+\end{waveequation}
 which is Snell's law. Because $D_1<D_2$, then $\sin\alpha_T<\sin\alpha_I$ so waves
 are refracted towards normal incidence ($\alpha_T=0$).
 
@@ -674,27 +653,23 @@ $\alpha_I'$, is reached where $\alpha_T=90^\circ$.
 
 \sourceart[0.72]{ChapmanRizzoli5.pdf}{18}{105bp 315bp 95bp 285bp}
 
-The source's printed labels in the following critical-angle algebra are inconsistent
-with the reversed incidence direction. Using the same Snell relation with
-$D_1<D_2$ gives the corrected result
-\[
- \boxed{\sin\alpha_I'=\left(\frac{D_1}{D_2}\right)^{1/2}}.
-\]
+\begin{waveequation}
+ \sin\alpha_I'=\left(\frac{D_2}{D_1}\right)^{1/2}.
+\end{waveequation}
 For $\alpha_I=\alpha_I'$,
 \[
- \ell=K_I\sin\alpha_I'
- =\frac{\sigma}{(gD_1)^{1/2}}
-  \left(\frac{D_1}{D_2}\right)^{1/2}
+ \ell=K_I\sin\alpha_I
  =\frac{\sigma}{(gD_2)^{1/2}}
+  \frac{D_2^{1/2}}{D_1^{1/2}}
+ =\frac{\sigma}{(gD_1)^{1/2}}
  =K_T,
 \]
-so $k_2=0$. For $\alpha_I>\alpha_I'$,
+so $k_1=0$. For $\alpha_I>\alpha_I'$,
 \[
- \ell>K_T=(k_2^2+\ell^2)^{1/2},
+ \ell>K_T=(k_1^2+\ell^2)^{1/2},
 \]
-so $k_2^2<0$, i.e. the transmitted wave decays exponentially away from the step. There
-is total internal reflection. The historical printed forms are recorded in
-\texttt{ERRATA.md}.
+so $k_1^2<0$, i.e. the transmitted wave decays exponentially away from the step. There
+is total internal reflection.
 
 \sourcepagebreak
 
@@ -709,6 +684,7 @@ slope is reduced to a step change in depth dropping down to a flat-bottom deep o
 This is the classic step shelf.
 
 \input{figures/ch05-p114-step-shelf.tikz}
+\wavefiguremark
 
 We anticipate from the foregoing that two kinds of solutions exist. They are (A) waves
 trapped on the shelf by critical internal reflection at the shelf edge, and (B) waves
@@ -716,6 +692,7 @@ arriving from the deep sea, traversing the shelf, being reflected at the coast a
 finally returning to the deep sea. Ray paths for the two cases are
 
 \input{figures/ch05-p114-ray-paths.tikz}
+\wavefiguremark
 
 In each region, the elevation satisfies
 \[
@@ -737,6 +714,7 @@ which satisfies $u=0$ at $x=0$ and assumes internal reflection at the shelf edge
 cross-shelf structure looks like
 
 \input{figures/ch05-p115-edge-wave-profile.tikz}
+\wavefiguremark
 
 Thus, we must have
 \[
@@ -756,19 +734,11 @@ Matching $\eta$ and $uD$ (really $D\eta_x$) at $x=L$ yields
  -D_1k_1A\sin k_1L&=-D_2k_2B,
 \end{align*}
 from which
-\[
+\begin{waveequation}
  \tan k_1L=k_2D_2/k_1D_1,
-\]
+\end{waveequation}
 which, along with the definitions of $k_1$ and $k_2$, is effectively a relation between
 $\sigma$ and $\ell$, i.e. a dispersion relation.
-
-% ===== merged from chapter05-p116-120.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 5, printed pages 116--120.
-% Source authority: ChapmanRizzoli5.pdf, physical pages 21--25.
-% Source wording is retained except for corrections explicitly logged in ERRATA.md.
-% Simple analytic sketches are redrawn in TikZ; source-specific art is cropped from
-% the committed source PDF.
 
 % -----------------------------------------------------------------------------
 % Source printed page 116 / source physical page 21
@@ -781,6 +751,7 @@ wave modes which can occur between the lines
 $\sigma=(gD_2)^{1/2}\ell$ and $\sigma=(gD_1)^{1/2}\ell$.
 
 \input{figures/ch05-p116-edge-wave-dispersion.tikz}
+\wavefiguremark
 
 Each mode has its own `dispersion relation'. For large $\ell$,
 $k_1\simeq(n\pi+\pi/2)/L$, i.e. the elevation profile looks like that sketched above
@@ -804,6 +775,7 @@ ocean waves. The cross-shelf structure looks like
 % Source printed page 117 / source physical page 22
 % -----------------------------------------------------------------------------
 \input{figures/ch05-p117-forced-shelf-profile.tikz}
+\wavefiguremark
 
 Now we must have
 \[
@@ -819,11 +791,8 @@ and $\ell^2<\sigma^2/gD_2$. Matching $\eta$ and $uD$ at $x=L$ yields
 from which, after eliminating $B$,
 \[
  A=C\frac{i\,2D_2k_2}
- {iD_2k_2\cos k_1L+D_1k_1\sin k_1L}.
+ {iD_2k_2\cos k_1L-D_1k_1\sin k_1L}.
 \]
-The source prints a minus sign before the $D_1k_1\sin k_1L$ term; the plus sign above
-is the result obtained directly from the two immediately preceding matching equations.
-The discrepancy is recorded in \texttt{ERRATA.md}.
 
 Once again obtaining solutions is a bit obscure. Notice that the wave amplitudes do
 not drop out as they did for the edge waves. This is because the present solution
@@ -842,9 +811,9 @@ $D_2k_2=\sigma(D_2/g)^{1/2}$. The magnitude of $A/C$ becomes
 The extrema occur where $\partial|A/C|/\partial\sigma=0$ which happens when either
 $\cos k_1L=0$ or $\sin k_1L=0$. But, since $D_2>D_1$, the maximum occurs when
 $\cos k_1L=0$ or
-\[
+\begin{waveequation}
  \sigma=\frac{(gD_1)^{1/2}}{L}(n\pi+\pi/2).
-\]
+\end{waveequation}
 
 \sourcepagebreak
 
@@ -856,6 +825,7 @@ These are the so-called quarter-wave resonances or, in the present context,
 the cross-shelf direction, but they have a node in elevation at the shelf break.
 
 \input{figures/ch05-p118-coastal-seiche-modes.tikz}
+\wavefiguremark
 
 If they were forced by a wind stress, however, they would damp out rather quickly
 because of the loss of energy to the deep ocean. They are, therefore, sometimes called
@@ -875,9 +845,9 @@ which is analogous to the previous equations for the non-rotating case.
 
 In the infinite domain, a plane wave has the form $\eta=e^{ikx+i\ell y}$ which gives
 the dispersion relation
-\[
+\begin{waveequation}
  \sigma^2=gD(k^2+\ell^2)+f^2.
-\]
+\end{waveequation}
 These are long gravity waves modified by rotation, and are sometimes called
 \emph{Sverdrup waves}. If we orient the axes so that the $x$ direction is along the
 total wavenumber, then
@@ -898,6 +868,7 @@ wavenumber vector, but are ellipses rotating in the clockwise direction in the n
 hemisphere. The ratio of major to minor axes is $\sigma/f$.
 
 \input{figures/ch05-p119-particle-motion.tikz}
+\wavefiguremark
 
 Rotation makes the waves dispersive with
 \[
@@ -957,12 +928,9 @@ which satisfies the boundary condition provided that
  -i\sigma(ika_i-ika_r)+f(i\ell a_i+i\ell a_r)=0
 \]
 from which
-\[
- \boxed{\frac{a_r}{a_i}=\frac{\sigma k+i f\ell}{\sigma k-i f\ell}}.
-\]
-The typeset source has the fraction inverted; a handwritten correction on the source
-page gives the expression above, which also follows directly from the boundary
-condition. See \texttt{ERRATA.md}.
+\begin{waveequation}
+ \frac{a_r}{a_i}=\frac{\sigma k-i f\ell}{\sigma k+i f\ell}.
+\end{waveequation}
 
 If $f=0$, then $a_r=a_i$, the reflected wave has equal amplitude to that of the
 incident wave and there is no phase shift. With rotation, the angle of incidence
@@ -973,13 +941,6 @@ the direction normal to the wall, reflected with a phase shift, and they are tra
 along the wall. They constitute a continuum in the sense that they may occur at any
 frequency and wavenumber combination as long as $\sigma>f$, i.e. the single boundary
 does not discretize them into modes. These waves are often called Poincar\'e waves.
-
-% ===== merged from chapter05-p121-128.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 5, printed pages 121--128.
-% Source authority: ChapmanRizzoli5.pdf, physical pages 26--33.
-% Source wording is retained except for corrections explicitly logged in ERRATA.md.
-% Diagrams are reproduced as audited vector redraws or direct source-PDF crops.
 
 % -----------------------------------------------------------------------------
 % Source printed page 121 / source physical page 26
@@ -1015,9 +976,9 @@ Choosing
  \eta=a(x)e^{i\ell y}
 \]
 where $a(x)$ is still of unknown form, the dispersion relation is
-\[
+\begin{waveequation}
  \sigma^2=gD\ell^2
-\]
+\end{waveequation}
 which is identical to the gravity wave dispersion relation in the \emph{absence} of
 rotation! The function $a(x)$ is found by combining the two momentum equations to find
 \[
@@ -1044,13 +1005,11 @@ If the wave is on the $x>0$ side of the boundary, then we must require that the
 solution remain finite as $x\to\infty$. This means that
 $\lim_{x\to\infty}\eta\to0$ which means that $\ell<0$. That is, the wave must travel
 in the $-y$ direction in this case. If the wave were on the $x<0$ side of the wall,
-then we would require that $\ell>0$ so the wave would travel in the $+y$ direction.
+then we would require that $\ell>0$ so the wave would travel in the $+x$ direction.
 Thus, the wave always travels with the wall on its right in the northern hemisphere
 ($f>0$; everything is reversed if $f<0$). The wave amplitude decreases exponentially
 moving away from the wall, so the wave is trapped along the wall by rotation. A
-faithful drawing of a Kelvin wave may be found in Gill (1982, p.380). The source
-prints ``$+x$ direction'' in the second case; the corrected $+y$ direction is documented
-in \texttt{ERRATA.md}.
+faithful drawing of a Kelvin wave may be found in Gill (1982, p.380).
 
 \section{Waveguide modes}
 
@@ -1062,6 +1021,7 @@ Consider an infinitely long channel in the $x$ direction with sides at $y=0$, $y
 % Source printed page 123 / source physical page 28
 % -----------------------------------------------------------------------------
 \input{figures/ch05-p123-waveguide-channel.tikz}
+\wavefiguremark
 
 We seek to determine the kinds of waves which may propagate subject to $v=0$ at
 $y=0,a$. We must solve
@@ -1079,9 +1039,9 @@ Look for solutions of the form
  \right).
 \]
 This satisfies the field equation if
-\[
+\begin{waveequation}
  k^2=\frac{\sigma^2-f^2}{gD}-\left(\frac{m\pi}{a}\right)^2.
-\]
+\end{waveequation}
 The boundary conditions are
 \begin{multline*}
  i\sigma\frac{m\pi}{a}
@@ -1129,10 +1089,11 @@ superposition of two Kelvin waves travelling in opposite directions does not lea
 standing wave, but rather to motion in which the wave crests appear to rotate about
 \emph{amphidromic points} where the rise and fall vanishes.
 
-% Intentionally edited raster; native source image deskewed as documented in FIGURE_AUDIT.md.
+% Intentionally edited raster; native source image deskewed as documented in FIGURES.md.
 \par\smallskip
 \begin{center}
-  \includegraphics[width=0.78\linewidth]{figures/ch05-p124-amphidromic-pattern.png}%
+  \includegraphics[width=0.78\linewidth]{figures/ch05-p124-amphidromic-pattern.png}
+\wavefiguremark%
 \end{center}
 \smallskip
 
@@ -1151,6 +1112,7 @@ The case of a channel closed at one end is interesting, for we see how Kelvin wa
 reflected.
 
 \input{figures/ch05-p125-closed-channel.tikz}
+\wavefiguremark
 
 The idea is to have an incident plus an outgoing Kelvin wave. Nowhere is $u=0$ for
 such a combination although $v=0$ everywhere. We now include an infinite series of
@@ -1182,10 +1144,11 @@ like
 % -----------------------------------------------------------------------------
 % Source printed page 126 / source physical page 31
 % -----------------------------------------------------------------------------
-% Intentionally edited raster; native source image deskewed as documented in FIGURE_AUDIT.md.
+% Intentionally edited raster; native source image deskewed as documented in FIGURES.md.
 \par\smallskip
 \begin{center}
-  \includegraphics[width=0.62\linewidth]{figures/ch05-p126-kelvin-turning-corner.png}%
+  \includegraphics[width=0.62\linewidth]{figures/ch05-p126-kelvin-turning-corner.png}
+\wavefiguremark%
 \end{center}
 \smallskip
 
@@ -1195,8 +1158,7 @@ around the circumference. However, all of the foregoing assumes basins with flat
 bottoms and perpendicular walls at the edges. Bottom topography and/or sloping edges
 introduce yet other modes. The problem of finding the seiches of a rotating basin is
 not solvable in closed form for most basins because the boundary condition
-$\vec u\cdot\hat n=0$ does not admit separable solutions. The source reads ``simply be
-having''; this grammatical correction is logged in \texttt{ERRATA.md}.
+$\vec u\cdot\hat n=0$ does not admit separable solutions.
 
 Despite these difficulties, the above ideas have been applied to the problem of ocean
 tides, particularly in long thin marginal seas (e.g. Hendershott and Speranza, 1971).
@@ -1286,9 +1248,9 @@ nondivergent ocean.
  u_x+v_y&=0.
 \end{align*}
 The vorticity equation is
-\[
+\begin{waveequation}
  (v_x-u_y)_t+\beta v=0.
-\]
+\end{waveequation}
 The local rate of change of the relative vorticity balances the change in planetary
 vorticity. Since the flow is nondivergent, we can introduce a streamfunction
 \[
@@ -1296,13 +1258,6 @@ vorticity. Since the flow is nondivergent, we can introduce a streamfunction
  \ ;\qquad
  v=\psi_x.
 \]
-
-% ===== merged from chapter05-p129-136.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 5, printed pages 129--136.
-% Source authority: ChapmanRizzoli5.pdf, physical pages 34--41.
-% Source wording is retained except for corrections explicitly logged in ERRATA.md.
-% Diagrams are reproduced as audited vector redraws or direct source-PDF crops.
 
 % -----------------------------------------------------------------------------
 % Source printed page 129 / source physical page 34
@@ -1318,9 +1273,9 @@ This has a plane wave solution of
  \psi=e^{-i\sigma t+ikx+i\ell y}
 \]
 with the dispersion relation
-\[
+\begin{waveequation}
  \sigma=-\frac{\beta k}{k^2+\ell^2}.
-\]
+\end{waveequation}
 This can be rewritten as
 \[
  \left(k+\frac{\beta}{2\sigma}\right)^2+\ell^2
@@ -1329,6 +1284,7 @@ This can be rewritten as
 which is easy to plot on the $(k,\ell)$ plane.
 
 \input{figures/ch05-p129-rossby-dispersion.tikz}
+\wavefiguremark
 
 The allowed loci of wavenumbers $(k,\ell)$ form circles in the $(k,\ell)$ plane with
 the center at $(-\beta/2\sigma,0)$ and with radius $\beta/2\sigma$. If $\ell=0$, then
@@ -1359,6 +1315,7 @@ vorticity resulting from the initial pattern combines with this pattern to shift
 westward.
 
 \input{figures/ch05-p130-rossby-mechanism.tikz}
+\wavefiguremark
 
 The group velocity components are
 \begin{align*}
@@ -1371,10 +1328,10 @@ The group velocity components are
  =-\frac{\beta\sin(2\gamma)}{K^2},
 \end{align*}
 so the total group velocity vector is
-\[
+\begin{waveequation}
  \vec c_g=\frac{\beta}{K^2}
  [\hat i\cos(2\gamma)-\hat j\sin(2\gamma)].
-\]
+\end{waveequation}
 The situation is as depicted in the dispersion diagram. That is,
 \[
  \vec c_g
@@ -1431,9 +1388,9 @@ unaltered in this dynamical system. Looking for a plane wave solution of the for
  \eta=e^{-i\sigma t+ikx+i\ell y}
 \]
 we find the dispersion relation
-\[
+\begin{waveequation}
  \sigma=-\frac{g\beta D}{f^2}k.
-\]
+\end{waveequation}
 
 \sourcepagebreak
 
@@ -1454,6 +1411,7 @@ Rossby waves which are nondivergent but dispersive. The north-south wavenumber i
 arbitrary and the dispersion relation on the $(k,\ell)$ plane is
 
 \input{figures/ch05-p132-divergent-dispersion.tikz}
+\wavefiguremark
 
 The locus of acceptable wavenumbers forms a straight line.
 
@@ -1462,6 +1420,7 @@ different from that for Rossby waves. Remember that the flow is totally geostrop
 but divergent. Consider a region of high pressure
 
 \input{figures/ch05-p132-pressure-high.tikz}
+\wavefiguremark
 
 The flow at A converges because the transport (geostrophic) between a pair of isobars
 south of $H$ is greater than that between the same pair north of $H$ because $f$ varies.
@@ -1493,11 +1452,11 @@ equations to form a single equation for $v$ in this case.
 Notice that the first two terms are the same as those in the nondivergent Rossby wave
 balance. Now $f$ is not really constant, but we consider it fixed in order to look for
 plane wave solutions $v=e^{ikx+i\ell y}$. The dispersion relation is
-\[
+\begin{waveequation}
  \left(k+\frac{\beta}{2\sigma}\right)^2+\ell^2
  =\left(\frac{\beta}{2\sigma}\right)^2
   +\frac{\sigma^2-f^2}{gD}
-\]
+\end{waveequation}
 which can be drawn on the $(k,\ell)$ plane as
 
 \sourcepagebreak
@@ -1569,10 +1528,10 @@ linearized dynamics on the $\beta$-plane are very simplified and the dynamics of
 low frequency motions may need a more complete treatment.
 
 The dispersion relation is usually written (for $\sigma\ll f$) as
-\[
+\begin{waveequation}
  \sigma=-\frac{\beta k}
  {k^2+\ell^2+f^2/gD}.
-\]
+\end{waveequation}
 
 \sourcepagebreak
 
@@ -1602,13 +1561,6 @@ problem with the appropriate equatorial dynamics (which we will do shortly).
 
 Consider the reflection of a Rossby wave from a straight wall making some arbitrary
 angle $\mu$ with the $x$ axis.
-
-% ===== merged from chapter05-p137-143.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 5, printed pages 137--143.
-% Source authority: ChapmanRizzoli5.pdf, physical pages 42--48.
-% Source wording is retained except for corrections explicitly logged in ERRATA.md.
-% Original diagrams are cropped directly from the committed source PDF.
 
 % -----------------------------------------------------------------------------
 % Source printed page 137 / source physical page 42
@@ -1733,11 +1685,11 @@ $\beta$-plane in which the variation in rotation is small compared to the basic
 rotation, i.e. $\beta y<f_0$. The dynamics change considerably if we go to the
 equatorial region where $f_0\to0$. Then we can approximate $f$ by $\beta y$ and
 ignore $f_0$. The equations of motion become
-\begin{align*}
+\begin{wavealign}
  u_t-\beta yv&=-g\eta_x,
  &v_t+\beta yu&=-g\eta_y,\\
  \eta_t+D(u_x+v_y)&=0.
-\end{align*}
+\end{wavealign}
 This is called the \emph{equatorial $\beta$-plane} because we have approximated the
 sphere by a plane tangent to the equator. If we assume time dependence of
 $e^{-i\sigma t}$ and solve for $v$ as we did for the mid-latitude planetary waves, we
@@ -1769,7 +1721,7 @@ with boundary conditions of
  \lim_{y\to\pm\infty}v=0
 \]
 to preserve internal consistency in the equatorial approximation, since we cannot move
-to regions where $f$ becomes large.
+to regions where $f_0$ becomes large.
 
 The equation for $v$ looks very much like Hermite's equation
 \[
@@ -1795,11 +1747,11 @@ The solutions are
  H_m\!\left[\beta^{1/2}y/(gD)^{1/4}\right]
 \]
 with a dispersion relation of
-\[
+\begin{waveequation}
  \frac{(gD)^{1/2}}{\beta}
  \left(\frac{\sigma^2}{gD}-k^2-\frac{\beta k}{\sigma}\right)
  =2m+1.
-\]
+\end{waveequation}
 The $H_m$ are the Hermite polynomials
 \[
  H_0=1;\qquad H_1=2\xi;\qquad H_2=-2+4\xi^2\ldots
@@ -1824,10 +1776,10 @@ To explore the possible wave solutions, we make the following transformations
 \]
 where $\omega$ is the dimensionless frequency and $\lambda$ is the dimensionless
 east-west wavenumber. The dispersion relation becomes
-\[
+\begin{waveequation}
  \omega^2-\lambda^2-\lambda/\omega=2m+1.
-\]
-This is a cubic in $\omega$. For given mode number $m$ and wavenumber $k$, three
+\end{waveequation}
+This is a cubic in $\omega$. For given wavenumbers $m$ and $k$, three
 frequencies are generally specified. To see their connection with previous work,
 consider the following limiting cases.
 
@@ -1879,16 +1831,9 @@ waves plus a westward (phase) planetary wave solution.
 
 \noindent d) For the case $m=0$, we have the \emph{Yanai} or mixed gravity-Rossby wave
 solution. We can write the dispersion relation as
-\[
+\begin{waveequation}
  (\lambda+\omega)[\lambda-(\omega-1/\omega)]=0.
-\]
-
-% ===== merged from chapter05-p144-148.tex; source-page comments retained =====
-% Wave Motions in the Ocean: Myrl's view
-% Verbatim reconstruction: Chapter 5, printed pages 144--148.
-% Source authority: ChapmanRizzoli5.pdf, physical pages 49--53.
-% Source wording is retained except for corrections explicitly logged in ERRATA.md.
-% Original diagrams are cropped directly from the committed source PDF.
+\end{waveequation}
 
 % -----------------------------------------------------------------------------
 % Source printed page 144 / source physical page 49
@@ -1927,9 +1872,9 @@ i.e. $e^{ikx}$, we find a solution of the form
 Notice that these waves exist only if $k>0$ to satisfy the requirement of decaying away
 from the equator. They are trapped at the equator and move only eastward. Substituting
 the solution into the continuity equation gives a dispersion relation of
-\[
+\begin{waveequation}
  \sigma=(gD)^{1/2}k.
-\]
+\end{waveequation}
 
 \sourcepagebreak
 
@@ -1969,10 +1914,10 @@ for $v$
 \]
 Then the dispersion relation becomes (provided $v_0$ varies slowly so that $v_{0yy}$ is
 always small)
-\[
+\begin{waveequation}
  \ell^2(y)=\frac{\sigma^2}{gD}-k^2-\frac{\beta k}{\sigma}
  -\frac{\beta^2y^2}{gD}.
-\]
+\end{waveequation}
 Now the ray path is defined by
 \[
  \frac{dy}{dx}=\frac{\ell}{k}
@@ -2012,19 +1957,14 @@ This says that rays are sinusoids moving around the equator
 % Vector reconstruction; source PDF ChapmanRizzoli5.pdf, physical page 52, trim=175bp 505bp 150bp 45bp.
 \wavevectorart[0.55]{ch05-p147-equatorial-ray}
 
-They go back and forth between the two latitudes $\pm y_T$, being continuously
+They go back and forth between the two latitudes $\pm\theta_T$, being continuously
 refracted by the varying $f=\beta y$, which models the curvature of the earth.
 
-We can find the trapping latitudes $\pm y_T$ where the rays are totally reflected. They
+We can find the trapping latitudes $\pm\theta_T$ where the rays are totally reflected. They
 are simply the maxima of $y$
-\[
- \boxed{
- \pm y_T=\pm\frac{(gD)^{1/2}k}{\beta}\tan\theta_0
- }.
-\]
-The source denotes this quantity by $\theta_T$ even though the right-hand side and the
-following bounds are in the meridional distance coordinate $y$; see
-\texttt{ERRATA.md}.
+\begin{waveequation}
+ \pm\theta_T=\pm\frac{(gD)^{1/2}k}{\beta}\tan\theta_0.
+\end{waveequation}
 
 If $k\to0$, that is the waves squash together propagating only north and south, then
 the ray path degenerates into the straight line

@@ -1,40 +1,52 @@
 # Repository instructions
 
-## Core invariants
+Keep this file limited to repository-wide invariants and routing. Read the relevant skill for task-specific procedures.
 
-- `source/*.pdf` is the immutable historical authority. Never edit, recompress, replace, or rewrite a source PDF.
-- The facsimile PDF, modern PDF, and HTML edition share the same `chapter1.tex`--`chapter6.tex`, figures, corrections, and `references.bib`.
-- Correct shared content once. Record every substantive deviation from the scan in `reconstruction/ERRATA.md`.
-- Facsimile and modern editions differ only where explicitly intended: front matter, typography, spacing, navigation, and pagination/page-break behavior.
-- Generated PDFs, HTML, comparison images, LaTeX auxiliaries, and other build products are not committed.
-- Do not add source hashes, source manifests, verification TSVs, or generated build-status ledgers.
+## Task skills
 
-## Text and scientific audit
+- Source fidelity, text/equation transcription, scientific verification, errata, and references: `skills/source-audit/SKILL.md`
+- Figure extraction, vector/raster reconstruction, comparison, and scientific figure review: `skills/figure-audit/SKILL.md`
+- Front matter, reader formats, README/HTML synchronization, builds, CI, Pages, and releases: `skills/publication/SKILL.md`
+- Post-build PDF/HTML/EPUB visual and structural review: `skills/render-qa/SKILL.md`
+- For equation-defined or scientifically constrained figures, read both `source-audit` and `figure-audit`.
+- For publication work that could alter historical or scientific content, also read `source-audit`.
 
-Work in small reviewable batches. Distinguish these checks:
+## Local environment
 
-1. **Text fidelity:** compare scan ↔ LaTeX for wording, punctuation, capitalization, symbols, subscripts/superscripts, references, footnotes, page order, and figure labels. Do not modernize prose merely because it sounds old.
-2. **Equation transcription:** compare every mathematical symbol and sign directly with the scan.
-3. **Scientific equation audit:** independently check dimensions, signs, factors (`2`, `pi`, `g`, `f`, `H`, etc.), definitions, coordinate conventions, derivation steps, boundary conditions, limiting cases, and consistency with surrounding prose. Verify standard results against the cited original paper, Hendershott/Myrl material where relevant, and another authoritative physical-oceanography source when practical.
-4. **Scientific figure audit:** check axes, units, signs, propagation direction, orientation, node/antinode placement, dispersion relationships, phase arrows, boundary conditions, and agreement with nearby equations/prose.
+- Use the local setup in `CONTRIBUTING.md`; it is kept aligned with the publication CI environment.
+- Before diagnosing build, render, or figure failures, make sure the repository Python environment and pinned TinyTeX/`tex-packages.txt` environment are active. Do not change source content to work around missing local dependencies.
 
-Do not silently alter a scientifically questionable historical equation or figure. Record the suspected source error, evidence, and review status in `ERRATA.md`. Preserve the historical derivation style and logic rather than rewriting it as a modern textbook.
+## Global source rule
 
-## Figure policy
+- `source/*.pdf` is the immutable historical authority. Never edit, replace, recompress, or rewrite a source PDF.
+- Reconstruction defaults to source fidelity, not correction or modernization.
+- Only small, unambiguous typos with no plausible scientific, mathematical, bibliographic, or editorial effect may be corrected autonomously.
+- Any substantive or ambiguous departure from the source requires explicit human approval. Agents can never approve an erratum or infer approval from correctness, prior commits, issues, builds, other agents, or an existing status label.
+- Follow `skills/source-audit/SKILL.md` for the correction decision process and errata format.
 
-- Use direct crops from the committed source PDF for untouched complex/historical art; do not commit an intermediate PNG.
-- Use TikZ/vector source for simple analytic diagrams when scientific meaning can be preserved exactly.
-- If a source figure genuinely requires deskewing, cleaning, manual repair, contrast correction, or another intentional raster edit, commit only the final edited raster. Extract at the PDF's native embedded resolution where possible; avoid screenshots and repeated lossy recompression.
-- Each retained TikZ file carries a `wave-source` provenance comment used by `scripts/compare-figures.py` to regenerate comparisons on demand.
-- Each intentionally edited raster carries equivalent `wave-source-*` PNG metadata so comparisons can be regenerated without keeping a duplicate source raster.
-- Record figure status and decisions in `reconstruction/FIGURE_AUDIT.md`.
+## Maintained content
 
-## Completion gate
+- The reconstruction `.tex` files and `reconstruction/references.bib` are the maintained reader sources.
+- `README.md`, HTML, EPUB, `build/`, and `dist/` are derived/generated views or outputs; follow `skills/publication/SKILL.md` rather than maintaining parallel content.
+- `audit/` is the persistent-but-ignored workspace for temporary human/agent audit evidence; it must survive publication builds and must never be committed.
+- The authorized license is CC BY-NC-SA 4.0. Do not change it without explicit instruction.
 
-Before considering work complete, run:
+## Git workflow
 
-```bash
-./scripts/build.sh all
-```
+- Agent edits go directly onto the latest `main` as small linear commits unless the owner explicitly requests a branch or PR.
+- Before committing, re-read current `main`; if it moved, reconstruct the change on the new tip.
+- Never force-push, reset `main` backwards, create merge commits, or overwrite newer work.
+- Do not create agent coordination sessions, claims, handoff branches, or competing workstreams.
+- Never create temporary workflows, trigger files, bot commit paths, or other automation to mutate tracked repository files.
+- `.github/workflows/publish.yml` is publication automation only and must never edit tracked source, create commits, or push source changes.
+- Treat current `main` as authoritative; history may be rewritten or squashed.
 
-For figure work, also run `python scripts/compare-figures.py <figure>` for affected figures. Update `PLAN.md`, `ERRATA.md`, and `FIGURE_AUDIT.md` as appropriate.
+## Project records
+
+- `reconstruction/ERRATA.md`: substantive source deviations, proposed corrections, evidence, and human review status.
+- `reconstruction/FIGURES.md`: figure provenance, representation, and scientific/equation validation.
+- `reconstruction/PLAN.md`: remaining work only.
+
+Do not create duplicate audit ledgers, source manifests, verification TSVs, hash/status ledgers, or temporary trigger records.
+
+For validation, synchronization, dependency pins, publication invariants, and completion commands, follow the relevant skill instead of duplicating them here.

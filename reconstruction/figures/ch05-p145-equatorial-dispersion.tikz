@@ -44,25 +44,25 @@
   \node[anchor=west,align=left] at (0.82,0.78)
     {$m=-1$ Kelvin wave\\$\sigma=\sqrt{gD}\,k$};
   \draw[->,line width=0.50pt] (1.76,1.02) -- (1.58,1.58);
-  \node[anchor=west,font=\footnotesize] at (-3.92,2.35)
+  \node[anchor=west] at (-4.05,2.50)
     {$\sigma=-\sqrt{gD}\,k$};
   \draw[->,line width=0.50pt] (-3.20,2.52) -- (-2.88,2.88);
 
   \node[anchor=west] at (-3.85,0.95) {Yanai wave $m=0$};
   \draw[->,line width=0.50pt] (-3.20,0.82) -- (-2.76,0.44);
-  \node[anchor=west,font=\footnotesize] at (-4.25,0.68) {$\sigma=-\beta/k$};
-  \draw[->,line width=0.50pt] (-3.72,0.60) -- (-3.23,0.31);
+  \node[anchor=west] at (-4.25,0.64) {$\sigma=-\beta/k$};
+  \draw[->,line width=0.50pt] (-3.72,0.56) -- (-3.23,0.31);
 
   % Low-frequency Rossby roots are too closely spaced to label on-curve without
-  % collisions, so source mode numbers are retained as leader callouts.
-  \node[anchor=north,font=\scriptsize] at (-2.78,-0.34) {$m=1$};
-  \draw[->,line width=0.45pt] (-2.78,-0.28) -- (-2.78,0.244);
-  \node[anchor=north,font=\scriptsize] at (-1.78,-0.34) {$2$};
-  \draw[->,line width=0.45pt] (-1.78,-0.28) -- (-1.78,0.219);
-  \node[anchor=north,font=\scriptsize] at (-0.90,-0.34) {$3$};
-  \draw[->,line width=0.45pt] (-0.90,-0.28) -- (-0.90,0.119);
-  \node[anchor=north] at (-3.55,-0.72) {Rossby Waves};
-  \node[anchor=north,font=\footnotesize,align=center] at (0.25,-0.48)
+  % collisions, so source mode numbers are retained as full-size leader callouts.
+  \node[anchor=north] at (-2.78,-0.34) {$m=1$};
+  \draw[->,line width=0.45pt] (-2.78,-0.25) -- (-2.78,0.244);
+  \node[anchor=north] at (-1.78,-0.34) {$2$};
+  \draw[->,line width=0.45pt] (-1.78,-0.25) -- (-1.78,0.219);
+  \node[anchor=north] at (-0.90,-0.34) {$3$};
+  \draw[->,line width=0.45pt] (-0.90,-0.25) -- (-0.90,0.119);
+  \node[anchor=north] at (-3.55,-0.88) {Rossby Waves};
+  \node[anchor=north,align=center] at (0.45,-0.52)
     {$\sigma=-\dfrac{\sqrt{gD}\,k}{2m+1}$};
 \end{tikzpicture}
 \end{center}
