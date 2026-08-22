@@ -8,6 +8,7 @@ exposes the shared identity writer needed by the PDF build. Nothing written
 here is a maintained source of book text: inputs always come from
 ``reconstruction/``.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -19,11 +20,11 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import unicodedata
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
-import unicodedata
 
 from PIL import Image
 
@@ -36,10 +37,18 @@ CACHE = Path(os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motion
 SOURCE_PAGE_CACHE = CACHE / "source-pages"
 TIKZ_CACHE = CACHE / "tikz"
 SOURCE_RENDER_DPI = 170
-TIKZ_CACHE_VERSION = "v1"
+TIKZ_CACHE_VERSION = "v2"
 FIGURE_ASSET_PREFIX = "assets/figures"
+BOOK_TITLE = "Wave Motions in the Ocean"
+PUBLICATION_TITLE = f"{BOOK_TITLE}: Myrl's View"
+AUTHORS = ("David C. Chapman", "Paola Malanotte-Rizzoli")
+EDITOR = "Albert M. W. Yau (digital editor)"
+LANGUAGE = "en-US"
+MATHJAX_URL = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"
 SITE_URL = "https://mwyau.github.io/wave-motions-in-the-ocean"
-ORIGINAL_SOURCE_URL = "https://oxbow.sr.unh.edu/ChapmanRizzoli/Wave_Motions_in_the_Ocean.html"
+ORIGINAL_SOURCE_URL = (
+    "https://oxbow.sr.unh.edu/ChapmanRizzoli/Wave_Motions_in_the_Ocean.html"
+)
 LICENSE_URL = "https://creativecommons.org/licenses/by-nc-sa/4.0/"
 REPOSITORY_URL = "https://github.com/mwyau/wave-motions-in-the-ocean"
 DOWNLOADS = (
@@ -49,19 +58,35 @@ DOWNLOADS = (
 )
 CC_ICONS = ("cc", "by", "nc", "sa")
 
-TIKZ_STANDALONE_TEMPLATE = r"""\documentclass[border=5pt]{standalone}
-\usepackage[T1]{fontenc}
-\usepackage{amsmath,amssymb,bm,mathtools}
+TIKZ_RENDER_TEMPLATE = r"""\documentclass{article}
+\usepackage{fontspec}
+\usepackage{amsmath,mathtools}
+\usepackage[math-style=TeX,bold-style=TeX]{unicode-math}
+\setmainfont{STIX Two Text}[Ligatures=TeX]
+\setsansfont{Source Sans 3}[Ligatures=TeX,Scale=0.94]
+\setmathfont{STIX Two Math}
 \usepackage{graphicx,xcolor,tikz}
 \usetikzlibrary{calc,decorations.pathreplacing}
 \begin{document}
+\newbox\wavefigurebox
+\setbox\wavefigurebox=\hbox{%
 \begingroup
 \let\par\relax
 \let\smallskip\relax
 \def\center{}
 \def\endcenter{}
-\input{%s}
-\endgroup\end{document}
+\input{__WAVE_TIKZ_PATH__}%
+\endgroup}
+\pagewidth=\dimexpr\wd\wavefigurebox+10pt\relax
+\pageheight=\dimexpr\ht\wavefigurebox+\dp\wavefigurebox+10pt\relax
+\pdfvariable horigin 0pt
+\pdfvariable vorigin 0pt
+\shipout\vbox to \pageheight{%
+  \offinterlineskip
+  \vskip5pt
+  \hbox to \pagewidth{\hskip5pt\box\wavefigurebox\hss}%
+  \vss}
+\end{document}
 """
 
 SOURCEART_RE = re.compile(
@@ -76,42 +101,48 @@ SIGNATURE_RE = re.compile(
 DIRECT_PDF_RE = re.compile(
     r"\\includegraphics\[(?P<opts>[^]]*page=(?P<page>\d+)[^]]*trim=(?P<trim>[^,\]]+)[^]]*)\]"
     r"\s*\{(?P<path>\.\./source/(?P<pdf>[^}]+))\}",
-    re.S,
+    re.DOTALL,
 )
 LOCAL_RASTER_RE = re.compile(
     r"\\includegraphics(?:\[[^]]*\])?\s*\{figures/(?P<name>[^}]+\.(?:png|jpe?g))\}",
-    re.I,
+    re.IGNORECASE,
 )
 PDF_ONLY_RE = re.compile(
     r"\\begin\{wavepdfonly\}.*?\\end\{wavepdfonly\}",
-    re.S,
+    re.DOTALL,
 )
 WAVE_NUMBERED_RE = re.compile(
     r"\\begin\{(?P<env>waveequation|wavealign)\}(?P<body>.*?)"
     r"\\end\{(?P=env)\}",
-    re.S,
+    re.DOTALL,
 )
 NATIVE_TAGGED_EQUATION_RE = re.compile(
     r"\\begin\{equation\}(?P<body>.*?)\\tag\{(?P<tag>\d+\.\d+)\}(?P<tail>.*?)"
     r"\\end\{equation\}",
-    re.S,
+    re.DOTALL,
 )
 FIGURE_MARK_RE = re.compile(r"\\wavefiguremark")
 
 
 def run(cmd: list[str], *, cwd: Path | None = None, quiet: bool = True) -> None:
-    kwargs = {"cwd": cwd, "check": True}
-    if quiet:
-        kwargs.update(stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+    stdout = subprocess.DEVNULL if quiet else None
+    stderr = subprocess.PIPE if quiet else None
     try:
-        subprocess.run(cmd, **kwargs)
+        subprocess.run(
+            cmd,
+            cwd=cwd,
+            check=True,
+            stdout=stdout,
+            stderr=stderr,
+            text=True,
+        )
     except subprocess.CalledProcessError as exc:
         if quiet and exc.stderr:
             sys.stderr.write(exc.stderr[-12000:])
         raise
 
 
-@lru_cache(maxsize=None)
+@cache
 def file_sha256(path_text: str) -> str:
     digest = hashlib.sha256()
     with Path(path_text).open("rb") as handle:
@@ -142,6 +173,55 @@ def _asset_path(assets_root: Path, asset_prefix: str, name: str) -> Path:
     return assets_root / Path(asset_prefix) / name
 
 
+def _render_pdf_page(
+    pdf: Path, page: int, dpi: int, prefix: Path, *, quiet: bool = True
+) -> Path:
+    run(
+        [
+            "pdftoppm",
+            "-f",
+            str(page),
+            "-l",
+            str(page),
+            "-singlefile",
+            "-r",
+            str(dpi),
+            "-png",
+            str(pdf),
+            str(prefix),
+        ],
+        quiet=quiet,
+    )
+    return prefix.with_suffix(".png")
+
+
+def _crop_source_image(
+    pdf: Path,
+    page: int,
+    trim: str,
+    image_path: Path,
+    destination: Path,
+    *,
+    angle: float = 0.0,
+    optimize: bool = False,
+) -> None:
+    with Image.open(image_path) as source:
+        image = source.convert("RGB")
+    page_width, page_height = page_size_points(pdf, page)
+    left, bottom, right, top = parse_trim(trim)
+    x0 = round(left / page_width * image.width)
+    x1 = round(image.width - right / page_width * image.width)
+    y0 = round(top / page_height * image.height)
+    y1 = round(image.height - bottom / page_height * image.height)
+    if not (0 <= x0 < x1 <= image.width and 0 <= y0 < y1 <= image.height):
+        raise ValueError(f"invalid crop for {pdf.name} page {page}: {trim}")
+    image = image.crop((x0, y0, x1, y1))
+    if angle:
+        image = image.rotate(angle, expand=True, fillcolor="white")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    image.save(destination, optimize=optimize)
+
+
 def source_crop(
     pdf_name: str,
     page: int,
@@ -170,37 +250,17 @@ def source_crop(
     )
     page_cache.parent.mkdir(parents=True, exist_ok=True)
     if not page_cache.exists():
-        prefix = page_cache.with_suffix("")
-        run(
-            [
-                "pdftoppm",
-                "-f",
-                str(page),
-                "-l",
-                str(page),
-                "-singlefile",
-                "-r",
-                str(dpi),
-                "-png",
-                str(pdf),
-                str(prefix),
-            ]
-        )
+        _render_pdf_page(pdf, page, dpi, page_cache.with_suffix(""))
 
-    image = Image.open(page_cache).convert("RGB")
-    page_width, page_height = page_size_points(pdf, page)
-    left, bottom, right, top = parse_trim(trim)
-    x0 = round(left / page_width * image.width)
-    x1 = round(image.width - right / page_width * image.width)
-    y0 = round(top / page_height * image.height)
-    y1 = round(image.height - bottom / page_height * image.height)
-    if not (0 <= x0 < x1 <= image.width and 0 <= y0 < y1 <= image.height):
-        raise ValueError(f"invalid crop for {pdf_name} page {page}: {trim}")
-    image = image.crop((x0, y0, x1, y1))
-    if angle:
-        image = image.rotate(angle, expand=True, fillcolor="white")
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    image.save(destination, optimize=True)
+    _crop_source_image(
+        pdf,
+        page,
+        trim,
+        page_cache,
+        destination,
+        angle=angle,
+        optimize=True,
+    )
     return f"{asset_prefix}/{name}"
 
 
@@ -219,36 +279,8 @@ def render_source_crop(
         raise FileNotFoundError(pdf)
     with tempfile.TemporaryDirectory(prefix="wave-source-") as temporary:
         prefix = Path(temporary) / "page"
-        run(
-            [
-                "pdftoppm",
-                "-f",
-                str(page),
-                "-l",
-                str(page),
-                "-singlefile",
-                "-r",
-                str(dpi),
-                "-png",
-                str(pdf),
-                str(prefix),
-            ],
-            quiet=False,
-        )
-        image = Image.open(prefix.with_suffix(".png")).convert("RGB")
-        page_width, page_height = page_size_points(pdf, page)
-        left, bottom, right, top = parse_trim(trim)
-        x0 = round(left / page_width * image.width)
-        x1 = round(image.width - right / page_width * image.width)
-        y0 = round(top / page_height * image.height)
-        y1 = round(image.height - bottom / page_height * image.height)
-        if not (0 <= x0 < x1 <= image.width and 0 <= y0 < y1 <= image.height):
-            raise ValueError(f"invalid crop for {pdf_name} page {page}: {trim}")
-        image = image.crop((x0, y0, x1, y1))
-        if angle:
-            image = image.rotate(angle, expand=True, fillcolor="white")
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        image.save(destination)
+        image_path = _render_pdf_page(pdf, page, dpi, prefix, quiet=False)
+        _crop_source_image(pdf, page, trim, image_path, destination, angle=angle)
 
 
 def _tikz_digest(stem: str) -> str:
@@ -256,12 +288,35 @@ def _tikz_digest(stem: str) -> str:
     return hashlib.sha256(
         TIKZ_CACHE_VERSION.encode()
         + b"\0"
-        + TIKZ_STANDALONE_TEMPLATE.encode()
+        + TIKZ_RENDER_TEMPLATE.encode()
         + b"\0"
         + (ROOT / "tex-packages.txt").read_bytes()
         + b"\0"
         + tikz.read_bytes()
     ).hexdigest()[:16]
+
+
+def _compile_tikz_pdf(stem: str, workdir: Path, *, quiet: bool = True) -> Path:
+    tikz = FIGURES / f"{stem}.tikz"
+    if not tikz.exists():
+        raise FileNotFoundError(tikz)
+    if workdir.exists():
+        shutil.rmtree(workdir)
+    workdir.mkdir(parents=True)
+    tex = workdir / "figure.tex"
+    tex.write_text(TIKZ_RENDER_TEMPLATE.replace("__WAVE_TIKZ_PATH__", tikz.as_posix()))
+    run(
+        [
+            "latexmk",
+            "-lualatex",
+            "-interaction=nonstopmode",
+            "-halt-on-error",
+            "figure.tex",
+        ],
+        cwd=workdir,
+        quiet=quiet,
+    )
+    return workdir / "figure.pdf"
 
 
 def render_tikz_svg(
@@ -285,23 +340,9 @@ def render_tikz_svg(
         return
 
     workdir = work_root / "tikz" / stem
-    if workdir.exists():
-        shutil.rmtree(workdir)
-    workdir.mkdir(parents=True)
-    tex = workdir / "figure.tex"
-    tex.write_text(TIKZ_STANDALONE_TEMPLATE % tikz.as_posix())
-    run(
-        [
-            "latexmk",
-            "-pdf",
-            "-interaction=nonstopmode",
-            "-halt-on-error",
-            "figure.tex",
-        ],
-        cwd=workdir,
-    )
+    pdf = _compile_tikz_pdf(stem, workdir)
     svg = workdir / "figure.svg"
-    run(["pdftocairo", "-svg", str(workdir / "figure.pdf"), str(svg)])
+    run(["pdftocairo", "-svg", str(pdf), str(svg)])
     cached_svg.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(svg, cached_svg)
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -314,20 +355,8 @@ def render_tikz_png(stem: str, destination: Path, dpi: int) -> None:
     if not tikz.exists():
         raise FileNotFoundError(tikz)
     with tempfile.TemporaryDirectory(prefix="wave-vector-") as temporary:
-        workdir = Path(temporary)
-        tex = workdir / "figure.tex"
-        tex.write_text(TIKZ_STANDALONE_TEMPLATE % tikz.as_posix())
-        run(
-            [
-                "latexmk",
-                "-pdf",
-                "-interaction=nonstopmode",
-                "-halt-on-error",
-                "figure.tex",
-            ],
-            cwd=workdir,
-            quiet=False,
-        )
+        workdir = Path(temporary) / "compile"
+        pdf = _compile_tikz_pdf(stem, workdir, quiet=False)
         prefix = workdir / "render"
         run(
             [
@@ -336,7 +365,7 @@ def render_tikz_png(stem: str, destination: Path, dpi: int) -> None:
                 "-r",
                 str(dpi),
                 "-png",
-                str(workdir / "figure.pdf"),
+                str(pdf),
                 str(prefix),
             ],
             quiet=False,
@@ -357,7 +386,9 @@ def referenced_tikz() -> list[str]:
 def prepare_vector_assets(assets_root: Path, work_root: Path) -> None:
     stems = referenced_tikz()
     workers = max(1, min(4, os.cpu_count() or 2))
-    print(f"Rendering {len(stems)} TikZ figures to SVG ({workers} workers; cache enabled)...")
+    print(
+        f"Rendering {len(stems)} TikZ figures to SVG ({workers} workers; cache enabled)..."
+    )
     failures: list[tuple[str, Exception]] = []
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futures = {
@@ -368,7 +399,7 @@ def prepare_vector_assets(assets_root: Path, work_root: Path) -> None:
             stem = futures[future]
             try:
                 future.result()
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 failures.append((stem, exc))
     if failures:
         for stem, exc in failures:
@@ -376,11 +407,19 @@ def prepare_vector_assets(assets_root: Path, work_root: Path) -> None:
         raise SystemExit(f"{len(failures)} TikZ figure render(s) failed")
 
 
-def copy_raster_assets(assets_root: Path, *, asset_prefix: str = FIGURE_ASSET_PREFIX) -> None:
+def copy_raster_assets(
+    assets_root: Path, *, asset_prefix: str = FIGURE_ASSET_PREFIX
+) -> None:
     for raster in FIGURES.rglob("*"):
-        if not raster.is_file() or raster.suffix.lower() not in {".png", ".jpg", ".jpeg"}:
+        if not raster.is_file() or raster.suffix.lower() not in {
+            ".png",
+            ".jpg",
+            ".jpeg",
+        }:
             continue
-        destination = _asset_path(assets_root, asset_prefix, str(raster.relative_to(FIGURES)))
+        destination = _asset_path(
+            assets_root, asset_prefix, str(raster.relative_to(FIGURES))
+        )
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(raster, destination)
 
@@ -403,7 +442,7 @@ def transform_tex(
     text = text.replace(r"\begin{wavewebonly}", "").replace(r"\end{wavewebonly}", "")
     text = text.replace(r"\nopagecolor", "")
     text = text.replace(r"\sourcepagebreak", "")
-    text = re.sub(r"\\setcounter\{page\}\{[^}]+\}", "", text)
+    text = re.sub(r"\\sourcesetpage\{[^}]+\}", "", text)
 
     def signature_sub(match: re.Match[str]) -> str:
         return (
@@ -416,7 +455,10 @@ def transform_tex(
     text = SIGNATURE_RE.sub(signature_sub, text)
 
     def vector_sub(match: re.Match[str]) -> str:
-        return rf"\includegraphics{{{asset_prefix}/{match.group('stem')}.svg}}" + "\n\\wavefiguremark"
+        return (
+            rf"\includegraphics{{{asset_prefix}/{match.group('stem')}.svg}}"
+            + "\n\\wavefiguremark"
+        )
 
     text = VECTOR_RE.sub(vector_sub, text)
     text = TIKZ_INPUT_RE.sub(
@@ -471,12 +513,8 @@ def transform_tex(
         native_labels.append(f"({tag})")
         body = (match.group("body") + match.group("tail")).strip()
         return (
-            "\\[\n"
-            + body
-            + "\n\\]\n"
-            "\\begin{flushright}\n\\textup{("
-            + tag
-            + ")}\n\\end{flushright}"
+            "\\[\n" + body + "\n\\]\n"
+            "\\begin{flushright}\n\\textup{(" + tag + ")}\n\\end{flushright}"
         )
 
     text = NATIVE_TAGGED_EQUATION_RE.sub(native_equation_sub, text)
@@ -491,12 +529,8 @@ def transform_tex(
             body = r"\begin{aligned}" + body + r"\end{aligned}"
         label = f"({chapter_number}.{equation_number})"
         return (
-            "\\[\n"
-            + body
-            + "\n\\]\n"
-            "\\begin{flushright}\n\\textup{"
-            + label
-            + "}\n\\end{flushright}"
+            "\\[\n" + body + "\n\\]\n"
+            "\\begin{flushright}\n\\textup{" + label + "}\n\\end{flushright}"
         )
 
     text = WAVE_NUMBERED_RE.sub(numbered_equation_sub, text)
@@ -582,19 +616,26 @@ def _balanced_command_args(text: str, command: str) -> list[str]:
     return out
 
 
+def reader_punctuation(text: str) -> str:
+    """Render TeX/text punctuation for generated reader-facing display strings."""
+    text = text.replace("``", "“").replace("''", "”")
+    text = text.replace("`", "‘").replace("'", "’")
+    return text
+
+
 def tex_plain(text: str) -> str:
     """Normalize TeX enough for headings, anchors, and reader metadata."""
     text = text.replace("---", "—").replace("--", "–")
     text = text.replace(r"\'e", "é").replace(r"\'E", "É")
-    text = text.replace(r'\"a', "ä").replace(r'\"o', "ö").replace(r'\"u', "ü")
+    text = text.replace(r"\"a", "ä").replace(r"\"o", "ö").replace(r"\"u", "ü")
     text = text.replace(r"\ell", "ℓ").replace(r"\pi", "π").replace(r"\beta", "β")
     text = text.replace("$", "")
-    for cmd in ("textit", "emph", "textbf", "mathrm", "rm", "mbox"):
+    for cmd in ("textit", "emph", "textbf", "mathrm", "mbox"):
         text = re.sub(rf"\\{cmd}\{{([^{{}}]*)\}}", r"\1", text)
     text = re.sub(r"\\[A-Za-z]+\*?", "", text)
     text = text.replace("{", "").replace("}", "")
     text = text.replace(r"\&", "&").replace(r"\%", "%").replace(r"\_", "_")
-    return " ".join(text.split()).strip()
+    return reader_punctuation(" ".join(text.split()).strip())
 
 
 def section_slug(title: str) -> str:
@@ -614,7 +655,9 @@ def book_structure() -> tuple[Chapter, ...]:
         text = path.read_text()
         chapter_titles = _balanced_command_args(text, "chapter")
         if len(chapter_titles) != 1:
-            raise ValueError(f"{path}: expected one \\chapter, found {len(chapter_titles)}")
+            raise ValueError(
+                f"{path}: expected one \\chapter, found {len(chapter_titles)}"
+            )
         section_titles = tuple(_balanced_command_args(text, "section"))
         chapters.append(
             Chapter(
@@ -705,9 +748,12 @@ def markdown_license() -> str:
 
 def _git(*args: str) -> str | None:
     try:
-        return subprocess.check_output(
-            ["git", *args], cwd=ROOT, text=True, stderr=subprocess.DEVNULL
-        ).strip() or None
+        return (
+            subprocess.check_output(
+                ["git", *args], cwd=ROOT, text=True, stderr=subprocess.DEVNULL
+            ).strip()
+            or None
+        )
     except (OSError, subprocess.CalledProcessError):
         return None
 
@@ -738,7 +784,11 @@ class BuildInfo:
 
     @property
     def label(self) -> str:
-        return f"{self.version} ({self.revision_label})" if self.version else self.revision_label
+        return (
+            f"{self.version} ({self.revision_label})"
+            if self.version
+            else self.revision_label
+        )
 
     @property
     def commit_url(self) -> str:
@@ -756,7 +806,9 @@ def current_build() -> BuildInfo:
         version = os.environ.get("GITHUB_REF_NAME")
     if not version:
         version = _git("describe", "--tags", "--exact-match", "--match", "v[0-9]*")
-    return BuildInfo(sha=sha, short_sha=short_sha, version=version.strip() if version else None)
+    return BuildInfo(
+        sha=sha, short_sha=short_sha, version=version.strip() if version else None
+    )
 
 
 def write_build_info_tex(path: Path, info: BuildInfo | None = None) -> None:
@@ -804,7 +856,9 @@ def _build_info_cli(argv: list[str] | None = None) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Shared publication support utilities")
     subparsers = parser.add_subparsers(dest="command", required=True)
-    subparsers.add_parser("build-info", help="print or write the current build identity")
+    subparsers.add_parser(
+        "build-info", help="print or write the current build identity"
+    )
     args, remainder = parser.parse_known_args(argv)
     if args.command == "build-info":
         return _build_info_cli(remainder)

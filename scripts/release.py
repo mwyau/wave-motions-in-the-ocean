@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Canonical release assets, packaging, and SHA-256 verification."""
+
 from __future__ import annotations
 
 import argparse
@@ -136,14 +137,20 @@ def package_release(dist: Path, output: Path) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Package and verify publication release artifacts")
+    parser = argparse.ArgumentParser(
+        description="Package and verify publication release artifacts"
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    package = subparsers.add_parser("package", help="prepare the canonical release asset directory")
+    package = subparsers.add_parser(
+        "package", help="prepare the canonical release asset directory"
+    )
     package.add_argument("--dist", type=Path, default=Path("dist"))
     package.add_argument("--output", type=Path, default=Path("release"))
 
-    checksums = subparsers.add_parser("checksums", help="write or verify a SHA-256 manifest")
+    checksums = subparsers.add_parser(
+        "checksums", help="write or verify a SHA-256 manifest"
+    )
     checksums.add_argument("--root", type=Path, default=Path("dist"))
     action = checksums.add_mutually_exclusive_group(required=True)
     action.add_argument("--write", action="store_true")

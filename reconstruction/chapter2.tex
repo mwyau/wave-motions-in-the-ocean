@@ -1,10 +1,8 @@
-% Wave Motions in the Ocean: Myrl's View
 % Chapter 2; historical source: source/ChapmanRizzoli0_2.pdf.
 % Source-page comments preserve printed/physical page correspondence.
-% Suspected substantive source errors are documented in ERRATA.md; source text is retained unless explicitly human-approved.
 
 \setcounter{chapter}{1}
-\setcounter{page}{18}
+\sourcesetpage{18}
 
 % -----------------------------------------------------------------------------
 % Source printed page 18 / physical page 28
@@ -24,11 +22,11 @@ waves is the fluid's resistance to compression (i.e., its compressibility).
 When viscous dissipation, rotation and gravitational forces are neglected, the
 momentum and continuity equations are
 \begin{align*}
- \frac{\partial\vec u^{\,*}}{\partial t}
- +\vec u^{\,*}\cdot\nabla\vec u^{\,*}
- &=-\frac{1}{\rho^*}\nabla p^*,\\
- \frac{\partial\rho^*}{\partial t}
- +\nabla\cdot(\rho^*\vec u^{\,*})&=0.
+	\frac{\partial\vec u^{\,*}}{\partial t}
+	+\vec u^{\,*}\cdot\nabla\vec u^{\,*}
+	                                 & =-\frac{1}{\rho^*}\nabla p^*, \\
+	\frac{\partial\rho^*}{\partial t}
+	+\nabla\cdot(\rho^*\vec u^{\,*}) & =0.
 \end{align*}
 
 \sourcepagebreak
@@ -41,35 +39,35 @@ thermodynamics (Batchelor, 1967; Chapter 3). It can be shown that, if
 $\rho^*=\rho^*(p^*,T)$ and the motions are adiabatic so that $\partial S/\partial t=0$ where $S$ is
 the entropy, then $\rho^*=\rho^*(p^*,S)$ and
 \[
- \left(\frac{D\rho^*}{Dt}\right)_S
- =\left(\frac{\partial\rho^*}{\partial p^*}\right)_S
-  \left(\frac{Dp^*}{Dt}\right)_S.
+	\left(\frac{D\rho^*}{Dt}\right)_S
+	=\left(\frac{\partial\rho^*}{\partial p^*}\right)_S
+	\left(\frac{Dp^*}{Dt}\right)_S.
 \]
 A solution of these equations, although trivial, is
 \[
- \rho^*=\rho_0;\qquad p^*=p_0;\qquad \vec u^{\,*}=0.
+	\rho^*=\rho_0;\qquad p^*=p_0;\qquad \vec u^{\,*}=0.
 \]
 This solution is not very exciting, so we would like to study small deviations from it.
 Thus, we write
 \[
- \rho^*=\rho_0+\rho;\qquad
- p^*=p_0+p;\qquad
- \vec u^{\,*}=0+\vec u
+	\rho^*=\rho_0+\rho;\qquad
+	p^*=p_0+p;\qquad
+	\vec u^{\,*}=0+\vec u
 \]
 where $\rho,p,\vec u$ are of infinitesimal amplitude. After substituting into the original
 equations and neglecting products of small quantities, we have
 \begin{align*}
- \frac{\partial\vec u}{\partial t}&=-\frac{1}{\rho_0}\nabla p,\\
- \frac{\partial\rho}{\partial t}+\rho_0\nabla\cdot\vec u&=0,\\
- \frac{\partial\rho}{\partial t}&=c^{-2}\frac{\partial p}{\partial t},
+	\frac{\partial\vec u}{\partial t}                       & =-\frac{1}{\rho_0}\nabla p,           \\
+	\frac{\partial\rho}{\partial t}+\rho_0\nabla\cdot\vec u & =0,                                   \\
+	\frac{\partial\rho}{\partial t}                         & =c^{-2}\frac{\partial p}{\partial t},
 \end{align*}
 where
 \[
- c^2=\left(\frac{\partial\rho^*}{\partial p^*}\right)_S^{-1}.
+	c^2=\left(\frac{\partial\rho^*}{\partial p^*}\right)_S^{-1}.
 \]
 After eliminating $\vec u$ and $\rho$ in favor of $p$, we obtain
 \begin{waveequation}
- \frac{\partial^2p}{\partial t^2}-c^2\nabla^2p=0.
+	\frac{\partial^2p}{\partial t^2}-c^2\nabla^2p=0.
 \end{waveequation}
 We recognize this as a wave equation which was listed in Chapter 1. It is easy to show
 that the other variables $\rho,u,v,w$ each satisfy a similar equation.
@@ -84,7 +82,7 @@ that the other variables $\rho,u,v,w$ each satisfy a similar equation.
 Consider a homogeneous medium; $c(\vec x,t)=c_0$. Then
 $p=a e^{-i\sigma t+ikx+i\ell y+imz}$ solves the wave equation provided
 \begin{waveequation}
- \sigma^2=c_0^2(k^2+\ell^2+m^2)
+	\sigma^2=c_0^2(k^2+\ell^2+m^2)
 \end{waveequation}
 which is the dispersion relation. For fixed $\sigma$, the locus of allowed wavenumbers in
 $k,\ell,m$ space is a sphere of radius $\sigma/c_0$. All wavenumbers
@@ -93,17 +91,17 @@ surface are allowed. In a given plane wave, phases propagate along the wavenumbe
 vector at speed $c_0$; that is, $\sigma/|\vec k|=c_0$, so the waves are nondispersive.
 The group velocity $\vec c_g$ is defined by
 \[
- c_{gx}=\frac{\partial\sigma}{\partial k};\qquad
- c_{gy}=\frac{\partial\sigma}{\partial\ell};\qquad
- c_{gz}=\frac{\partial\sigma}{\partial m}
+	c_{gx}=\frac{\partial\sigma}{\partial k};\qquad
+	c_{gy}=\frac{\partial\sigma}{\partial\ell};\qquad
+	c_{gz}=\frac{\partial\sigma}{\partial m}
 \]
 and it is easy to show that $|\vec c_g|=c_0$.
 
 If $p=a e^{i(\vec k\cdot\vec x-\sigma t)}$, then the momentum equations say
 $-i\sigma\vec u=-i\vec k p/\rho_0$, or
 \[
- \vec u=\frac{\vec k a}{\sigma\rho_0}
- e^{i(\vec k\cdot\vec x-\sigma t)}.
+	\vec u=\frac{\vec k a}{\sigma\rho_0}
+	e^{i(\vec k\cdot\vec x-\sigma t)}.
 \]
 This means that $\vec u$ and $\vec k$ are parallel, i.e. these are longitudinal waves
 (displacement is parallel to the direction of wave propagation). Also, $\vec u$ and $p$
@@ -113,7 +111,7 @@ are in phase in this travelling plane wave.
 
 Suppose a plane wave of the form
 \[
- p_{inc}=p_0e^{-i\sigma t+ikx+i\ell y-imz}
+	p_{inc}=p_0e^{-i\sigma t+ikx+i\ell y-imz}
 \]
 
 \sourcepagebreak
@@ -125,7 +123,7 @@ is incident upon a solid boundary. At the solid boundary, the normal velocity mu
 vanish; $\vec u\cdot\hat n=0$ which means that $\nabla p\cdot\hat n=0$. If the solid
 boundary is at $z=0$, then the boundary condition is
 \[
- p_z=0\qquad\text{at }z=0.
+	p_z=0\qquad\text{at }z=0.
 \]
 
 % Vector reconstruction; source PDF ChapmanRizzoli0_2.pdf, physical page 31, trim=105bp 405bp 100bp 125bp.
@@ -133,11 +131,11 @@ boundary is at $z=0$, then the boundary condition is
 
 To satisfy this boundary condition, we must add a reflected wave
 \[
- p_{ref}=p_0e^{-i\sigma t+ikx+i\ell y+imz}
+	p_{ref}=p_0e^{-i\sigma t+ikx+i\ell y+imz}
 \]
 to the incident wave. The solution is
 \[
- p=p_{inc}+p_{ref}=2p_0e^{-i\sigma t+ikx+i\ell y}\cos mz.
+	p=p_{inc}+p_{ref}=2p_0e^{-i\sigma t+ikx+i\ell y}\cos mz.
 \]
 
 Suppose the solid boundary is tilted, say $z=\alpha x$, and the incident energy
@@ -154,7 +152,7 @@ approaches along $\vec k_i$ while the reflected energy travels along $\vec k_r$.
 If $p_{inc}$ and $p_{ref}$ are to sum such that $p=p_{inc}+p_{ref}$ satisfies
 $\partial p/\partial n=0$ at the solid boundary, then we must have
 \[
- |\vec k_i|\cos\theta_i=|\vec k_r|\cos\theta_r,
+	|\vec k_i|\cos\theta_i=|\vec k_r|\cos\theta_r,
 \]
 i.e., the projection of the incident wavenumber on the boundary must equal the
 projection of the reflected wavenumber on the boundary. But we know that
@@ -185,24 +183,24 @@ must satisfy $\partial p/\partial z=0$ on both boundaries, at $z=0,-D$. To find 
 solution, we assume that the waves are free to travel along the channel, but that the
 cross-channel dependence is unknown.
 \[
- p(x,y,z,t)=p_0e^{-i\sigma t+ikx+i\ell y}P(z).
+	p(x,y,z,t)=p_0e^{-i\sigma t+ikx+i\ell y}P(z).
 \]
 This is substituted into the field equation to obtain an equation for the cross-channel
 structure
 \[
- P_{zz}+(\sigma^2/c_0^2-k^2-\ell^2)P=0
+	P_{zz}+(\sigma^2/c_0^2-k^2-\ell^2)P=0
 \]
 \[
- P_z=0\qquad\text{at }z=0,-D.
+	P_z=0\qquad\text{at }z=0,-D.
 \]
 This equation has the solution
 \[
- P(z)=\cos n\pi z/D
+	P(z)=\cos n\pi z/D
 \]
 provided that
 \begin{waveequation}
- \sigma^2/c_0^2=k^2+\ell^2+n^2\pi^2/D^2,
- \qquad n=0,1,2,\ldots
+	\sigma^2/c_0^2=k^2+\ell^2+n^2\pi^2/D^2,
+	\qquad n=0,1,2,\ldots
 \end{waveequation}
 
 \sourcepagebreak
@@ -212,8 +210,8 @@ provided that
 % -----------------------------------------------------------------------------
 Notice that these solutions are each a sum of two plane waves
 \[
- \frac12p_0e^{-i\sigma t+ikx+i\ell y+in\pi z/D}
- +\frac12p_0e^{-i\sigma t+ikx+i\ell y-in\pi z/D}
+	\frac12p_0e^{-i\sigma t+ikx+i\ell y+in\pi z/D}
+	+\frac12p_0e^{-i\sigma t+ikx+i\ell y-in\pi z/D}
 \]
 which satisfy $\partial p/\partial z=0$ at $z=0$ regardless of whether $n$ is an integer
 or not. However, to satisfy $\partial p/\partial z=0$ at $z=-D$, we need
@@ -224,14 +222,14 @@ satisfies the dispersion relation, so that both waves are the usual nondispersiv
 waves if we think of $n$ as continuously variable. Yet the solution viewed as a
 two-dimensional plane wave restricted to the channel direction is dispersive!
 \[
- c_{ph}=\sigma/(k^2+\ell^2)^{1/2}
- =\pm c_0\left[1+\frac{n^2\pi^2}{(k^2+\ell^2)D^2}\right]^{1/2}.
+	c_{ph}=\sigma/(k^2+\ell^2)^{1/2}
+	=\pm c_0\left[1+\frac{n^2\pi^2}{(k^2+\ell^2)D^2}\right]^{1/2}.
 \]
 The horizontal group velocity $\partial\sigma/\partial k$, $\partial\sigma/\partial\ell$ is
 \[
- \vec c_g
- =c_0\frac{k\hat i+\ell\hat j}
- {(k^2+\ell^2+n^2\pi^2/D^2)^{1/2}}.
+	\vec c_g
+	=c_0\frac{k\hat i+\ell\hat j}
+	{(k^2+\ell^2+n^2\pi^2/D^2)^{1/2}}.
 \]
 It is parallel to the horizontal wavenumber $k\hat i+\ell\hat j$ but not equal to the
 phase velocity.
@@ -251,19 +249,19 @@ fixed size perhaps but variable frequency, then there is an infinity of waveguid
 $n=0,1,2,\ldots$ of ever increasing frequency
 $\sigma^2=c_0^2(k^2+\ell^2+n^2\pi^2/D^2)$. However, if we fix the frequency, then
 \[
- (k^2+\ell^2)=\sigma^2/c_0^2-n^2\pi^2/D^2
+	(k^2+\ell^2)=\sigma^2/c_0^2-n^2\pi^2/D^2
 \]
 and only for $n=0,1,\ldots n_{max}$ will $k^2+\ell^2>0$ where
 $n_{max}=\operatorname{int}[(D/\pi)(\sigma/c_0)]$. That is, only for
 $n=0,1,\ldots n_{max}$ will the waveguide modes propagate down the channel! For
 example, consider waves in the $x$-direction only
 \begin{align*}
- n<n_{max}\qquad
- p&=e^{-i\sigma t+i(\sigma^2/c_0^2-n^2\pi^2/D^2)^{1/2}x}
- \cos\frac{n\pi z}{D},\\
- n>n_{max}\qquad
- p&=e^{-i\sigma t-(n^2\pi^2/D^2-\sigma^2/c_0^2)^{1/2}x}
- \cos\frac{n\pi z}{D}.
+	n<n_{max}\qquad
+	p & =e^{-i\sigma t+i(\sigma^2/c_0^2-n^2\pi^2/D^2)^{1/2}x}
+	\cos\frac{n\pi z}{D},                                     \\
+	n>n_{max}\qquad
+	p & =e^{-i\sigma t-(n^2\pi^2/D^2-\sigma^2/c_0^2)^{1/2}x}
+	\cos\frac{n\pi z}{D}.
 \end{align*}
 The first set represents travelling waves. The second set represents \emph{evanescent} waves
 which decay exponentially away from their source. Practically, this means that if we
@@ -276,7 +274,7 @@ We have considered the effect of a solid boundary on the propagation of sound wa
 Suppose, however, that a plane wave encounters a boundary between two fluids at which
 the properties change abruptly, i.e. a discontinuity.
 
-\setcounter{page}{26}
+\sourcesetpage{26}
 
 % -----------------------------------------------------------------------------
 % Source printed page 26 / physical page 36
@@ -292,9 +290,9 @@ while the phase speed is $c_2$.
 For the case on the left (upward propagating incident wave), the incident,
 reflected and transmitted waves have the following forms;
 \begin{align*}
- p_I&=a e^{-i\sigma t+ikx+im_1z},\\
- p_R&=Ra e^{-i\sigma t+ikx-im_1z},\\
- p_T&=Ta e^{-i\sigma t+ikx+im_2z},
+	p_I & =a e^{-i\sigma t+ikx+im_1z},  \\
+	p_R & =Ra e^{-i\sigma t+ikx-im_1z}, \\
+	p_T & =Ta e^{-i\sigma t+ikx+im_2z},
 \end{align*}
 where $R$ is the reflection coefficient and $T$ is the transmission coefficient. Notice that
 the incident and reflected waves have the same wavenumber component in $z$ but that
@@ -311,28 +309,28 @@ because there is nothing in the fluids which would change them.
 To solve the problem, we require that the pressure as well as the velocity normal
 to the boundary $w$ be continuous across the boundary. That is
 \begin{align*}
- p_I+p_R&=p_T &&\text{at }z=0,\\
- \frac{1}{\rho_1}(p_{Iz}+p_{Rz})&=\frac{1}{\rho_2}p_{Tz} &&\text{at }z=0.
+	p_I+p_R                         & =p_T                    &  & \text{at }z=0, \\
+	\frac{1}{\rho_1}(p_{Iz}+p_{Rz}) & =\frac{1}{\rho_2}p_{Tz} &  & \text{at }z=0.
 \end{align*}
 Now, substituting the expressions for $p_I,p_R$ and $p_T$, we obtain
 \begin{align*}
- 1+R&=T,\\
- \frac{m_1}{\rho_1}(1-R)&=\frac{m_2}{\rho_2}T.
+	1+R                     & =T,                   \\
+	\frac{m_1}{\rho_1}(1-R) & =\frac{m_2}{\rho_2}T.
 \end{align*}
 From the dispersion relation, $m=\sigma\cos\theta/c$ which changes the second matching
 condition to
 \[
- \frac{1}{\rho_1c_1}(1-R)\cos\theta_I
- =\frac{1}{\rho_2c_2}T\cos\theta_T.
+	\frac{1}{\rho_1c_1}(1-R)\cos\theta_I
+	=\frac{1}{\rho_2c_2}T\cos\theta_T.
 \]
 These can be combined to yield
 \begin{waveequation}
- R=\frac{\rho_2c_2\cos\theta_I-\rho_1c_1\cos\theta_T}
-        {\rho_2c_2\cos\theta_I+\rho_1c_1\cos\theta_T}
+	R=\frac{\rho_2c_2\cos\theta_I-\rho_1c_1\cos\theta_T}
+	{\rho_2c_2\cos\theta_I+\rho_1c_1\cos\theta_T}
 \end{waveequation}
 \begin{waveequation}
- T=\frac{2\rho_2c_2\cos\theta_I}
-        {\rho_2c_2\cos\theta_I+\rho_1c_1\cos\theta_T}.
+	T=\frac{2\rho_2c_2\cos\theta_I}
+	{\rho_2c_2\cos\theta_I+\rho_1c_1\cos\theta_T}.
 \end{waveequation}
 Identical expressions for $R$ and $T$ result for the downward propagating incident wave.
 
@@ -355,22 +353,22 @@ so slowly relative to the ocean that its energy flux is generally fairly small, 
 amplification is a rather small effect as well. In either case, the energy flux in the $z$
 direction is conserved because
 \[
- |p_Iw_I|=|p_Rw_R|+|p_Tw_T|.
+	|p_Iw_I|=|p_Rw_R|+|p_Tw_T|.
 \]
 
 To complete the calculation, we must find the angle of the transmitted wave, $\theta_T$.
 This is found by writing the frequency on both sides of the discontinuity as
 \[
- \sigma=c_1(k^2+m_1^2)^{1/2}=c_2(k^2+m_2^2)^{1/2}.
+	\sigma=c_1(k^2+m_1^2)^{1/2}=c_2(k^2+m_2^2)^{1/2}.
 \]
 We can write this in terms of the wave angles since $(k^2+m^2)^{1/2}=k/\sin\theta$. Thus,
 \begin{waveequation}
- \frac{\sin\theta_I}{c_1}=\frac{\sin\theta_T}{c_2}
+	\frac{\sin\theta_I}{c_1}=\frac{\sin\theta_T}{c_2}
 \end{waveequation}
 which is known as \emph{Snell's Law}. From this we see that, if $c_1<c_2$, then there exists a
 critical angle of incidence
 \begin{waveequation}
- \theta_{Ic}=\sin^{-1}(c_1/c_2)
+	\theta_{Ic}=\sin^{-1}(c_1/c_2)
 \end{waveequation}
 beyond which there is total reflection of the incident wave despite the fact that the
 second medium can support sound waves. The boundary is then effectively solid.
@@ -391,12 +389,12 @@ initial or boundary conditions or forcing terms are needed to generate solutions
 wave equation corresponding to some physical situation? If there are wavemakers in
 the medium, they can be modelled by body forces $\vec F/\rho_0$ and mass sources $Q$
 \begin{align*}
- \vec u_t&=-\nabla p/\rho_0+\vec F/\rho_0,\\
- \rho_t+\rho_0\nabla\cdot\vec u&=Q.
+	\vec u_t                       & =-\nabla p/\rho_0+\vec F/\rho_0, \\
+	\rho_t+\rho_0\nabla\cdot\vec u & =Q.
 \end{align*}
 Combining these with $p_t=c^2\rho_t$ yields
 \begin{waveequation}
- p_{tt}-c^2\nabla^2p=c^2(Q_t-\nabla\cdot\vec F).
+	p_{tt}-c^2\nabla^2p=c^2(Q_t-\nabla\cdot\vec F).
 \end{waveequation}
 We can now consider two types of problems: initial value problems and those forced
 from rest. In both types we solve the homogeneous wave equation while satisfying
@@ -411,10 +409,10 @@ different.
 
 Let us consider a one-dimensional initial value problem
 \[
- p_{tt}-c^2p_{xx}=0\qquad -\infty<x<\infty
+	p_{tt}-c^2p_{xx}=0\qquad -\infty<x<\infty
 \]
 \[
- p(x,0)=P_0(x)\ ;\qquad p_t(x,0)=Q_0(x).
+	p(x,0)=P_0(x)\ ;\qquad p_t(x,0)=Q_0(x).
 \]
 
 \sourcepagebreak
@@ -424,44 +422,44 @@ Let us consider a one-dimensional initial value problem
 % -----------------------------------------------------------------------------
 We will solve this by the \emph{method of characteristics}. The most general solution is
 \[
- p=f(x-ct)+g(x+ct).
+	p=f(x-ct)+g(x+ct).
 \]
 To satisfy the initial conditions
 \begin{align*}
- f(x)+g(x)&=P_0(x),\\
- -cf'(x)+cg'(x)&=Q_0(x).
+	f(x)+g(x)      & =P_0(x), \\
+	-cf'(x)+cg'(x) & =Q_0(x).
 \end{align*}
 The second integrates to
 \[
- f(x)-g(x)=-\frac1c\int_0^x Q_0(x')\,dx'+K
+	f(x)-g(x)=-\frac1c\int_0^x Q_0(x')\,dx'+K
 \]
 whence
 \begin{align*}
- 2f(x)&=P_0(x)-\frac1c\int_0^x Q_0(x')\,dx'+K,\\
- 2g(x)&=P_0(x)+\frac1c\int_0^x Q_0(x')\,dx'-K.
+	2f(x) & =P_0(x)-\frac1c\int_0^x Q_0(x')\,dx'+K, \\
+	2g(x) & =P_0(x)+\frac1c\int_0^x Q_0(x')\,dx'-K.
 \end{align*}
 These give the solution as
 \[
- p(x,t)=\frac12\left[P_0(x-ct)+P_0(x+ct)
- +\frac1c\int_{x-ct}^{x+ct}Q_0(x')\,dx'\right].
+	p(x,t)=\frac12\left[P_0(x-ct)+P_0(x+ct)
+		+\frac1c\int_{x-ct}^{x+ct}Q_0(x')\,dx'\right].
 \]
 Note that $p(x,t)$ depends only on the initial conditions over the range $x\pm ct$.
 
 If $Q_0(x)=0$, then the solution is very simple
 \[
- p(x,t)=\frac12[P_0(x-ct)+P_0(x+ct)]
+	p(x,t)=\frac12[P_0(x-ct)+P_0(x+ct)]
 \]
 for which case the solution could have been obtained using the Fourier method,
 although it is not the method of choice in this problem. Set
 \[
- p(x,t)=\int_{-\infty}^{\infty}\bar p(k,t)e^{ikx}\,dk.
+	p(x,t)=\int_{-\infty}^{\infty}\bar p(k,t)e^{ikx}\,dk.
 \]
 Then
 \[
- \bar p_{tt}+c^2k^2\bar p=0
+	\bar p_{tt}+c^2k^2\bar p=0
 \]
 \[
- \bar p(k,0)=\bar P_0(k)\ ;\qquad \bar p_t(k,0)=0.
+	\bar p(k,0)=\bar P_0(k)\ ;\qquad \bar p_t(k,0)=0.
 \]
 
 \sourcepagebreak
@@ -471,15 +469,15 @@ Then
 % -----------------------------------------------------------------------------
 The solution to this problem is
 \[
- \bar p(k,t)=\bar P_0(k)\cos(ckt)
+	\bar p(k,t)=\bar P_0(k)\cos(ckt)
 \]
 from which
 \begin{align*}
- p(x,t)
- &=\int_{-\infty}^{\infty}\bar P_0(k)\cos(ckt)e^{ikx}\,dk\\
- &=\frac12\int_{-\infty}^{\infty}\bar P_0(k)
-   \left(e^{ikx+ickt}+e^{ikx-ickt}\right)\,dk\\
- &=\frac12[P_0(x-ct)+P_0(x+ct)].
+	p(x,t)
+	 & =\int_{-\infty}^{\infty}\bar P_0(k)\cos(ckt)e^{ikx}\,dk \\
+	 & =\frac12\int_{-\infty}^{\infty}\bar P_0(k)
+	\left(e^{ikx+ickt}+e^{ikx-ickt}\right)\,dk                 \\
+	 & =\frac12[P_0(x-ct)+P_0(x+ct)].
 \end{align*}
 The integration is trivial in this case but not always.
 
@@ -487,19 +485,19 @@ The integration is trivial in this case but not always.
 
 Assume that the forcing has the rather simple form
 \[
- Q_t-\nabla\cdot\vec F=\delta(x)q_t(t)
+	Q_t-\nabla\cdot\vec F=\delta(x)q_t(t)
 \]
 where $q(t)=q_t(t)=0$ for $t<0$ and $q_t$ is finite. Now we solve
 \[
- p_{tt}-c^2p_{xx}=\delta(x)q_t(t)c^2
+	p_{tt}-c^2p_{xx}=\delta(x)q_t(t)c^2
 \]
 \[
- p(x,0)=p_t(x,0)=0\qquad\text{at }t=0.
+	p(x,0)=p_t(x,0)=0\qquad\text{at }t=0.
 \]
 We may put the forcing into the boundary condition by
 \[
- \int_{0^-}^{0^+}(p_{tt}-c^2p_{xx})\,dx
- =-c^2p_x\big|_{0^-}^{0^+}=c^2q_t(t).
+	\int_{0^-}^{0^+}(p_{tt}-c^2p_{xx})\,dx
+	=-c^2p_x\big|_{0^-}^{0^+}=c^2q_t(t).
 \]
 That is, $p_x(x=0+,t)-p_x(x=0-,t)=-q_t(t)$ so that the forcing at $x=0$ is
 interpretable as a specified discontinuity there. So we must solve
@@ -515,35 +513,35 @@ where $p^L$ and $p^R$ are solutions on the left and right of the discontinuity, 
 Most generally, $p^L$ and $p^R$ are functions of $x\pm ct$. We write them along with the
 requirement of symmetry
 \[
- p^R(x,t)=p^L(-x,t)
+	p^R(x,t)=p^L(-x,t)
 \]
 \[
- p^R(x,t)=f(x-ct)+g(x+ct)
+	p^R(x,t)=f(x-ct)+g(x+ct)
 \]
 \[
- p^L(x,t)=f(-x-ct)+g(-x+ct).
+	p^L(x,t)=f(-x-ct)+g(-x+ct).
 \]
 Imposing the jump condition at $x=0$ yields
 \[
- f'(-ct)+g'(ct)+f'(-ct)+g'(ct)=-q_t(t)
+	f'(-ct)+g'(ct)+f'(-ct)+g'(ct)=-q_t(t)
 \]
 but this does not specify $f$ and $g$. To specify them, we must impose a \emph{radiation}
 condition, i.e.,
 \[
- p^R(x,t)=f(x-ct)\qquad p^R\text{ is all right going waves}
+	p^R(x,t)=f(x-ct)\qquad p^R\text{ is all right going waves}
 \]
 \[
- p^L(x,t)=f(-x-ct)\qquad p^L\text{ is all left going waves}.
+	p^L(x,t)=f(-x-ct)\qquad p^L\text{ is all left going waves}.
 \]
 Now we have
 \[
- 2f'(-ct)=-q_t(t)
+	2f'(-ct)=-q_t(t)
 \]
 \[
- 2f(-ct)=q(t)c
+	2f(-ct)=q(t)c
 \]
 \[
- f(\tau)=\frac{c}{2}q(-\tau/c).
+	f(\tau)=\frac{c}{2}q(-\tau/c).
 \]
 
 \sourcepagebreak
@@ -553,24 +551,24 @@ Now we have
 % -----------------------------------------------------------------------------
 from which
 \[
- p^R(x,t)=\frac{c}{2}q(-x/c+t)
+	p^R(x,t)=\frac{c}{2}q(-x/c+t)
 \]
 \[
- p^L(x,t)=\frac{c}{2}q(x/c+t).
+	p^L(x,t)=\frac{c}{2}q(x/c+t).
 \]
 Thus, forcing at the origin is modelled as a jump in $p_x$ and we must assume that all of
 the motion is \emph{away} from the source in order to get a unique answer.
 
 If the forcing were harmonic with $q(t)=e^{-i\sigma t}/(-i\sigma)$ then
 \[
- p_{tt}-c^2p_{xx}=c^2\delta(x)e^{-i\sigma t}
+	p_{tt}-c^2p_{xx}=c^2\delta(x)e^{-i\sigma t}
 \]
 and the solution would be
 \[
- p^R(x,t)=\frac{-c}{2(i\sigma)}e^{-i\sigma(-x/c+t)}
+	p^R(x,t)=\frac{-c}{2(i\sigma)}e^{-i\sigma(-x/c+t)}
 \]
 \[
- p^L(x,t)=\frac{-c}{2(i\sigma)}e^{-i\sigma(x/c+t)}.
+	p^L(x,t)=\frac{-c}{2(i\sigma)}e^{-i\sigma(x/c+t)}.
 \]
 In other words, plane waves radiating outwards from $x=0$. The radiation condition
 that we imposed models a little bit of dissipation in the sense that the solution looks
@@ -585,7 +583,7 @@ We have considered cases in which the speed of sound remains constant in the med
 or changes abruptly at an interface. However, the speed of sound within the ocean
 varies in space because the ocean is not a uniform fluid. In fact the sound speed in the
 
-\setcounter{page}{34}
+\sourcesetpage{34}
 
 % -----------------------------------------------------------------------------
 % Source printed page 34 / physical page 44
@@ -593,16 +591,16 @@ varies in space because the ocean is not a uniform fluid. In fact the sound spee
 ocean is sensitive to the temperature, salinity and pressure of the ocean and may be
 described by the following empirical formula:
 \[
- c(s,T,z)=c_0+\alpha_0(T-10)+\beta_0(T-10)^2+\gamma_0(T-18)^2
- +\delta_0(s-35)+\epsilon_0(T-18)(s-35)+\zeta_0|z|
+	c(s,T,z)=c_0+\alpha_0(T-10)+\beta_0(T-10)^2+\gamma_0(T-18)^2
+	+\delta_0(s-35)+\epsilon_0(T-18)(s-35)+\zeta_0|z|
 \]
 where the coefficients have the appropriate mks units and have values of
-{\small
-\[
- c_0=1493.0,\quad \alpha_0=3.0,\quad \beta_0=-0.006,\quad \gamma_0=-0.04,
- \quad \delta_0=1.2,\quad \epsilon_0=-0.01,\quad \zeta_0=0.0164.
-\]
-}
+	{\small
+		\[
+			c_0=1493.0,\quad \alpha_0=3.0,\quad \beta_0=-0.006,\quad \gamma_0=-0.04,
+			\quad \delta_0=1.2,\quad \epsilon_0=-0.01,\quad \zeta_0=0.0164.
+		\]
+	}
 This says that the speed of sound varies quadratically with temperature, and linearly
 with salinity and depth. The depth effect is due to changes in the ambient pressure.
 For typical ocean conditions, the temperature effect dominates in the shallow water,
@@ -631,15 +629,15 @@ wavelength must be small compared to the total ocean depth. We will consider onl
 two dimensions, the vertical and one horizontal. Recalling our discussion of ray theory,
 we write the dispersion relation as
 \[
- \sigma=\Omega(k,m;z).
+	\sigma=\Omega(k,m;z).
 \]
 Since the medium varies only in $z$, we have $\partial\Omega/\partial x=0$,
 $\partial\Omega/\partial t=0$ but $\partial\Omega/\partial z\ne0$.
 Thus, the ray equations become
 \begin{align*}
- \frac{dN}{dt}&=0,\\
- \frac{dk}{dt}&=0,\\
- \frac{dm}{dt}&=-\frac{\partial\Omega}{\partial z}.
+	\frac{dN}{dt} & =0,                                  \\
+	\frac{dk}{dt} & =0,                                  \\
+	\frac{dm}{dt} & =-\frac{\partial\Omega}{\partial z}.
 \end{align*}
 These say that the component of the wavenumber in the $x$ direction remains constant
 in time (which makes sense since the medium varies only in $z$), and that the frequency
@@ -655,11 +653,11 @@ Snell's Law which can be derived in the same manner as for the case of scatterin
 the discontinuity. The frequency can be written in terms of the angle that the
 wavenumber makes with the vertical to obtain
 \begin{waveequation}
- \frac{\sin\theta_0}{c_0}=\frac{\sin\theta}{c(z)}
+	\frac{\sin\theta_0}{c_0}=\frac{\sin\theta}{c(z)}
 \end{waveequation}
 or
 \[
- \sin\theta=\frac{c(z)}{c_0}\sin\theta_0
+	\sin\theta=\frac{c(z)}{c_0}\sin\theta_0
 \]
 where $c_0$ and $\theta_0$ are the initial values.
 
@@ -679,10 +677,10 @@ turned toward the horizontal.
 When the ray becomes nearly horizontal, ray theory must be applied very
 carefully. From the ray definition, we can write
 \[
- \frac{dz}{dx}=\frac{c_{gz}}{c_{gx}}
- =\frac{\partial\Omega/\partial m}{\partial\Omega/\partial k}
- =\frac{m}{k}
- =\left(\frac{\sigma^2}{c^2(z)k^2}-1\right)^{1/2}
+	\frac{dz}{dx}=\frac{c_{gz}}{c_{gx}}
+	=\frac{\partial\Omega/\partial m}{\partial\Omega/\partial k}
+	=\frac{m}{k}
+	=\left(\frac{\sigma^2}{c^2(z)k^2}-1\right)^{1/2}
 \]
 
 \sourcepagebreak
@@ -693,16 +691,16 @@ carefully. From the ray definition, we can write
 which gives the slope of the ray path. This may be approximated near the critical level
 $z_c$ by expanding in a Taylor series to obtain
 \[
- \frac{dz}{dx}\simeq
- \left[
- (z-z_c)\frac{d}{dz}\left(\frac{\sigma^2}{c^2(z)k^2}\right)_{z=z_c}
- \right]^{1/2}
+	\frac{dz}{dx}\simeq
+	\left[
+		(z-z_c)\frac{d}{dz}\left(\frac{\sigma^2}{c^2(z)k^2}\right)_{z=z_c}
+		\right]^{1/2}
 \]
 which integrates to
 \[
- z=z_c+\frac14
- \left[\frac{d}{dz}\left(\frac{\sigma^2}{c^2(z)k^2}\right)\right]_{z=z_c}
- (x-x_0)^2.
+	z=z_c+\frac14
+	\left[\frac{d}{dz}\left(\frac{\sigma^2}{c^2(z)k^2}\right)\right]_{z=z_c}
+	(x-x_0)^2.
 \]
 Thus, the ray path is parabolic near the critical level, so an upward propagating ray
 turns downward.

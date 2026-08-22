@@ -1,31 +1,31 @@
 \begin{wavepdfonly}
-\input{cover-modern}
-\input{frontmatter-modern-book}
+	\input{cover-modern}
+	\input{frontmatter-modern-book}
 \end{wavepdfonly}
 \begin{wavewebonly}
-\thispagestyle{empty}
-\begin{center}
-\vspace*{0.78in}
-{\sffamily\color{WaveAccent}\fontsize{27}{31}\selectfont\bfseries WAVE MOTIONS IN THE OCEAN\par}
-\vspace{0.22in}
-{\fontsize{18}{22}\selectfont\itshape Myrl's View\par}
-\vspace{0.82in}
-{\large \textit{Presented to} \textbf{Myrl C. Hendershott}\par}
-\vfill
-{\large \textbf{David C. Chapman and Paola Malanotte-Rizzoli}\par}
-\vspace{0.10in}
-{\normalsize August 1989\par}
-\vfill
-{\small\sffamily Digital edition by \textbf{Albert M. W. Yau}\par}
-\vspace{0.08in}
-{\small\sffamily August 2026\par}
-\end{center}
+	\thispagestyle{empty}
+	\begin{center}
+		\vspace*{0.78in}
+		{\sffamily\color{WaveAccent}\fontsize{27}{31}\selectfont\bfseries WAVE MOTIONS IN THE OCEAN\par}
+		\vspace{0.22in}
+		{\fontsize{18}{22}\selectfont\itshape Myrl's View\par}
+		\vspace{0.82in}
+		{\large \textit{Presented to} \textbf{Myrl C. Hendershott}\par}
+		\vfill
+		{\large \textbf{David C. Chapman and Paola Malanotte-Rizzoli}\par}
+		\vspace{0.10in}
+		{\normalsize August 1989\par}
+		\vfill
+		{\small\sffamily Edited by \textbf{Albert M. W. Yau}\par}
+		\vspace{0.08in}
+		{\small\sffamily August 2026\par}
+	\end{center}
 \end{wavewebonly}
 \clearpage
 \nopagecolor
 
-\chapter*{Preface — David C. Chapman}
-\addcontentsline{toc}{chapter}{Preface — David C. Chapman}
+\chapter*{Preface --- David C. Chapman}
+\addcontentsline{toc}{chapter}{Preface --- David C. Chapman}
 When I volunteered to teach the MIT/WHOI Joint Program core course on
 ``Wave Motions in the Ocean and Atmosphere'' in Spring 1989, I naturally turned for
 guidance to the notes I had acquired from a similar course taken while a student at
@@ -46,8 +46,8 @@ notes will be as clear and as useful to future readers as they have been to us.
 
 \wavesignature{David C. Chapman}{Woods Hole}{1989}
 
-\chapter*{Preface — Paola Malanotte-Rizzoli}
-\addcontentsline{toc}{chapter}{Preface — Paola Malanotte-Rizzoli}
+\chapter*{Preface --- Paola Malanotte-Rizzoli}
+\addcontentsline{toc}{chapter}{Preface --- Paola Malanotte-Rizzoli}
 These notes have been collected and assembled in different ways over the years
 by two people successively, Paola Malanotte-Rizzoli and Dave Chapman. The present
 and chronologically latest version has been put together by Dave and constitutes the
@@ -73,9 +73,9 @@ I must add here a personal note. Hearing Myrl again as a teacher this summer
 after so many years, I have realized how much he has influenced my way of thinking
 and teaching. On the not-so-positive side (I will not say negative):
 \begin{itemize}[leftmargin=2.2em,itemsep=0.2em,topsep=0.3em]
-\item like him, I ``scribble'' a lot on the blackboard.
-\item like him, I erase with my left hand what I have just written with my right hand.
-\item like him, I put $\ell$ ($x$ wavenumber) before $k$ ($y$ wavenumber)
+	\item like him, I ``scribble'' a lot on the blackboard.
+	\item like him, I erase with my left hand what I have just written with my right hand.
+	\item like him, I put $\ell$ ($x$ wavenumber) before $k$ ($y$ wavenumber)
 \end{itemize}
 As the letters $j,k,x,y,w$ do not exist in the Italian alphabet, $k$ coming before or after
 $\ell$ was supremely unimportant to me. On the positive side, Myrl was absolutely the
@@ -92,13 +92,29 @@ not least, dear friend. I hope I absorbed from him some of the positive qualitie
 \chapter*{Editor's note}
 \addcontentsline{toc}{chapter}{Editor's note}
 
-These lecture notes have been preserved on James Pringle's website and have
-recently been reconstructed in \LaTeX. This digital edition has been
-authorized by Paola Malanotte-Rizzoli for release under the Creative Commons
-Attribution--NonCommercial--ShareAlike 4.0 International license
-(CC BY-NC-SA 4.0).
+I created this digital edition of \textit{Wave Motions in the Ocean: Myrl's View} as a
+tribute to my dear advisor and mentor, Myrl C. Hendershott. Myrl's guidance and
+encouragement during my time working with him at Scripps and Coastal Environments
+have had a lasting influence on me. I hope this edition, available in PDF, EPUB, and
+online, will help future Physical Oceanography students for years to come.
 
-The reconstruction is a work in progress, with assistance from OpenAI's GPT-5.6 Sol.
+The original notes have been passed from hand to hand, xeroxed many times, and eventually
+preserved in scanned form on James Pringle's website. This edition reconstructs the 1989
+notes in modern \LaTeX, with figures redrawn in vector format where possible.
+
+Paola Malanotte-Rizzoli has authorized this digital edition for release under the
+Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+license (CC BY-NC-SA 4.0).
+
+This edition is set in STIX Two for text and mathematics, with Source Sans 3 for headings
+and other structural text. Both typefaces are used under the SIL Open Font License 1.1.
+
+The cover features Katsushika Hokusai's \textit{Under the Wave off Kanagawa
+	(The Great Wave)}, ca.~1830--32, from The Metropolitan Museum of Art's Open
+Access collection. The image is Public Domain/CC0.
+
+The reconstruction is a work in progress, with assistance from OpenAI's GPT-5.6 Sol
+and Luna.
 
 \wavesignature{Albert M. W. Yau}{Stony Brook}{2026}
 
@@ -107,16 +123,16 @@ The reconstruction is a work in progress, with assistance from OpenAI's GPT-5.6 
 % photo here and expand the cover-credit marker for EPUB.
 \ifdefined\WaveModernBookFrontMatter
 \else
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.82\linewidth]{figures/frontmatter/salmon-hendershott-como-1980.jpg}
-  \par\smallskip
-  {\small Rick Salmon (left) and Myrl Hendershott at Villa Carlotta, Lake Como,
-  during the International School of Physics ``Enrico Fermi,'' Course LXXX,
-  \textit{Topics in Ocean Physics}, July 1980.\par}
-\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.82\linewidth]{figures/frontmatter/salmon-hendershott-como-1980.jpg}
+		\par\smallskip
+		{\small Rick Salmon (left) and Myrl Hendershott at Villa Carlotta, Lake Como,
+			during the International School of Physics ``Enrico Fermi,'' Course LXXX,
+			\textit{Topics in Ocean Physics}, July 1980.\par}
+	\end{figure}
 
-\wavecovercredit
+	\wavecovercredit
 \fi
 
 \clearpage

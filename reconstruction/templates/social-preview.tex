@@ -1,0 +1,41 @@
+\documentclass{article}
+\usepackage{fontspec}
+\usepackage{xcolor}
+\setmainfont{STIX Two Text}[Ligatures=TeX]
+\setsansfont{Source Sans 3}[Ligatures=TeX,Scale=0.94]
+\newfontfamily\WaveSocialHeadline{STIX Two Text SemiBold}[Ligatures=TeX,LetterSpace=1.5]
+\definecolor{WaveCoverBlue}{HTML}{__WAVE_COVER_BLUE__}
+\definecolor{WaveCoverPaper}{HTML}{__WAVE_COVER_PAPER__}
+\pagestyle{empty}
+
+\begin{document}
+\pagewidth=1200bp
+\pageheight=630bp
+\pdfvariable horigin 0bp
+\pdfvariable vorigin 0bp
+\setlength{\parindent}{0pt}
+\pagecolor{WaveCoverPaper}
+\shipout\vbox to \pageheight{%
+  \offinterlineskip
+  \vskip 70bp
+  \hbox to \pagewidth{%
+    \hskip 86bp
+    \vbox{%
+      \hsize=1028bp
+      {\color{WaveCoverBlue}\WaveSocialHeadline\fontsize{82}{88}\selectfont WAVE MOTIONS\par}%
+      \vskip 2bp
+      {\color{WaveCoverBlue}\WaveSocialHeadline\fontsize{72}{78}\selectfont IN THE OCEAN\par}%
+      \vskip 24bp
+      {\color{WaveCoverBlue}\rmfamily\fontsize{39}{45}\selectfont\itshape Myrl's View\par}%
+      \vskip 64bp
+      {\color{WaveCoverBlue}\sffamily\fontsize{27}{33}\selectfont\bfseries David C. Chapman\par}%
+      \vskip 2bp
+      {\color{WaveCoverBlue}\sffamily\fontsize{27}{33}\selectfont\bfseries Paola Malanotte-Rizzoli\par}%
+      \vskip 22bp
+      {\color{WaveCoverBlue}\sffamily\fontsize{22}{28}\selectfont Edited by Albert M. W. Yau\par}%
+    }%
+    \hss
+  }%
+  \vss
+}%
+\end{document}

@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+PYTHON=(uv run --with-requirements "$ROOT/requirements.txt" python)
 BUILD="$ROOT/build"
 DIST="$ROOT/dist"
 CACHE=${WAVE_CACHE_DIR:-"$ROOT/.cache/wave-motions"}
@@ -28,9 +29,8 @@ validation_enabled() {
 }
 
 prepare_bibtex() {
-  # Some minimal TeX installations expose bibtex8 but not a `bibtex` executable.
-  # latexmk expects `bibtex`, so provide a temporary compatibility command only
-  # for PDF builds that can actually invoke the bibliography tool.
+  # latexmk requires a `bibtex` executable; minimal TinyTeX installs may
+  # expose only bibtex8, so provide the expected command name for this build.
   if command -v bibtex >/dev/null 2>&1; then
     return
   fi
@@ -46,7 +46,8 @@ prepare_bibtex() {
 }
 
 prepare_build_info() {
-  python3 "$ROOT/scripts/publication.py" build-info --tex "$BUILD/build-info.tex"
+  need uv
+  "${PYTHON[@]}" "$ROOT/scripts/publication.py" build-info --tex "$BUILD/build-info.tex"
 }
 
 run_latexmk_cached() {
@@ -57,7 +58,7 @@ run_latexmk_cached() {
   [[ -f "$out/$base.fdb_latexmk" ]] && had_state=true
   mkdir -p "$out"
 
-  if (cd "$ROOT/reconstruction" && latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir="$out" "$main"); then
+  if (cd "$ROOT/reconstruction" && latexmk -lualatex -interaction=nonstopmode -halt-on-error -outdir="$out" "$main"); then
     return
   fi
 
@@ -65,21 +66,20 @@ run_latexmk_cached() {
     echo "cached latexmk state for $kind failed; retrying clean" >&2
     rm -rf "$out"
     mkdir -p "$out"
-    (cd "$ROOT/reconstruction" && latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir="$out" "$main")
+    (cd "$ROOT/reconstruction" && latexmk -lualatex -interaction=nonstopmode -halt-on-error -outdir="$out" "$main")
     return
   fi
   return 1
 }
 
 build_pdf() {
-  for command in latexmk pdflatex pdfinfo; do need "$command"; done
+  for command in latexmk lualatex pdfinfo; do need "$command"; done
   prepare_bibtex
   rm -rf "$BUILD/facsimile" "$BUILD/modern"
   mkdir -p "$BUILD/facsimile" "$BUILD/modern" "$LATEX_CACHE/facsimile" "$LATEX_CACHE/modern" "$DIST"
-  rm -f "$DIST/wave-motions.pdf" "$DIST/wave-motions-facsimile.pdf" \
-    "$DIST/wave-motions-1989-modern.pdf" "$DIST/wave-motions-1989-facsimile.pdf"
 
   prepare_build_info
+  # Both paged editions use the shared LuaLaTeX/STIX Two stack.
   run_latexmk_cached main-facsimile.tex facsimile
   run_latexmk_cached main-modern.tex modern
   cp "$LATEX_CACHE/facsimile/main-facsimile.pdf" "$DIST/wave-motions-facsimile.pdf"
@@ -88,33 +88,32 @@ build_pdf() {
   local fac_pages mod_pages
   fac_pages=$(pdfinfo "$DIST/wave-motions-facsimile.pdf" | awk '/^Pages:/ {print $2}')
   mod_pages=$(pdfinfo "$DIST/wave-motions.pdf" | awk '/^Pages:/ {print $2}')
+  # Pagination drift is advisory during ordinary/build-only development runs;
+  # validate.py owns publication policy and keeps stable releases strict.
+  if [[ "$fac_pages" != 184 ]] && ! validation_enabled; then
+    echo "warning: facsimile page count is $fac_pages; expected 184" >&2
+  fi
   printf 'PDF build complete: facsimile=%s pages, modern=%s pages\n' "$fac_pages" "$mod_pages"
 }
 
 build_html() {
-  need python3
-  python3 "$ROOT/scripts/build_html.py"
+  need uv
+  "${PYTHON[@]}" "$ROOT/scripts/build_html.py"
 }
 
 build_epub() {
-  need python3
-  python3 "$ROOT/scripts/build_epub.py"
+  need uv
+  "${PYTHON[@]}" "$ROOT/scripts/build_epub.py"
 }
 
 check_readme() {
-  python3 "$ROOT/scripts/sync_readme.py" --check
-}
-
-check_epub_finalization() {
-  python3 "$ROOT/scripts/build_epub.py" --check
-}
-
-check_publication() {
-  python3 "$ROOT/scripts/validate.py" publication
+  need uv
+  "${PYTHON[@]}" "$ROOT/scripts/sync_readme.py" --check
 }
 
 write_checksums() {
-  python3 "$ROOT/scripts/release.py" checksums --root "$DIST" --write
+  need uv
+  "${PYTHON[@]}" "$ROOT/scripts/release.py" checksums --root "$DIST" --write
 }
 
 reset_generated() {
@@ -123,11 +122,10 @@ reset_generated() {
 }
 
 finish_all() {
+  need uv
   write_checksums
   if validation_enabled; then
-    check_readme
-    check_epub_finalization
-    check_publication
+    "${PYTHON[@]}" "$ROOT/scripts/validate.py" all
   else
     echo "Dedicated validation skipped (WAVE_SKIP_VALIDATION=1; builders retained structural checks)."
   fi
@@ -142,24 +140,23 @@ case "$TARGET" in
     finish_all
     ;;
   pdf)
-    reset_generated
+    need uv
     build_pdf
     if validation_enabled; then
-      python3 "$ROOT/scripts/validate.py" pdf
+      "${PYTHON[@]}" "$ROOT/scripts/validate.py" pdf
     fi
     ;;
   html)
-    reset_generated
     build_html
     if validation_enabled; then
       check_readme
     fi
     ;;
   epub)
-    reset_generated
+    need uv
     build_epub
     if validation_enabled; then
-      check_epub_finalization
+      "${PYTHON[@]}" "$ROOT/scripts/validate.py" epub
     fi
     ;;
 esac

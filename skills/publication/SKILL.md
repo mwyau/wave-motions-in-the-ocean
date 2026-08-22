@@ -11,6 +11,10 @@ Publication work controls presentation and generated editions. It must not silen
 - Do not alter prose, equations, figure labels, references, or scientific meaning merely to improve style, satisfy a validator, make a derivation more correct, or simplify a build.
 - A substantive source correction requires explicit human approval under the source-audit rules. Publication tooling/build success never constitutes approval.
 
+### Cross-format punctuation
+
+Canonical `.tex` uses TeX punctuation conventions; Markdown, HTML, and EPUB should render the equivalent reader-facing UTF-8 smart punctuation. Generated formats are views, never independent punctuation sources. Conversion tooling owns format-specific punctuation rendering: use the explicit `latex+smart` Pandoc reader where LaTeX is converted to a reader format, and keep identifiers, URLs, slugs, and mathematical source syntax out of smart-punctuation normalization.
+
 ## Canonical publication sources
 
 - Shared modern PDF/EPUB cover: `reconstruction/cover-modern.tex`
@@ -29,29 +33,29 @@ The modern PDF and EPUB use the same cover generated from `cover-modern.tex`; EP
 Preserve these cover invariants unless explicitly redesigned by the owner:
 
 1. `WAVE MOTIONS IN THE OCEAN` is the dominant dark-ocean-blue title.
-2. `Myrl's View` is the italic subtitle.
-3. The full rectangular Met image of Hokusai's *Under the Wave off Kanagawa* is reproduced without speculative color correction or generative reconstruction.
-4. `Presented to Myrl C. Hendershott` appears below the image and above the authors.
-5. David C. Chapman and Paola Malanotte-Rizzoli are the authors.
-6. Years, digital-editor credit, license marks, museum credit, and badges do not belong on the front cover.
+1. `Myrl's View` is the italic subtitle.
+1. The full rectangular Met image of Hokusai's *Under the Wave off Kanagawa* is reproduced without speculative color correction or generative reconstruction.
+1. `Presented to Myrl C. Hendershott` appears below the image and above the authors.
+1. David C. Chapman and Paola Malanotte-Rizzoli are the authors.
+1. Years, editor credit, license marks, museum credit, and badges do not belong on the front cover.
 
 The committed Hokusai source image is `reconstruction/figures/frontmatter/great-wave-met-dp130155.jpg`. Preserve its composition.
 
 The paged modern PDF preliminaries are:
 
 1. half-title,
-2. Lake Como frontispiece,
-3. full title page,
-4. copyright / edition-notice verso,
-5. Contents,
-6. Preface — David C. Chapman,
-7. Preface — Paola Malanotte-Rizzoli,
-8. Editor's note,
-9. Chapter 1.
+1. Lake Como frontispiece,
+1. full title page,
+1. copyright / edition-notice verso,
+1. Contents,
+1. Preface — David C. Chapman,
+1. Preface — Paola Malanotte-Rizzoli,
+1. Editor's note,
+1. Chapter 1.
 
 `frontmatter-modern-book.tex` owns that PDF-only sequence. Preliminary leaves count in Roman pagination; Contents begins visibly at v; Chapter 1 resets to Arabic page 1.
 
-Keep the digital-editor credit subordinate to the authors: `Digital edition by Albert M. W. Yau, August 2026.` Do not assert ownership of the original lecture-note copyright.
+Keep the editor credit subordinate to the authors: `Edited by Albert M. W. Yau, August 2026.` Do not assert ownership of the original lecture-note copyright.
 
 The Lake Como photograph remains the modern PDF frontispiece with its established Villa Carlotta caption. Preserve the committed JPEG; do not invent photographer attribution, generatively reconstruct details, or apply speculative restoration.
 
@@ -68,9 +72,9 @@ Expected component counts are:
 - references: 3 pages
 - total: 184 pages
 
-Keep `\flushbottom`, source-page `\pagebreak[4]` behavior, and source-page page-counter boundaries consistent with the existing style. Do not accept overfull vertical boxes as a way to force the count.
+Keep `\flushbottom`, source-page `\pagebreak[4]` behavior, and source-page page-counter boundaries consistent with the existing style. Do not accept overfull vertical boxes as a way to force the count. Keep facsimile layout policy centralized in `wave-facsimile.sty`; do not add page-specific scaling, crop, spacing, or `\enlargethispage` exceptions to repair pagination.
 
-Development CI may warn about facsimile page-count drift while figure geometry is changing; a stable release must enforce exactly 184 pages.
+The facsimile build logs machine-readable source-boundary headroom and physical/printed-page identity. Development validation should warn when pagination drifts, a vertical box overflows, source-page identity drifts, or the minimum natural body-page reserve falls below 10 pt, so regressions are visible before a page splits. Stable release validation remains strict: exactly 184 physical pages, correct source-page identity, no overfull vertical boxes, and no negative source-boundary reserve.
 
 ## README and HTML synchronization
 
@@ -98,7 +102,7 @@ Do not dark-mode invert/filter the historical front-matter photograph. Generated
 
 Build EPUB from transformed canonical LaTeX, not by reparsing MathJax HTML. Preserve mathematical structure as MathML.
 
-Metadata must keep the title `Wave Motions in the Ocean: Myrl's View`, David C. Chapman and Paola Malanotte-Rizzoli as authors, and Albert M. W. Yau as digital editor/contributor.
+Metadata must keep the title `Wave Motions in the Ocean: Myrl's View`, David C. Chapman and Paola Malanotte-Rizzoli as authors, and Albert M. W. Yau as editor/contributor.
 
 EPUB TOC depth is Chapter → Section. Validate metadata, cover, navigation, MathML, figures, tables, links, accessibility metadata, and reflow. Do not change source mathematics merely to satisfy a MathML validator; fix the transformation/validator unless the source itself was mistranscribed.
 
@@ -147,10 +151,10 @@ Do not add one-time migration, cleanup, source-editing, reconciliation, or bot-c
 
 Publication automation should remain reproducible from the triggering commit. Build once and promote that exact validated output to Pages/releases rather than rebuilding downstream.
 
-Direct pushes to `main` should trigger on actual reader/build inputs. Tracking-only files such as `reconstruction/ERRATA.md`, `reconstruction/FIGURES.md`, `reconstruction/PLAN.md`, and `reconstruction/RENDER_QA.md` need not by themselves trigger a full publication build. Pull-request validation remains unfiltered when needed for a required Build check. Source scans are immutable; including them defensively in trigger paths is acceptable so accidental changes cannot bypass CI.
+Direct pushes to `main` should trigger on actual reader/build inputs. Tracking-only files such as `reconstruction/ERRATA.md`, `reconstruction/FIGURES.md`, and `reconstruction/RENDER_QA.md` need not by themselves trigger a full publication build. Pull-request validation remains unfiltered when needed for a required Build check. Source scans are immutable; including them defensively in trigger paths is acceptable so accidental changes cannot bypass CI.
 
 Keep exact dependency/tool pins and TinyTeX cache semantics aligned with repository manifests. Missing/incomplete artifacts and generation/dependency failures are fatal. Development QA categories may warn where deliberately configured; stable `vX.Y.Z` release gates are strict, including exact facsimile pagination and release asset/checksum validation.
 
 Release publication is append-once. Published release assets must not be replaced or deleted by automation. A rerun may verify an existing published release but must fail rather than mutate it on mismatch. Use repository-level release immutability when available before stable public releases.
 
-GitHub Pages is currently disabled while the repository is private. The publication workflow does not contain dormant Pages orchestration; any future Pages work must consume the same validated artifact and must not modify tracked repository content.
+GitHub Actions and GitHub Pages are enabled. The workflow's Pages path runs only for `refs/heads/main`: the build job uploads the already-built `dist/` tree as the Pages artifact, and the dedicated `pages` job deploys that artifact to the `github-pages` environment. Do not rebuild for Pages deployment. Pull-request and tag runs do not deploy Pages; a workflow dispatch on `main` may redeploy the same build path. Stable release tags continue through the separate release job. Pages and release automation remain read-only with respect to tracked repository content.

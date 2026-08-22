@@ -1,8 +1,8 @@
 # Errata and editorial deviations
 
 The historical PDFs under `source/` are authoritative for the reconstruction. The canonical
-chapter text follows the source unless a deviation is either an unambiguous minor typo or an
-explicitly human-approved substantive erratum.
+chapter text follows the source unless a deviation is either an unambiguous minor mechanical
+correction or an explicitly human-approved substantive erratum.
 
 Agents may identify and analyze possible errors, but **agents can never approve an erratum**.
 Scientific or mathematical correctness by itself is not approval. Until the human owner approves
@@ -13,19 +13,20 @@ Statuses used here:
 - **`pending-human-approval`** — a substantive source issue or proposed correction. The
   canonical reconstruction follows the historical source until the human owner explicitly approves
   the deviation.
-- **`minor-typo-correction`** — a small, unambiguous spelling/grammar/transcription typo with no
-  plausible scientific, mathematical, bibliographic, or editorial change in meaning. These may be
-  corrected without separate errata approval.
+- **`minor-typo-correction`** — a small, unambiguous spelling, grammar, transcription, or
+  punctuation correction with no plausible scientific, mathematical, bibliographic, or substantive
+  editorial change in meaning. These may be corrected without separate errata approval and need
+  not be recorded here unless retaining the correction is useful.
 - **`human-approved`** — reserved for an explicitly documented human-approved substantive
   deviation. Agents must never assign this status autonomously.
 
 False-positive audit findings that were already shown to match the source are omitted rather than
-retained as errata history. Audit coverage belongs in `PLAN.md`; figure provenance and equation
-validation belong in `FIGURES.md`.
+retained as errata history. Figure provenance and equation validation belong in `FIGURES.md`.
 
 ## Chapter 1
 
 ### Printed page 5 — direction dependence of vector advection
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 1, printed page 5
@@ -35,15 +36,17 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** The proposed correction is mathematically defensible, but it is substantive.
 
 ### Printed page 3 — complex-amplitude phase from a one-argument arctangent
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 1, printed page 3
-- **Source:** $\tan^{-1}(\operatorname{Im}A/\operatorname{Re}A)$.
+- **Source:** $\tan^{-1}(\mathrm{Im}\,A/\mathrm{Re}\,A)$.
 - **Proposed correction:** Use $\arg A$ or an equivalent `atan2` convention.
 - **Canonical reconstruction:** Restored to the historical source pending human approval.
 - **Reason/evidence:** A one-argument arctangent loses quadrant information; the source scan nevertheless prints this form.
 
 ### Printed page 4 — scalar phase speed described as directed
+
 - **Category:** `editorial`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 1, printed page 4
@@ -53,6 +56,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** Direction belongs to a velocity vector, but changing the prose is editorially substantive.
 
 ### Printed pages 11--12 — WKB scale separation of phase and amplitude
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 1, printed pages 11--12
@@ -64,6 +68,7 @@ validation belong in `FIGURES.md`.
 ## Chapter 2
 
 ### Printed page 19 — adiabatic entropy derivative
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 2, printed page 19
@@ -73,6 +78,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** Material conservation is physically preferable, but the change is substantive.
 
 ### Printed page 19 — “infinitesmal”
+
 - **Category:** `typographical`
 - **Status:** `minor-typo-correction`
 - **Location:** Chapter 2, printed page 19
@@ -81,6 +87,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** Unambiguous spelling correction only.
 
 ### Printed page 22 — tangential wavenumber projection in specular reflection
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 2, printed page 22
@@ -90,6 +97,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** The geometric argument supports the proposal, but the source expression is clear.
 
 ### Printed page 25 — waveguide cutoff indexing
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 2, printed page 25
@@ -99,6 +107,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** The integer shorthand mishandles exact equality and can omit the highest propagating integer mode.
 
 ### Printed pages 27--28 — low-impedance reflection called a solid boundary
+
 - **Category:** `editorial`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 2, printed pages 27--28
@@ -110,6 +119,7 @@ validation belong in `FIGURES.md`.
 ## Chapter 3
 
 ### Printed page 54 — shorthand late-time envelope
+
 - **Category:** `editorial`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 3, printed page 54
@@ -119,6 +129,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** The source equality is dimensional shorthand, but changing it alters the historical text.
 
 ### Printed page 49 — finite-depth linear limit called deep water
+
 - **Category:** `editorial`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 3, printed page 49
@@ -128,6 +139,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** With $\delta=D/L$, $\delta=O(1)$ is not the asymptotic deep-water limit.
 
 ### Printed pages 51--52 — generic stationary-phase amplitude treated as real
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 3, printed pages 51--52
@@ -137,6 +149,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** For arbitrary real initial data the Fourier transform is generally complex.
 
 ### Printed pages 57 and 59 — bottom kinematic and Leibniz signs
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 3, printed pages 57 and 59
@@ -146,6 +159,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** The two apparent sign errors cancel in the displayed integrated-energy result.
 
 ### Printed page 57 — local gravitational-energy time derivative
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 3, printed page 57
@@ -155,6 +169,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** $w=Dz/Dt$ is a parcel derivative; the later period-averaged results remain correct.
 
 ### Printed page 59 — gravity retained after hydrostatic pressure subtraction
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 3, printed page 59
@@ -164,6 +179,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** The hydrostatic background pressure gradient already balances gravity.
 
 ### Printed page 60 — slowly varying current amplitude from energy conservation
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 3, printed page 60
@@ -175,6 +191,7 @@ validation belong in `FIGURES.md`.
 ## Chapter 4
 
 ### Printed page 69 — pressure symbol used instead of density perturbation
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 4, printed page 69
@@ -184,6 +201,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** Only the density-perturbation form combines with the following density equation to produce $u_{tt}+N^2\sin^2\theta\,u=0$; the source scan clearly prints $p$.
 
 ### Printed pages 73--75 — zero-group-speed endpoints called energy propagation
+
 - **Category:** `editorial`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 4, printed pages 73--75
@@ -193,6 +211,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** The source's own group-speed expression gives zero at those endpoints.
 
 ### Printed page 90 — reflected vertical-wavenumber ratio
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 4, printed page 90
@@ -202,6 +221,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** The surrounding relations imply the proposed result, but the source expression is unambiguous.
 
 ### Printed page 90 — signed versus magnitude wavenumber ratio
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 4, printed page 90
@@ -213,6 +233,7 @@ validation belong in `FIGURES.md`.
 ## Chapter 5
 
 ### Printed page 98 — sign of the rotating effective potential
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 5, printed page 98
@@ -222,6 +243,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** The sign implied by the laboratory free-surface paraboloid differs from the printed potential.
 
 ### Printed page 102 — “Bousinesq”
+
 - **Category:** `typographical`
 - **Status:** `minor-typo-correction`
 - **Location:** Chapter 5, printed page 102
@@ -230,6 +252,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** Unambiguous spelling correction only.
 
 ### Printed page 110 — “free periods” followed by squared frequencies
+
 - **Category:** `editorial`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 5, printed page 110
@@ -239,6 +262,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** $\sigma$ is angular frequency and the displayed eigenvalues are $\sigma_n^2$.
 
 ### Printed page 110 — omitted Neumann zero mode
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 5, printed page 110
@@ -248,6 +272,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** The Neumann Laplacian admits a constant eigenfunction.
 
 ### Printed page 111 — “Lamb (1832)”
+
 - **Category:** `reference`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 5, printed page 111
@@ -257,6 +282,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** Horace Lamb lived 1849–1934 and the sixth edition of *Hydrodynamics* is 1932, but changing a historical citation year is substantive bibliographic editing.
 
 ### Printed page 113 — reversed depth and cross-step-wavenumber labels
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 5, printed page 113
@@ -266,6 +292,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** Snell's law for shallow-side incidence gives the proposed depth ratio.
 
 ### Printed page 113 — reversed-incidence amplitude coefficients
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 5, printed page 113
@@ -275,6 +302,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** Direct rematching gives $A_R/A_I=(D_1k_1-D_2k_2)/(D_1k_1+D_2k_2)$ and $A_T/A_I=2D_1k_1/(D_1k_1+D_2k_2)$.
 
 ### Printed page 116 — “waves modes”
+
 - **Category:** `typographical`
 - **Status:** `minor-typo-correction`
 - **Location:** Chapter 5, printed page 116
@@ -283,6 +311,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** Unambiguous grammatical correction only.
 
 ### Printed page 117 — shelf-scattering amplitude denominator
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 5, printed page 117
@@ -292,6 +321,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** Eliminating $B$ from the preceding matching equations gives the proposed plus sign.
 
 ### Printed page 120 — reflection coefficient
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 5, printed page 120
@@ -301,6 +331,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** The proposed form follows from the wall boundary condition and agrees with a handwritten correction, but the handwritten mark is not human approval for this digital edition.
 
 ### Printed page 120 — inertial-oscillation velocity sign
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 5, printed page 120
@@ -310,6 +341,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** Direct substitution supports the proposed sign.
 
 ### Printed page 122 — Kelvin-wave propagation direction
+
 - **Category:** `editorial`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 5, printed page 122
@@ -319,6 +351,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** The propagating phase is $\exp(i\ell y)$; $x$ controls offshore decay.
 
 ### Printed page 126 — “simply be having”
+
 - **Category:** `typographical`
 - **Status:** `minor-typo-correction`
 - **Location:** Chapter 5, printed page 126
@@ -327,6 +360,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** Unambiguous grammatical correction only.
 
 ### Printed page 129 — coordinate phase speeds described as components
+
 - **Category:** `editorial`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 5, printed page 129
@@ -336,6 +370,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** Chapter 1 already distinguishes the scalar coordinate speed from the true vector component.
 
 ### Printed page 130 — “aditional”
+
 - **Category:** `typographical`
 - **Status:** `minor-typo-correction`
 - **Location:** Chapter 5, printed page 130
@@ -344,6 +379,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** Unambiguous spelling correction only.
 
 ### Printed page 131 — “plane wave sloution”
+
 - **Category:** `typographical`
 - **Status:** `minor-typo-correction`
 - **Location:** Chapter 5, printed page 131
@@ -352,6 +388,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** Unambiguous spelling correction only.
 
 ### Printed page 131 — implicit zonal-wave restriction
+
 - **Category:** `editorial`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 5, printed page 131
@@ -361,6 +398,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** $u=0$ requires $\ell=0$.
 
 ### Printed page 131 — Rossby-wave group direction stated too generally
+
 - **Category:** `editorial`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 5, printed page 131
@@ -370,6 +408,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** $c_{gx}=\beta(k^2-\ell^2)/(k^2+\ell^2)^2$ can have either sign.
 
 ### Printed page 140 — “equations of motions”
+
 - **Category:** `typographical`
 - **Status:** `minor-typo-correction`
 - **Location:** Chapter 5, printed page 140
@@ -378,6 +417,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** Unambiguous grammatical correction only.
 
 ### Printed page 141 — $f_0$ in the equatorial-validity sentence
+
 - **Category:** `editorial`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 5, printed page 141
@@ -387,6 +427,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** $f_0$ is a constant reference value; $f=\beta y$ grows away from the equator.
 
 ### Printed page 142 — $m$ called a wavenumber
+
 - **Category:** `editorial`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 5, printed page 142
@@ -396,6 +437,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** $m=0,1,2,\ldots$ is the discrete Hermite mode index.
 
 ### Printed page 142 — inconsistent constant-order high-wavenumber asymptotic
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 5, printed page 142
@@ -405,6 +447,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** If $s=\omega/\lambda\to\pm1$, then $\omega^2-\lambda^2\sim2m+1+1/s$.
 
 ### Printed page 146 — local meridional phase with variable wavenumber
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 5, printed page 146
@@ -414,6 +457,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** Differentiating $\ell(y)y$ gives $\ell+y\ell_y$, not the assumed local wavenumber $\ell$.
 
 ### Printed pages 146--147 — ray direction identified with wavevector direction
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 5, printed pages 146--147
@@ -423,6 +467,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** Rays follow group velocity under the chapter's earlier ray-theory definition.
 
 ### Printed page 147 — turning coordinate written as $\theta_T$
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 5, printed page 147
@@ -434,6 +479,7 @@ validation belong in `FIGURES.md`.
 ## Chapter 6
 
 ### Printed page 159 — modal maximum differentiated at fixed cross-shelf wavenumber
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 6, printed page 159
@@ -443,6 +489,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** The boundary condition $\tan(kL)=k/(\ell-b)$ constrains $k$ along each discrete branch.
 
 ### Printed pages 163--164 — condition on the short-wave coastal-trapped asymptote
+
 - **Category:** `editorial`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 6, printed pages 163--164
@@ -452,6 +499,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** If the formal estimate exceeds unity, the subinertial branch reaches the inertial limit first.
 
 ### Printed page 160 — “discrete frequencies” versus discrete cross-shelf modes
+
 - **Category:** `editorial`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 6, printed page 160
@@ -461,6 +509,7 @@ validation belong in `FIGURES.md`.
 - **Reason/evidence:** Alongshore wavenumber remains continuous and each mode has a dispersion branch $\sigma_n(\ell)$.
 
 ### Printed page 167 — sign of the strong-stratification Kelvin-wave limit
+
 - **Category:** `equation`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 6, printed page 167
@@ -472,6 +521,7 @@ validation belong in `FIGURES.md`.
 ## References
 
 ### Printed page 172 — Bjerknes title spelling
+
 - **Category:** `reference`
 - **Status:** `minor-typo-correction`
 - **Location:** References, printed page 172

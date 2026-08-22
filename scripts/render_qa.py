@@ -6,6 +6,7 @@ inspect a built ``dist/`` directory or an artifact ZIP, render both PDFs into
 contact sheets, perform static/optional-browser HTML checks, unpack and inspect
 EPUB structure, and write a single Markdown report under ``audit/render-qa``.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -21,15 +22,19 @@ import threading
 import urllib.parse
 import xml.etree.ElementTree as ET
 import zipfile
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable
 
 from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT = ROOT / "audit" / "render-qa"
-EXPECTED_HTML = ["index.html", *(f"chapter{i}.html" for i in range(1, 7)), "references.html"]
+EXPECTED_HTML = [
+    "index.html",
+    *(f"chapter{i}.html" for i in range(1, 7)),
+    "references.html",
+]
 FACSIMILE_EXPECTED_PAGES = 184
 
 
@@ -109,7 +114,7 @@ def prepare_input(source: Path, out: Path) -> Path:
 
 def pdf_page_count(pdf: Path) -> int:
     proc = run(["pdfinfo", str(pdf)])
-    match = re.search(r"^Pages:\s+(\d+)\s*$", proc.stdout, flags=re.M)
+    match = re.search(r"^Pages:\s+(\d+)\s*$", proc.stdout, flags=re.MULTILINE)
     if not match:
         raise RuntimeError(f"pdfinfo did not report a page count for {pdf}")
     return int(match.group(1))
@@ -248,7 +253,7 @@ def html_local_refs(page: Path) -> list[str]:
     broken: list[str] = []
     for attr in ("src", "href"):
         for ref in re.findall(
-            rf'{attr}=["\']([^"\']+)["\']', text, flags=re.I
+            rf'{attr}=["\']([^"\']+)["\']', text, flags=re.IGNORECASE
         ):
             if ref.startswith(
                 ("http:", "https:", "mailto:", "#", "javascript:", "data:")
@@ -291,9 +296,7 @@ def free_port() -> int:
 @contextlib.contextmanager
 def local_server(root: Path):
     port = free_port()
-    handler = lambda *args, **kwargs: QuietHandler(  # noqa: E731
-        *args, directory=str(root), **kwargs
-    )
+    handler = lambda *args, **kwargs: QuietHandler(*args, directory=str(root), **kwargs)
     server = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -349,7 +352,9 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
     for name in EXPECTED_HTML:
         page = dist / name
         text = page.read_text(errors="replace")
-        match = re.search(r"<title>(.*?)</title>", text, flags=re.S | re.I)
+        match = re.search(
+            r"<title>(.*?)</title>", text, flags=re.DOTALL | re.IGNORECASE
+        )
         titles[name] = (
             re.sub(r"\s+", " ", match.group(1)).strip() if match else "<missing>"
         )
@@ -397,7 +402,7 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
     for name in EXPECTED_HTML:
         text = (dist / name).read_text(errors="replace")
         mathjax_external.extend(
-            re.findall(r'https://[^"\']*mathjax[^"\']*', text, flags=re.I)
+            re.findall(r'https://[^"\']*mathjax[^"\']*', text, flags=re.IGNORECASE)
         )
     if mathjax_external:
         report.add(
@@ -406,9 +411,7 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
             "HTML mathematics depends on an external MathJax runtime; offline ZIP "
             "reading will not typeset math unless MathJax is vendored.",
         )
-        lines.append(
-            f"- External MathJax reference detected: `{mathjax_external[0]}`"
-        )
+        lines.append(f"- External MathJax reference detected: `{mathjax_external[0]}`")
 
     if browser:
         lines.append(f"- Headless browser detected: `{browser}`")
@@ -416,12 +419,8 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
         with local_server(dist) as base:
             jobs = []
             for name in EXPECTED_HTML:
-                jobs.append(
-                    (f"desktop-{Path(name).stem}.png", name, 1440, 1000, False)
-                )
-                jobs.append(
-                    (f"mobile-{Path(name).stem}.png", name, 390, 844, False)
-                )
+                jobs.append((f"desktop-{Path(name).stem}.png", name, 1440, 1000, False))
+                jobs.append((f"mobile-{Path(name).stem}.png", name, 390, 844, False))
             jobs.append(("dark-chapter4.png", "chapter4.html", 390, 844, True))
             failures = 0
             completed = 0
@@ -482,8 +481,10 @@ def epub_qa(dist: Path, report: Report) -> None:
     shutil.rmtree(dest, ignore_errors=True)
     dest.mkdir(parents=True)
     lines: list[str] = [
-        f"- `wave-motions.epub`; SHA-256 `{sha256(epub)[:16]}…`; unpacked to "
-        f"`{dest.relative_to(report.out)}/`"
+        (
+            f"- `wave-motions.epub`; SHA-256 `{sha256(epub)[:16]}…`; unpacked to "
+            f"`{dest.relative_to(report.out)}/`"
+        )
     ]
     try:
         with zipfile.ZipFile(epub) as archive:
@@ -492,7 +493,9 @@ def epub_qa(dist: Path, report: Report) -> None:
                 report.add("ERROR", "EPUB", "mimetype is not the first ZIP entry")
             elif archive.getinfo("mimetype").compress_type != zipfile.ZIP_STORED:
                 report.add(
-                    "ERROR", "EPUB", "mimetype entry is compressed; EPUB requires it stored"
+                    "ERROR",
+                    "EPUB",
+                    "mimetype entry is compressed; EPUB requires it stored",
                 )
             if archive.read("mimetype") != b"application/epub+zip":
                 report.add("ERROR", "EPUB", "invalid mimetype payload")
@@ -506,8 +509,10 @@ def epub_qa(dist: Path, report: Report) -> None:
         root = ET.parse(container).getroot()
         ns = {"c": "urn:oasis:names:tc:opendocument:xmlns:container"}
         rootfile = root.find(".//c:rootfile", ns)
-        opf_rel = rootfile.attrib["full-path"] if rootfile is not None else "EPUB/content.opf"
-    except Exception as exc:
+        opf_rel = (
+            rootfile.attrib["full-path"] if rootfile is not None else "EPUB/content.opf"
+        )
+    except (ET.ParseError, OSError, KeyError, AttributeError) as exc:
         report.add("ERROR", "EPUB", f"cannot parse container.xml: {exc}")
         return
     opf = dest / opf_rel
@@ -566,8 +571,10 @@ def epub_qa(dist: Path, report: Report) -> None:
             f"- Creators: {', '.join(creators) if creators else '<missing>'}",
             f"- Contributor(s): {', '.join(contributors) if contributors else '<none>'}",
             f"- Language: {', '.join(languages) if languages else '<missing>'}",
-            f"- Spine items: {len(spine)}; XHTML resources: {len(xhtml_paths)}; "
-            f"MathML elements: {math_count}; inline image/SVG references: {media_ref_count}",
+            (
+                f"- Spine items: {len(spine)}; XHTML resources: {len(xhtml_paths)}; "
+                f"MathML elements: {math_count}; inline image/SVG references: {media_ref_count}"
+            ),
         ]
     )
     if not titles or "Wave Motions in the Ocean" not in titles[0]:
@@ -620,7 +627,9 @@ def artifact_build_identity(dist: Path) -> str | None:
         return None
     proc = run(["pdfinfo", str(pdf)], check=False)
     match = re.search(
-        r"^Subject:\s+Digital edition build\s+(.+?)\s*$", proc.stdout, flags=re.M
+        r"^Subject:\s+Digital edition build\s+(.+?)\s*$",
+        proc.stdout,
+        flags=re.MULTILINE,
     )
     return match.group(1).strip() if match else None
 
@@ -688,16 +697,16 @@ def write_report(report: Report) -> Path:
         f"Input: `{report.source}`",
         f"Resolved publication root: `{report.source_root}`",
         "",
-        f"Findings: **{counts['ERROR']} errors**, **{counts['WARNING']} warnings**, "
-        f"**{counts['INFO']} informational notes**.",
+        (
+            f"Findings: **{counts['ERROR']} errors**, **{counts['WARNING']} warnings**, "
+            f"**{counts['INFO']} informational notes**."
+        ),
         "",
     ]
     if report.findings:
         lines.extend(["## Findings", ""])
         for finding in report.findings:
-            lines.append(
-                f"- **{finding.level} / {finding.area}:** {finding.message}"
-            )
+            lines.append(f"- **{finding.level} / {finding.area}:** {finding.message}")
         lines.append("")
     for title, section_lines in report.sections:
         lines.extend([f"## {title}", "", *section_lines, ""])
