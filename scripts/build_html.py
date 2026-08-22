@@ -22,7 +22,6 @@ from pathlib import Path
 from string import Template
 
 from PIL import Image
-
 from publication import (
     BOOK_TITLE,
     CONTACT_EMAIL,
@@ -113,7 +112,7 @@ MATHJAX_MATH_RE = re.compile(
     re.DOTALL | re.IGNORECASE,
 )
 MATHML_MATH_RE = re.compile(
-    r'<math\b(?P<attrs>[^>]*)>.*?</math>',
+    r"<math\b(?P<attrs>[^>]*)>.*?</math>",
     re.DOTALL | re.IGNORECASE,
 )
 
@@ -153,9 +152,11 @@ def cached_vendor_archive(name: str, url: str) -> Path:
     )
     print(f"Fetching pinned HTML dependency: {name}", file=sys.stderr)
     try:
-        with urllib.request.urlopen(request, timeout=90) as response:
-            with temporary.open("wb") as destination:
-                shutil.copyfileobj(response, destination)
+        with (
+            urllib.request.urlopen(request, timeout=90) as response,
+            temporary.open("wb") as destination,
+        ):
+            shutil.copyfileobj(response, destination)
     except OSError as exc:
         temporary.unlink(missing_ok=True)
         raise SystemExit(
@@ -212,20 +213,23 @@ def copy_archive_tree(archive: Path, member_dir: str, destination: Path) -> int:
 
 def install_html_vendor_assets() -> None:
     archives = {
-        name: cached_vendor_archive(name, url)
-        for name, url in VENDOR_ARCHIVES.items()
+        name: cached_vendor_archive(name, url) for name, url in VENDOR_ARCHIVES.items()
     }
 
     mathjax = archives["mathjax-3.2.2"]
     mathjax_root = ASSETS / "mathjax"
-    copy_archive_file(mathjax, "es5/tex-chtml-full.js", mathjax_root / "tex-chtml-full.js")
+    copy_archive_file(
+        mathjax, "es5/tex-chtml-full.js", mathjax_root / "tex-chtml-full.js"
+    )
     font_count = copy_archive_tree(
         mathjax,
         "es5/output/chtml/fonts/woff-v2",
         mathjax_root / "output" / "chtml" / "fonts" / "woff-v2",
     )
     if font_count < 20:
-        raise SystemExit(f"MathJax font bundle is incomplete: found {font_count} WOFF files")
+        raise SystemExit(
+            f"MathJax font bundle is incomplete: found {font_count} WOFF files"
+        )
     copy_archive_file(mathjax, "LICENSE", ASSETS / "licenses" / "MathJax-3.2.2.txt")
 
     serif = archives["source-serif-4.005"]
@@ -239,7 +243,9 @@ def install_html_vendor_assets() -> None:
         "WOFF2/VAR/SourceSerif4Variable-Italic.otf.woff2",
         ASSETS / "fonts" / "SourceSerif4Variable-Italic.otf.woff2",
     )
-    copy_archive_file(serif, "LICENSE.md", ASSETS / "licenses" / "Source-Serif-4-OFL.txt")
+    copy_archive_file(
+        serif, "LICENSE.md", ASSETS / "licenses" / "Source-Serif-4-OFL.txt"
+    )
 
     sans = archives["source-sans-3.052"]
     copy_archive_file(
@@ -537,7 +543,9 @@ def build_social_preview() -> None:
     work = BUILD / "social-preview"
     work.mkdir(parents=True, exist_ok=True)
     source = SOCIAL_PREVIEW_TEMPLATE.read_text()
-    source = source.replace("__WAVE_COVER_BLUE__", blue).replace("__WAVE_COVER_PAPER__", paper)
+    source = source.replace("__WAVE_COVER_BLUE__", blue).replace(
+        "__WAVE_COVER_PAPER__", paper
+    )
     tex = work / "social-preview.tex"
     tex.write_text(source)
     run(
@@ -570,7 +578,9 @@ def build_social_preview() -> None:
         raise SystemExit("social preview PNG was not generated")
     with Image.open(SOCIAL_PREVIEW) as image:
         if image.size != (1200, 630):
-            raise SystemExit(f"social preview is {image.size[0]}x{image.size[1]}, expected 1200x630")
+            raise SystemExit(
+                f"social preview is {image.size[0]}x{image.size[1]}, expected 1200x630"
+            )
 
 
 def social_metadata(path: Path) -> str:
@@ -879,13 +889,25 @@ def validate() -> None:
         raise SystemExit("missing HTML outputs: " + ", ".join(missing))
     if not HTML_TEMPLATE.is_file() or HTML_TEMPLATE.stat().st_size == 0:
         raise SystemExit(f"missing HTML reader template: {HTML_TEMPLATE}")
-    if not SOCIAL_PREVIEW_TEMPLATE.is_file() or SOCIAL_PREVIEW_TEMPLATE.stat().st_size == 0:
+    if (
+        not SOCIAL_PREVIEW_TEMPLATE.is_file()
+        or SOCIAL_PREVIEW_TEMPLATE.stat().st_size == 0
+    ):
         raise SystemExit(f"missing social preview template: {SOCIAL_PREVIEW_TEMPLATE}")
     if not SOCIAL_PREVIEW.is_file() or SOCIAL_PREVIEW.stat().st_size == 0:
         raise SystemExit("missing generated social preview image")
     if not (ASSETS / "mathjax" / "tex-chtml-full.js").is_file():
         raise SystemExit("missing bundled MathJax component")
-    if len(list((ASSETS / "mathjax" / "output" / "chtml" / "fonts" / "woff-v2").glob("*.woff"))) < 20:
+    if (
+        len(
+            list(
+                (ASSETS / "mathjax" / "output" / "chtml" / "fonts" / "woff-v2").glob(
+                    "*.woff"
+                )
+            )
+        )
+        < 20
+    ):
         raise SystemExit("bundled MathJax fonts are incomplete")
     for font in (
         "SourceSerif4Variable-Roman.otf.woff2",
@@ -897,7 +919,9 @@ def validate() -> None:
             raise SystemExit(f"missing bundled HTML font: {font}")
     with Image.open(SOCIAL_PREVIEW) as image:
         if image.size != (1200, 630):
-            raise SystemExit(f"social preview is {image.size[0]}x{image.size[1]}, expected 1200x630")
+            raise SystemExit(
+                f"social preview is {image.size[0]}x{image.size[1]}, expected 1200x630"
+            )
 
     combined = "\n".join(path.read_text(errors="replace") for path in EXPECTED_PAGES)
     for sentinel in (
@@ -968,12 +992,16 @@ def validate() -> None:
                 f"{page.name}: native MathML element count does not match alternates"
             )
         if text.count("data-toc-scope") != 2 or text.count("data-toc-expand") != 2:
-            raise SystemExit(f"HTML Contents controls are duplicated or missing in {page.name}")
+            raise SystemExit(
+                f"HTML Contents controls are duplicated or missing in {page.name}"
+            )
         if text.count('class="build-info"') != 1:
             raise SystemExit(f"HTML build stamp count is not one in {page.name}")
         if text.count('property="og:image"') != 1:
-            raise SystemExit(f"HTML social preview image metadata count is not one in {page.name}")
-        if 'class="book-context"' in text or 'data-theme-select' in text:
+            raise SystemExit(
+                f"HTML social preview image metadata count is not one in {page.name}"
+            )
+        if 'class="book-context"' in text or "data-theme-select" in text:
             raise SystemExit(f"obsolete HTML header controls remain in {page.name}")
 
     for chapter in CHAPTERS:
@@ -1011,14 +1039,10 @@ def validate() -> None:
         )
     first_page = (OUT / f"chapter{first.number}.html").read_text(errors="replace")
     if 'href="index.html"' not in first_page:
-        raise SystemExit(
-            f"Chapter {first.number} must navigate back to front matter"
-        )
+        raise SystemExit(f"Chapter {first.number} must navigate back to front matter")
     references = (OUT / "references.html").read_text(errors="replace")
     if f'href="chapter{last.number}.html"' not in references:
-        raise SystemExit(
-            f"References must navigate back to Chapter {last.number}"
-        )
+        raise SystemExit(f"References must navigate back to Chapter {last.number}")
     if MATHJAX_URL not in combined:
         raise SystemExit("pinned MathJax URL is missing from generated HTML")
     if LOCAL_MATHJAX_URL not in combined:

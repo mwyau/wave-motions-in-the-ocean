@@ -531,7 +531,9 @@ def _set_contributor_refinements(metadata: ET.Element) -> None:
     creators_by_name = {text_content(element): element for element in creators}
     missing_authors = [author for author in AUTHORS if author not in creators_by_name]
     if missing_authors:
-        raise SystemExit(f"EPUB package metadata is missing authors: {missing_authors!r}")
+        raise SystemExit(
+            f"EPUB package metadata is missing authors: {missing_authors!r}"
+        )
 
     contributor = next(
         (

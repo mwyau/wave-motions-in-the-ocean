@@ -20,9 +20,9 @@ from pathlib import Path
 from publication import (
     CONTACT_EMAIL,
     DOWNLOADS,
-    SRC,
     ROOT,
     SITE_URL,
+    SRC,
     markdown_license,
     reader_punctuation,
 )
