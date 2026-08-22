@@ -26,4 +26,4 @@ all: readme
 	./scripts/build.sh all
 
 clean:
-	rm -rf audit build dist
+	rm -rf build dist
