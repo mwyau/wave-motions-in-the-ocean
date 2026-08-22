@@ -14,9 +14,9 @@ from pathlib import Path
 
 DEFAULT_FILES = (
     "wave-motions.pdf",
-    "wave-motions-facsimile.pdf",
     "wave-motions.epub",
 )
+QA_ONLY_FILES = ("wave-motions-facsimile.pdf",)
 MANIFEST = "SHA256SUMS"
 HTML_ARCHIVE = "wave-motions-html.zip"
 CHECKSUM_ASSETS = (*DEFAULT_FILES, HTML_ARCHIVE)
@@ -113,7 +113,7 @@ def package_release(dist: Path, output: Path) -> None:
     for name in DEFAULT_FILES:
         shutil.copy2(dist / name, output / name)
 
-    excluded = {*DEFAULT_FILES, MANIFEST}
+    excluded = {*DEFAULT_FILES, *QA_ONLY_FILES, MANIFEST}
     archive_path = output / HTML_ARCHIVE
     included: list[str] = []
     with zipfile.ZipFile(

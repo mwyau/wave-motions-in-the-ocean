@@ -114,9 +114,7 @@ during the International School of Physics “Enrico Fermi,” Course LXXX,
 
 - [HTML](https://mwyau.github.io/wave-motions-in-the-ocean/)
 - [PDF](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.pdf)
-- [Facsimile PDF](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions-facsimile.pdf)
 - [EPUB](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.epub)
-- [Original online source](https://oxbow.sr.unh.edu/ChapmanRizzoli/Wave_Motions_in_the_Ocean.html)
 
 Contact: [albert@mwyau.com](mailto:albert@mwyau.com)
 

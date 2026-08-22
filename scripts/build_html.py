@@ -27,7 +27,6 @@ from publication import (
     DOWNLOADS,
     LANGUAGE,
     MATHJAX_URL,
-    ORIGINAL_SOURCE_URL,
     PUBLICATION_TITLE,
     REPOSITORY_URL,
     SITE_URL,
@@ -552,7 +551,6 @@ def html_frontmatter_footer() -> str:
         '<section class="edition-links"><h2>Read and download</h2><ul>'
         + links
         + "</ul>"
-        + f'<p><a href="{ORIGINAL_SOURCE_URL}">Original online source</a></p>'
         + f'<p>Contact: <a href="mailto:{CONTACT_EMAIL}">{CONTACT_EMAIL}</a></p>'
         + "</section>"
     )
@@ -753,6 +751,8 @@ def validate() -> None:
         raise SystemExit("HTML download links are incomplete")
     if "wave-motions-facsimile.pdf" in index:
         raise SystemExit("HTML front page must not link the facsimile PDF")
+    if "Original online source" in index:
+        raise SystemExit("HTML front page must not link the original online source")
     if 'id="contents"' in index:
         raise SystemExit("inline HTML Contents block must not be rendered")
     if f'href="chapter{first.number}.html"' not in index:
