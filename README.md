@@ -11,7 +11,6 @@ Edited by **Albert M. W. Yau** — August 2026
 [![Read PDF](https://img.shields.io/badge/Read-PDF-b31b1b)](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.pdf)
 [![Read EPUB](https://img.shields.io/badge/Read-EPUB-2da44e)](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.epub)
 [![BY-NC-SA 4.0](https://img.shields.io/badge/-BY--NC--SA%204.0-ED592F?logo=creativecommons&logoColor=white&labelColor=333333)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
-[![Quality](https://github.com/mwyau/wave-motions-in-the-ocean/actions/workflows/quality.yml/badge.svg?branch=main)](https://github.com/mwyau/wave-motions-in-the-ocean/actions/workflows/quality.yml)
 [![Publish](https://github.com/mwyau/wave-motions-in-the-ocean/actions/workflows/publish.yml/badge.svg?branch=main)](https://github.com/mwyau/wave-motions-in-the-ocean/actions/workflows/publish.yml)
 <!-- README_BADGES_END -->
 
