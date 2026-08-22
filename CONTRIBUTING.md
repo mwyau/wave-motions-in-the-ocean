@@ -41,11 +41,10 @@ mapfile -t PACKAGES < <(grep -Ev '^\s*(#|$)' tex-packages.txt)
 tlmgr install "${PACKAGES[@]}"
 ```
 
-Install pre-commit hooks (`prek` or `pre-commit`):
+Install the pre-commit hooks with `prek` or `pre-commit`:
 
 ```bash
 prek install       # or pre-commit install
-prek run --all-files
 ```
 
 ## Files
@@ -76,5 +75,13 @@ For figure changes, also run `scripts/compare_figures.py` for the affected figur
 Do not commit `build/`, `dist/`, caches, or `audit/` review material.
 
 ## Commits
+
+Before committing, run all pre-commit hooks:
+
+```bash
+prek run --all-files       # or pre-commit run --all-files
+```
+
+If a hook changes files, review those changes and rerun the command until all hooks pass. GitHub Actions runs the same pre-commit checks on pushes and pull requests.
 
 Use a short, readable subject beginning with a capital letter, for example `Correct chapter 5 dispersion relation`. Do not use prefixes such as `ci:`, `docs:`, `feat:`, `fix:`, or `chore:`.
