@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Build the complete chapter-split modern HTML edition.
 
-Pandoc supplies the document markup after the shared publication
-preparation. This script owns dynamic publication data and final assembly; the
-maintained reader shell lives in src/templates/wave-html.html.
+Pandoc supplies document body markup after shared publication preparation.
+This script computes publication data and renders the maintained full-page
+reader template in src/templates/wave-html.html.
 """
 
 from __future__ import annotations
@@ -583,39 +583,27 @@ def build_social_preview() -> None:
             )
 
 
-def social_metadata(path: Path) -> str:
+def page_metadata(path: Path) -> dict[str, str]:
+    context = page_context(path)
+    page_title = BOOK_TITLE if path.name == "index.html" else f"{context} — {BOOK_TITLE}"
     if path.name == "index.html":
-        title = PUBLICATION_TITLE.replace("'", "’")
+        social_title = PUBLICATION_TITLE.replace("'", "’")
         page_url = f"{SITE_URL}/"
     else:
-        title = f"{page_context(path)} — {PUBLICATION_TITLE}".replace("'", "’")
+        social_title = f"{context} — {PUBLICATION_TITLE}".replace("'", "’")
         page_url = f"{SITE_URL}/{path.name}"
     image_url = f"{SITE_URL}/assets/social-preview.png"
-    values = {
-        "title": html.escape(title, quote=True),
+    return {
+        "language": html.escape(LANGUAGE, quote=True),
+        "page_title": html.escape(page_title),
         "description": html.escape(SOCIAL_DESCRIPTION, quote=True),
-        "url": html.escape(page_url, quote=True),
-        "image": html.escape(image_url, quote=True),
-        "image_alt": html.escape(SOCIAL_IMAGE_ALT, quote=True),
+        "social_title": html.escape(social_title, quote=True),
+        "social_url": html.escape(page_url, quote=True),
+        "social_image": html.escape(image_url, quote=True),
+        "social_image_alt": html.escape(SOCIAL_IMAGE_ALT, quote=True),
+        "mathjax_upstream": html.escape(MATHJAX_URL, quote=True),
+        "mathjax_url": html.escape(LOCAL_MATHJAX_URL, quote=True),
     }
-    return "\n".join(
-        (
-            f'<meta name="description" content="{values["description"]}" />',
-            f'<meta property="og:title" content="{values["title"]}" />',
-            '<meta property="og:type" content="website" />',
-            f'<meta property="og:url" content="{values["url"]}" />',
-            f'<meta property="og:image" content="{values["image"]}" />',
-            '<meta property="og:image:width" content="1200" />',
-            '<meta property="og:image:height" content="630" />',
-            '<meta property="og:image:type" content="image/png" />',
-            f'<meta property="og:image:alt" content="{values["image_alt"]}" />',
-            '<meta name="twitter:card" content="summary_large_image" />',
-            f'<meta name="twitter:title" content="{values["title"]}" />',
-            f'<meta name="twitter:description" content="{values["description"]}" />',
-            f'<meta name="twitter:image" content="{values["image"]}" />',
-            f'<meta name="twitter:image:alt" content="{values["image_alt"]}" />',
-        )
-    )
 
 
 def heading_text(fragment: str) -> str:
@@ -647,16 +635,20 @@ def install_frontmatter_ids(page: Path) -> None:
         rendered = heading_text(match.group("body"))
         if normalized_heading_text(rendered) != normalized_heading_text(expected):
             raise SystemExit(
-                f"index.html: front matter heading {index + 1} is {rendered!r}; expected {expected!r}"
+                f"index.html: front matter heading {index + 1} is {rendered!r}; "
+                f"expected {expected!r}"
             )
         index += 1
-        attrs = re.sub(r'\s+id="[^"]*"', "", match.group("attrs"), flags=re.IGNORECASE)
+        attrs = re.sub(
+            r'\s+id="[^"]*"', "", match.group("attrs"), flags=re.IGNORECASE
+        )
         return f'<h1 id="{anchor}"{attrs}>{match.group("body")}</h1>'
 
     tail = heading_re.sub(replace_heading, tail)
     if index != len(FRONTMATTER_SECTIONS):
         raise SystemExit(
-            f"index.html: found {index} front matter headings, expected {len(FRONTMATTER_SECTIONS)}"
+            f"index.html: found {index} front matter headings, "
+            f"expected {len(FRONTMATTER_SECTIONS)}"
         )
     page.write_text(prefix + tail)
 
@@ -669,76 +661,60 @@ def install_chapter_id(page: Path, chapter_number: int) -> None:
     if title_start < 0 or title_end < 0:
         raise SystemExit(f"HTML chapter title block missing from {page.name}")
     heading = re.search(
-        r"<h1(?P<attrs>[^>]*)>", text[title_end + len("</header>") :], re.IGNORECASE
+        r"<h1(?P<attrs>[^>]*)>",
+        text[title_end + len("</header>") :],
+        re.IGNORECASE,
     )
     if heading is None:
         raise SystemExit(f"HTML chapter heading missing from {page.name}")
     absolute_start = title_end + len("</header>") + heading.start()
     absolute_end = title_end + len("</header>") + heading.end()
-    attrs = re.sub(r'\s+id="[^"]*"', "", heading.group("attrs"), flags=re.IGNORECASE)
+    attrs = re.sub(
+        r'\s+id="[^"]*"', "", heading.group("attrs"), flags=re.IGNORECASE
+    )
     opening = f'<h1 id="chapter-{chapter_number}"{attrs}>'
     page.write_text(text[:absolute_start] + opening + text[absolute_end:])
 
 
 def build_shell(path: Path) -> None:
-    text = path.read_text(errors="replace")
-    if MATHJAX_URL in text:
-        text = text.replace(MATHJAX_URL, LOCAL_MATHJAX_URL)
-        text = text.replace(
-            "</head>",
-            '<meta name="mathjax-upstream" content="'
-            + html.escape(MATHJAX_URL, quote=True)
-            + '" />\n</head>',
-            1,
-        )
-    index = page_index(path)
-    context = page_context(path)
-    title = BOOK_TITLE if path.name == "index.html" else f"{context} — {BOOK_TITLE}"
-    text = re.sub(
-        r"<title>.*?</title>",
-        f"<title>{html.escape(title)}</title>",
-        text,
-        count=1,
-        flags=re.DOTALL,
+    generated = path.read_text(errors="replace")
+    body_match = re.search(
+        r"<body>\s*(?P<body>.*?)\s*</body>", generated, flags=re.DOTALL
+    )
+    head_match = re.search(
+        r"<head>(?P<head>.*?)</head>", generated, flags=re.DOTALL
+    )
+    if (
+        body_match is None
+        or generated.count("<body>") != 1
+        or generated.count("</body>") != 1
+    ):
+        raise SystemExit(f"HTML body boundaries are not unique in {path.name}")
+    if (
+        head_match is None
+        or generated.count("<head>") != 1
+        or generated.count("</head>") != 1
+    ):
+        raise SystemExit(f"HTML head boundaries are not unique in {path.name}")
+    pandoc_styles = "\n".join(
+        re.findall(r"<style>.*?</style>", head_match.group("head"), flags=re.DOTALL)
     )
 
-    if 'property="og:image"' in text or 'name="twitter:card"' in text:
-        raise SystemExit(f"social metadata already exists in {path.name}")
-    text = text.replace("</head>", social_metadata(path) + "\n</head>", 1)
-
+    index = page_index(path)
     info = current_build()
-    asset_version = html.escape(info.short_sha, quote=True)
-    if "assets/wave.css" not in text:
-        text = text.replace(
-            "</head>",
-            f'<link rel="stylesheet" href="assets/wave.css?v={asset_version}" />\n</head>',
-            1,
-        )
-    if "assets/wave.js" not in text:
-        text = text.replace(
-            "</head>",
-            f'<script defer src="assets/wave.js?v={asset_version}"></script>\n</head>',
-            1,
-        )
-
-    match = re.search(r"<body>\s*(?P<body>.*?)\s*</body>", text, flags=re.DOTALL)
-    if match is None or text.count("<body>") != 1 or text.count("</body>") != 1:
-        raise SystemExit(f"HTML body boundaries are not unique in {path.name}")
-
     values = {
-        "body": match.group("body"),
+        "body": body_match.group("body"),
+        "pandoc_styles": pandoc_styles,
+        "asset_version": html.escape(info.short_sha, quote=True),
         "source_url": html.escape(source_url(index, info.sha), quote=True),
         "build_label": html.escape(info.label),
         "build_url": html.escape(info.commit_url, quote=True),
         "book_toc": book_toc(index),
+        **page_metadata(path),
         **navigation_state(index),
         **reader_state(index),
     }
-    shell = Template(HTML_TEMPLATE.read_text()).substitute(values)
-    text = (
-        text[: match.start()] + "<body>\n" + shell + "\n</body>" + text[match.end() :]
-    )
-    path.write_text(text)
+    path.write_text(Template(HTML_TEMPLATE.read_text()).substitute(values))
 
 
 def install_stable_section_ids() -> None:
@@ -758,7 +734,8 @@ def install_stable_section_ids() -> None:
             rendered = heading_text(match.group("body"))
             if normalized_heading_text(rendered) != normalized_heading_text(section):
                 raise SystemExit(
-                    f"{page.name}: section heading {index + 1} is {rendered!r}; expected {section!r}"
+                    f"{page.name}: section heading {index + 1} is {rendered!r}; "
+                    f"expected {section!r}"
                 )
             index += 1
             attrs = re.sub(
@@ -769,7 +746,8 @@ def install_stable_section_ids() -> None:
         updated = heading_re.sub(replace_heading, text)
         if index != len(chapter.sections):
             raise SystemExit(
-                f"{page.name}: found {index} section headings, expected {len(chapter.sections)}"
+                f"{page.name}: found {index} section headings, "
+                f"expected {len(chapter.sections)}"
             )
         page.write_text(updated)
 
@@ -942,7 +920,16 @@ def validate() -> None:
             rf'<html[^>]+lang="{re.escape(LANGUAGE)}"', text, flags=re.IGNORECASE
         ):
             raise SystemExit(f"HTML language metadata missing from {page.name}")
+        if text.count("<head>") != 1 or text.count("</head>") != 1:
+            raise SystemExit(f"HTML head boundaries are not unique in {page.name}")
+        if text.count("<body>") != 1 or text.count("</body>") != 1:
+            raise SystemExit(f"HTML body boundaries are not unique in {page.name}")
         for required in (
+            "<!DOCTYPE html>",
+            '<meta charset="utf-8">',
+            'name="viewport"',
+            'rel="icon"',
+            "🌊",
             '<main id="main-content">',
             'class="skip-link"',
             'class="reader-header page-shell"',
@@ -963,6 +950,7 @@ def validate() -> None:
             "References",
             "assets/wave.css",
             "assets/wave.js",
+            'name="mathjax-upstream"',
             'property="og:title"',
             'property="og:url"',
             'property="og:image"',
@@ -1008,7 +996,8 @@ def validate() -> None:
         text = (OUT / f"chapter{chapter.number}.html").read_text(errors="replace")
         if text.count("data-section-link=") != 2 * len(chapter.sections):
             raise SystemExit(
-                f"chapter{chapter.number}.html: active chapter contents count does not match source sections"
+                f"chapter{chapter.number}.html: active chapter contents count "
+                "does not match source sections"
             )
         if f'id="chapter-{chapter.number}"' not in text:
             raise SystemExit(
