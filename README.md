@@ -83,9 +83,9 @@ encouragement during my time working with him at Scripps and Coastal Environment
 have had a lasting influence on me. I hope this edition, available in PDF, EPUB, and
 online, will help future Physical Oceanography students for years to come.
 
-The original notes were xeroxed many times over the years and were eventually preserved
-in scanned form on James Pringle’s website. This edition reconstructs the 1989 notes in
-modern LaTeX, with figures redrawn in vector format where possible.
+The original notes have been passed from hand to hand, xeroxed many times, and eventually
+preserved in scanned form on James Pringle’s website.. This edition reconstructs the 1989
+notes in modern LaTeX, with figures redrawn in vector format where possible.
 
 Paola Malanotte-Rizzoli has authorized this digital edition for release under the
 Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
