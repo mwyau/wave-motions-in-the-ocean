@@ -115,6 +115,11 @@ MATHML_MATH_RE = re.compile(
     r"<math\b(?P<attrs>[^>]*)>.*?</math>",
     re.DOTALL | re.IGNORECASE,
 )
+MATHML_TEX_ANNOTATION_RE = re.compile(
+    r'<annotation\b[^>]*\bencoding="application/x-tex"[^>]*>'
+    r"(?P<tex>.*?)</annotation>",
+    re.DOTALL | re.IGNORECASE,
+)
 
 
 def require(command: str) -> None:
@@ -261,6 +266,32 @@ def install_html_vendor_assets() -> None:
     copy_archive_file(sans, "LICENSE.md", ASSETS / "licenses" / "Source-Sans-3-OFL.txt")
 
 
+def normalize_mathml_tex(text: str) -> str:
+    """Apply compatibility changes only to generated MathML input."""
+    return re.sub(r"\\ell(?![A-Za-z])", "{ℓ}", text)
+
+
+def normalized_math_tex(text: str) -> str:
+    """Normalize serialization-only whitespace for renderer-source comparisons."""
+    return " ".join(html.unescape(text).split())
+
+
+def mathjax_tex_source(markup: str, kind: str) -> str:
+    opening, closing = (r"\(", r"\)") if kind == "inline" else (r"\[", r"\]")
+    start = markup.find(opening)
+    end = markup.rfind(closing)
+    if start < 0 or end < start + len(opening):
+        raise SystemExit(f"MathJax {kind} expression is missing TeX delimiters")
+    return html.unescape(markup[start + len(opening) : end])
+
+
+def mathml_tex_source(markup: str) -> str:
+    annotation = MATHML_TEX_ANNOTATION_RE.search(markup)
+    if annotation is None:
+        raise SystemExit("MathML expression is missing application/x-tex annotation")
+    return html.unescape(annotation.group("tex"))
+
+
 def pandoc_page(
     source_tex: Path,
     output: Path,
@@ -331,6 +362,16 @@ def install_mathml_alternates(page: Path, mathml_page: Path) -> None:
                 f"({kind}) and MathML ({display.group('display')})"
             )
 
+        mathjax_source = normalized_math_tex(
+            normalize_mathml_tex(mathjax_tex_source(mathjax.group(0), kind))
+        )
+        mathml_source = normalized_math_tex(mathml_tex_source(mathml.group(0)))
+        if mathjax_source != mathml_source:
+            raise SystemExit(
+                f"{page.name}: expression {position} differs between MathJax and "
+                f"MathML TeX sources: {mathjax_source!r} != {mathml_source!r}"
+            )
+
         chunks.append(text[cursor : mathjax.start()])
         chunks.append(
             mathjax.group(0).replace(
@@ -350,9 +391,12 @@ def install_mathml_alternates(page: Path, mathml_page: Path) -> None:
 
 def dual_math_page(source_tex: Path, output: Path, title: str) -> None:
     mathml_page = BUILD / "mathml" / output.name
+    mathml_source = BUILD / "mathml-source" / source_tex.name
     mathml_page.parent.mkdir(parents=True, exist_ok=True)
+    mathml_source.parent.mkdir(parents=True, exist_ok=True)
+    mathml_source.write_text(normalize_mathml_tex(source_tex.read_text()))
     pandoc_page(source_tex, output, title, math_method="mathjax")
-    pandoc_page(source_tex, mathml_page, title, math_method="mathml")
+    pandoc_page(mathml_source, mathml_page, title, math_method="mathml")
     install_mathml_alternates(output, mathml_page)
 
 
@@ -910,6 +954,10 @@ def validate() -> None:
     ):
         if sentinel not in combined:
             raise SystemExit(f"HTML sentinel missing: {sentinel}")
+    if re.search(r"<mo\b[^>]*>ℓ</mo>", combined):
+        raise SystemExit("HTML native MathML represents ℓ as an operator instead of an identifier")
+    if not re.search(r"<mi\b[^>]*>ℓ</mi>", combined):
+        raise SystemExit("HTML native MathML is missing identifier-form ℓ")
     info = current_build()
     label = html.escape(info.label)
     build_url = html.escape(info.commit_url, quote=True)
@@ -978,6 +1026,10 @@ def validate() -> None:
         if text.count("<math ") != mathml_count:
             raise SystemExit(
                 f"{page.name}: native MathML element count does not match alternates"
+            )
+        if text.count('encoding="application/x-tex"') != mathml_count:
+            raise SystemExit(
+                f"{page.name}: native MathML TeX annotation count does not match alternates"
             )
         if text.count("data-toc-scope") != 2 or text.count("data-toc-expand") != 2:
             raise SystemExit(

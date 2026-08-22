@@ -84,7 +84,7 @@ def run(
 
 
 def normalize_epub_math_tex(text: str) -> str:
-    """Apply EPUB-only compatibility changes to generated TeX."""
+    """Apply MathML compatibility changes to generated EPUB TeX."""
     return re.sub(r"\\ell(?![A-Za-z])", "{ℓ}", text)
 
 
@@ -103,8 +103,8 @@ def epub_inputs() -> list[Path]:
         front_text.replace(marker, credit_source.read_text().strip(), 1)
     )
 
-    for chapter in paths[1:]:
-        chapter.write_text(normalize_epub_math_tex(chapter.read_text()))
+    for path in paths:
+        path.write_text(normalize_epub_math_tex(path.read_text()))
 
     references = source_dir / "references.tex"
     references.write_text("\\chapter{References}\n")
