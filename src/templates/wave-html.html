@@ -1,0 +1,43 @@
+<a class="skip-link" href="#main-content">Skip to content</a>
+<header class="reader-header page-shell">
+  <nav class="book-nav" aria-label="Book navigation">
+    <span class="book-nav-links book-nav-start">
+      <button class="toc-toggle" type="button" popovertarget="book-contents" data-toc-toggle>Contents</button>
+      <a href="$previous_url"$previous_hidden aria-label="Previous: $previous_label"><span class="nav-long">← $previous_label</span><span class="nav-short">← Previous</span></a>
+    </span>
+    <span class="reader-context" data-reader-context aria-label="Current reading position">
+      <span class="reader-context-chapter">$reader_chapter</span>
+      <span class="reader-context-separator"$reader_title_hidden aria-hidden="true"> · </span>
+      <span class="reader-context-title"$reader_title_hidden>$reader_title</span>
+    </span>
+    <span class="book-controls book-nav-end">
+      <a href="$next_url"$next_hidden aria-label="Next: $next_label"><span class="nav-long">$next_label →</span><span class="nav-short">Next →</span></a>
+      <a class="source-link" href="$source_url" aria-label="Source for this page at build revision">Source</a>
+      <span class="book-control-divider" aria-hidden="true"></span>
+      <button class="theme-cycle" type="button" data-theme-cycle><span class="appearance-label">Appearance: </span><span data-theme-label>Auto</span></button>
+    </span>
+  </nav>
+</header>
+<aside class="book-contents-rail" aria-label="Contents" data-book-toc-rail data-toc-scope hidden>
+  <div class="book-contents-toolbar">
+    <strong class="book-contents-title">Contents</strong>
+    <button class="toc-expand" type="button" data-toc-expand>Expand all</button>
+  </div>
+  <nav class="book-contents-nav" aria-label="Book contents">$book_toc</nav>
+</aside>
+<aside class="book-contents-popover" id="book-contents" popover hidden aria-labelledby="book-contents-heading">
+  <div class="book-contents-inner" data-toc-scope>
+    <div class="book-contents-toolbar">
+      <strong class="book-contents-title" id="book-contents-heading">Contents</strong>
+      <span class="book-contents-actions">
+        <button class="toc-expand" type="button" data-toc-expand>Expand all</button>
+        <button class="toc-close" type="button" popovertarget="book-contents" popovertargetaction="hide" aria-label="Close contents">Close</button>
+      </span>
+    </div>
+    <nav class="book-contents-nav" aria-label="Book contents">$book_toc</nav>
+  </div>
+</aside>
+<main id="main-content">
+$body
+</main>
+<footer class="build-info">Digital edition build: <a href="$build_url"><code>$build_label</code></a></footer>

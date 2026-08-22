@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a structurally usable EPUB3 from canonical flowing sources.
+"""Build a structurally usable EPUB3 from the main flowing sources.
 
 This builder prepares its own generated TeX and figures, then applies the
 single final EPUB ZIP rewrite for metadata, accessibility, bodymatter,
@@ -35,8 +35,8 @@ from publication import (
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "dist"
 BUILD = ROOT / "build" / "epub"
-RECON = ROOT / "reconstruction"
-CSS = RECON / "styles" / "wave-epub.css"
+SRC = ROOT / "src"
+CSS = SRC / "styles" / "wave-epub.css"
 EPUB = OUT / "wave-motions.epub"
 COVER_DIR = BUILD / "cover"
 COVER_PDF = COVER_DIR / "cover.pdf"
@@ -92,7 +92,7 @@ def epub_inputs() -> list[Path]:
     source_dir = BUILD / "source"
     paths = prepare_flowing_sources(source_dir, BUILD)
     frontmatter = paths[0]
-    credit_source = RECON / "cover-credit.tex"
+    credit_source = SRC / "cover-credit.tex"
     if not credit_source.is_file():
         raise SystemExit(f"missing cover credit source: {credit_source}")
     front_text = frontmatter.read_text()
@@ -126,7 +126,7 @@ def render_cover() -> None:
 """
     )
     env = os.environ.copy()
-    texinputs = str(RECON) + "//:"
+    texinputs = str(SRC) + "//:"
     if env.get("TEXINPUTS"):
         texinputs += env["TEXINPUTS"]
     env["TEXINPUTS"] = texinputs
@@ -183,7 +183,7 @@ def build_epub(inputs: list[Path], metadata: Path) -> None:
     EPUB.parent.mkdir(parents=True, exist_ok=True)
     EPUB.unlink(missing_ok=True)
     resource_path = os.pathsep.join(
-        (str(BUILD), str(BUILD / "source"), str(OUT), str(RECON))
+        (str(BUILD), str(BUILD / "source"), str(OUT), str(SRC))
     )
     run(
         [
@@ -198,7 +198,7 @@ def build_epub(inputs: list[Path], metadata: Path) -> None:
             "--split-level=1",
             "--mathml",
             "--citeproc",
-            f"--bibliography={RECON / 'references.bib'}",
+            f"--bibliography={SRC / 'references.bib'}",
             "--metadata",
             "nocite=@*",
             "--metadata-file",

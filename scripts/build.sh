@@ -58,7 +58,7 @@ run_latexmk_cached() {
   [[ -f "$out/$base.fdb_latexmk" ]] && had_state=true
   mkdir -p "$out"
 
-  if (cd "$ROOT/reconstruction" && latexmk -lualatex -interaction=nonstopmode -halt-on-error -outdir="$out" "$main"); then
+  if (cd "$ROOT/src" && latexmk -lualatex -interaction=nonstopmode -halt-on-error -outdir="$out" "$main"); then
     return
   fi
 
@@ -66,7 +66,7 @@ run_latexmk_cached() {
     echo "cached latexmk state for $kind failed; retrying clean" >&2
     rm -rf "$out"
     mkdir -p "$out"
-    (cd "$ROOT/reconstruction" && latexmk -lualatex -interaction=nonstopmode -halt-on-error -outdir="$out" "$main")
+    (cd "$ROOT/src" && latexmk -lualatex -interaction=nonstopmode -halt-on-error -outdir="$out" "$main")
     return
   fi
   return 1

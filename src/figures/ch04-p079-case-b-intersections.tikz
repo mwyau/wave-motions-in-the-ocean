@@ -1,0 +1,30 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=16; trim=70bp 420bp 55bp 125bp
+% Source: Wave Motions in the Ocean, printed p.79 (physical p.16).
+% Normalized exact plot of C/x=tan x, x=kRD; C=+0.7 and -0.7 illustrate S^2 signs.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
+\foreach \dx/\sgn/\title in {0/1/{$\sigma^2>f^2$},4.75/-1/{$\sigma^2<f^2$}}{
+  \begin{scope}[xshift=\dx cm]
+    \draw[->] (0.45,2.35)--(4.25,2.35) node[right] {$x=kRD$};
+    \draw[->] (0.60,0.25)--(0.60,4.35);
+    \node at (2.35,4.45) {\title};
+    \foreach \p in {1.5708,4.7124,7.8540}{\pgfmathsetmacro{\xx}{0.60+0.40*\p}\draw[densely dashed] (\xx,0.35)--(\xx,4.10);}
+    % The source plot clips both curves at the chart frame.  Keep the
+    % asymptotic branches inside that frame so their unbounded tangent
+    % values do not enlarge the figure's TeX bounding box.
+    \begin{scope}
+      \clip (0.60,0.35) rectangle (4.30,4.10);
+      \foreach \a/\b in {0.08/1.48,1.66/4.62,4.80/7.76,7.94/9.0}{
+        \draw[line width=.65pt,domain=\a:\b,samples=60,smooth,variable=\x]
+          plot ({0.60+0.40*\x},{2.35+0.48*tan(deg(\x))});}
+      \draw[line width=.75pt,domain=.18:9.0,samples=80,smooth,variable=\x]
+        plot ({0.60+0.40*\x},{2.35+0.48*(\sgn*0.7/\x)});
+    \end{scope}
+    \node[anchor=west] at (0.78,3.85) {$C/x$};
+    \node[anchor=west] at (3.2,3.55) {$\tan x$};
+    \ifnum\sgn=1
+      \foreach \r in {0.7506,3.3477,6.3923}{\fill ({0.60+0.40*\r},{2.35+0.48*(0.7/\r)}) circle (1.5pt);}
+    \else
+      \foreach \r in {2.9051,6.1702}{\fill ({0.60+0.40*\r},{2.35+0.48*(-0.7/\r)}) circle (1.5pt);}
+    \fi
+  \end{scope}}
+\end{tikzpicture}

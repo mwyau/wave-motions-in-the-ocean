@@ -143,7 +143,7 @@ def main(argv: list[str] | None = None) -> int:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     package = subparsers.add_parser(
-        "package", help="prepare the canonical release asset directory"
+        "package", help="prepare the release asset directory"
     )
     package.add_argument("--dist", type=Path, default=Path("dist"))
     package.add_argument("--output", type=Path, default=Path("release"))
@@ -157,7 +157,7 @@ def main(argv: list[str] | None = None) -> int:
     action.add_argument("--check", action="store_true")
     checksums.add_argument("files", nargs="*")
 
-    subparsers.add_parser("assets", help="print canonical published asset names")
+    subparsers.add_parser("assets", help="print published asset names")
     args = parser.parse_args(argv)
     if args.command == "package":
         package_release(args.dist, args.output)

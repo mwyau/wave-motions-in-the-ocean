@@ -4,10 +4,10 @@ Use this skill for modern/facsimile presentation, front matter, README/HTML sync
 
 ## Content boundary
 
-Publication work controls presentation and generated editions. It must not silently rewrite historical/scientific content.
+Publication work controls presentation and generated editions. It must not silently rewrite source or scientific content.
 
-- Shared body text comes from `reconstruction/chapter1.tex` … `chapter6.tex` and remains governed by `skills/source-audit/SKILL.md`.
-- The committed `source/*.pdf` files remain the historical authority.
+- Shared body text comes from `src/chapter1.tex` … `chapter6.tex` and remains governed by `skills/source-audit/SKILL.md`.
+- The committed 1989 PDFs under `references/chapman-rizzoli-1989/` control source-fidelity checks.
 - Do not alter prose, equations, figure labels, references, or scientific meaning merely to improve style, satisfy a validator, make a derivation more correct, or simplify a build.
 - A substantive source correction requires explicit human approval under the source-audit rules. Publication tooling/build success never constitutes approval.
 
@@ -17,12 +17,13 @@ Canonical `.tex` uses TeX punctuation conventions; Markdown, HTML, and EPUB shou
 
 ## Canonical publication sources
 
-- Shared modern PDF/EPUB cover: `reconstruction/cover-modern.tex`
-- Modern front matter: `reconstruction/frontmatter-modern.tex`
-- PDF-only modern book preliminaries: `reconstruction/frontmatter-modern-book.tex`
-- Facsimile front matter: `reconstruction/frontmatter-facsimile.tex`
-- Shared body: `reconstruction/chapter1.tex` … `chapter6.tex`
-- Bibliography: `reconstruction/references.bib`
+- Shared modern PDF/EPUB cover: `src/cover-modern.tex`
+- Modern front matter: `src/frontmatter-modern.tex`
+- PDF-only modern book preliminaries: `src/frontmatter-modern-book.tex`
+- PDF-only modern closing page: `src/back-modern.tex`
+- Facsimile front matter: `src/frontmatter-facsimile.tex`
+- Shared body: `src/chapter1.tex` … `chapter6.tex`
+- Bibliography: `src/references.bib`
 
 README, HTML, and EPUB are generated/synchronized publication views, not separate prose sources.
 
@@ -33,13 +34,22 @@ The modern PDF and EPUB use the same cover generated from `cover-modern.tex`; EP
 Preserve these cover invariants unless explicitly redesigned by the owner:
 
 1. `WAVE MOTIONS IN THE OCEAN` is the dominant dark-ocean-blue title.
-1. `Myrl's View` is the italic subtitle.
+1. `Myrl's View` is the prominent italic subtitle.
 1. The full rectangular Met image of Hokusai's *Under the Wave off Kanagawa* is reproduced without speculative color correction or generative reconstruction.
 1. `Presented to Myrl C. Hendershott` appears below the image and above the authors.
-1. David C. Chapman and Paola Malanotte-Rizzoli are the authors.
-1. Years, editor credit, license marks, museum credit, and badges do not belong on the front cover.
+1. David C. Chapman and Paola Malanotte-Rizzoli are the authors, shown on separate lines without an intervening `and` and at a visibly larger size than the presentation line.
+1. A small centered `Editor: Albert M. W. Yau.` appears near the bottom edge.
+1. Years, license marks, museum credit, and badges do not belong on the front cover.
 
-The committed Hokusai source image is `reconstruction/figures/frontmatter/great-wave-met-dp130155.jpg`. Preserve its composition.
+The committed Hokusai source image is `src/figures/frontmatter/great-wave-met-dp130155.jpg`. Preserve its composition.
+
+The paged modern PDF ends with a closing artwork page defined in `src/back-modern.tex`. Preserve these closing-page invariants unless explicitly redesigned by the owner:
+
+1. Use Utagawa Hiroshige's *Naruto Whirlpool, Awa Province*, The Met JP1198.
+1. The committed artwork is a lightly deskewed crop to the print's black border; do not generatively reconstruct or recolor it.
+1. Use the same left/right margins and restrained dark-ocean-blue frame treatment as the front cover.
+1. Keep the closing page otherwise uncaptioned, with only small `DOI: Pending` text at bottom right until a DOI is assigned.
+1. Keep the museum/public-domain credit in the interior edition notice rather than on the artwork page.
 
 The paged modern PDF preliminaries are:
 
@@ -55,7 +65,7 @@ The paged modern PDF preliminaries are:
 
 `frontmatter-modern-book.tex` owns that PDF-only sequence. Preliminary leaves count in Roman pagination; Contents begins visibly at v; Chapter 1 resets to Arabic page 1.
 
-Keep the editor credit subordinate to the authors: `Edited by Albert M. W. Yau, August 2026.` Do not assert ownership of the original lecture-note copyright.
+Keep the editor credit subordinate to the authors on interior title/front-matter pages: `Edited by Albert M. W. Yau, August 2026.` Do not assert ownership of the original lecture-note copyright.
 
 The Lake Como photograph remains the modern PDF frontispiece with its established Villa Carlotta caption. Preserve the committed JPEG; do not invent photographer attribution, generatively reconstruct details, or apply speculative restoration.
 
@@ -63,7 +73,7 @@ Modern contents use Chapter → Section only (`tocdepth=1`).
 
 ## Facsimile PDF
 
-The facsimile is a source-page edition. Preserve the 184-physical-page structure and historical printed page numbers.
+The facsimile is a source-page edition. Preserve the 184-physical-page structure and original printed page numbers.
 
 Expected component counts are:
 
@@ -96,11 +106,11 @@ Keep public section anchors stable.
 
 Preserve the responsive reader, Auto/Light/Dark themes, GitHub Source navigation, Contents navigation, wide-math/table overflow behavior, and stable chapter/section navigation unless explicitly redesigned.
 
-Do not dark-mode invert/filter the historical front-matter photograph. Generated black-on-white scientific diagrams may be theme-adjusted for legibility without changing their content.
+Do not dark-mode invert/filter the front-matter photograph. Generated black-on-white scientific diagrams may be theme-adjusted for legibility without changing their content.
 
 ## EPUB
 
-Build EPUB from transformed canonical LaTeX, not by reparsing MathJax HTML. Preserve mathematical structure as MathML.
+Build EPUB from transformed main LaTeX, not by reparsing MathJax HTML. Preserve mathematical structure as MathML.
 
 Metadata must keep the title `Wave Motions in the Ocean: Myrl's View`, David C. Chapman and Paola Malanotte-Rizzoli as authors, and Albert M. W. Yau as editor/contributor.
 
@@ -114,7 +124,7 @@ Modern PDF, HTML, and EPUB use chapter-based figure/equation numbering. The facs
 
 Number every scientific body figure. Number displayed equations selectively when they have durable identity in the exposition: governing systems, boundary/eigenvalue problems, dispersion/modal/root relations, conservation laws, ray equations, or named physical definitions/results. Keep transient algebra and one-off substitutions unnumbered.
 
-Do not use numbering changes as an opportunity to alter historical equation content.
+Do not use numbering changes as an opportunity to alter source equations.
 
 ## Build interface and outputs
 
@@ -129,9 +139,9 @@ Use:
 
 `build/` and `dist/` are generated and untracked. `audit/` is the persistent-but-ignored workspace for temporary review artifacts and must survive publication builds. The flat `dist/` publication root contains HTML, assets, the modern PDF, facsimile PDF, EPUB, and `SHA256SUMS`.
 
-Generated reader artifacts carry exact source build identity. Stable releases use semantic tags such as `v1.0.0`; short commit IDs are build provenance, not release tags.
+Generated reader artifacts carry the exact source build identity. Stable releases use semantic tags such as `v1.0.0`; short commit IDs are build info, not release tags.
 
-`SHA256SUMS` must cover exactly the two PDFs and EPUB in canonical `dist/`. Release packaging adds the HTML-only ZIP and verifies the expected asset set.
+`SHA256SUMS` must cover exactly the two PDFs and EPUB in `dist/`. Release packaging adds the HTML-only ZIP and verifies the expected asset set.
 
 After any reconstruction `.tex` change:
 
@@ -151,7 +161,7 @@ Do not add one-time migration, cleanup, source-editing, reconciliation, or bot-c
 
 Publication automation should remain reproducible from the triggering commit. Build once and promote that exact validated output to Pages/releases rather than rebuilding downstream.
 
-Direct pushes to `main` should trigger on actual reader/build inputs. Tracking-only files such as `reconstruction/ERRATA.md`, `reconstruction/FIGURES.md`, and `reconstruction/RENDER_QA.md` need not by themselves trigger a full publication build. Pull-request validation remains unfiltered when needed for a required Build check. Source scans are immutable; including them defensively in trigger paths is acceptable so accidental changes cannot bypass CI.
+Direct pushes to `main` should trigger on actual reader/build inputs. Tracking-only files such as `src/ERRATA.md`, `src/FIGURES.md`, and `src/RENDER_QA.md` need not by themselves trigger a full publication build. Pull-request validation remains unfiltered when needed for a required Build check. Source scans are immutable; including them defensively in trigger paths is acceptable so accidental changes cannot bypass CI.
 
 Keep exact dependency/tool pins and TinyTeX cache semantics aligned with repository manifests. Missing/incomplete artifacts and generation/dependency failures are fatal. Development QA categories may warn where deliberately configured; stable `vX.Y.Z` release gates are strict, including exact facsimile pagination and release asset/checksum validation.
 

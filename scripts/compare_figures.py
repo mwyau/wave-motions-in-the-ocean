@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Regenerate source-vs-reconstruction figure comparisons on demand.
 
-Vector provenance is stored in each retained .tikz file as:
+Vector source info is stored in each retained .tikz file as:
     % wave-source: pdf=ChapmanRizzoli5.pdf; page=21; trim=...bp ...bp ...bp ...bp
 
-Edited-raster provenance is embedded as PNG text metadata (wave-source-*).
+Edited-raster source info is embedded as PNG text metadata (wave-source-*).
 Outputs are temporary side-by-side images written directly under
 audit/figures/comparisons/<figure>.png.
 No overlay or difference image is produced.
@@ -22,8 +22,8 @@ from PIL import Image, ImageDraw
 from publication import render_source_crop, render_tikz_png
 
 ROOT = Path(__file__).resolve().parents[1]
-RECON = ROOT / "reconstruction"
-FIGURES = RECON / "figures"
+SRC = ROOT / "src"
+FIGURES = SRC / "figures"
 OUTROOT = ROOT / "audit" / "figures" / "comparisons"
 META_RE = re.compile(
     r"^% wave-source:\s*pdf=(?P<pdf>[^;]+);\s*page=(?P<page>\d+);\s*"
@@ -76,7 +76,7 @@ def compare(stem: str, dpi: int) -> Path:
         text = tikz.read_text()
         m = META_RE.search(text)
         if not m:
-            raise RuntimeError(f"Missing wave-source provenance comment in {tikz}")
+            raise RuntimeError(f"Missing wave-source comment in {tikz}")
         pdf_name = m.group("pdf").strip()
         page = int(m.group("page"))
         trim = m.group("trim").strip()

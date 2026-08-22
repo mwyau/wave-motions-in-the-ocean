@@ -1,0 +1,69 @@
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=50; trim=45bp 35bp 40bp 405bp
+% Source: Wave Motions in the Ocean, printed p.145 (physical p.50), lower figure.
+% Curves are generated directly from the dimensionless equatorial dispersion law
+%   omega^3-(lambda^2+2m+1)omega-lambda=0.
+% For m=1,2,3 the high-frequency root and positive low-frequency Rossby root are
+% plotted from the exact trigonometric cubic solution. The Yanai branch uses
+% lambda=omega-1/omega and the m=-1 Kelvin branch is omega=lambda.
+% Axes keep source symbols sigma,k; this is a linear nondimensional rescaling.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=1.18cm,y=1.05cm,>=stealth,line cap=round,line join=round,font=\small]
+  \draw[->,line width=0.8pt] (-4.45,0) -- (4.48,0) node[right] {$k$};
+  \draw[->,line width=0.8pt] (0,-0.10) -- (0,4.58) node[above] {$\sigma$};
+
+  \begin{scope}
+    \clip (-4.35,0) rectangle (4.35,4.50);
+    % Cubic roots. PGF trigonometric functions use degrees.
+    \foreach \m in {1,2,3} {
+      \draw[line width=0.78pt,samples=180,domain=-4.2:4.2,variable=\lam]
+        plot (\lam,{2*sqrt((\lam*\lam+2*\m+1)/3)*
+          cos(acos((3*sqrt(3)*\lam)/(2*pow(\lam*\lam+2*\m+1,1.5)))/3)});
+      \draw[line width=0.72pt,samples=120,domain=-4.2:-0.03,variable=\lam]
+        plot (\lam,{2*sqrt((\lam*\lam+2*\m+1)/3)*
+          cos(acos((3*sqrt(3)*\lam)/(2*pow(\lam*\lam+2*\m+1,1.5)))/3-120)});
+    }
+
+    % Yanai/mixed gravity-Rossby branch m=0: lambda=omega-1/omega.
+    \draw[line width=0.82pt,samples=180,domain=0.24:4.25,variable=\om]
+      plot ({\om-1/\om},\om);
+    % Equatorial Kelvin branch m=-1.
+    \draw[line width=0.82pt] (0,0) -- (4.25,4.25);
+
+    % Limiting forms from the surrounding derivation.
+    \draw[dashed,line width=0.60pt] (-4.2,4.2) -- (0,0);
+    \draw[dashed,line width=0.60pt,samples=100,domain=-4.2:-0.45,variable=\lam]
+      plot (\lam,{-1/\lam});
+  \end{scope}
+
+  \node[anchor=west] at (0.22,4.26) {Gravity Waves};
+  \node[anchor=west] at (0.15,3.08) {$m=3$};
+  \node[anchor=west] at (0.15,2.42) {$m=2$};
+  \node[anchor=west] at (0.15,1.70) {$m=1$};
+
+  \node[anchor=west,align=left] at (0.82,0.78)
+    {$m=-1$ Kelvin wave\\$\sigma=\sqrt{gD}\,k$};
+  \draw[->,line width=0.50pt] (1.76,1.02) -- (1.58,1.58);
+  \node[anchor=west] at (-4.05,2.50)
+    {$\sigma=-\sqrt{gD}\,k$};
+  \draw[->,line width=0.50pt] (-3.20,2.52) -- (-2.88,2.88);
+
+  \node[anchor=west] at (-3.85,0.95) {Yanai wave $m=0$};
+  \draw[->,line width=0.50pt] (-3.20,0.82) -- (-2.76,0.44);
+  \node[anchor=west] at (-4.25,0.64) {$\sigma=-\beta/k$};
+  \draw[->,line width=0.50pt] (-3.72,0.56) -- (-3.23,0.31);
+
+  % Low-frequency Rossby roots are too closely spaced to label on-curve without
+  % collisions, so source mode numbers are retained as full-size leader callouts.
+  \node[anchor=north] at (-2.78,-0.34) {$m=1$};
+  \draw[->,line width=0.45pt] (-2.78,-0.25) -- (-2.78,0.244);
+  \node[anchor=north] at (-1.78,-0.34) {$2$};
+  \draw[->,line width=0.45pt] (-1.78,-0.25) -- (-1.78,0.219);
+  \node[anchor=north] at (-0.90,-0.34) {$3$};
+  \draw[->,line width=0.45pt] (-0.90,-0.25) -- (-0.90,0.119);
+  \node[anchor=north] at (-3.55,-0.88) {Rossby Waves};
+  \node[anchor=north,align=center] at (0.45,-0.52)
+    {$\sigma=-\dfrac{\sqrt{gD}\,k}{2m+1}$};
+\end{tikzpicture}
+\end{center}
+\smallskip

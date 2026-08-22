@@ -1,0 +1,24 @@
+% wave-source: pdf=ChapmanRizzoli3.pdf; page=20; trim=120bp 520bp 95bp 75bp
+% Source: Wave Motions in the Ocean, printed p.55 (physical p.20).
+% Exact triangle for rho(t)^2=r^2+V^2t^2+2Vtr cos(theta), t<0.
+% Display values choose -Vt=5.5, r=4.5, theta=28 deg; labels keep source signs.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \coordinate (S0) at (9.00,3.15);
+  \coordinate (St) at (3.50,3.15);
+  \coordinate (P) at (5.0267,1.0369);
+  \coordinate (Q) at (5.0267,3.15);
+  \draw[->,line width=0.72pt] (2.80,3.15) -- (9.55,3.15);
+  \fill (S0) circle (1.5pt); \fill (St) circle (1.5pt);
+  \draw[line width=0.72pt] (S0) -- (P) -- (St);
+  \draw[dashed,line width=0.42pt] (Q) -- (P);
+  \draw[<->,line width=0.48pt] (St) ++(0,1.02) -- node[fill=white,inner sep=1pt] {$-Vt$} ($(S0)+(0,1.02)$);
+  \node[above] at ($(St)!0.5!(Q)$) {$-Vt-r\cos\theta$};
+  \node[above] at ($(Q)!0.5!(S0)$) {$r\cos\theta$};
+  \node[right] at ($(Q)!0.5!(P)$) {$r\sin\theta$};
+  \node[below right] at ($(P)!0.52!(S0)$) {$r$};
+  \node[below left] at ($(St)!0.50!(P)$) {$\rho(t)$};
+  \draw[line width=0.42pt] ($(S0)+(180:0.72)$) arc[start angle=180,end angle=208,radius=0.72];
+  \node at ($(S0)+(194:1.00)$) {$\theta$};
+  \node[anchor=west] at (9.18,3.46) {$t=0$};
+  \node[anchor=west] at (9.18,2.88) {$\delta(x)\delta(y)$};
+\end{tikzpicture}

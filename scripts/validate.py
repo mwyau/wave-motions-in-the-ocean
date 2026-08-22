@@ -52,7 +52,7 @@ from publication import (
 from release import DEFAULT_FILES, verify_manifest
 
 ROOT = Path(__file__).resolve().parents[1]
-RECON = ROOT / "reconstruction"
+SRC = ROOT / "src"
 BUILD = ROOT / "build"
 DIST = ROOT / "dist"
 README = ROOT / "README.md"
@@ -148,12 +148,12 @@ def tex_math_regions(text: str) -> list[str]:
 
 
 def check_canonical_source() -> None:
-    frontmatter = (RECON / "frontmatter-modern.tex").read_text()
+    frontmatter = (SRC / "frontmatter-modern.tex").read_text()
     for sentinel in PAOLA_SOURCE_SENTINELS:
         if sentinel not in frontmatter:
-            fail(f"canonical Paola preface math sentinel changed or lost: {sentinel}")
+            fail(f"Paola preface math sentinel changed or lost: {sentinel}")
 
-    for chapter in sorted(RECON.glob("chapter[1-6].tex")):
+    for chapter in sorted(SRC.glob("chapter[1-6].tex")):
         text = strip_tex_comments(chapter.read_text())
         occurrences = re.findall(r"\\rm(?:\s|\{|$)", text)
         if occurrences:
@@ -172,28 +172,28 @@ def check_canonical_source() -> None:
                     f"{chapter.name}: named math function {function!r} appears without a TeX operator command"
                 )
 
-    print("Canonical TeX math audit OK")
+    print("TeX math audit OK")
 
 
 def check_punctuation() -> None:
     canonical_paths = [
-        RECON / "frontmatter-modern.tex",
-        RECON / "frontmatter-modern-book.tex",
-        RECON / "frontmatter-facsimile.tex",
-        *(RECON / f"chapter{number}.tex" for number in range(1, 7)),
+        SRC / "frontmatter-modern.tex",
+        SRC / "frontmatter-modern-book.tex",
+        SRC / "frontmatter-facsimile.tex",
+        *(SRC / f"chapter{number}.tex" for number in range(1, 7)),
     ]
     for path in canonical_paths:
         text = strip_tex_comments(path.read_text())
         if SMART_PUNCTUATION_RE.search(text):
             fail(
-                f"{path.name}: literal smart punctuation is not canonical TeX source syntax"
+                f"{path.name}: literal smart punctuation is not valid TeX source syntax"
             )
         if "Attribution--NonCommercial--ShareAlike" in text:
             fail(
                 f"{path.name}: Creative Commons license name uses TeX en dashes instead of hyphens"
             )
         if any("−" in region for region in tex_math_regions(text)):
-            fail(f"{path.name}: Unicode mathematical minus found in canonical math")
+            fail(f"{path.name}: Unicode mathematical minus found in TeX math")
 
     html_pages = sorted(DIST.glob("*.html"))
     html_text = "\n".join(path.read_text(errors="replace") for path in html_pages)
@@ -235,14 +235,12 @@ def check_punctuation() -> None:
 def canonical_equation_labels() -> dict[int, tuple[str, ...]]:
     labels: dict[int, tuple[str, ...]] = {}
     for chapter_number in range(1, 7):
-        path = RECON / f"chapter{chapter_number}.tex"
+        path = SRC / f"chapter{chapter_number}.tex"
         text = strip_tex_comments(path.read_text())
         wrapper_count = len(NUMBERED_ENV_RE.findall(text))
         native = tuple(f"({m.group('tag')})" for m in NATIVE_TAG_RE.finditer(text))
         if native and wrapper_count:
-            fail(
-                f"{path.name}: mixes historical native tags with editorial numbering wrappers"
-            )
+            fail(f"{path.name}: mixes source tags with editorial numbering wrappers")
         if native:
             expected = tuple(
                 f"({chapter_number}.{index})" for index in range(1, len(native) + 1)
@@ -281,7 +279,7 @@ def require_labels(text: str, labels: tuple[str, ...], *, artifact: str) -> None
             )
         positions.append(matches[0].start())
     if positions != sorted(positions):
-        fail(f"{artifact}: numbered equation labels are not in canonical order")
+        fail(f"{artifact}: numbered equation labels are not in the expected order")
 
 
 def github_math_patterns(expr: str) -> tuple[re.Pattern[str], re.Pattern[str]]:
@@ -1050,9 +1048,11 @@ def check_publish_root() -> None:
     for path in expected:
         require_file(path)
     index = (DIST / "index.html").read_text(errors="replace")
-    for name in ("wave-motions.pdf", "wave-motions-facsimile.pdf", "wave-motions.epub"):
+    for name in ("wave-motions.pdf", "wave-motions.epub"):
         if name not in index:
             fail(f"HTML download link is missing: {name}")
+    if "wave-motions-facsimile.pdf" in index:
+        fail("HTML front page must not link the facsimile PDF")
     if (DIST / "html").exists():
         fail("legacy nested dist/html output exists")
     print("Publish root and download checks OK")
@@ -1065,7 +1065,11 @@ def check_build_identity() -> None:
         fail("build identity is unknown")
     label = info.label
     index = (DIST / "index.html").read_text(errors="replace")
-    if "GitHub Source" not in index or label not in index:
+    if (
+        'class="source-link"' not in index
+        or info.commit_url not in index
+        or label not in index
+    ):
         fail("HTML build identity is missing")
     if label not in pdf_text(MODERN_PDF):
         fail("modern PDF build identity is missing")

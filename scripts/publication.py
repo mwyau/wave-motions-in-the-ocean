@@ -6,7 +6,7 @@ transformation, figure preparation, reader metadata, and build identity.
 This is an importable support module; its small ``build-info`` command only
 exposes the shared identity writer needed by the PDF build. Nothing written
 here is a maintained source of book text: inputs always come from
-``reconstruction/``.
+``src/``.
 """
 
 from __future__ import annotations
@@ -29,10 +29,11 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-RECON = ROOT / "reconstruction"
-SOURCE = ROOT / "source"
+SRC = ROOT / "src"
+REFERENCES = ROOT / "references"
+SOURCE_DIR = REFERENCES / "chapman-rizzoli-1989"
 DIST = ROOT / "dist"
-FIGURES = RECON / "figures"
+FIGURES = SRC / "figures"
 CACHE = Path(os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motions")))
 SOURCE_PAGE_CACHE = CACHE / "source-pages"
 TIKZ_CACHE = CACHE / "tikz"
@@ -43,6 +44,7 @@ BOOK_TITLE = "Wave Motions in the Ocean"
 PUBLICATION_TITLE = f"{BOOK_TITLE}: Myrl's View"
 AUTHORS = ("David C. Chapman", "Paola Malanotte-Rizzoli")
 EDITOR = "Albert M. W. Yau (digital editor)"
+CONTACT_EMAIL = "albert@mwyau.com"
 LANGUAGE = "en-US"
 MATHJAX_URL = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"
 SITE_URL = "https://mwyau.github.io/wave-motions-in-the-ocean"
@@ -100,7 +102,7 @@ SIGNATURE_RE = re.compile(
 )
 DIRECT_PDF_RE = re.compile(
     r"\\includegraphics\[(?P<opts>[^]]*page=(?P<page>\d+)[^]]*trim=(?P<trim>[^,\]]+)[^]]*)\]"
-    r"\s*\{(?P<path>\.\./source/(?P<pdf>[^}]+))\}",
+    r"\s*\{(?P<path>\.\./references/chapman-rizzoli-1989/(?P<pdf>[^}]+))\}",
     re.DOTALL,
 )
 LOCAL_RASTER_RE = re.compile(
@@ -233,7 +235,7 @@ def source_crop(
     dpi: int = SOURCE_RENDER_DPI,
 ) -> str:
     """Render and crop a source-PDF page into a publication asset directory."""
-    pdf = SOURCE / pdf_name
+    pdf = SOURCE_DIR / pdf_name
     if not pdf.exists():
         raise FileNotFoundError(pdf)
 
@@ -274,7 +276,7 @@ def render_source_crop(
     angle: float = 0.0,
 ) -> None:
     """Render one source crop for figure-audit comparisons."""
-    pdf = SOURCE / pdf_name
+    pdf = SOURCE_DIR / pdf_name
     if not pdf.exists():
         raise FileNotFoundError(pdf)
     with tempfile.TemporaryDirectory(prefix="wave-source-") as temporary:
@@ -376,7 +378,7 @@ def render_tikz_png(stem: str, destination: Path, dpi: int) -> None:
 
 def referenced_tikz() -> list[str]:
     stems: set[str] = set()
-    for path in [RECON / f"chapter{i}.tex" for i in range(1, 7)]:
+    for path in [SRC / f"chapter{i}.tex" for i in range(1, 7)]:
         text = path.read_text()
         stems.update(match.group("stem") for match in VECTOR_RE.finditer(text))
         stems.update(match.group("stem") for match in TIKZ_INPUT_RE.finditer(text))
@@ -554,7 +556,7 @@ def transform_tex(
     expected_figures = {1: 7, 2: 10, 3: 12, 4: 30, 5: 31, 6: 14}
     if figure_number != expected_figures[chapter_number]:
         raise SystemExit(
-            f"chapter {chapter_number}: expected canonical figure count, got {figure_number}"
+            f"chapter {chapter_number}: expected figure count, got {figure_number}"
         )
     return text
 
@@ -563,7 +565,7 @@ def prepare_flowing_sources(output_dir: Path, assets_root: Path) -> list[Path]:
     """Write transformed front matter and chapters for a flowing edition."""
     output_dir.mkdir(parents=True, exist_ok=True)
     assets_root.mkdir(parents=True, exist_ok=True)
-    frontmatter = (RECON / "frontmatter-modern.tex").read_text()
+    frontmatter = (SRC / "frontmatter-modern.tex").read_text()
     frontmatter = frontmatter.replace(r"\tableofcontents", "")
     frontmatter_path = output_dir / "frontmatter.tex"
     frontmatter_path.write_text(transform_tex(frontmatter, None, assets_root))
@@ -573,7 +575,7 @@ def prepare_flowing_sources(output_dir: Path, assets_root: Path) -> list[Path]:
         path = output_dir / f"chapter{chapter_number}.tex"
         path.write_text(
             transform_tex(
-                (RECON / f"chapter{chapter_number}.tex").read_text(),
+                (SRC / f"chapter{chapter_number}.tex").read_text(),
                 chapter_number,
                 assets_root,
             )
@@ -651,7 +653,7 @@ def section_slug(title: str) -> str:
 def book_structure() -> tuple[Chapter, ...]:
     chapters: list[Chapter] = []
     for number in range(1, 7):
-        path = RECON / f"chapter{number}.tex"
+        path = SRC / f"chapter{number}.tex"
         text = path.read_text()
         chapter_titles = _balanced_command_args(text, "chapter")
         if len(chapter_titles) != 1:
@@ -729,7 +731,7 @@ def html_license() -> str:
     )
     return (
         '<p class="license">This work is licensed under '
-        f'<a href="{LICENSE_URL}">CC BY-NC-SA 4.0</a>{icons}</p>'
+        f'<a href="{LICENSE_URL}">CC BY-NC-SA 4.0</a>.{icons}</p>'
     )
 
 

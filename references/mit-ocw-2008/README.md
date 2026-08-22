@@ -1,0 +1,35 @@
+# MIT OpenCourseWare lecture notes (Spring 2008)
+
+- **Course:** 12.802 Wave Motion in the Ocean and the Atmosphere
+- **Term:** Spring 2008
+- **Instructor:** Prof. Paola Rizzoli (Paola Malanotte-Rizzoli)
+- **Publisher/site:** MIT OpenCourseWare
+- **Official course:** [12.802 Wave Motion in the Ocean and the Atmosphere](https://ocw.mit.edu/courses/12-802-wave-motion-in-the-ocean-and-the-atmosphere-spring-2008/)
+- **Lecture-notes page:** [Lecture Notes](https://ocw.mit.edu/courses/12-802-wave-motion-in-the-ocean-and-the-atmosphere-spring-2008/pages/lecture-notes/)
+- **Accessed:** 2026-08-21
+
+These notes are useful for checking equations, understanding Paola's later treatment of the material, and supporting proposed errata. They do not override the 1989 source when checking what the 1989 notes say.
+
+## License and file notices
+
+MIT OpenCourseWare's current [Privacy and Terms of Use](https://ocw.mit.edu/pages/privacy-and-terms-of-use/) page names the license **Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)**. It says that this is a human-readable summary, not a substitute for the [license](https://creativecommons.org/licenses/by-nc-sa/4.0/), and requires attribution, noncommercial use, and sharing adaptations under the same license. These PDFs are MIT OpenCourseWare files; this repository does not claim to own them.
+
+The included PDFs link to `http://ocw.mit.edu/terms/` and credit their figures to MIT OpenCourseWare. I found no individual third-party-content exception notice in these 13 files. The MIT terms still apply, and any later addition should be checked separately.
+
+## Included lecture notes and SHA-256
+
+| Lecture | Title                                                                | File                                                                                                                                                                                                            | SHA-256                                                            |
+| ------: | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+|       1 | Waves                                                                | [`4a2ebfcfa9ec158f1a661499268c9843_MIT12_802S08_lec01.pdf`](https://ocw.mit.edu/courses/12-802-wave-motion-in-the-ocean-and-the-atmosphere-spring-2008/4a2ebfcfa9ec158f1a661499268c9843_MIT12_802S08_lec01.pdf) | `c35ba4bcf93b386f4100e40d6294393fe05fd12940b0d6c7cbf5bdbebe60bff1` |
+|       2 | Slowly varying media: ray theory                                     | [`87ad4794a2b4510015316e0b85d190a7_MIT12_802S08_lec02.pdf`](https://ocw.mit.edu/courses/12-802-wave-motion-in-the-ocean-and-the-atmosphere-spring-2008/87ad4794a2b4510015316e0b85d190a7_MIT12_802S08_lec02.pdf) | `4b9980d6d6cd2b01d2abb77e80475fab4b1455bf81763a4c86bc8c1f2bdece8b` |
+|       3 | Surface gravity waves                                                | [`fca533a5edb5f5d3e975ec4c2e63019f_MIT12_802S08_lec03.pdf`](https://ocw.mit.edu/courses/12-802-wave-motion-in-the-ocean-and-the-atmosphere-spring-2008/fca533a5edb5f5d3e975ec4c2e63019f_MIT12_802S08_lec03.pdf) | `664ee7e13f548f1d61ccef0d3079b402927b8954fca2e2aee734b22ec37e2a97` |
+|       4 | Energy equation                                                      | [`fcef6f0dcf0bc54a80cdf6a2d1d4f08b_MIT12_802S08_lec04.pdf`](https://ocw.mit.edu/courses/12-802-wave-motion-in-the-ocean-and-the-atmosphere-spring-2008/fcef6f0dcf0bc54a80cdf6a2d1d4f08b_MIT12_802S08_lec04.pdf) | `b11eaa5f8ca7a370561873cc17098167293fc196bfb36f29f739ae3f0eec683b` |
+|       5 | Initial value problem - Homogeneous medium                           | [`d0abd6597cf962a9d1e109b48a4074e7_MIT12_802S08_lec05.pdf`](https://ocw.mit.edu/courses/12-802-wave-motion-in-the-ocean-and-the-atmosphere-spring-2008/d0abd6597cf962a9d1e109b48a4074e7_MIT12_802S08_lec05.pdf) | `920f4c7a4b65ac3e6fda1bac517b21265542b1bf84111cb1823dfab4187edc4d` |
+|       6 | Internal waves                                                       | [`6676514b394889b76df5d97d571e8eb2_MIT12_802S08_lec06.pdf`](https://ocw.mit.edu/courses/12-802-wave-motion-in-the-ocean-and-the-atmosphere-spring-2008/6676514b394889b76df5d97d571e8eb2_MIT12_802S08_lec06.pdf) | `90197f82935418a74de3c9ab88de9ac99c0995039008ba9b9ebe7cc07d10af74` |
+|       7 | WKB Theory for internal Gravity Waves - Non-rotating Case            | [`5d4ce06c659ef2bbfa6e92388bc4bb41_MIT12_802S08_lec07.pdf`](https://ocw.mit.edu/courses/12-802-wave-motion-in-the-ocean-and-the-atmosphere-spring-2008/5d4ce06c659ef2bbfa6e92388bc4bb41_MIT12_802S08_lec07.pdf) | `c14d3e7df3e2f7cfb3561867a7a76210aa7b75979877c57c9343c794556df0c0` |
+|       8 | Internal waves modified by rotation - unbounded fluid                | [`8a41ca801f821cdebeff02cbf09fc1ec_MIT12_802S08_lec08.pdf`](https://ocw.mit.edu/courses/12-802-wave-motion-in-the-ocean-and-the-atmosphere-spring-2008/8a41ca801f821cdebeff02cbf09fc1ec_MIT12_802S08_lec08.pdf) | `af6d15b5387e017969350345d7fccab78215448b0ad4d6cca5c73c23bbccc382` |
+|       9 | The oceanic waveguide - normal modes of a stratified, rotating fluid | [`5167b041551fc878220b7301189fb5dd_MIT12_802S08_lec09.pdf`](https://ocw.mit.edu/courses/12-802-wave-motion-in-the-ocean-and-the-atmosphere-spring-2008/5167b041551fc878220b7301189fb5dd_MIT12_802S08_lec09.pdf) | `b2374e6052de19bf88ef21a344ffe54112844967aa89f3572b911f6bb8ccc5e2` |
+|      10 | Unbounded domain - non-rotating reflection from a solid boundary     | [`61231c35bd9ddab1029155fda0cc07df_MIT12_802S08_lec10.pdf`](https://ocw.mit.edu/courses/12-802-wave-motion-in-the-ocean-and-the-atmosphere-spring-2008/61231c35bd9ddab1029155fda0cc07df_MIT12_802S08_lec10.pdf) | `39a965bcb2c1ae1dc114c65a760ab2b9c89505ad56f7b51e4e9345a5a94b089f` |
+|      11 | Laplace tidal equations on the sphere                                | [`9684358a07b84d8555c810a97e6c6cca_MIT12_802S08_lec11.pdf`](https://ocw.mit.edu/courses/12-802-wave-motion-in-the-ocean-and-the-atmosphere-spring-2008/9684358a07b84d8555c810a97e6c6cca_MIT12_802S08_lec11.pdf) | `317c1c6c9028e3770dc450fb7a8532e5a2864e51e2d842e865c550013046a5be` |
+|      12 | Shallow water equations with rotation - Poincare waves               | [`b480aaaa3a6dff999df6d5007b5b73f6_MIT12_802S08_lec12.pdf`](https://ocw.mit.edu/courses/12-802-wave-motion-in-the-ocean-and-the-atmosphere-spring-2008/b480aaaa3a6dff999df6d5007b5b73f6_MIT12_802S08_lec12.pdf) | `3a0e72d672f4efb6baa05056746150c79f075a5aaa30cc84a2569673b4b15319` |
+|      13 | The Kelvin wave                                                      | [`8fa4bc2f93e1f919f11ff1dbc5ed2522_MIT12_802S08_lec13.pdf`](https://ocw.mit.edu/courses/12-802-wave-motion-in-the-ocean-and-the-atmosphere-spring-2008/8fa4bc2f93e1f919f11ff1dbc5ed2522_MIT12_802S08_lec13.pdf) | `0a93afc544d5726c9da2f58be6dd25e03c7195a90d7b17d5a24a85c430634f36` |
