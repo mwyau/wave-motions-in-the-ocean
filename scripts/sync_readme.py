@@ -106,7 +106,7 @@ def title_metadata(text: str) -> tuple[str, str, str, str, str, str, str]:
         re.DOTALL,
     )
     editor_match = re.search(
-        r"Digital edition by\s*\\textbf\{(?P<editor>[^{}]+)\}\\par\}"
+        r"Edited by\s*\\textbf\{(?P<editor>[^{}]+)\}\\par\}"
         r"\s*\\vspace\{[^}]+\}\s*\{\\small\\sffamily\s+(?P<date>[^\\{}]+?)\\par\}",
         title_page,
         re.DOTALL,
@@ -195,7 +195,7 @@ def expected_readme(current: str) -> str:
         f"# {reader_punctuation(title)}: {reader_punctuation(subtitle)}\n\n"
         f"*Presented to* **{reader_punctuation(dedicatee)}**\n\n"
         f"**{reader_punctuation(authors)}** — {reader_punctuation(original_date)}\n\n"
-        f"Digital edition by **{reader_punctuation(editor)}** — {reader_punctuation(digital_date)}\n\n"
+        f"Edited by **{reader_punctuation(editor)}** — {reader_punctuation(digital_date)}\n\n"
         f"{BADGES_START}\n{badges}\n{BADGES_END}"
     )
     return (
