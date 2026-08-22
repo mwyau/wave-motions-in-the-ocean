@@ -6,6 +6,7 @@ authors:
     given-names: "David C."
   - family-names: Malanotte-Rizzoli
     given-names: Paola
+    orcid: "https://orcid.org/0000-0003-2431-6838"
 repository-code: "https://github.com/mwyau/wave-motions-in-the-ocean"
 preferred-citation:
   type: book
@@ -15,10 +16,13 @@ preferred-citation:
       given-names: "David C."
     - family-names: Malanotte-Rizzoli
       given-names: Paola
+      orcid: "https://orcid.org/0000-0003-2431-6838"
   editors:
     - family-names: Yau
       given-names: "Albert M. W."
+      orcid: "https://orcid.org/0009-0000-7825-9627"
   edition: "Digital edition"
   year: 1989
+  doi: 10.5281/zenodo.22059882
   url: "https://mwyau.github.io/wave-motions-in-the-ocean/"
   license: CC-BY-NC-SA-4.0

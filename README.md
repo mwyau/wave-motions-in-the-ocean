@@ -12,6 +12,7 @@ Edited by **Albert M. W. Yau** — August 2026
 [![Read EPUB](https://img.shields.io/badge/Read-EPUB-2da44e)](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.epub)
 [![BY-NC-SA 4.0](https://img.shields.io/badge/-BY--NC--SA%204.0-ED592F?logo=creativecommons&logoColor=white&labelColor=333333)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![Publish](https://github.com/mwyau/wave-motions-in-the-ocean/actions/workflows/publish.yml/badge.svg?branch=main)](https://github.com/mwyau/wave-motions-in-the-ocean/actions/workflows/publish.yml)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22059881.svg)](https://doi.org/10.5281/zenodo.22059881)
 <!-- README_BADGES_END -->
 
 ## Preface — David C. Chapman
@@ -98,9 +99,11 @@ license (CC BY-NC-SA 4.0).
 This edition is set in STIX Two for text and mathematics, with Source Sans 3 for headings
 and other structural text. Both typefaces are used under the SIL Open Font License 1.1.
 
-The cover features Katsushika Hokusai’s *Under the Wave off Kanagawa
-(The Great Wave)*, ca. 1830–32, from The Metropolitan Museum of Art’s Open
-Access collection. The image is Public Domain/CC0.
+The front cover features Katsushika Hokusai’s *Under the Wave off Kanagawa
+(The Great Wave)*, ca. 1830–32, and the back cover features Utagawa Hiroshige’s
+*Naruto Whirlpool, Awa Province*, ca. 1853, both from The Metropolitan Museum
+of Art’s Open Access collection. Both artworks are in the public domain; the images are
+provided under CC0.
 
 The reconstruction is a work in progress, with assistance from OpenAI’s GPT-5.6 Sol
 and Luna.
