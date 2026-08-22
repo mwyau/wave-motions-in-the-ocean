@@ -426,10 +426,21 @@ def copy_raster_assets(
         shutil.copy2(raster, destination)
 
 
+def copy_cc_assets(assets_root: Path) -> None:
+    destination = assets_root / "assets" / "cc"
+    destination.mkdir(parents=True, exist_ok=True)
+    for name in CC_ICONS:
+        source = SRC / "assets" / "cc" / f"{name}.svg"
+        if not source.is_file():
+            raise FileNotFoundError(source)
+        shutil.copy2(source, destination / source.name)
+
+
 def prepare_assets(assets_root: Path, work_root: Path) -> None:
-    """Prepare all figures used by the flowing editions under one asset root."""
+    """Prepare shared assets used by the flowing editions under one asset root."""
     prepare_vector_assets(assets_root, work_root)
     copy_raster_assets(assets_root)
+    copy_cc_assets(assets_root)
 
 
 def transform_tex(
@@ -724,9 +735,14 @@ def markdown_contents() -> str:
 
 
 def html_license() -> str:
+    icons = "".join(
+        f'<img src="assets/cc/{name}.svg" alt="" '
+        'style="max-width: 1em;max-height:1em;margin-left: .2em;">'
+        for name in CC_ICONS
+    )
     return (
         '<p class="license">This work is licensed under '
-        f'<a href="{LICENSE_URL}">CC BY-NC-SA 4.0</a>.</p>'
+        f'<a href="{LICENSE_URL}">CC BY-NC-SA 4.0</a>. {icons}</p>'
     )
 
 
