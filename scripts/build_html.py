@@ -18,6 +18,8 @@ import urllib.parse
 from pathlib import Path
 from string import Template
 
+from PIL import Image
+
 from publication import (
     BOOK_TITLE,
     DOWNLOADS,
@@ -26,6 +28,7 @@ from publication import (
     ORIGINAL_SOURCE_URL,
     PUBLICATION_TITLE,
     REPOSITORY_URL,
+    SITE_URL,
     book_structure,
     current_build,
     html_license,
@@ -40,6 +43,17 @@ BUILD = ROOT / "build" / "html-pandoc"
 OUT = ROOT / "dist"
 ASSETS = OUT / "assets"
 HTML_TEMPLATE = RECON / "templates" / "wave-html.html"
+SOCIAL_PREVIEW_TEMPLATE = RECON / "templates" / "social-preview.tex"
+COVER_SOURCE = RECON / "cover-modern.tex"
+SOCIAL_PREVIEW = ASSETS / "social-preview.png"
+SOCIAL_DESCRIPTION = (
+    "Digital edition of Wave Motions in the Ocean: Myrl’s View by David C. Chapman "
+    "and Paola Malanotte-Rizzoli, edited by Albert M. W. Yau."
+)
+SOCIAL_IMAGE_ALT = (
+    "Wave Motions in the Ocean: Myrl’s View, by David C. Chapman and "
+    "Paola Malanotte-Rizzoli, edited by Albert M. W. Yau."
+)
 EXPECTED_PAGES = [
     OUT / "index.html",
     *(OUT / f"chapter{i}.html" for i in range(1, 7)),
@@ -267,6 +281,99 @@ def mark_chapter_title_block(page: Path) -> None:
     )
 
 
+def cover_palette() -> tuple[str, str]:
+    source = COVER_SOURCE.read_text()
+
+    def color(name: str) -> str:
+        match = re.search(
+            rf"\\definecolor\{{{re.escape(name)}\}}\{{HTML\}}\{{([0-9A-Fa-f]{{6}})\}}",
+            source,
+        )
+        if match is None:
+            raise SystemExit(f"cover color {name} is missing from {COVER_SOURCE}")
+        return match.group(1).upper()
+
+    return color("WaveCoverBlue"), color("WaveCoverPaper")
+
+
+def build_social_preview() -> None:
+    if not SOCIAL_PREVIEW_TEMPLATE.is_file():
+        raise SystemExit(f"missing social preview template: {SOCIAL_PREVIEW_TEMPLATE}")
+    blue, paper = cover_palette()
+    work = BUILD / "social-preview"
+    work.mkdir(parents=True, exist_ok=True)
+    source = SOCIAL_PREVIEW_TEMPLATE.read_text()
+    source = source.replace("__WAVE_COVER_BLUE__", blue).replace("__WAVE_COVER_PAPER__", paper)
+    tex = work / "social-preview.tex"
+    tex.write_text(source)
+    run(
+        [
+            "lualatex",
+            "-interaction=batchmode",
+            "-halt-on-error",
+            f"-output-directory={work}",
+            str(tex),
+        ],
+        cwd=ROOT,
+    )
+    pdf = work / "social-preview.pdf"
+    if not pdf.is_file() or pdf.stat().st_size == 0:
+        raise SystemExit("social preview PDF was not generated")
+    run(
+        [
+            "pdftoppm",
+            "-f",
+            "1",
+            "-singlefile",
+            "-png",
+            "-r",
+            "72",
+            str(pdf),
+            str(ASSETS / "social-preview"),
+        ]
+    )
+    if not SOCIAL_PREVIEW.is_file() or SOCIAL_PREVIEW.stat().st_size == 0:
+        raise SystemExit("social preview PNG was not generated")
+    with Image.open(SOCIAL_PREVIEW) as image:
+        if image.size != (1200, 630):
+            raise SystemExit(f"social preview is {image.size[0]}x{image.size[1]}, expected 1200x630")
+
+
+def social_metadata(path: Path) -> str:
+    if path.name == "index.html":
+        title = PUBLICATION_TITLE.replace("'", "’")
+        page_url = f"{SITE_URL}/"
+    else:
+        title = f"{page_context(path)} — {PUBLICATION_TITLE}".replace("'", "’")
+        page_url = f"{SITE_URL}/{path.name}"
+    image_url = f"{SITE_URL}/assets/social-preview.png"
+    values = {
+        "title": html.escape(title, quote=True),
+        "description": html.escape(SOCIAL_DESCRIPTION, quote=True),
+        "url": html.escape(page_url, quote=True),
+        "image": html.escape(image_url, quote=True),
+        "image_alt": html.escape(SOCIAL_IMAGE_ALT, quote=True),
+    }
+    return "\n".join(
+        (
+            f'<meta name="description" content="{values["description"]}" />',
+            f'<meta property="og:title" content="{values["title"]}" />',
+            '<meta property="og:type" content="website" />',
+            f'<meta property="og:url" content="{values["url"]}" />',
+            f'<meta property="og:image" content="{values["image"]}" />',
+            '<meta property="og:image:width" content="1200" />',
+            '<meta property="og:image:height" content="630" />',
+            '<meta property="og:image:type" content="image/png" />',
+            f'<meta property="og:image:alt" content="{values["image_alt"]}" />',
+            '<meta name="twitter:card" content="summary_large_image" />',
+            f'<meta name="twitter:title" content="{values["title"]}" />',
+            f'<meta name="twitter:description" content="{values["description"]}" />',
+            f'<meta name="twitter:image" content="{values["image"]}" />',
+            f'<meta name="twitter:image:alt" content="{values["image_alt"]}" />',
+        )
+    )
+
+
 def heading_text(fragment: str) -> str:
     return " ".join(html.unescape(re.sub(r"<[^>]+>", "", fragment)).split())
 
@@ -337,6 +444,10 @@ def build_shell(path: Path) -> None:
         count=1,
         flags=re.S,
     )
+
+    if 'property="og:image"' in text or 'name="twitter:card"' in text:
+        raise SystemExit(f"social metadata already exists in {path.name}")
+    text = text.replace("</head>", social_metadata(path) + "\n</head>", 1)
 
     info = current_build()
     asset_version = html.escape(info.short_sha, quote=True)
@@ -495,6 +606,13 @@ def validate() -> None:
         raise SystemExit("missing HTML outputs: " + ", ".join(missing))
     if not HTML_TEMPLATE.is_file() or HTML_TEMPLATE.stat().st_size == 0:
         raise SystemExit(f"missing HTML reader template: {HTML_TEMPLATE}")
+    if not SOCIAL_PREVIEW_TEMPLATE.is_file() or SOCIAL_PREVIEW_TEMPLATE.stat().st_size == 0:
+        raise SystemExit(f"missing social preview template: {SOCIAL_PREVIEW_TEMPLATE}")
+    if not SOCIAL_PREVIEW.is_file() or SOCIAL_PREVIEW.stat().st_size == 0:
+        raise SystemExit("missing generated social preview image")
+    with Image.open(SOCIAL_PREVIEW) as image:
+        if image.size != (1200, 630):
+            raise SystemExit(f"social preview is {image.size[0]}x{image.size[1]}, expected 1200x630")
 
     combined = "\n".join(path.read_text(errors="replace") for path in EXPECTED_PAGES)
     for sentinel in ("David C. Chapman", "Paola Malanotte-Rizzoli", "CC BY-NC-SA 4.0", "Apel"):
@@ -523,6 +641,13 @@ def validate() -> None:
             "References",
             "assets/wave.css",
             "assets/wave.js",
+            'property="og:title"',
+            'property="og:url"',
+            'property="og:image"',
+            'property="og:image:width" content="1200"',
+            'property="og:image:height" content="630"',
+            'name="twitter:card" content="summary_large_image"',
+            f"{SITE_URL}/assets/social-preview.png",
             label,
             build_url,
             html.escape(source_url(index, info.sha), quote=True),
@@ -531,6 +656,8 @@ def validate() -> None:
                 raise SystemExit(f"HTML requirement {required!r} is missing from {page.name}")
         if text.count('class="build-info"') != 1:
             raise SystemExit(f"HTML build stamp count is not one in {page.name}")
+        if text.count('property="og:image"') != 1:
+            raise SystemExit(f"HTML social preview image metadata count is not one in {page.name}")
         if 'class="book-context"' in text or 'data-theme-select' in text:
             raise SystemExit(f"obsolete HTML header controls remain in {page.name}")
 
@@ -583,6 +710,7 @@ def main() -> int:
     prepare_flowing_sources(source_dir, OUT)
     shutil.copy2(RECON / "styles" / "wave-html.css", ASSETS / "wave.css")
     shutil.copy2(RECON / "styles" / "wave-html.js", ASSETS / "wave.js")
+    build_social_preview()
 
     build_index(source_dir)
     for chapter in book_structure():
@@ -599,7 +727,7 @@ def main() -> int:
         build_shell(page)
     install_stable_section_ids()
     validate()
-    print("HTML build OK: front matter + 6 chapters + references")
+    print("HTML build OK: front matter + 6 chapters + references + social preview")
     return 0
 
 

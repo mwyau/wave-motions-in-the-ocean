@@ -37,7 +37,7 @@ Preserve these cover invariants unless explicitly redesigned by the owner:
 1. The full rectangular Met image of Hokusai's *Under the Wave off Kanagawa* is reproduced without speculative color correction or generative reconstruction.
 1. `Presented to Myrl C. Hendershott` appears below the image and above the authors.
 1. David C. Chapman and Paola Malanotte-Rizzoli are the authors.
-1. Years, digital-editor credit, license marks, museum credit, and badges do not belong on the front cover.
+1. Years, editor credit, license marks, museum credit, and badges do not belong on the front cover.
 
 The committed Hokusai source image is `reconstruction/figures/frontmatter/great-wave-met-dp130155.jpg`. Preserve its composition.
 
@@ -55,7 +55,7 @@ The paged modern PDF preliminaries are:
 
 `frontmatter-modern-book.tex` owns that PDF-only sequence. Preliminary leaves count in Roman pagination; Contents begins visibly at v; Chapter 1 resets to Arabic page 1.
 
-Keep the digital-editor credit subordinate to the authors: `Digital edition by Albert M. W. Yau, August 2026.` Do not assert ownership of the original lecture-note copyright.
+Keep the editor credit subordinate to the authors: `Edited by Albert M. W. Yau, August 2026.` Do not assert ownership of the original lecture-note copyright.
 
 The Lake Como photograph remains the modern PDF frontispiece with its established Villa Carlotta caption. Preserve the committed JPEG; do not invent photographer attribution, generatively reconstruct details, or apply speculative restoration.
 
@@ -102,7 +102,7 @@ Do not dark-mode invert/filter the historical front-matter photograph. Generated
 
 Build EPUB from transformed canonical LaTeX, not by reparsing MathJax HTML. Preserve mathematical structure as MathML.
 
-Metadata must keep the title `Wave Motions in the Ocean: Myrl's View`, David C. Chapman and Paola Malanotte-Rizzoli as authors, and Albert M. W. Yau as digital editor/contributor.
+Metadata must keep the title `Wave Motions in the Ocean: Myrl's View`, David C. Chapman and Paola Malanotte-Rizzoli as authors, and Albert M. W. Yau as editor/contributor.
 
 EPUB TOC depth is Chapter → Section. Validate metadata, cover, navigation, MathML, figures, tables, links, accessibility metadata, and reflow. Do not change source mathematics merely to satisfy a MathML validator; fix the transformation/validator unless the source itself was mistranscribed.
 
