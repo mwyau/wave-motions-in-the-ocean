@@ -629,7 +629,7 @@ def tex_plain(text: str) -> str:
     """Normalize TeX enough for headings, anchors, and reader metadata."""
     text = text.replace("---", "—").replace("--", "–")
     text = text.replace(r"\'e", "é").replace(r"\'E", "É")
-    text = text.replace(r"\"a", "ä").replace(r"\"o", "ö").replace(r"\"u", "ü")
+    text = text.replace(r'\"a', "ä").replace(r'\"o', "ö").replace(r'\"u', "ü")
     text = text.replace(r"\ell", "ℓ").replace(r"\pi", "π").replace(r"\beta", "β")
     text = text.replace("$", "")
     for cmd in ("textit", "emph", "textbf", "mathrm", "mbox"):
@@ -724,14 +724,9 @@ def markdown_contents() -> str:
 
 
 def html_license() -> str:
-    icons = "".join(
-        f'<img src="https://mirrors.creativecommons.org/presskit/icons/{name}.svg" '
-        'alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">'
-        for name in CC_ICONS
-    )
     return (
         '<p class="license">This work is licensed under '
-        f'<a href="{LICENSE_URL}">CC BY-NC-SA 4.0</a>.{icons}</p>'
+        f'<a href="{LICENSE_URL}">CC BY-NC-SA 4.0</a>.</p>'
     )
 
 
