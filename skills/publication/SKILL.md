@@ -20,6 +20,7 @@ Canonical `.tex` uses TeX punctuation conventions; Markdown, HTML, and EPUB shou
 - Shared modern PDF/EPUB cover: `src/cover-modern.tex`
 - Modern front matter: `src/frontmatter-modern.tex`
 - PDF-only modern book preliminaries: `src/frontmatter-modern-book.tex`
+- PDF-only modern closing page: `src/back-modern.tex`
 - Facsimile front matter: `src/frontmatter-facsimile.tex`
 - Shared body: `src/chapter1.tex` … `chapter6.tex`
 - Bibliography: `src/references.bib`
@@ -33,13 +34,22 @@ The modern PDF and EPUB use the same cover generated from `cover-modern.tex`; EP
 Preserve these cover invariants unless explicitly redesigned by the owner:
 
 1. `WAVE MOTIONS IN THE OCEAN` is the dominant dark-ocean-blue title.
-1. `Myrl's View` is the italic subtitle.
+1. `Myrl's View` is the prominent italic subtitle.
 1. The full rectangular Met image of Hokusai's *Under the Wave off Kanagawa* is reproduced without speculative color correction or generative reconstruction.
 1. `Presented to Myrl C. Hendershott` appears below the image and above the authors.
-1. David C. Chapman and Paola Malanotte-Rizzoli are the authors.
-1. Years, editor credit, license marks, museum credit, and badges do not belong on the front cover.
+1. David C. Chapman and Paola Malanotte-Rizzoli are the authors, shown on separate lines without an intervening `and` and at a visibly larger size than the presentation line.
+1. A small centered `Editor: Albert M. W. Yau.` appears near the bottom edge.
+1. Years, license marks, museum credit, and badges do not belong on the front cover.
 
 The committed Hokusai source image is `src/figures/frontmatter/great-wave-met-dp130155.jpg`. Preserve its composition.
+
+The paged modern PDF ends with a closing artwork page defined in `src/back-modern.tex`. Preserve these closing-page invariants unless explicitly redesigned by the owner:
+
+1. Use Utagawa Hiroshige's *Naruto Whirlpool, Awa Province*, The Met JP1198.
+1. The committed artwork is a lightly deskewed crop to the print's black border; do not generatively reconstruct or recolor it.
+1. Use the same left/right margins and restrained dark-ocean-blue frame treatment as the front cover.
+1. Keep the closing page otherwise uncaptioned, with only small `DOI: Pending` text at bottom right until a DOI is assigned.
+1. Keep the museum/public-domain credit in the interior edition notice rather than on the artwork page.
 
 The paged modern PDF preliminaries are:
 
@@ -55,7 +65,7 @@ The paged modern PDF preliminaries are:
 
 `frontmatter-modern-book.tex` owns that PDF-only sequence. Preliminary leaves count in Roman pagination; Contents begins visibly at v; Chapter 1 resets to Arabic page 1.
 
-Keep the editor credit subordinate to the authors: `Edited by Albert M. W. Yau, August 2026.` Do not assert ownership of the original lecture-note copyright.
+Keep the editor credit subordinate to the authors on interior title/front-matter pages: `Edited by Albert M. W. Yau, August 2026.` Do not assert ownership of the original lecture-note copyright.
 
 The Lake Como photograph remains the modern PDF frontispiece with its established Villa Carlotta caption. Preserve the committed JPEG; do not invent photographer attribution, generatively reconstruct details, or apply speculative restoration.
 

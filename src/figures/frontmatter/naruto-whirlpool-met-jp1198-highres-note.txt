@@ -1,1 +1,0 @@
-The actual raster is added in the next tree commit as a binary blob. This marker prevents accidental use of the earlier placeholder and will be deleted in the same cleanup.

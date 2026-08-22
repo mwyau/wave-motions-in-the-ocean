@@ -1,0 +1,21 @@
+% PDF-only closing page for the modern edition.
+% Artwork: Utagawa Hiroshige, Naruto Whirlpool, Awa Province, The Met JP1198.
+
+\NewDocumentCommand{\WaveModernBack}{}{%
+	\clearpage
+	\newgeometry{top=0.28in,bottom=0.35in,left=0.82in,right=0.82in}%
+	\thispagestyle{empty}%
+	\pagecolor{WaveCoverPaper}%
+	\begin{center}
+		\setlength{\fboxrule}{0.55pt}%
+		\setlength{\fboxsep}{2.5pt}%
+		{\color{WaveCoverBlue}%
+			\fbox{\includegraphics[width=0.965\linewidth]{figures/frontmatter/naruto-whirlpool-met-jp1198.jpg}}\par}
+	\end{center}%
+	\vspace{0.06in}%
+	\noindent\hfill{\color{WaveCoverBlue}\sffamily\fontsize{9}{11}\selectfont DOI: Pending\par}%
+	\restoregeometry
+	\nopagecolor
+}
+
+\WaveModernBack
