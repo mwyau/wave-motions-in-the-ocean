@@ -528,6 +528,7 @@ def html_frontmatter_footer() -> str:
         + links
         + "</ul>"
         + f'<p><a href="{ORIGINAL_SOURCE_URL}">Original online source</a></p>'
+        + '<p>Contact: <a href="mailto:albert@mwyau.com">albert@mwyau.com</a></p>'
         + "</section>"
     )
 
