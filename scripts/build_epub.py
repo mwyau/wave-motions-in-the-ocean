@@ -542,7 +542,7 @@ def _set_contributor_refinements(metadata: ET.Element) -> None:
         None,
     )
     if contributor is None:
-        raise SystemExit("EPUB package metadata is missing the digital editor")
+        raise SystemExit("EPUB package metadata is missing the editor")
 
     refined_elements = [*(creators_by_name[author] for author in AUTHORS), contributor]
     old_ids = {element.get("id") for element in refined_elements if element.get("id")}
