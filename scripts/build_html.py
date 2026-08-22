@@ -109,7 +109,7 @@ HEADING_TRANSLATION = str.maketrans(
     }
 )
 MATHJAX_MATH_RE = re.compile(
-    r'<span class="math (?P<kind>inline|display)">.*?</span>',
+    r'<span\b(?=[^>]*\bclass="math (?P<kind>inline|display)")[^>]*>.*?</span>',
     re.DOTALL | re.IGNORECASE,
 )
 MATHML_MATH_RE = re.compile(
@@ -328,8 +328,8 @@ def install_mathml_alternates(page: Path, mathml_page: Path) -> None:
         chunks.append(text[cursor : mathjax.start()])
         chunks.append(
             mathjax.group(0).replace(
-                '<span class="math ',
-                '<span data-math-renderer="mathjax" class="math ',
+                "<span",
+                '<span data-math-renderer="mathjax"',
                 1,
             )
         )
