@@ -1,69 +1,32 @@
 repos:
-  - repo: local
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
     hooks:
-      - id: check-merge-conflict
-        name: Check merge conflicts
-        entry: check-merge-conflict
-        language: system
-        types: [text]
-      - id: check-toml
-        name: Check TOML
-        entry: check-toml
-        language: system
-        types: [toml]
-      - id: check-yaml
-        name: Check YAML
-        entry: check-yaml
-        language: system
-        types: [yaml]
-      - id: end-of-file-fixer
-        name: Fix end of files
-        entry: end-of-file-fixer
-        language: system
-        types: [text]
-      - id: fix-byte-order-marker
-        name: Fix UTF-8 byte order marker
-        entry: fix-byte-order-marker
-        language: system
-        types: [text]
-      - id: mixed-line-ending
-        name: Fix mixed line endings
-        entry: mixed-line-ending
-        language: system
-        types: [text]
-      - id: trailing-whitespace
-        name: Trim trailing whitespace
-        entry: trailing-whitespace-fixer
-        language: system
-        types: [text]
+    - id: check-merge-conflict
+    - id: check-toml
+    - id: check-yaml
+    - id: end-of-file-fixer
+    - id: fix-byte-order-marker
+    - id: mixed-line-ending
+    - id: trailing-whitespace
 
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.4
+    hooks:
       - id: ruff
         name: Ruff lint
-        entry: ruff check --force-exclude
-        language: system
-        types_or: [python, pyi, jupyter]
         args: [--fix]
-        require_serial: true
       - id: ruff-format
         name: Ruff format
-        entry: ruff format --force-exclude
-        language: system
-        types_or: [python, pyi, jupyter]
-        require_serial: true
 
+  - repo: https://github.com/hukkin/mdformat
+    rev: 1.0.0
+    hooks:
       - id: mdformat
-        name: mdformat
-        entry: mdformat
-        language: system
-        types: [markdown]
         exclude: ^README\.md$
-
-      - id: sync-readme
-        name: Synchronize README
-        entry: python scripts/sync_readme.py
-        language: system
-        pass_filenames: false
-        always_run: true
+        additional_dependencies:
+        - mdformat-gfm
+        - mdformat-myst
 
   - repo: https://github.com/cmhughes/latexindent.pl
     rev: V4.0.2
@@ -71,3 +34,14 @@ repos:
       - id: latexindent
         files: ^src/.*\.(tex|sty)$
         types: [file]
+
+  - repo: local
+    hooks:
+      - id: sync-readme
+        name: Synchronize README
+        entry: python scripts/sync_readme.py
+        language: python
+        additional_dependencies:
+          - pillow==12.3.0
+        pass_filenames: false
+        always_run: true
