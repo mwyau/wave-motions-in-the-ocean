@@ -123,12 +123,16 @@ div.flushright { text-align: right; margin-top: -0.85em; }
 .book-nav {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(10rem, auto) minmax(0, 1fr);
+  grid-template-areas: "start context end";
   align-items: center;
   gap: .75rem 1.5rem;
   min-height: 3.4rem;
   padding: .55rem 0;
   border-bottom: 1px solid var(--wave-rule);
 }
+.book-nav-start { grid-area: start; }
+.reader-context { grid-area: context; }
+.book-nav-end { grid-area: end; }
 .book-nav-links,
 .book-controls,
 .chapter-nav {
@@ -141,7 +145,6 @@ div.flushright { text-align: right; margin-top: -0.85em; }
 }
 .book-nav-links a,
 .book-controls > a,
-.source-link,
 .toc-toggle {
   display: inline-flex;
   align-items: center;
@@ -156,6 +159,8 @@ div.flushright { text-align: right; margin-top: -0.85em; }
   color: var(--wave-link);
   cursor: pointer;
   font: inherit;
+}
+.toc-toggle {
   text-decoration: underline;
   text-underline-offset: .13em;
 }
@@ -211,15 +216,18 @@ div.flushright { text-align: right; margin-top: -0.85em; }
 .theme-select:focus-visible { outline: 2px solid var(--wave-link); outline-offset: 2px; }
 .chapter-contents {
   position: fixed;
-  top: 4.75rem;
+  top: var(--chapter-contents-top, 4.25rem);
   right: auto;
   bottom: auto;
-  left: max(1rem, calc(50vw - 47rem));
+  left: var(--chapter-contents-left, max(1rem, calc(50vw - 47rem)));
   width: min(19rem, calc(100vw - 2rem));
-  max-height: calc(100dvh - 6rem);
+  max-height: calc(100dvh - var(--chapter-contents-top, 4.25rem) - 1rem);
   margin: 0;
   padding: 0;
   overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scroll-padding-block: .75rem;
   border: 1px solid var(--wave-rule);
   border-radius: .65rem;
   background: var(--wave-bg);
@@ -265,10 +273,11 @@ div.flushright { text-align: right; margin-top: -0.85em; }
   text-decoration: none;
 }
 .chapter-contents-nav a:hover { color: var(--wave-link); }
+.chapter-contents-nav a:focus-visible { outline: 2px solid var(--wave-link); outline-offset: 1px; }
 .chapter-contents-nav a.is-active {
   border-inline-start-color: var(--wave-heading);
   color: var(--wave-heading);
-  font-weight: 650;
+  font-weight: 600;
 }
 .chapter-contents-all {
   display: inline-block;
@@ -345,6 +354,7 @@ a:visited { color: var(--wave-visited); }
 @container (max-width: 58rem) {
   .book-nav {
     grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "start end";
     gap: .35rem 1rem;
     font-size: .9rem;
   }
@@ -363,32 +373,41 @@ a:visited { color: var(--wave-visited); }
 @container (max-width: 44rem) {
   .book-nav {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "start"
+      "end";
     align-items: stretch;
     gap: .05rem;
   }
   .book-nav-links,
   .book-controls { width: 100%; }
-  .book-controls { justify-content: space-between; }
+  .book-controls {
+    justify-content: flex-start;
+    gap: .7rem;
+  }
   .book-control-divider { display: none; }
+  .appearance-control { margin-inline-start: auto; }
   .appearance-control > span { display: none; }
 }
-@media (max-width: 700px) {
-  body {
-    padding: max(.9rem, env(safe-area-inset-top)) max(.9rem, env(safe-area-inset-right)) 3rem max(.9rem, env(safe-area-inset-left));
-    line-height: 1.54;
-  }
+@media (max-width: 48rem) {
   h1, h2, h3 { scroll-margin-top: 7.5rem; }
-  h1 { font-size: clamp(1.65rem, 7vw, 2.2rem); }
-  h2 { font-size: clamp(1.35rem, 5.7vw, 1.75rem); }
-  h3 { font-size: 1.2rem; }
-  .reader-header { margin-bottom: 1.25rem; }
-  #title-block-header { margin-top: .85rem; margin-bottom: 1.75rem; }
   .chapter-contents {
     inset: auto max(.75rem, env(safe-area-inset-right)) max(.75rem, env(safe-area-inset-bottom)) max(.75rem, env(safe-area-inset-left));
     width: auto;
     max-height: min(70dvh, 34rem);
   }
   .chapter-contents::backdrop { background: rgb(0 0 0 / .14); }
+}
+@media (max-width: 700px) {
+  body {
+    padding: max(.9rem, env(safe-area-inset-top)) max(.9rem, env(safe-area-inset-right)) 3rem max(.9rem, env(safe-area-inset-left));
+    line-height: 1.54;
+  }
+  h1 { font-size: clamp(1.65rem, 7vw, 2.2rem); }
+  h2 { font-size: clamp(1.35rem, 5.7vw, 1.75rem); }
+  h3 { font-size: 1.2rem; }
+  .reader-header { margin-bottom: 1.25rem; }
+  #title-block-header { margin-top: .85rem; margin-bottom: 1.75rem; }
   figure { margin: 1rem 0; }
   img, svg { margin: .8rem auto; }
   .math.display, mjx-container[jax="CHTML"][display="true"] { padding-bottom: .55rem; }

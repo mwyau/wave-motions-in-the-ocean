@@ -6,10 +6,10 @@
       <button class="toc-toggle" type="button" popovertarget="chapter-contents" hidden data-toc-toggle>Contents</button>
       <a href="$previous_url"$previous_hidden aria-label="Previous chapter">← Previous</a>
     </span>
-    <span class="reader-context" data-reader-context hidden aria-label="Current reading position">
-      <span class="reader-context-chapter" data-chapter-context></span>
-      <span class="reader-context-separator" aria-hidden="true"> · </span>
-      <span class="reader-context-section" data-current-section></span>
+    <span class="reader-context"$reader_context_hidden data-reader-context aria-label="Current reading position">
+      <span class="reader-context-chapter">$reader_chapter</span>
+      <span class="reader-context-separator"$reader_title_hidden aria-hidden="true"> · </span>
+      <span class="reader-context-section"$reader_title_hidden data-current-section>$reader_title</span>
     </span>
     <span class="book-controls book-nav-end">
       <a href="$next_url"$next_hidden aria-label="Next chapter">Next →</a>
@@ -27,16 +27,16 @@
     </span>
   </nav>
 </header>
-<aside class="chapter-contents" id="chapter-contents" popover hidden aria-label="Chapter contents">
+<aside class="chapter-contents" id="chapter-contents" popover hidden aria-labelledby="chapter-contents-heading">
   <div class="chapter-contents-inner">
     <div class="chapter-contents-header">
       <div>
-        <strong data-toc-chapter>Contents</strong>
-        <span data-toc-title></span>
+        <strong id="chapter-contents-heading">$reader_chapter</strong>
+        <span$reader_title_hidden>$reader_title</span>
       </div>
       <button class="toc-close" type="button" popovertarget="chapter-contents" popovertargetaction="hide" aria-label="Close contents">Close</button>
     </div>
-    <nav class="chapter-contents-nav" aria-label="On this page" data-chapter-toc></nav>
+    <nav class="chapter-contents-nav" aria-label="On this page" data-chapter-toc>$chapter_toc</nav>
     <a class="chapter-contents-all" href="index.html#contents">All contents</a>
   </div>
 </aside>
