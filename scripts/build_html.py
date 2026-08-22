@@ -56,9 +56,19 @@ SOCIAL_IMAGE_ALT = (
     "Wave Motions in the Ocean: Myrl’s View, by David C. Chapman and "
     "Paola Malanotte-Rizzoli, edited by Albert M. W. Yau."
 )
+CHAPTERS = book_structure()
+if not CHAPTERS:
+    raise SystemExit("book structure has no chapters")
+CHAPTER_BY_NUMBER = {chapter.number: chapter for chapter in CHAPTERS}
+if len(CHAPTER_BY_NUMBER) != len(CHAPTERS):
+    raise SystemExit("book structure contains duplicate chapter numbers")
+CHAPTER_POSITION = {
+    chapter.number: position for position, chapter in enumerate(CHAPTERS)
+}
+CHAPTER_PAGE_RE = re.compile(r"chapter(?P<number>\d+)\.html")
 EXPECTED_PAGES = [
     OUT / "index.html",
-    *(OUT / f"chapter{i}.html" for i in range(1, 7)),
+    *(OUT / f"chapter{chapter.number}.html" for chapter in CHAPTERS),
     OUT / "references.html",
 ]
 HTML_DOWNLOADS = tuple(
@@ -128,15 +138,20 @@ def pandoc_page(source_tex: Path, output: Path, title: str) -> None:
     )
 
 
+def chapter_for_page(path: Path):
+    match = CHAPTER_PAGE_RE.fullmatch(path.name)
+    if match is None:
+        return None
+    return CHAPTER_BY_NUMBER.get(int(match.group("number")))
+
+
 def page_context(path: Path) -> str:
     if path.name == "index.html":
         return "Front matter"
     if path.name == "references.html":
         return "References"
-    match = re.fullmatch(r"chapter([1-6])\.html", path.name)
-    if match:
-        number = int(match.group(1))
-        chapter = next(item for item in book_structure() if item.number == number)
+    chapter = chapter_for_page(path)
+    if chapter is not None:
         return f"Chapter {chapter.number} · {chapter.title}"
     raise ValueError(f"unexpected publication page: {path.name}")
 
@@ -146,10 +161,10 @@ def page_index(path: Path) -> int | None:
         return None
     if path.name == "references.html":
         return 0
-    match = re.fullmatch(r"chapter([1-6])\.html", path.name)
-    if not match:
+    chapter = chapter_for_page(path)
+    if chapter is None:
         raise ValueError(f"unexpected publication page: {path.name}")
-    return int(match.group(1))
+    return chapter.number
 
 
 def navigation_state(index: int | None) -> dict[str, str]:
@@ -159,21 +174,28 @@ def navigation_state(index: int | None) -> dict[str, str]:
     next_label = ""
 
     if index is None:
-        next_url = "chapter1.html"
-        next_label = "Chapter 1"
+        first = CHAPTERS[0]
+        next_url = f"chapter{first.number}.html"
+        next_label = f"Chapter {first.number}"
     elif index == 0:
-        previous_url = "chapter6.html"
-        previous_label = "Chapter 6"
+        last = CHAPTERS[-1]
+        previous_url = f"chapter{last.number}.html"
+        previous_label = f"Chapter {last.number}"
     else:
-        if index == 1:
+        position = CHAPTER_POSITION.get(index)
+        if position is None:
+            raise ValueError(f"unexpected chapter number: {index}")
+        if position == 0:
             previous_url = "index.html"
             previous_label = "Front matter"
         else:
-            previous_url = f"chapter{index - 1}.html"
-            previous_label = f"Chapter {index - 1}"
-        if index < 6:
-            next_url = f"chapter{index + 1}.html"
-            next_label = f"Chapter {index + 1}"
+            previous = CHAPTERS[position - 1]
+            previous_url = f"chapter{previous.number}.html"
+            previous_label = f"Chapter {previous.number}"
+        if position + 1 < len(CHAPTERS):
+            next_chapter = CHAPTERS[position + 1]
+            next_url = f"chapter{next_chapter.number}.html"
+            next_label = f"Chapter {next_chapter.number}"
         else:
             next_url = "references.html"
             next_label = "References"
@@ -202,7 +224,9 @@ def reader_state(index: int | None) -> dict[str, str]:
             "reader_title_hidden": " hidden",
         }
 
-    chapter = next(item for item in book_structure() if item.number == index)
+    chapter = CHAPTER_BY_NUMBER.get(index)
+    if chapter is None:
+        raise ValueError(f"unexpected chapter number: {index}")
     return {
         "reader_chapter": f"Chapter {chapter.number}",
         "reader_title": html.escape(chapter.title),
@@ -229,7 +253,7 @@ def book_toc(index: int | None) -> str:
         + f"<ol>{front_sections}</ol></details></li>"
     ]
 
-    for chapter in book_structure():
+    for chapter in CHAPTERS:
         active = index == chapter.number
         sections = "".join(
             f'<li><a href="chapter{chapter.number}.html#{section_slug(section)}"'
@@ -490,7 +514,7 @@ def install_stable_section_ids() -> None:
     heading_re = re.compile(
         r"<h2(?P<attrs>[^>]*)>(?P<body>.*?)</h2>", re.DOTALL | re.IGNORECASE
     )
-    for chapter in book_structure():
+    for chapter in CHAPTERS:
         page = OUT / f"chapter{chapter.number}.html"
         text = page.read_text(errors="replace")
         index = 0
@@ -669,6 +693,9 @@ def validate() -> None:
             'class="book-nav"',
             "data-theme-cycle",
             "data-reader-context",
+            "data-book-toc-rail",
+            "data-toc-scope",
+            "data-toc-expand",
             'class="book-contents-rail"',
             'class="book-contents-popover"',
             'class="build-info"',
@@ -692,6 +719,8 @@ def validate() -> None:
                 raise SystemExit(
                     f"HTML requirement {required!r} is missing from {page.name}"
                 )
+        if text.count("data-toc-scope") != 2 or text.count("data-toc-expand") != 2:
+            raise SystemExit(f"HTML Contents controls are duplicated or missing in {page.name}")
         if text.count('class="build-info"') != 1:
             raise SystemExit(f"HTML build stamp count is not one in {page.name}")
         if text.count('property="og:image"') != 1:
@@ -699,7 +728,7 @@ def validate() -> None:
         if 'class="book-context"' in text or 'data-theme-select' in text:
             raise SystemExit(f"obsolete HTML header controls remain in {page.name}")
 
-    for chapter in book_structure():
+    for chapter in CHAPTERS:
         text = (OUT / f"chapter{chapter.number}.html").read_text(errors="replace")
         if text.count("data-section-link=") != 2 * len(chapter.sections):
             raise SystemExit(
@@ -714,6 +743,8 @@ def validate() -> None:
                 f"chapter{chapter.number}.html: chapter title block is missing"
             )
 
+    first = CHAPTERS[0]
+    last = CHAPTERS[-1]
     index = (OUT / "index.html").read_text(errors="replace")
     for anchor, _ in FRONTMATTER_SECTIONS:
         if f'id="{anchor}"' not in index:
@@ -724,14 +755,20 @@ def validate() -> None:
         raise SystemExit("HTML front page must not link the facsimile PDF")
     if 'id="contents"' in index:
         raise SystemExit("inline HTML Contents block must not be rendered")
-    if 'href="chapter1.html"' not in index:
-        raise SystemExit("front matter must navigate forward to Chapter 1")
-    chapter1 = (OUT / "chapter1.html").read_text(errors="replace")
-    if 'href="index.html"' not in chapter1:
-        raise SystemExit("Chapter 1 must navigate back to front matter")
+    if f'href="chapter{first.number}.html"' not in index:
+        raise SystemExit(
+            f"front matter must navigate forward to Chapter {first.number}"
+        )
+    first_page = (OUT / f"chapter{first.number}.html").read_text(errors="replace")
+    if 'href="index.html"' not in first_page:
+        raise SystemExit(
+            f"Chapter {first.number} must navigate back to front matter"
+        )
     references = (OUT / "references.html").read_text(errors="replace")
-    if 'href="chapter6.html"' not in references:
-        raise SystemExit("References must navigate back to Chapter 6")
+    if f'href="chapter{last.number}.html"' not in references:
+        raise SystemExit(
+            f"References must navigate back to Chapter {last.number}"
+        )
     if MATHJAX_URL not in combined:
         raise SystemExit("pinned MathJax URL is missing from generated HTML")
     validate_local_references()
@@ -762,7 +799,7 @@ def main() -> int:
     build_social_preview()
 
     build_index(source_dir)
-    for chapter in book_structure():
+    for chapter in CHAPTERS:
         page = OUT / f"chapter{chapter.number}.html"
         pandoc_page(
             source_dir / f"chapter{chapter.number}.tex",
@@ -776,7 +813,10 @@ def main() -> int:
         build_shell(page)
     install_stable_section_ids()
     validate()
-    print("HTML build OK: front matter + 6 chapters + references + social preview")
+    print(
+        f"HTML build OK: front matter + {len(CHAPTERS)} chapters + "
+        "references + social preview"
+    )
     return 0
 
 
