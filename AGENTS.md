@@ -5,7 +5,7 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 ## Writing
 
 - Use plain, direct English in repository text. Prefer a short, common word when it means the same thing. Do not make writing sound formal just to sound polished. Keep technical and scientific terms when they are the right terms.
-- This applies to README text, agent-written documentation, skills, comments, issue-facing guidance stored in the repository, modern editor-written material, labels, and explanatory prose.
+- This applies to README text, agent-written documentation, skills, comments, issue-facing guidance stored in the repository, labels, and explanatory prose.
 - It does not authorize rewriting source book text, quoted material, work titles, names, equations, scientific terms, license names, or useful code/API terms. For example, use “source” or “earlier” instead of “historical” when that is what you mean, “use” instead of “utilize,” and “before” instead of “prior to.” These are examples, not banned words. If the plain word says the same thing just as clearly, use it.
 
 ## Task skills
