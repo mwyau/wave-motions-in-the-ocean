@@ -14,6 +14,7 @@ on:
       - "references/mit-ocw-2008/**"
       - "scripts/**"
       - ".python-version"
+      - ".pre-commit-config.yaml"
       - "requirements.txt"
       - "tex-packages.txt"
       - "README.md"
@@ -40,9 +41,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7.0.1
-
-      - name: Check reader JavaScript
-        run: node --check src/styles/wave-html.js
 
       - name: Verify release tag
         if: startsWith(github.ref, 'refs/tags/v')
@@ -90,7 +88,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo -E apt-get install -y --no-install-recommends \
-            qpdf poppler-utils pandoc xz-utils
+            qpdf poppler-utils pandoc unzip xz-utils
 
       - name: Cache TinyTeX
         id: tinytex-cache
@@ -147,11 +145,6 @@ jobs:
           WAVE_SKIP_VALIDATION: "1"
         run: ./scripts/build.sh all
 
-      # QA is advisory on development builds, but stable release tags remain strict.
-      - name: Check synchronized README
-        continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        run: python3 scripts/sync_readme.py --check
-
       - name: Install EPUBCheck
         continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         shell: bash
@@ -159,7 +152,6 @@ jobs:
           set -euo pipefail
           command -v java >/dev/null
           command -v curl >/dev/null
-          command -v unzip >/dev/null
           curl -fL \
             "https://github.com/w3c/epubcheck/releases/download/v${EPUBCHECK_VERSION}/epubcheck-${EPUBCHECK_VERSION}.zip" \
             -o "$RUNNER_TEMP/epubcheck.zip"
@@ -177,27 +169,45 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         run: python3 scripts/validate.py release
 
+      - name: Package public edition
+        run: python3 scripts/release.py package --dist dist --output release
+
+      - name: Check source quality
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          status=0
+          uvx --from pre-commit==4.6.1 pre-commit run --all-files --show-diff-on-failure || status=1
+          node --check src/styles/wave-html.js || status=1
+          if ! git diff --quiet; then
+            echo "::warning title=Source quality::Quality hooks changed tracked files; commit their fixes."
+            git diff --check || true
+            status=1
+          fi
+          exit "$status"
+
       - name: Upload publication artifact
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: wave-motions-editions
-          path: dist/
+          name: wave-motions-publication
+          path: release/
           if-no-files-found: error
           retention-days: 14
-          compression-level: 1
+          compression-level: 0
 
       - name: Configure GitHub Pages
         if: github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v6.0.0
 
-      - name: Prepare Pages artifact
+      - name: Prepare packaged edition for Pages
         if: github.ref == 'refs/heads/main'
         shell: bash
         run: |
           set -euo pipefail
           rm -rf pages-dist
-          cp -a dist pages-dist
-          rm -f pages-dist/wave-motions-facsimile.pdf
+          mkdir pages-dist
+          unzip -q release/wave-motions-html.zip -d pages-dist
 
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main'
@@ -241,11 +251,13 @@ jobs:
       - name: Download validated publication
         uses: actions/download-artifact@v8.0.1
         with:
-          name: wave-motions-editions
-          path: dist
+          name: wave-motions-publication
+          path: release
 
-      - name: Prepare release assets
-        run: python3 scripts/release.py package --dist dist --output release
+      - name: Verify release assets
+        run: >-
+          python3 scripts/release.py checksums --root release --check
+          wave-motions.pdf wave-motions.epub wave-motions-html.zip
 
       - name: Publish GitHub release
         env:

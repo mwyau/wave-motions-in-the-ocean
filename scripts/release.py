@@ -6,8 +6,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import hmac
+import html
 import re
 import shutil
+import urllib.parse
 import zipfile
 from collections.abc import Iterable
 from pathlib import Path
@@ -22,6 +24,17 @@ HTML_ARCHIVE = "wave-motions-html.zip"
 CHECKSUM_ASSETS = (*DEFAULT_FILES, HTML_ARCHIVE)
 RELEASE_ASSETS = (*CHECKSUM_ASSETS, MANIFEST)
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+REMOTE_SCHEMES = {"http", "https"}
+FETCHING_LINK_RELS = {
+    "dns-prefetch",
+    "icon",
+    "manifest",
+    "modulepreload",
+    "preconnect",
+    "prefetch",
+    "preload",
+    "stylesheet",
+}
 
 
 def sha256(path: Path) -> str:
@@ -101,10 +114,89 @@ def verify_manifest(root: Path, expected_names: Iterable[str] | None = None) -> 
     return len(seen)
 
 
+def _is_remote_reference(value: str) -> bool:
+    value = html.unescape(value.strip())
+    if value.startswith("//"):
+        return True
+    parsed = urllib.parse.urlsplit(value)
+    return parsed.scheme.lower() in REMOTE_SCHEMES or bool(parsed.netloc)
+
+
+def _attribute(tag: str, name: str) -> str | None:
+    match = re.search(
+        rf"\b{re.escape(name)}\s*=\s*([\"'])(.*?)\1",
+        tag,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    return match.group(2) if match else None
+
+
+def validate_offline_runtime(root: Path) -> None:
+    root = root.resolve()
+    pages = sorted(root.glob("*.html"))
+    if not pages:
+        raise ValueError("offline HTML check found no HTML pages")
+
+    remote: list[str] = []
+    for page in pages:
+        text = page.read_text(errors="replace")
+        for tag in re.findall(r"<[^>]+>", text, flags=re.DOTALL):
+            for attr in ("src", "poster", "data"):
+                value = _attribute(tag, attr)
+                if value and _is_remote_reference(value):
+                    remote.append(f"{page.name}: {attr}={value}")
+            srcset = _attribute(tag, "srcset")
+            if srcset:
+                for candidate in srcset.split(","):
+                    value = candidate.strip().split(maxsplit=1)[0]
+                    if value and _is_remote_reference(value):
+                        remote.append(f"{page.name}: srcset={value}")
+            if tag.lower().startswith("<link"):
+                href = _attribute(tag, "href")
+                rel = (_attribute(tag, "rel") or "").lower().split()
+                if (
+                    href
+                    and FETCHING_LINK_RELS.intersection(rel)
+                    and _is_remote_reference(href)
+                ):
+                    remote.append(f"{page.name}: link href={href}")
+
+    stylesheets = sorted(root.rglob("*.css"))
+    for stylesheet in stylesheets:
+        text = stylesheet.read_text(errors="replace")
+        for match in re.finditer(
+            r"url\(\s*([\"']?)(.*?)\1\s*\)", text, flags=re.IGNORECASE
+        ):
+            value = match.group(2).strip()
+            if value and _is_remote_reference(value):
+                remote.append(f"{stylesheet.relative_to(root)}: url({value})")
+        for match in re.finditer(
+            r"@import\s+(?:url\()?\s*([\"'])(.*?)\1",
+            text,
+            flags=re.IGNORECASE,
+        ):
+            value = match.group(2).strip()
+            if value and _is_remote_reference(value):
+                remote.append(f"{stylesheet.relative_to(root)}: @import {value}")
+
+    if remote:
+        details = "\n".join(f"  {item}" for item in remote[:40])
+        raise ValueError(
+            "HTML reader has remote runtime dependencies:\n"
+            + details
+            + (f"\n  ... and {len(remote) - 40} more" if len(remote) > 40 else "")
+        )
+    print(
+        f"Offline HTML runtime OK: {len(pages)} page(s), "
+        f"{len(stylesheets)} stylesheet(s)"
+    )
+
+
 def package_release(dist: Path, output: Path) -> None:
     dist = dist.resolve()
     output = output.resolve()
     verify_manifest(dist, DEFAULT_FILES)
+    validate_offline_runtime(dist)
 
     if output.exists():
         shutil.rmtree(output)
@@ -113,7 +205,7 @@ def package_release(dist: Path, output: Path) -> None:
     for name in DEFAULT_FILES:
         shutil.copy2(dist / name, output / name)
 
-    excluded = {*DEFAULT_FILES, *QA_ONLY_FILES, MANIFEST}
+    excluded = {*QA_ONLY_FILES, MANIFEST}
     archive_path = output / HTML_ARCHIVE
     included: list[str] = []
     with zipfile.ZipFile(
@@ -128,8 +220,12 @@ def package_release(dist: Path, output: Path) -> None:
             archive.write(path, relative)
             included.append(str(relative))
 
-    if "index.html" not in included:
-        raise ValueError("HTML release archive is missing index.html")
+    required = {"index.html", *DEFAULT_FILES}
+    missing = sorted(required - set(included))
+    if missing:
+        raise ValueError("public HTML archive is missing: " + ", ".join(missing))
+    if any(name in included for name in QA_ONLY_FILES):
+        raise ValueError("public HTML archive contains a QA-only file")
 
     write_manifest(output, CHECKSUM_ASSETS)
     verify_manifest(output, CHECKSUM_ASSETS)
@@ -148,6 +244,11 @@ def main(argv: list[str] | None = None) -> int:
     package.add_argument("--dist", type=Path, default=Path("dist"))
     package.add_argument("--output", type=Path, default=Path("release"))
 
+    offline = subparsers.add_parser(
+        "offline", help="check that HTML runtime resources are local"
+    )
+    offline.add_argument("--root", type=Path, default=Path("dist"))
+
     checksums = subparsers.add_parser(
         "checksums", help="write or verify a SHA-256 manifest"
     )
@@ -161,6 +262,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.command == "package":
         package_release(args.dist, args.output)
+    elif args.command == "offline":
+        validate_offline_runtime(args.root)
     elif args.command == "assets":
         print("\n".join(RELEASE_ASSETS))
     else:
