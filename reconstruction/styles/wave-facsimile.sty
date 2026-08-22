@@ -4,7 +4,7 @@
 \RequirePackage[letterpaper,top=0.76in,bottom=0.46in,left=0.95in,right=0.95in]{geometry}
 \RequirePackage{setspace}
 
-% The facsimile preserves historical source-page structure and suppresses
+% The facsimile preserves source-page structure and suppresses
 % editorial equation/figure numbering added for the modern edition.
 \RenewDocumentEnvironment{waveequation}{}{\begin{equation*}}{\end{equation*}}
 \RenewDocumentEnvironment{wavealign}{}{\begin{equation*}\begin{aligned}}{\end{aligned}\end{equation*}}
@@ -51,7 +51,7 @@
 }
 
 % Log physical/printed page identity and natural reserve at every body source
-% boundary so validation can detect drift before a historical page splits.
+% boundary so validation can detect drift before a source page splits.
 \newcount\WaveFacsimilePhysicalPage
 \newcount\WaveFacsimileBoundaryIndex
 \newdimen\WaveFacsimileSpare
@@ -71,7 +71,7 @@
 }
 
 % \pagebreak lets \flushbottom use stretchable leading to fill sparse source
-% pages without changing the historical figure scales or crop geometry.
+% pages without changing the source figure scales or crop geometry.
 \NewDocumentCommand{\sourcepagebreak}{}{%
 	\par\WaveFacsimileLogBoundary\pagebreak[4]%
 }

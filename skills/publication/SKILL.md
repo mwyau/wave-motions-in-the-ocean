@@ -4,10 +4,10 @@ Use this skill for modern/facsimile presentation, front matter, README/HTML sync
 
 ## Content boundary
 
-Publication work controls presentation and generated editions. It must not silently rewrite historical/scientific content.
+Publication work controls presentation and generated editions. It must not silently rewrite source or scientific content.
 
 - Shared body text comes from `reconstruction/chapter1.tex` … `chapter6.tex` and remains governed by `skills/source-audit/SKILL.md`.
-- The committed `source/*.pdf` files remain the historical authority.
+- The committed 1989 PDFs under `references/chapman-rizzoli-1989/` control source-fidelity checks.
 - Do not alter prose, equations, figure labels, references, or scientific meaning merely to improve style, satisfy a validator, make a derivation more correct, or simplify a build.
 - A substantive source correction requires explicit human approval under the source-audit rules. Publication tooling/build success never constitutes approval.
 
@@ -63,7 +63,7 @@ Modern contents use Chapter → Section only (`tocdepth=1`).
 
 ## Facsimile PDF
 
-The facsimile is a source-page edition. Preserve the 184-physical-page structure and historical printed page numbers.
+The facsimile is a source-page edition. Preserve the 184-physical-page structure and original printed page numbers.
 
 Expected component counts are:
 
@@ -96,11 +96,11 @@ Keep public section anchors stable.
 
 Preserve the responsive reader, Auto/Light/Dark themes, GitHub Source navigation, Contents navigation, wide-math/table overflow behavior, and stable chapter/section navigation unless explicitly redesigned.
 
-Do not dark-mode invert/filter the historical front-matter photograph. Generated black-on-white scientific diagrams may be theme-adjusted for legibility without changing their content.
+Do not dark-mode invert/filter the front-matter photograph. Generated black-on-white scientific diagrams may be theme-adjusted for legibility without changing their content.
 
 ## EPUB
 
-Build EPUB from transformed canonical LaTeX, not by reparsing MathJax HTML. Preserve mathematical structure as MathML.
+Build EPUB from transformed main LaTeX, not by reparsing MathJax HTML. Preserve mathematical structure as MathML.
 
 Metadata must keep the title `Wave Motions in the Ocean: Myrl's View`, David C. Chapman and Paola Malanotte-Rizzoli as authors, and Albert M. W. Yau as editor/contributor.
 
@@ -114,7 +114,7 @@ Modern PDF, HTML, and EPUB use chapter-based figure/equation numbering. The facs
 
 Number every scientific body figure. Number displayed equations selectively when they have durable identity in the exposition: governing systems, boundary/eigenvalue problems, dispersion/modal/root relations, conservation laws, ray equations, or named physical definitions/results. Keep transient algebra and one-off substitutions unnumbered.
 
-Do not use numbering changes as an opportunity to alter historical equation content.
+Do not use numbering changes as an opportunity to alter source equations.
 
 ## Build interface and outputs
 
@@ -129,9 +129,9 @@ Use:
 
 `build/` and `dist/` are generated and untracked. `audit/` is the persistent-but-ignored workspace for temporary review artifacts and must survive publication builds. The flat `dist/` publication root contains HTML, assets, the modern PDF, facsimile PDF, EPUB, and `SHA256SUMS`.
 
-Generated reader artifacts carry exact source build identity. Stable releases use semantic tags such as `v1.0.0`; short commit IDs are build provenance, not release tags.
+Generated reader artifacts carry the exact source build identity. Stable releases use semantic tags such as `v1.0.0`; short commit IDs are build info, not release tags.
 
-`SHA256SUMS` must cover exactly the two PDFs and EPUB in canonical `dist/`. Release packaging adds the HTML-only ZIP and verifies the expected asset set.
+`SHA256SUMS` must cover exactly the two PDFs and EPUB in `dist/`. Release packaging adds the HTML-only ZIP and verifies the expected asset set.
 
 After any reconstruction `.tex` change:
 

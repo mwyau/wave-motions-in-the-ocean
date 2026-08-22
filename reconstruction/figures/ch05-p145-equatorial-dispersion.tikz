@@ -5,7 +5,7 @@
 % For m=1,2,3 the high-frequency root and positive low-frequency Rossby root are
 % plotted from the exact trigonometric cubic solution. The Yanai branch uses
 % lambda=omega-1/omega and the m=-1 Kelvin branch is omega=lambda.
-% Axes retain source symbols sigma,k; this is a linear nondimensional rescaling.
+% Axes keep source symbols sigma,k; this is a linear nondimensional rescaling.
 \par\smallskip
 \begin{center}
 \begin{tikzpicture}[x=1.18cm,y=1.05cm,>=stealth,line cap=round,line join=round,font=\small]

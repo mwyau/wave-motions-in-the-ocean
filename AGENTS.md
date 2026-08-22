@@ -2,6 +2,12 @@
 
 Keep this file limited to repository-wide invariants and routing. Read the relevant skill for task-specific procedures.
 
+## Writing
+
+- Use plain, direct English in repository text. Prefer a short, common word when it means the same thing. Do not make writing sound formal just to sound polished. Keep technical and scientific terms when they are the right terms.
+- This applies to README text, agent-written documentation, skills, comments, issue-facing guidance stored in the repository, modern editor-written material, labels, and explanatory prose.
+- It does not authorize rewriting source book text, quoted material, work titles, names, equations, scientific terms, license names, or useful code/API terms. For example, use “source” or “earlier” instead of “historical” when that is what you mean, “use” instead of “utilize,” and “before” instead of “prior to.” These are examples, not banned words. If the plain word says the same thing just as clearly, use it.
+
 ## Task skills
 
 - Source fidelity, text/equation transcription, scientific verification, errata, and references: `skills/source-audit/SKILL.md`
@@ -9,7 +15,7 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 - Front matter, reader formats, README/HTML synchronization, builds, CI, Pages, and releases: `skills/publication/SKILL.md`
 - Post-build PDF/HTML/EPUB visual and structural review: `skills/render-qa/SKILL.md`
 - For equation-defined or scientifically constrained figures, read both `source-audit` and `figure-audit`.
-- For publication work that could alter historical or scientific content, also read `source-audit`.
+- For publication work that could alter source or scientific content, also read `source-audit`.
 
 ## Local environment
 
@@ -18,9 +24,9 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 
 ## Global source rule
 
-- `source/*.pdf` is the immutable historical authority. Never edit, replace, recompress, or rewrite a source PDF.
+- `references/chapman-rizzoli-1989/*.pdf` is the immutable source set. Never edit, replace, recompress, or rewrite a source PDF.
 - Reconstruction defaults to source fidelity, not substantive correction or modernization.
-- Canonical LaTeX uses conventional TeX punctuation; generated reader formats may render equivalent Unicode typography. Small, unambiguous punctuation normalization may be corrected autonomously when it does not change wording, scientific or mathematical meaning, bibliographic identity, or intentional emphasis. Ambiguous or meaning-changing punctuation follows the source-audit approval rule.
+- Main LaTeX uses conventional TeX punctuation; generated reader formats may render equivalent Unicode typography. Small, unambiguous punctuation normalization may be corrected autonomously when it does not change wording, scientific or mathematical meaning, bibliographic identity, or intentional emphasis. Ambiguous or meaning-changing punctuation follows the source-audit approval rule.
 - Small, unambiguous spelling, grammar, transcription, or punctuation corrections with no plausible scientific, mathematical, bibliographic, or substantive editorial effect may be corrected autonomously.
 - Any substantive or ambiguous departure from the source requires explicit human approval. Agents can never approve an erratum or infer approval from correctness, prior commits, issues, builds, other agents, or an existing status label.
 - Follow `skills/source-audit/SKILL.md` for the correction decision process and errata format.
@@ -40,12 +46,12 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 - Do not create agent coordination sessions, claims, handoff branches, or competing workstreams.
 - Never create temporary workflows, trigger files, bot commit paths, or other automation to mutate tracked repository files.
 - `.github/workflows/publish.yml` is publication automation only: it builds and validates editions, deploys the `main` publication artifact to GitHub Pages, and publishes stable-tag release artifacts. It must never edit tracked source, create commits, or push source changes.
-- Treat current `main` as authoritative; history may be rewritten or squashed.
+- Treat current `main` as the branch to follow; history may be rewritten or squashed.
 
 ## Project records
 
 - `reconstruction/ERRATA.md`: substantive source deviations, proposed corrections, evidence, and human review status.
-- `reconstruction/FIGURES.md`: figure provenance, representation, and scientific/equation validation.
+- `reconstruction/FIGURES.md`: figure source info, representation, and scientific/equation validation.
 
 Do not create duplicate audit ledgers, source manifests, verification TSVs, hash/status ledgers, or temporary trigger records.
 

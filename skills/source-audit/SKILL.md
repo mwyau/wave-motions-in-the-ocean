@@ -4,9 +4,19 @@ Use this skill for scan fidelity, text/equation transcription, scientific verifi
 
 ## Governing rule
 
-The committed historical PDFs under `source/` are the source authority. The purpose of the reconstruction is to reproduce them faithfully, not to silently make substantive changes.
+The five 1989 PDFs under `references/chapman-rizzoli-1989/` control source-fidelity checks. The reconstruction should reproduce them faithfully, not silently make substantive changes.
 
-Scientific review is diagnostic. It can identify a likely error and support a proposed erratum, but it does not authorize changing substantive historical content.
+Scientific review is diagnostic. It can identify a likely error and support a proposed erratum, but it does not authorize changing substantive source content.
+
+## Check order
+
+Use this order when a source reading or scientific result is in question:
+
+1. Check the 1989 PDF for what the source actually says.
+1. Independently check the science or math when needed.
+1. Use the 2008 MIT OpenCourseWare notes and other references to help understand or check a possible error.
+
+The 1989 PDFs control transcription and source-fidelity questions. The 2008 notes can support a proposed correction, but a difference in those notes does not by itself justify silently changing the reconstruction. The current errata and human-approval rules still apply.
 
 ## Correction decision order
 
@@ -19,13 +29,13 @@ For every difference or suspected error, use this order:
 
 Agents can never approve an erratum. Do not infer approval from mathematical correctness, external literature, issue closure, another agent's judgment, an existing commit, or an existing status. If an older substantive entry lacks traceable explicit human approval, do not treat it as precedent or permission; flag it for human review when encountered.
 
-A minor autonomous correction need not be added to `ERRATA.md`. If it is useful to retain one there, use the existing `minor-typo-correction` status.
+A minor autonomous correction need not be added to `ERRATA.md`. If it is useful to keep one there, use the existing `minor-typo-correction` status.
 
 ## Text fidelity
 
-Compare scan ↔ canonical LaTeX directly. Check wording, punctuation, capitalization, symbols, accents, subscripts/superscripts, footnotes, references, page order, headings, and figure labels.
+Compare the scan and main LaTeX directly. Check wording, punctuation, capitalization, symbols, accents, subscripts/superscripts, footnotes, references, page order, headings, and figure labels.
 
-Preserve historical wording, organization, notation, and derivation style. Do not modernize prose, terminology, equations, or references merely because another form appears clearer or more correct.
+Preserve source wording, organization, notation, and derivation style. Do not modernize prose, terminology, equations, or references merely because another form appears clearer or more correct.
 
 If a source reading is uncertain, inspect the highest-quality source view available and leave the reconstruction at the best-supported literal source reading. Record genuine ambiguity as `pending-human-approval` rather than guessing.
 
@@ -35,7 +45,7 @@ Canonical `.tex` uses conventional TeX punctuation. Minor punctuation normalizat
 
 For every audited equation, compare every sign, coefficient, derivative, index, exponent, vector mark, delimiter, and equality with the scan. Check that definitions immediately before and after the equation use the same symbols and conventions.
 
-A transcription check answers: **does the reconstruction match the historical source?** It is distinct from the scientific audit below.
+A transcription check answers: **does the reconstruction match the source?** It is distinct from the scientific audit below.
 
 If the scan itself appears mathematically wrong, preserve it pending human approval. Do not substitute the equation that the derivation “must have meant.”
 
@@ -53,7 +63,7 @@ Independently test the mathematics and physics where useful:
 - limiting cases and asymptotic behavior;
 - consistency with nearby prose and figures.
 
-Where practical, verify a standard result against the cited original paper, relevant Hendershott/Myrl material, and another authoritative physical-oceanography source. Clearly distinguish external verification from what the historical PDF actually says.
+Where practical, verify a standard result against the cited original paper, relevant Hendershott/Myrl material, and another reliable physical-oceanography source. Clearly distinguish external checks from what the 1989 PDF actually says.
 
 The outcome of this audit is one of:
 
@@ -69,7 +79,7 @@ Never let a scientific audit silently rewrite chapter prose or equations.
 Substantive entries should state:
 
 - **Category:** `transcription`, `typographical`, `equation`, `figure`, `reference`, or `editorial`
-- **Status:** `pending-human-approval` for a substantive proposal; `human-approved` only after explicit human approval; `minor-typo-correction` only for a retained record of an autonomous minor correction
+- **Status:** `pending-human-approval` for a substantive proposal; `human-approved` only after explicit human approval; `minor-typo-correction` only for a kept record of an autonomous minor correction
 - **Location:** source PDF/physical page and/or printed page/chapter
 - **Original**
 - **Proposed/approved reconstruction**
@@ -82,7 +92,7 @@ Simple confirmed-no-change checks do not belong in `ERRATA.md`. Do not create a 
 
 Maintain bibliography data only in `reconstruction/references.bib`. Verify metadata against primary records when auditing, but source fidelity still governs the rendered reconstruction.
 
-A change that alters a historical author name, title, year, citation, quotation, or other bibliographic content is substantive unless it merely restores a mistranscription or makes a clearly mechanical punctuation correction without changing bibliographic identity. Do not silently normalize a historical bibliographic error from an external database; propose it for human approval.
+A change that alters a source author name, title, year, citation, quotation, or other bibliographic content is substantive unless it merely restores a mistranscription or makes a clearly mechanical punctuation correction without changing bibliographic identity. Do not silently normalize a source bibliographic error from an external database; propose it for human approval.
 
 ## Batch completion
 

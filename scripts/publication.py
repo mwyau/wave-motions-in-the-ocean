@@ -30,7 +30,8 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 RECON = ROOT / "reconstruction"
-SOURCE = ROOT / "source"
+REFERENCES = ROOT / "references"
+SOURCE_DIR = REFERENCES / "chapman-rizzoli-1989"
 DIST = ROOT / "dist"
 FIGURES = RECON / "figures"
 CACHE = Path(os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motions")))
@@ -100,7 +101,7 @@ SIGNATURE_RE = re.compile(
 )
 DIRECT_PDF_RE = re.compile(
     r"\\includegraphics\[(?P<opts>[^]]*page=(?P<page>\d+)[^]]*trim=(?P<trim>[^,\]]+)[^]]*)\]"
-    r"\s*\{(?P<path>\.\./source/(?P<pdf>[^}]+))\}",
+    r"\s*\{(?P<path>\.\./references/chapman-rizzoli-1989/(?P<pdf>[^}]+))\}",
     re.DOTALL,
 )
 LOCAL_RASTER_RE = re.compile(
@@ -233,7 +234,7 @@ def source_crop(
     dpi: int = SOURCE_RENDER_DPI,
 ) -> str:
     """Render and crop a source-PDF page into a publication asset directory."""
-    pdf = SOURCE / pdf_name
+    pdf = SOURCE_DIR / pdf_name
     if not pdf.exists():
         raise FileNotFoundError(pdf)
 
@@ -274,7 +275,7 @@ def render_source_crop(
     angle: float = 0.0,
 ) -> None:
     """Render one source crop for figure-audit comparisons."""
-    pdf = SOURCE / pdf_name
+    pdf = SOURCE_DIR / pdf_name
     if not pdf.exists():
         raise FileNotFoundError(pdf)
     with tempfile.TemporaryDirectory(prefix="wave-source-") as temporary:
@@ -554,7 +555,7 @@ def transform_tex(
     expected_figures = {1: 7, 2: 10, 3: 12, 4: 30, 5: 31, 6: 14}
     if figure_number != expected_figures[chapter_number]:
         raise SystemExit(
-            f"chapter {chapter_number}: expected canonical figure count, got {figure_number}"
+            f"chapter {chapter_number}: expected figure count, got {figure_number}"
         )
     return text
 
