@@ -261,16 +261,23 @@ def canonical_equation_labels() -> dict[int, tuple[str, ...]]:
 
 def require_labels(text: str, labels: tuple[str, ...], *, artifact: str) -> None:
     if artifact == "EPUB" or artifact.endswith(".html"):
-        marker = r'class=["\']upright["\'][^>]*>\s*'
+        prefix = r'class=["\']upright["\'][^>]*>\s*'
+        suffix = ""
     elif artifact.endswith(".pdf"):
-        # PDF text extraction keeps equation labels on the right edge of the
-        # displayed equation line, while prose references remain left-aligned.
-        marker = r"(?m)^[ \t]{20,}.*?"
+        # pdftotext -layout preserves display-equation indentation, but the exact
+        # column varies with trim width and equation length. Match an indented
+        # equation line whose label is at the right edge instead of hard-coding
+        # a minimum number of leading spaces. Prose references remain excluded.
+        prefix = r"(?m)^[ \t]+[^\n]*?"
+        suffix = r"[ \t]*$"
     else:
-        marker = ""
+        prefix = ""
+        suffix = ""
     positions: list[int] = []
     for label in labels:
-        pattern = re.compile(marker + re.escape(label) if marker else re.escape(label))
+        pattern = re.compile(
+            prefix + re.escape(label) + suffix if prefix else re.escape(label)
+        )
         matches = list(pattern.finditer(text))
         count = len(matches)
         if count != 1:

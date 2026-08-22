@@ -84,7 +84,7 @@ def run(
 
 
 def normalize_epub_math_tex(text: str) -> str:
-    """Apply EPUB-only compatibility changes to generated TeX."""
+    """Apply MathML compatibility changes to generated EPUB TeX."""
     return re.sub(r"\\ell(?![A-Za-z])", "{ℓ}", text)
 
 
@@ -103,8 +103,8 @@ def epub_inputs() -> list[Path]:
         front_text.replace(marker, credit_source.read_text().strip(), 1)
     )
 
-    for chapter in paths[1:]:
-        chapter.write_text(normalize_epub_math_tex(chapter.read_text()))
+    for path in paths:
+        path.write_text(normalize_epub_math_tex(path.read_text()))
 
     references = source_dir / "references.tex"
     references.write_text("\\chapter{References}\n")
@@ -526,6 +526,67 @@ def set_known_accessibility(
     return rewritten
 
 
+def _set_contributor_refinements(metadata: ET.Element) -> None:
+    creators = metadata.findall(f"{{{DC_NS}}}creator")
+    creators_by_name = {text_content(element): element for element in creators}
+    missing_authors = [author for author in AUTHORS if author not in creators_by_name]
+    if missing_authors:
+        raise SystemExit(
+            f"EPUB package metadata is missing authors: {missing_authors!r}"
+        )
+
+    contributor = next(
+        (
+            element
+            for element in metadata.findall(f"{{{DC_NS}}}contributor")
+            if text_content(element) == EDITOR
+        ),
+        None,
+    )
+    if contributor is None:
+        raise SystemExit("EPUB package metadata is missing the editor")
+
+    refined_elements = [*(creators_by_name[author] for author in AUTHORS), contributor]
+    old_ids = {element.get("id") for element in refined_elements if element.get("id")}
+    for meta in list(metadata.findall("{*}meta")):
+        refines = (meta.get("refines") or "").removeprefix("#")
+        if refines in old_ids and meta.get("property") in {"role", "display-seq"}:
+            metadata.remove(meta)
+
+    for sequence, author in enumerate(AUTHORS, start=1):
+        creator = creators_by_name[author]
+        creator_id = f"author-{sequence}"
+        creator.set("id", creator_id)
+        role = ET.SubElement(
+            metadata,
+            f"{{{OPF_NS}}}meta",
+            {
+                "refines": f"#{creator_id}",
+                "property": "role",
+                "scheme": "marc:relators",
+            },
+        )
+        role.text = "aut"
+        display_sequence = ET.SubElement(
+            metadata,
+            f"{{{OPF_NS}}}meta",
+            {"refines": f"#{creator_id}", "property": "display-seq"},
+        )
+        display_sequence.text = str(sequence)
+
+    contributor.set("id", "editor")
+    editor_role = ET.SubElement(
+        metadata,
+        f"{{{OPF_NS}}}meta",
+        {
+            "refines": "#editor",
+            "property": "role",
+            "scheme": "marc:relators",
+        },
+    )
+    editor_role.text = "edt"
+
+
 def update_package_metadata(opf_root: ET.Element) -> bytes:
     metadata = opf_root.find("{*}metadata")
     if metadata is None:
@@ -538,6 +599,7 @@ def update_package_metadata(opf_root: ET.Element) -> bytes:
             metadata.remove(extra)
     else:
         ET.SubElement(metadata, f"{{{DC_NS}}}language").text = LANGUAGE
+    _set_contributor_refinements(metadata)
     for element in list(metadata):
         if (
             element.tag.endswith("}meta")

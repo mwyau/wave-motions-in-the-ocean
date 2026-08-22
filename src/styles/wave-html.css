@@ -217,6 +217,17 @@ div.flushright { text-align: right; margin-top: -0.85em; }
   color: var(--wave-muted);
   font-weight: 600;
 }
+.dev-math-controls {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: .25rem;
+  white-space: nowrap;
+}
+.dev-math-controls .math-mode-button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
 .nav-short { display: none; }
 
 .book-contents-rail {
@@ -368,14 +379,26 @@ img, svg { display: block; max-width: 100%; height: auto; margin: 1.1rem auto; }
 img[src$="salmon-hendershott-como-1980.jpg"] {
   width: min(100%, 28rem);
 }
-.math.display,
-mjx-container[jax="CHTML"][display="true"] {
+.math.display {
   display: block;
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: .25rem 0 .4rem;
+  padding: calc(1em + .5rem) 0 calc(1em + .8rem);
   -webkit-overflow-scrolling: touch;
+}
+.math.display > mjx-container[jax="CHTML"][display="true"] {
+  display: block;
+  max-width: 100%;
+  margin: 0 !important;
+  padding: 0;
+}
+.math.display > math[display="block"] {
+  display: block math;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  math-style: normal;
 }
 mjx-container[jax="CHTML"] { color: inherit; }
 pre, table { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -453,6 +476,10 @@ a:visited { color: var(--wave-visited); }
   }
   .book-nav-links { gap: .15rem .55rem; }
   .book-controls { gap: .5rem; }
+  .dev-math-controls {
+    gap: .15rem;
+    font-size: .78rem;
+  }
   .theme-cycle {
     min-height: 2.35rem;
     padding: .3rem .4rem;
@@ -481,7 +508,7 @@ a:visited { color: var(--wave-visited); }
   #title-block-header.chapter-title-block { margin-bottom: .3rem; }
   figure { margin: 1rem 0; }
   img, svg { margin: .8rem auto; }
-  .math.display, mjx-container[jax="CHTML"][display="true"] { padding-bottom: .55rem; }
+  .math.display { padding-bottom: calc(1em + 1.1rem); }
 }
 @page { margin: 18mm 16mm 20mm; }
 @media print {

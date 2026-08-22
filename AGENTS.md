@@ -42,6 +42,7 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 
 - Agent edits go directly onto the latest `main` as small linear commits unless the owner explicitly requests a branch or PR.
 - Before committing, re-read current `main`; if it moved, reconstruct the change on the new tip.
+- Before every agent commit, run `prek run --all-files` (or `pre-commit run --all-files` if `prek` is unavailable). Review any hook edits and rerun until the command passes.
 - Never force-push, reset `main` backwards, create merge commits, or overwrite newer work.
 - Do not create agent coordination sessions, claims, handoff branches, or competing workstreams.
 - Never create temporary workflows, trigger files, bot commit paths, or other automation to mutate tracked repository files.

@@ -20,10 +20,9 @@ from pathlib import Path
 from publication import (
     CONTACT_EMAIL,
     DOWNLOADS,
-    ORIGINAL_SOURCE_URL,
-    SRC,
     ROOT,
     SITE_URL,
+    SRC,
     markdown_license,
     reader_punctuation,
 )
@@ -181,8 +180,9 @@ def frontmatter_markdown(text: str) -> str:
 def read_download_markdown() -> str:
     lines = ["## Read and download", "", f"- [HTML]({SITE_URL}/)"]
     for filename, label in DOWNLOADS:
+        if filename == "wave-motions-facsimile.pdf":
+            continue
         lines.append(f"- [{label}]({SITE_URL}/{filename})")
-    lines.append(f"- [Original online source]({ORIGINAL_SOURCE_URL})")
     lines.extend(["", f"Contact: [{CONTACT_EMAIL}](mailto:{CONTACT_EMAIL})"])
     return "\n".join(lines)
 

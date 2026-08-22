@@ -1,6 +1,6 @@
 # Publication skill
 
-Use this skill for modern/facsimile presentation, front matter, README/HTML synchronization, EPUB, builds, GitHub Pages/CI, and releases.
+Use this skill for modern/facsimile presentation, front matter, README/HTML synchronization, EPUB, builds, CI, Pages, and releases.
 
 ## Content boundary
 
@@ -73,7 +73,9 @@ Modern contents use Chapter → Section only (`tocdepth=1`).
 
 ## Facsimile PDF
 
-The facsimile is a source-page edition. Preserve the 184-physical-page structure and original printed page numbers.
+The facsimile is an internal QA edition, not a reader-facing publication. Build and validate it to compare source-page layout and catch reconstruction drift, but do not link it from README/HTML, deploy it to GitHub Pages, or include it in public release assets.
+
+Preserve the 184-physical-page structure and original printed page numbers.
 
 Expected component counts are:
 
@@ -88,17 +90,16 @@ The facsimile build logs machine-readable source-boundary headroom and physical/
 
 ## README and HTML synchronization
 
-`scripts/publication.py` derives shared titles, section headings, Contents, Downloads, source links, license presentation, flowing sources, figure assets, and build identity. `scripts/build_html.py` consumes that model while generating the final HTML edition; `scripts/sync_readme.py` owns README synchronization/checking only.
+`scripts/publication.py` derives shared titles, section headings, Contents, reader links, license presentation, flowing sources, figure assets, and build identity. `scripts/build_html.py` consumes that model while generating the final HTML edition; `scripts/sync_readme.py` owns README synchronization/checking only.
 
 README and HTML must remain substantively synchronized, with format-specific differences such as absolute/relative URLs, README badges, and HTML reader controls.
 
-The original online source link belongs in README/HTML navigation only unless the owner explicitly requests it in book editions.
-
-Shared downloads are:
+Reader-facing downloads are:
 
 - `wave-motions.pdf`
-- `wave-motions-facsimile.pdf`
 - `wave-motions.epub`
+
+Do not link the original online source from README or HTML. Keep that URL with the source-reference material under `references/chapman-rizzoli-1989/README.md`, where it does not compete with the current edition.
 
 Keep public section anchors stable.
 
@@ -137,11 +138,11 @@ Use:
 ./scripts/build.sh all
 ```
 
-`build/` and `dist/` are generated and untracked. `audit/` is the persistent-but-ignored workspace for temporary review artifacts and must survive publication builds. The flat `dist/` publication root contains HTML, assets, the modern PDF, facsimile PDF, EPUB, and `SHA256SUMS`.
+`build/` and `dist/` are generated and untracked. `audit/` is the persistent-but-ignored workspace for temporary review artifacts and must survive publication builds. The flat `dist/` build root contains HTML, assets, the modern PDF, QA facsimile PDF, EPUB, and `SHA256SUMS`.
 
 Generated reader artifacts carry the exact source build identity. Stable releases use semantic tags such as `v1.0.0`; short commit IDs are build info, not release tags.
 
-`SHA256SUMS` must cover exactly the two PDFs and EPUB in `dist/`. Release packaging adds the HTML-only ZIP and verifies the expected asset set.
+`SHA256SUMS` covers the public modern PDF and EPUB in `dist/`. Release packaging adds the HTML-only ZIP and verifies the public asset set. The QA facsimile is deliberately excluded from release packaging and from the HTML ZIP.
 
 After any reconstruction `.tex` change:
 
@@ -159,7 +160,7 @@ Include resulting README synchronization in the same commit. A coherent local va
 
 Do not add one-time migration, cleanup, source-editing, reconciliation, or bot-commit logic to `publish.yml`.
 
-Publication automation should remain reproducible from the triggering commit. Build once and promote that exact validated output to Pages/releases rather than rebuilding downstream.
+Publication automation should remain reproducible from the triggering commit. Build and validate once, then promote the public subset of that exact output to Pages/releases rather than rebuilding downstream. The QA facsimile remains available in the short-lived Actions artifact but is removed from the Pages tree and public release package.
 
 Direct pushes to `main` should trigger on actual reader/build inputs. Tracking-only files such as `src/ERRATA.md`, `src/FIGURES.md`, and `src/RENDER_QA.md` need not by themselves trigger a full publication build. Pull-request validation remains unfiltered when needed for a required Build check. Source scans are immutable; including them defensively in trigger paths is acceptable so accidental changes cannot bypass CI.
 
@@ -167,4 +168,4 @@ Keep exact dependency/tool pins and TinyTeX cache semantics aligned with reposit
 
 Release publication is append-once. Published release assets must not be replaced or deleted by automation. A rerun may verify an existing published release but must fail rather than mutate it on mismatch. Use repository-level release immutability when available before stable public releases.
 
-GitHub Actions and GitHub Pages are enabled. The workflow's Pages path runs only for `refs/heads/main`: the build job uploads the already-built `dist/` tree as the Pages artifact, and the dedicated `pages` job deploys that artifact to the `github-pages` environment. Do not rebuild for Pages deployment. Pull-request and tag runs do not deploy Pages; a workflow dispatch on `main` may redeploy the same build path. Stable release tags continue through the separate release job. Pages and release automation remain read-only with respect to tracked repository content.
+GitHub Actions and GitHub Pages are enabled. The workflow's Pages path runs only for `refs/heads/main`: the build job stages the validated public reader files without the QA facsimile, uploads that Pages artifact, and the dedicated `pages` job deploys it to the `github-pages` environment. Do not rebuild for Pages deployment. Pull-request and tag runs do not deploy Pages; a workflow dispatch on `main` may redeploy the same build path. Stable release tags continue through the separate release job. Pages and release automation remain read-only with respect to tracked repository content.
