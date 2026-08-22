@@ -2,10 +2,13 @@
 % Artwork: Utagawa Hiroshige, Naruto Whirlpool, Awa Province, The Met JP1198.
 % The committed JPEG is kept unchanged; the crop is applied only at render time.
 
+\providecommand{\wavedoi}{}
+
 \NewDocumentCommand{\WaveModernBack}{}{%
 	\clearpage
 	\thispagestyle{empty}%
 	\pagecolor{WaveCoverPaper}%
+	\edef\WaveDOIText{\wavedoi}%
 	\begin{tikzpicture}[remember picture,overlay]
 		% Scale the complete source image first, then clip in output-space units so a
 		% higher-resolution replacement with the same composition uses the same crop.
@@ -19,9 +22,12 @@
 		\begin{scope}[shift={(current page.center)}]
 			\draw[color=WaveCoverBlue,line width=0.55pt]
 			(-2.609174in,-3.928259in) rectangle (2.609174in,3.928259in);
-			\node[anchor=north east,inner sep=0pt,color=WaveCoverBlue,
-				font=\sffamily\fontsize{11}{13}\selectfont]
-			at (2.609174in,-4.088259in) {DOI: Pending};
+			\ifx\WaveDOIText\empty\else
+				\node[anchor=north east,inner sep=0pt,color=WaveCoverBlue,
+					font=\sffamily\fontsize{11}{13}\selectfont]
+				at (2.609174in,-4.088259in)
+				{\href{https://doi.org/\wavedoi}{DOI: \wavedoi}};
+			\fi
 		\end{scope}
 	\end{tikzpicture}%
 	\null
