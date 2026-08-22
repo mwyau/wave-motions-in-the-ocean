@@ -8,7 +8,8 @@ help:
 	  'pdf            Build PDF editions' \
 	  'html           Build HTML edition' \
 	  'epub           Build EPUB edition' \
-	  'all            Build all editions'
+	  'all            Build all editions' \
+	  'clean          Remove generated artifacts'
 readme:
 	$(PYTHON) scripts/sync_readme.py
 

@@ -141,14 +141,12 @@ case "$TARGET" in
     ;;
   pdf)
     need uv
-    reset_generated
     build_pdf
     if validation_enabled; then
       "${PYTHON[@]}" "$ROOT/scripts/validate.py" pdf
     fi
     ;;
   html)
-    reset_generated
     build_html
     if validation_enabled; then
       check_readme
@@ -156,7 +154,6 @@ case "$TARGET" in
     ;;
   epub)
     need uv
-    reset_generated
     build_epub
     if validation_enabled; then
       "${PYTHON[@]}" "$ROOT/scripts/validate.py" epub
