@@ -24,7 +24,7 @@ For every difference or suspected error, use this order:
 
 1. **Reconstruction differs from the PDF unintentionally:** restore the PDF reading unless the difference is a minor mechanical correction allowed by item 2.
 1. **Small unambiguous mechanical correction:** spelling, grammar, transcription, punctuation, or TeX punctuation syntax may be corrected autonomously when there is no plausible change in scientific, mathematical, bibliographic, or substantive editorial meaning. If uncertain, do not use this exception.
-1. **Substantive or ambiguous source problem:** keep or restore the source reading in the reconstruction, record the proposed correction and evidence in `reconstruction/ERRATA.md` with `pending-human-approval`, and ask the human owner for approval.
+1. **Substantive or ambiguous source problem:** keep or restore the source reading in the reconstruction, record the proposed correction and evidence in `src/ERRATA.md` with `pending-human-approval`, and ask the human owner for approval.
 1. **Explicit human approval:** only then apply the substantive correction and record it as `human-approved`, with enough context to identify what was approved.
 
 Agents can never approve an erratum. Do not infer approval from mathematical correctness, external literature, issue closure, another agent's judgment, an existing commit, or an existing status. If an older substantive entry lacks traceable explicit human approval, do not treat it as precedent or permission; flag it for human review when encountered.
@@ -90,7 +90,7 @@ Simple confirmed-no-change checks do not belong in `ERRATA.md`. Do not create a 
 
 ## References
 
-Maintain bibliography data only in `reconstruction/references.bib`. Verify metadata against primary records when auditing, but source fidelity still governs the rendered reconstruction.
+Maintain bibliography data only in `src/references.bib`. Verify metadata against primary records when auditing, but source fidelity still governs the rendered reconstruction.
 
 A change that alters a source author name, title, year, citation, quotation, or other bibliographic content is substantive unless it merely restores a mistranscription or makes a clearly mechanical punctuation correction without changing bibliographic identity. Do not silently normalize a source bibliographic error from an external database; propose it for human approval.
 

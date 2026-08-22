@@ -104,7 +104,7 @@ and Luna.
 *Stony Brook — Albert M. W. Yau, 2026*
 
 <figure>
-<img src="reconstruction/figures/frontmatter/salmon-hendershott-como-1980.jpg" width="420" />
+<img src="src/figures/frontmatter/salmon-hendershott-como-1980.jpg" width="420" />
 <p>Rick Salmon (left) and Myrl Hendershott at Villa Carlotta, Lake Como,
 during the International School of Physics “Enrico Fermi,” Course LXXX,
 <em>Topics in Ocean Physics</em>, July 1980.</p>

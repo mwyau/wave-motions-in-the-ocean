@@ -3,7 +3,7 @@
 
 Pandoc supplies the document markup after the shared publication
 preparation. This script owns dynamic publication data and final assembly; the
-maintained reader shell lives in reconstruction/templates/wave-html.html.
+maintained reader shell lives in src/templates/wave-html.html.
 """
 
 from __future__ import annotations
@@ -40,13 +40,13 @@ from publication import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-RECON = ROOT / "reconstruction"
+SRC = ROOT / "src"
 BUILD = ROOT / "build" / "html-pandoc"
 OUT = ROOT / "dist"
 ASSETS = OUT / "assets"
-HTML_TEMPLATE = RECON / "templates" / "wave-html.html"
-SOCIAL_PREVIEW_TEMPLATE = RECON / "templates" / "social-preview.tex"
-COVER_SOURCE = RECON / "cover-modern.tex"
+HTML_TEMPLATE = SRC / "templates" / "wave-html.html"
+SOCIAL_PREVIEW_TEMPLATE = SRC / "templates" / "social-preview.tex"
+COVER_SOURCE = SRC / "cover-modern.tex"
 SOCIAL_PREVIEW = ASSETS / "social-preview.png"
 SOCIAL_DESCRIPTION = (
     "Digital edition of Wave Motions in the Ocean: Myrl’s View by David C. Chapman "
@@ -115,7 +115,7 @@ def run(cmd: list[str], *, cwd: Path | None = None) -> None:
 
 
 def pandoc_page(source_tex: Path, output: Path, title: str) -> None:
-    resource_path = os.pathsep.join((str(OUT), str(source_tex.parent), str(RECON)))
+    resource_path = os.pathsep.join((str(OUT), str(source_tex.parent), str(SRC)))
     run(
         [
             "pandoc",
@@ -280,11 +280,11 @@ def book_toc(index: int | None) -> str:
 
 def source_url(index: int | None, sha: str) -> str:
     if index is None:
-        source_path = "reconstruction/frontmatter-modern.tex"
+        source_path = "src/frontmatter-modern.tex"
     elif index == 0:
-        source_path = "reconstruction/references.bib"
+        source_path = "src/references.bib"
     else:
-        source_path = f"reconstruction/chapter{index}.tex"
+        source_path = f"src/chapter{index}.tex"
     revision = sha if sha != "unknown" else "main"
     return f"{REPOSITORY_URL}/blob/{revision}/{source_path}"
 
@@ -576,7 +576,7 @@ def build_references(source_dir: Path) -> None:
     references.write_text(
         f"---\ntitle: References\nlang: {LANGUAGE}\nnocite: |\n  @*\n---\n"
     )
-    resource_path = os.pathsep.join((str(OUT), str(source_dir), str(RECON)))
+    resource_path = os.pathsep.join((str(OUT), str(source_dir), str(SRC)))
     run(
         [
             "pandoc",
@@ -585,7 +585,7 @@ def build_references(source_dir: Path) -> None:
             "-t",
             "html5",
             "--citeproc",
-            f"--bibliography={RECON / 'references.bib'}",
+            f"--bibliography={SRC / 'references.bib'}",
             "--resource-path",
             resource_path,
             "-o",
@@ -794,8 +794,8 @@ def main() -> int:
     prepare_assets(OUT, BUILD)
     source_dir = BUILD / "source"
     prepare_flowing_sources(source_dir, OUT)
-    shutil.copy2(RECON / "styles" / "wave-html.css", ASSETS / "wave.css")
-    shutil.copy2(RECON / "styles" / "wave-html.js", ASSETS / "wave.js")
+    shutil.copy2(SRC / "styles" / "wave-html.css", ASSETS / "wave.css")
+    shutil.copy2(SRC / "styles" / "wave-html.js", ASSETS / "wave.js")
     build_social_preview()
 
     build_index(source_dir)

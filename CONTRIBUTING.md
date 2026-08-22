@@ -51,10 +51,10 @@ prek run --all-files
 ## Files
 
 - `references/chapman-rizzoli-1989/*.pdf` — original scans; do not modify them.
-- `reconstruction/chapter1.tex` through `chapter6.tex` — book text and equations.
-- `reconstruction/references.bib` — bibliography.
-- `reconstruction/ERRATA.md` — corrections and supporting evidence.
-- `reconstruction/FIGURES.md` — figure sources and review status.
+- `src/chapter1.tex` through `chapter6.tex` — book text and equations.
+- `src/references.bib` — bibliography.
+- `src/ERRATA.md` — corrections and supporting evidence.
+- `src/FIGURES.md` — figure sources and review status.
 
 ## Build and check
 

@@ -22,8 +22,8 @@ from PIL import Image, ImageDraw
 from publication import render_source_crop, render_tikz_png
 
 ROOT = Path(__file__).resolve().parents[1]
-RECON = ROOT / "reconstruction"
-FIGURES = RECON / "figures"
+SRC = ROOT / "src"
+FIGURES = SRC / "figures"
 OUTROOT = ROOT / "audit" / "figures" / "comparisons"
 META_RE = re.compile(
     r"^% wave-source:\s*pdf=(?P<pdf>[^;]+);\s*page=(?P<page>\d+);\s*"

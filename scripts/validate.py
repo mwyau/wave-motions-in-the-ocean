@@ -52,7 +52,7 @@ from publication import (
 from release import DEFAULT_FILES, verify_manifest
 
 ROOT = Path(__file__).resolve().parents[1]
-RECON = ROOT / "reconstruction"
+SRC = ROOT / "src"
 BUILD = ROOT / "build"
 DIST = ROOT / "dist"
 README = ROOT / "README.md"
@@ -148,12 +148,12 @@ def tex_math_regions(text: str) -> list[str]:
 
 
 def check_canonical_source() -> None:
-    frontmatter = (RECON / "frontmatter-modern.tex").read_text()
+    frontmatter = (SRC / "frontmatter-modern.tex").read_text()
     for sentinel in PAOLA_SOURCE_SENTINELS:
         if sentinel not in frontmatter:
             fail(f"Paola preface math sentinel changed or lost: {sentinel}")
 
-    for chapter in sorted(RECON.glob("chapter[1-6].tex")):
+    for chapter in sorted(SRC.glob("chapter[1-6].tex")):
         text = strip_tex_comments(chapter.read_text())
         occurrences = re.findall(r"\\rm(?:\s|\{|$)", text)
         if occurrences:
@@ -177,10 +177,10 @@ def check_canonical_source() -> None:
 
 def check_punctuation() -> None:
     canonical_paths = [
-        RECON / "frontmatter-modern.tex",
-        RECON / "frontmatter-modern-book.tex",
-        RECON / "frontmatter-facsimile.tex",
-        *(RECON / f"chapter{number}.tex" for number in range(1, 7)),
+        SRC / "frontmatter-modern.tex",
+        SRC / "frontmatter-modern-book.tex",
+        SRC / "frontmatter-facsimile.tex",
+        *(SRC / f"chapter{number}.tex" for number in range(1, 7)),
     ]
     for path in canonical_paths:
         text = strip_tex_comments(path.read_text())
@@ -235,7 +235,7 @@ def check_punctuation() -> None:
 def canonical_equation_labels() -> dict[int, tuple[str, ...]]:
     labels: dict[int, tuple[str, ...]] = {}
     for chapter_number in range(1, 7):
-        path = RECON / f"chapter{chapter_number}.tex"
+        path = SRC / f"chapter{chapter_number}.tex"
         text = strip_tex_comments(path.read_text())
         wrapper_count = len(NUMBERED_ENV_RE.findall(text))
         native = tuple(f"({m.group('tag')})" for m in NATIVE_TAG_RE.finditer(text))

@@ -24,7 +24,7 @@ Avoid screenshots, repeated lossy recompression, and committed before/after copi
 
 ## Provenance and ledger
 
-Record figure state, source info, representation choice, review status, and equation-validation status in `reconstruction/FIGURES.md`.
+Record figure state, source info, representation choice, review status, and equation-validation status in `src/FIGURES.md`.
 
 Use `Equation validation` consistently:
 
@@ -39,7 +39,7 @@ Do not infer `AI-checked` merely because a TikZ file contains a formula or visua
 
 TikZ figures should carry their `wave-source` source comment. Intentionally edited rasters should keep equivalent embedded source metadata when tooling supports it.
 
-A substantive discrepancy between source and reconstruction also belongs in `reconstruction/ERRATA.md`; the figure ledger is not an approval mechanism or substitute errata ledger.
+A substantive discrepancy between source and reconstruction also belongs in `src/ERRATA.md`; the figure ledger is not an approval mechanism or substitute errata ledger.
 
 ## Scientific figure audit
 

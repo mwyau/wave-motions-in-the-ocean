@@ -21,7 +21,7 @@ from publication import (
     CONTACT_EMAIL,
     DOWNLOADS,
     ORIGINAL_SOURCE_URL,
-    RECON,
+    SRC,
     ROOT,
     SITE_URL,
     markdown_license,
@@ -29,7 +29,7 @@ from publication import (
 )
 
 README = ROOT / "README.md"
-FRONTMATTER = RECON / "frontmatter-modern.tex"
+FRONTMATTER = SRC / "frontmatter-modern.tex"
 BADGES_START = "<!-- README_BADGES_START -->"
 BADGES_END = "<!-- README_BADGES_END -->"
 DEFAULT_BADGES = (
@@ -147,7 +147,7 @@ def frontmatter_markdown(text: str) -> str:
     body = LOCAL_RASTER_RE.sub(
         lambda match: (
             rf"\includegraphics{match.group('opts') or ''}"
-            rf"{{reconstruction/figures/{match.group('name')}}}"
+            rf"{{src/figures/{match.group('name')}}}"
         ),
         body,
     )
@@ -171,8 +171,8 @@ def frontmatter_markdown(text: str) -> str:
     rendered = process.stdout.strip()
     rendered = re.sub(r"(?m)^# ", "## ", rendered)
     rendered = re.sub(
-        r'<img src="reconstruction/figures/frontmatter/salmon-hendershott-como-1980\.jpg"[^>]*>',
-        '<img src="reconstruction/figures/frontmatter/salmon-hendershott-como-1980.jpg" width="420" />',
+        r'<img src="src/figures/frontmatter/salmon-hendershott-como-1980\.jpg"[^>]*>',
+        '<img src="src/figures/frontmatter/salmon-hendershott-como-1980.jpg" width="420" />',
         rendered,
     )
     return rendered

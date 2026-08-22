@@ -6,7 +6,7 @@ Use this skill for modern/facsimile presentation, front matter, README/HTML sync
 
 Publication work controls presentation and generated editions. It must not silently rewrite source or scientific content.
 
-- Shared body text comes from `reconstruction/chapter1.tex` … `chapter6.tex` and remains governed by `skills/source-audit/SKILL.md`.
+- Shared body text comes from `src/chapter1.tex` … `chapter6.tex` and remains governed by `skills/source-audit/SKILL.md`.
 - The committed 1989 PDFs under `references/chapman-rizzoli-1989/` control source-fidelity checks.
 - Do not alter prose, equations, figure labels, references, or scientific meaning merely to improve style, satisfy a validator, make a derivation more correct, or simplify a build.
 - A substantive source correction requires explicit human approval under the source-audit rules. Publication tooling/build success never constitutes approval.
@@ -17,12 +17,12 @@ Canonical `.tex` uses TeX punctuation conventions; Markdown, HTML, and EPUB shou
 
 ## Canonical publication sources
 
-- Shared modern PDF/EPUB cover: `reconstruction/cover-modern.tex`
-- Modern front matter: `reconstruction/frontmatter-modern.tex`
-- PDF-only modern book preliminaries: `reconstruction/frontmatter-modern-book.tex`
-- Facsimile front matter: `reconstruction/frontmatter-facsimile.tex`
-- Shared body: `reconstruction/chapter1.tex` … `chapter6.tex`
-- Bibliography: `reconstruction/references.bib`
+- Shared modern PDF/EPUB cover: `src/cover-modern.tex`
+- Modern front matter: `src/frontmatter-modern.tex`
+- PDF-only modern book preliminaries: `src/frontmatter-modern-book.tex`
+- Facsimile front matter: `src/frontmatter-facsimile.tex`
+- Shared body: `src/chapter1.tex` … `chapter6.tex`
+- Bibliography: `src/references.bib`
 
 README, HTML, and EPUB are generated/synchronized publication views, not separate prose sources.
 
@@ -39,7 +39,7 @@ Preserve these cover invariants unless explicitly redesigned by the owner:
 1. David C. Chapman and Paola Malanotte-Rizzoli are the authors.
 1. Years, editor credit, license marks, museum credit, and badges do not belong on the front cover.
 
-The committed Hokusai source image is `reconstruction/figures/frontmatter/great-wave-met-dp130155.jpg`. Preserve its composition.
+The committed Hokusai source image is `src/figures/frontmatter/great-wave-met-dp130155.jpg`. Preserve its composition.
 
 The paged modern PDF preliminaries are:
 
@@ -151,7 +151,7 @@ Do not add one-time migration, cleanup, source-editing, reconciliation, or bot-c
 
 Publication automation should remain reproducible from the triggering commit. Build once and promote that exact validated output to Pages/releases rather than rebuilding downstream.
 
-Direct pushes to `main` should trigger on actual reader/build inputs. Tracking-only files such as `reconstruction/ERRATA.md`, `reconstruction/FIGURES.md`, and `reconstruction/RENDER_QA.md` need not by themselves trigger a full publication build. Pull-request validation remains unfiltered when needed for a required Build check. Source scans are immutable; including them defensively in trigger paths is acceptable so accidental changes cannot bypass CI.
+Direct pushes to `main` should trigger on actual reader/build inputs. Tracking-only files such as `src/ERRATA.md`, `src/FIGURES.md`, and `src/RENDER_QA.md` need not by themselves trigger a full publication build. Pull-request validation remains unfiltered when needed for a required Build check. Source scans are immutable; including them defensively in trigger paths is acceptable so accidental changes cannot bypass CI.
 
 Keep exact dependency/tool pins and TinyTeX cache semantics aligned with repository manifests. Missing/incomplete artifacts and generation/dependency failures are fatal. Development QA categories may warn where deliberately configured; stable `vX.Y.Z` release gates are strict, including exact facsimile pagination and release asset/checksum validation.
 

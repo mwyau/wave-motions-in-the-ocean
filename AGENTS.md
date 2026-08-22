@@ -33,7 +33,7 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 
 ## Maintained content
 
-- The reconstruction `.tex` files and `reconstruction/references.bib` are the maintained reader sources.
+- The reconstruction `.tex` files and `src/references.bib` are the maintained reader sources.
 - `README.md`, HTML, EPUB, `build/`, and `dist/` are derived/generated views or outputs; follow `skills/publication/SKILL.md` rather than maintaining parallel content.
 - `audit/` is the persistent-but-ignored workspace for temporary human/agent audit evidence; it must survive publication builds and must never be committed.
 - The authorized license is CC BY-NC-SA 4.0. Do not change it without explicit instruction.
@@ -50,8 +50,8 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 
 ## Project records
 
-- `reconstruction/ERRATA.md`: substantive source deviations, proposed corrections, evidence, and human review status.
-- `reconstruction/FIGURES.md`: figure source info, representation, and scientific/equation validation.
+- `src/ERRATA.md`: substantive source deviations, proposed corrections, evidence, and human review status.
+- `src/FIGURES.md`: figure source info, representation, and scientific/equation validation.
 
 Do not create duplicate audit ledgers, source manifests, verification TSVs, hash/status ledgers, or temporary trigger records.
 

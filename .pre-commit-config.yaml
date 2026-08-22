@@ -32,7 +32,7 @@ repos:
     rev: V4.0.2
     hooks:
       - id: latexindent
-        files: ^reconstruction/.*\.(tex|sty)$
+        files: ^src/.*\.(tex|sty)$
         types: [file]
 
   - repo: local
