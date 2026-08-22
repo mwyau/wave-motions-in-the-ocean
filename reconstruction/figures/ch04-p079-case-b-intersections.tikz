@@ -8,11 +8,17 @@
     \draw[->] (0.60,0.25)--(0.60,4.35);
     \node at (2.35,4.45) {\title};
     \foreach \p in {1.5708,4.7124,7.8540}{\pgfmathsetmacro{\xx}{0.60+0.40*\p}\draw[densely dashed] (\xx,0.35)--(\xx,4.10);}
-    \foreach \a/\b in {0.08/1.48,1.66/4.62,4.80/7.76,7.94/9.0}{
-      \draw[line width=.65pt,domain=\a:\b,samples=60,smooth,variable=\x]
-        plot ({0.60+0.40*\x},{2.35+0.48*tan(deg(\x))});}
-    \draw[line width=.75pt,domain=.18:9.0,samples=80,smooth,variable=\x]
-      plot ({0.60+0.40*\x},{2.35+0.48*(\sgn*0.7/\x)});
+    % The source plot clips both curves at the chart frame.  Keep the
+    % asymptotic branches inside that frame so their unbounded tangent
+    % values do not enlarge the figure's TeX bounding box.
+    \begin{scope}
+      \clip (0.60,0.35) rectangle (4.30,4.10);
+      \foreach \a/\b in {0.08/1.48,1.66/4.62,4.80/7.76,7.94/9.0}{
+        \draw[line width=.65pt,domain=\a:\b,samples=60,smooth,variable=\x]
+          plot ({0.60+0.40*\x},{2.35+0.48*tan(deg(\x))});}
+      \draw[line width=.75pt,domain=.18:9.0,samples=80,smooth,variable=\x]
+        plot ({0.60+0.40*\x},{2.35+0.48*(\sgn*0.7/\x)});
+    \end{scope}
     \node[anchor=west] at (0.78,3.85) {$C/x$};
     \node[anchor=west] at (3.2,3.55) {$\tan x$};
     \ifnum\sgn=1
