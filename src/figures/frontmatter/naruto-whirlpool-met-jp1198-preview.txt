@@ -1,0 +1,1 @@
+Do not use. The actual image is supplied by the user and will replace the temporary placeholder through a binary tree update.
