@@ -99,7 +99,7 @@
   globalContents.hidden = true;
   tocToggle.hidden = false;
 
-  const compactContents = matchMedia("(max-width: 48rem)");
+  const compactContents = matchMedia("(max-width: 36rem)");
   const positionContents = () => {
     if (compactContents.matches) return;
     const gutter = 16;
