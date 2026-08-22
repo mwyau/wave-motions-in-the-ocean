@@ -387,12 +387,18 @@ img[src$="salmon-hendershott-como-1980.jpg"] {
   padding: calc(1em + .5rem) 0 calc(1em + .8rem);
   -webkit-overflow-scrolling: touch;
 }
-.math.display > mjx-container[jax="CHTML"][display="true"],
-.math.display > math[display="block"] {
+.math.display > mjx-container[jax="CHTML"][display="true"] {
   display: block;
   max-width: 100%;
   margin: 0 !important;
   padding: 0;
+}
+.math.display > math[display="block"] {
+  display: block math;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  math-style: normal;
 }
 mjx-container[jax="CHTML"] { color: inherit; }
 pre, table { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
