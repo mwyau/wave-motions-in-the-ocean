@@ -64,9 +64,6 @@ def preserve_badges(current: str) -> str:
     )
     if marked:
         return marked.group("body").strip()
-    for line in current.splitlines():
-        if "img.shields.io" in line:
-            return line.strip()
     return DEFAULT_BADGES
 
 
