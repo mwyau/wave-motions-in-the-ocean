@@ -9,10 +9,9 @@
 	\begin{tikzpicture}[remember picture,overlay]
 		% Scale the complete source image first, then clip in output-space units so a
 		% higher-resolution replacement with the same composition uses the same crop.
-		% Right trim includes an additional 1/32 in beyond the prior crop.
 		\begin{scope}[shift={(current page.center)}]
 			\clip (-2.574584in,-3.893669in) rectangle (2.574584in,3.893669in);
-			\node[inner sep=0pt,anchor=center] at (0,0.116977in) {%
+			\node[inner sep=0pt,anchor=center] at (-0.03in,0.116977in) {%
 				\includegraphics[width=5.86in]{figures/frontmatter/naruto-whirlpool-met-jp1198.jpg}%
 			};
 		\end{scope}
@@ -26,7 +25,6 @@
 		\end{scope}
 	\end{tikzpicture}%
 	\null
-	\nopagecolor
 }
 
 \WaveModernBack
