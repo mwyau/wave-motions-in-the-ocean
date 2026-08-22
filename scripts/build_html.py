@@ -108,6 +108,14 @@ HEADING_TRANSLATION = str.maketrans(
         "\u00a0": " ",
     }
 )
+MATHJAX_MATH_RE = re.compile(
+    r'<span class="math (?P<kind>inline|display)">.*?</span>',
+    re.DOTALL | re.IGNORECASE,
+)
+MATHML_MATH_RE = re.compile(
+    r'<math\b(?P<attrs>[^>]*)>.*?</math>',
+    re.DOTALL | re.IGNORECASE,
+)
 
 
 def require(command: str) -> None:
@@ -247,8 +255,20 @@ def install_html_vendor_assets() -> None:
     copy_archive_file(sans, "LICENSE.md", ASSETS / "licenses" / "Source-Sans-3-OFL.txt")
 
 
-def pandoc_page(source_tex: Path, output: Path, title: str) -> None:
+def pandoc_page(
+    source_tex: Path,
+    output: Path,
+    title: str,
+    *,
+    math_method: str = "mathjax",
+) -> None:
     resource_path = os.pathsep.join((str(OUT), str(source_tex.parent), str(SRC)))
+    if math_method == "mathjax":
+        math_option = f"--mathjax={MATHJAX_URL}"
+    elif math_method == "mathml":
+        math_option = "--mathml"
+    else:
+        raise ValueError(f"unsupported HTML math method: {math_method}")
     run(
         [
             "pandoc",
@@ -258,7 +278,7 @@ def pandoc_page(source_tex: Path, output: Path, title: str) -> None:
             "-t",
             "html5",
             "-s",
-            f"--mathjax={MATHJAX_URL}",
+            math_option,
             "--metadata",
             f"title={title}",
             "--metadata",
@@ -269,6 +289,65 @@ def pandoc_page(source_tex: Path, output: Path, title: str) -> None:
             str(output),
         ]
     )
+
+
+def install_mathml_alternates(page: Path, mathml_page: Path) -> None:
+    text = page.read_text(errors="replace")
+    mathml_text = mathml_page.read_text(errors="replace")
+    mathjax_matches = list(MATHJAX_MATH_RE.finditer(text))
+    mathml_matches = list(MATHML_MATH_RE.finditer(mathml_text))
+    if len(mathjax_matches) != len(mathml_matches):
+        raise SystemExit(
+            f"{page.name}: MathJax/MathML expression count differs: "
+            f"{len(mathjax_matches)} != {len(mathml_matches)}"
+        )
+
+    chunks: list[str] = []
+    cursor = 0
+    for position, (mathjax, mathml) in enumerate(
+        zip(mathjax_matches, mathml_matches, strict=True),
+        start=1,
+    ):
+        kind = mathjax.group("kind").lower()
+        display = re.search(
+            r'\bdisplay="(?P<display>inline|block)"',
+            mathml.group("attrs"),
+            flags=re.IGNORECASE,
+        )
+        if display is None:
+            raise SystemExit(
+                f"{mathml_page.name}: MathML expression {position} has no display mode"
+            )
+        expected = "inline" if kind == "inline" else "block"
+        if display.group("display").lower() != expected:
+            raise SystemExit(
+                f"{page.name}: expression {position} differs between MathJax "
+                f"({kind}) and MathML ({display.group('display')})"
+            )
+
+        chunks.append(text[cursor : mathjax.start()])
+        chunks.append(
+            mathjax.group(0).replace(
+                '<span class="math ',
+                '<span data-math-renderer="mathjax" class="math ',
+                1,
+            )
+        )
+        chunks.append(
+            f'<span data-math-renderer="mathml" '
+            f'class="math {kind} mathml-alternate" hidden>{mathml.group(0)}</span>'
+        )
+        cursor = mathjax.end()
+    chunks.append(text[cursor:])
+    page.write_text("".join(chunks))
+
+
+def dual_math_page(source_tex: Path, output: Path, title: str) -> None:
+    mathml_page = BUILD / "mathml" / output.name
+    mathml_page.parent.mkdir(parents=True, exist_ok=True)
+    pandoc_page(source_tex, output, title, math_method="mathjax")
+    pandoc_page(source_tex, mathml_page, title, math_method="mathml")
+    install_mathml_alternates(output, mathml_page)
 
 
 def chapter_for_page(path: Path):
@@ -701,7 +780,7 @@ def html_frontmatter_footer() -> str:
 
 def build_index(source_dir: Path) -> None:
     page = OUT / "index.html"
-    pandoc_page(source_dir / "frontmatter.tex", page, PUBLICATION_TITLE)
+    dual_math_page(source_dir / "frontmatter.tex", page, PUBLICATION_TITLE)
     text = page.read_text(errors="replace")
     text = text.replace(
         "</body>",
@@ -845,6 +924,9 @@ def validate() -> None:
             'class="reader-header page-shell"',
             'class="book-nav"',
             "data-theme-cycle",
+            "data-dev-math-controls",
+            'data-math-mode="mathjax"',
+            'data-math-mode="mathml"',
             "data-reader-context",
             "data-book-toc-rail",
             "data-toc-scope",
@@ -872,6 +954,19 @@ def validate() -> None:
                 raise SystemExit(
                     f"HTML requirement {required!r} is missing from {page.name}"
                 )
+        mathjax_count = text.count('data-math-renderer="mathjax"')
+        mathml_count = text.count('data-math-renderer="mathml"')
+        if mathjax_count != mathml_count:
+            raise SystemExit(
+                f"{page.name}: MathJax/MathML alternate count differs: "
+                f"{mathjax_count} != {mathml_count}"
+            )
+        if page.name.startswith("chapter") and mathjax_count == 0:
+            raise SystemExit(f"{page.name}: no dual-rendered mathematics found")
+        if text.count("<math ") != mathml_count:
+            raise SystemExit(
+                f"{page.name}: native MathML element count does not match alternates"
+            )
         if text.count("data-toc-scope") != 2 or text.count("data-toc-expand") != 2:
             raise SystemExit(f"HTML Contents controls are duplicated or missing in {page.name}")
         if text.count('class="build-info"') != 1:
@@ -928,6 +1023,8 @@ def validate() -> None:
         raise SystemExit("pinned MathJax URL is missing from generated HTML")
     if LOCAL_MATHJAX_URL not in combined:
         raise SystemExit("local MathJax component is missing from generated HTML")
+    if 'data-math-renderer="mathml"' not in combined or "<math " not in combined:
+        raise SystemExit("native MathML alternates are missing from generated HTML")
     validate_local_references()
 
 
@@ -962,7 +1059,7 @@ def main() -> int:
     build_index(source_dir)
     for chapter in CHAPTERS:
         page = OUT / f"chapter{chapter.number}.html"
-        pandoc_page(
+        dual_math_page(
             source_dir / f"chapter{chapter.number}.tex",
             page,
             f"Chapter {chapter.number}",

@@ -38,6 +38,88 @@
   });
   applyTheme();
 
+  const params = new URLSearchParams(location.search);
+  const devMode = params.get("dev") === "1";
+  const mathModes = ["mathjax", "mathml"];
+  let mathMode = devMode && params.get("math") === "mathml" ? "mathml" : "mathjax";
+  const devMathControls = document.querySelector("[data-dev-math-controls]");
+  const mathModeButtons = document.querySelectorAll("[data-math-mode]");
+  const mathRenderers = document.querySelectorAll("[data-math-renderer]");
+  const readerPagePattern = /^(?:index|chapter\d+|references)\.html$/;
+
+  const updateDevLinks = () => {
+    if (!devMode) return;
+    document.querySelectorAll("a[href]").forEach((link) => {
+      const raw = link.getAttribute("href");
+      if (!raw || raw.startsWith("#")) return;
+      let url;
+      try {
+        url = new URL(raw, location.href);
+      } catch (_) {
+        return;
+      }
+      if (url.origin !== location.origin) return;
+      const filename = url.pathname.split("/").pop();
+      if (!readerPagePattern.test(filename)) return;
+      url.searchParams.set("dev", "1");
+      url.searchParams.set("math", mathMode);
+      link.setAttribute("href", `${filename}?${url.searchParams.toString()}${url.hash}`);
+    });
+  };
+
+  const updateDevUrl = () => {
+    if (!devMode) return;
+    const url = new URL(location.href);
+    url.searchParams.set("dev", "1");
+    url.searchParams.set("math", mathMode);
+    history.replaceState(null, "", `${url.pathname}?${url.searchParams.toString()}${url.hash}`);
+  };
+
+  const typesetMathJaxIfNeeded = () => {
+    const pending = Array.from(
+      document.querySelectorAll('[data-math-renderer="mathjax"]'),
+    ).filter((node) => !node.querySelector('mjx-container[jax="CHTML"]'));
+    if (!pending.length) return;
+    const mathJax = window.MathJax;
+    if (!mathJax) return;
+    const typeset = () => {
+      if (typeof mathJax.typesetPromise === "function") {
+        mathJax.typesetPromise(pending).catch(() => {});
+      }
+    };
+    if (mathJax.startup?.promise) mathJax.startup.promise.then(typeset).catch(() => {});
+    else typeset();
+  };
+
+  const applyMathMode = () => {
+    root.dataset.mathRenderer = mathMode;
+    mathRenderers.forEach((node) => {
+      node.hidden = node.dataset.mathRenderer !== mathMode;
+    });
+    mathModeButtons.forEach((button) => {
+      const active = button.dataset.mathMode === mathMode;
+      button.setAttribute("aria-pressed", String(active));
+      button.style.fontWeight = active ? "700" : "";
+      button.style.textDecoration = active ? "none" : "";
+    });
+    if (mathMode === "mathjax") typesetMathJaxIfNeeded();
+    updateDevUrl();
+    updateDevLinks();
+  };
+
+  if (devMode && mathRenderers.length) {
+    if (devMathControls) devMathControls.hidden = false;
+    mathModeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const mode = button.dataset.mathMode;
+        if (!mathModes.includes(mode) || mode === mathMode) return;
+        mathMode = mode;
+        applyMathMode();
+      });
+    });
+  }
+  applyMathMode();
+
   const installPermalinks = () => {
     document.querySelectorAll("main > h1[id], main h2[id]").forEach((heading) => {
       if (heading.querySelector(":scope > .heading-permalink")) return;
