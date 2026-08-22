@@ -104,75 +104,18 @@ and Luna.
 *Stony Brook — Albert M. W. Yau, 2026*
 
 <figure>
-<img src="reconstruction/figures/frontmatter/salmon-hendershott-como-1980.jpg" style="width:82.0%" />
+<img src="reconstruction/figures/frontmatter/salmon-hendershott-como-1980.jpg" width="420" />
 <p>Rick Salmon (left) and Myrl Hendershott at Villa Carlotta, Lake Como,
 during the International School of Physics “Enrico Fermi,” Course LXXX,
 <em>Topics in Ocean Physics</em>, July 1980.</p>
 </figure>
 
-## Contents
+## Read and download
 
-1. [Basic concepts](https://mwyau.github.io/wave-motions-in-the-ocean/chapter1.html)
-   - [Plane waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter1.html#plane-waves)
-   - [The dispersion relation](https://mwyau.github.io/wave-motions-in-the-ocean/chapter1.html#the-dispersion-relation)
-   - [Linear superposition of plane waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter1.html#linear-superposition-of-plane-waves)
-   - [The method of stationary phase: Group velocity](https://mwyau.github.io/wave-motions-in-the-ocean/chapter1.html#the-method-of-stationary-phase-group-velocity)
-   - [Waves in slowly varying media: Ray theory](https://mwyau.github.io/wave-motions-in-the-ocean/chapter1.html#waves-in-slowly-varying-media-ray-theory)
-2. [Acoustic waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter2.html)
-   - [Basic physics](https://mwyau.github.io/wave-motions-in-the-ocean/chapter2.html#basic-physics)
-   - [Plane waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter2.html#plane-waves)
-   - [Reflection at a solid boundary](https://mwyau.github.io/wave-motions-in-the-ocean/chapter2.html#reflection-at-a-solid-boundary)
-   - [Plane waves in a channel](https://mwyau.github.io/wave-motions-in-the-ocean/chapter2.html#plane-waves-in-a-channel)
-   - [Scattering at a discontinuity](https://mwyau.github.io/wave-motions-in-the-ocean/chapter2.html#scattering-at-a-discontinuity)
-   - [Generation of plane waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter2.html#generation-of-plane-waves)
-   - [Slowly varying medium](https://mwyau.github.io/wave-motions-in-the-ocean/chapter2.html#slowly-varying-medium)
-3. [Surface gravity waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter3.html)
-   - [Homogeneous medium](https://mwyau.github.io/wave-motions-in-the-ocean/chapter3.html#homogeneous-medium)
-   - [Linear solutions](https://mwyau.github.io/wave-motions-in-the-ocean/chapter3.html#linear-solutions)
-   - [Internal waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter3.html#internal-waves)
-   - [Qualitative retreatment of surface waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter3.html#qualitative-retreatment-of-surface-waves)
-   - [Careful retreatment of surface waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter3.html#careful-retreatment-of-surface-waves)
-   - [An initial value problem](https://mwyau.github.io/wave-motions-in-the-ocean/chapter3.html#an-initial-value-problem)
-   - [Ship waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter3.html#ship-waves)
-   - [A wave energy equation](https://mwyau.github.io/wave-motions-in-the-ocean/chapter3.html#a-wave-energy-equation)
-   - [Slowly varying medium](https://mwyau.github.io/wave-motions-in-the-ocean/chapter3.html#slowly-varying-medium)
-   - [Waves riding on a current](https://mwyau.github.io/wave-motions-in-the-ocean/chapter3.html#waves-riding-on-a-current)
-4. [Internal gravity waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter4.html)
-   - [The internal wave equation](https://mwyau.github.io/wave-motions-in-the-ocean/chapter4.html#the-internal-wave-equation)
-   - [Unbounded, rotating, stratified fluid](https://mwyau.github.io/wave-motions-in-the-ocean/chapter4.html#unbounded-rotating-stratified-fluid)
-   - [Waveguide modes](https://mwyau.github.io/wave-motions-in-the-ocean/chapter4.html#waveguide-modes)
-   - [Generation at a horizontal boundary](https://mwyau.github.io/wave-motions-in-the-ocean/chapter4.html#generation-at-a-horizontal-boundary)
-   - [Reflection from a solid boundary](https://mwyau.github.io/wave-motions-in-the-ocean/chapter4.html#reflection-from-a-solid-boundary)
-   - [Variable buoyancy frequency](https://mwyau.github.io/wave-motions-in-the-ocean/chapter4.html#variable-buoyancy-frequency)
-5. [Shallow water dynamics](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html)
-   - [Laplace’s tidal equations](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html#laplaces-tidal-equations)
-   - [Shallow water equations with rotation](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html#shallow-water-equations-with-rotation)
-   - [Reflection at a solid wall](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html#reflection-at-a-solid-wall)
-   - [Seiches in a box](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html#seiches-in-a-box)
-   - [Propagation over a step](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html#propagation-over-a-step)
-   - [Edge waves and coastal seiches](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html#edge-waves-and-coastal-seiches)
-   - [Sverdrup and Poincaré waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html#sverdrup-and-poincare-waves)
-   - [Kelvin waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html#kelvin-waves)
-   - [Waveguide modes](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html#waveguide-modes)
-   - [Kelvin wave reflection](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html#kelvin-wave-reflection)
-   - [Rossby and planetary waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html#rossby-and-planetary-waves)
-   - [Rossby wave reflection](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html#rossby-wave-reflection)
-   - [Western boundary current formation](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html#western-boundary-current-formation)
-   - [Equatorial waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter5.html#equatorial-waves)
-6. [Topographic effects](https://mwyau.github.io/wave-motions-in-the-ocean/chapter6.html)
-   - [Topographic Rossby waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter6.html#topographic-rossby-waves)
-   - [Bottom-trapped waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter6.html#bottom-trapped-waves)
-   - [Continental shelf waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter6.html#continental-shelf-waves)
-   - [Coastal-trapped waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter6.html#coastal-trapped-waves)
-   - [Wind-forced, long waves](https://mwyau.github.io/wave-motions-in-the-ocean/chapter6.html#wind-forced-long-waves)
-
-[References](https://mwyau.github.io/wave-motions-in-the-ocean/references.html)
-[Original online source](https://oxbow.sr.unh.edu/ChapmanRizzoli/Wave_Motions_in_the_Ocean.html)
-
-## Downloads
-
+- [HTML](https://mwyau.github.io/wave-motions-in-the-ocean/)
 - [PDF](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.pdf)
 - [Facsimile PDF](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions-facsimile.pdf)
 - [EPUB](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.epub)
+- [Original online source](https://oxbow.sr.unh.edu/ChapmanRizzoli/Wave_Motions_in_the_Ocean.html)
 
 This work is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" width="16" height="16"> <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" width="16" height="16"> <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" width="16" height="16"> <img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" width="16" height="16">
