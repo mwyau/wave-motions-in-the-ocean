@@ -26,6 +26,7 @@ repos:
         exclude: ^README\.md$
         additional_dependencies:
         - mdformat-gfm
+        - mdformat-myst
 
   - repo: https://github.com/cmhughes/latexindent.pl
     rev: V4.0.2
