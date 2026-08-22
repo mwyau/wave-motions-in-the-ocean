@@ -23,5 +23,6 @@ preferred-citation:
       orcid: "https://orcid.org/0009-0000-7825-9627"
   edition: "Digital edition"
   year: 1989
+  doi: 10.5281/zenodo.22059882
   url: "https://mwyau.github.io/wave-motions-in-the-ocean/"
   license: CC-BY-NC-SA-4.0
