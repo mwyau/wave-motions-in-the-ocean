@@ -53,8 +53,45 @@
 
   const tocPanel = document.querySelector("#book-contents");
   const tocToggle = document.querySelector("[data-toc-toggle]");
+  const tocRail = document.querySelector("[data-book-toc-rail]");
   const readerHeader = document.querySelector(".reader-header");
+  const mainContent = document.querySelector("#main-content");
   const supportsPopover = "showPopover" in HTMLElement.prototype;
+
+  const updateContentsMode = () => {
+    if (!tocRail || !tocToggle || !mainContent) return;
+
+    // The stylesheet decides when a persistent rail is a candidate. JavaScript
+    // only shows it when it fits entirely in the unused gutter beside this page.
+    tocRail.hidden = false;
+    tocRail.style.visibility = "hidden";
+    tocRail.style.pointerEvents = "none";
+    tocRail.style.removeProperty("left");
+
+    const eligible = getComputedStyle(tocRail).display !== "none";
+    let showRail = false;
+    if (eligible) {
+      const contentRects = Array.from(mainContent.children)
+        .map((element) => element.getBoundingClientRect())
+        .filter((rect) => rect.width > 0 && rect.height > 0);
+      const contentLeft = contentRects.length
+        ? Math.min(...contentRects.map((rect) => rect.left))
+        : mainContent.getBoundingClientRect().left;
+      const railWidth = tocRail.getBoundingClientRect().width;
+      const rem = Number.parseFloat(getComputedStyle(root).fontSize) || 16;
+      const gutter = Math.max(16, rem);
+      const gap = 1.5 * rem;
+      const left = contentLeft - gap - railWidth;
+      showRail = left >= gutter;
+      if (showRail) tocRail.style.left = `${left}px`;
+    }
+
+    tocRail.hidden = !showRail;
+    tocRail.style.removeProperty("visibility");
+    tocRail.style.removeProperty("pointer-events");
+    if (showRail) tocToggle.style.removeProperty("display");
+    else tocToggle.style.setProperty("display", "inline-flex");
+  };
 
   if (tocPanel && tocToggle) {
     if (supportsPopover) {
@@ -86,6 +123,7 @@
       addEventListener(
         "resize",
         () => {
+          updateContentsMode();
           if (tocPanel.matches(":popover-open")) positionContents();
         },
         { passive: true },
@@ -96,6 +134,7 @@
       });
     }
   }
+  updateContentsMode();
 
   const links = new Map();
   document.querySelectorAll("a[data-section-link]").forEach((link) => {

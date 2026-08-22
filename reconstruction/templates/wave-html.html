@@ -18,7 +18,7 @@
     </span>
   </nav>
 </header>
-<aside class="book-contents-rail" aria-label="Contents" data-book-toc>
+<aside class="book-contents-rail" aria-label="Contents" data-book-toc data-book-toc-rail hidden>
   <strong class="book-contents-title">Contents</strong>
   $book_toc
 </aside>
@@ -34,8 +34,4 @@
 <main id="main-content">
 $body
 </main>
-<nav class="page-nav" aria-label="Page navigation">
-  <a href="$previous_url"$previous_hidden aria-label="Previous: $previous_label">← $previous_label</a>
-  <a href="$next_url"$next_hidden aria-label="Next: $next_label">$next_label →</a>
-</nav>
 <footer class="build-info">Digital edition build: <a href="$build_url"><code>$build_label</code></a></footer>
