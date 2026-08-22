@@ -26,14 +26,14 @@ Record figure state, provenance, representation choice, review status, and equat
 
 Use `Equation validation` consistently:
 
-- **Validated** — all materially equation-constrained content has been independently checked against the governing equation(s), analytically or numerically as appropriate.
-- **Partial** — some equation-constrained content has been independently checked, but another material part is schematic or still lacks a direct check.
-- **Pending** — an equation check materially applies but has not yet been independently completed and recorded.
+- **AI-checked** — all materially equation-constrained content has been checked by an AI model against the governing equation(s), analytically or numerically as appropriate. This is not human validation or peer review.
+- **Partial** — some equation-constrained content has been checked, but another material part is schematic or still lacks a direct check.
+- **Pending** — an equation check materially applies but has not yet been completed and recorded.
 - **N/A** — no meaningful equation-defined quantity or relation applies; visual, geometric, provenance, and source-fidelity checks still do.
 
-`Validated` means the scientific comparison was performed. It does **not** mean an erratum is approved, and it does not permit the vector to depart from an unapproved historical source error. A historical mismatch may therefore be scientifically `Validated` while the rendered reconstruction still preserves the source and `ERRATA.md` records the discrepancy as pending human approval.
+`AI-checked` means the scientific comparison was performed by an AI model. It does **not** mean an erratum is approved, and it does not permit the vector to depart from an unapproved historical source error. A historical mismatch may therefore be `AI-checked` while the rendered reconstruction still preserves the source and `ERRATA.md` records the discrepancy as pending human approval.
 
-Do not infer `Validated` merely because a TikZ file contains a formula or visually resembles the scan. Record it only after an independent equation evaluation, calculation, or reference plot has been compared with the figure.
+Do not infer `AI-checked` merely because a TikZ file contains a formula or visually resembles the scan. Record it only after an equation evaluation, calculation, or reference plot has been compared with the figure.
 
 Retained TikZ figures should carry their `wave-source` provenance comment. Intentionally edited rasters should retain equivalent embedded source metadata when tooling supports it.
 
@@ -59,7 +59,7 @@ Do not freehand an equation-defined curve merely to resemble the scan. Conversel
 
 For simple analytic geometry, an independent symbolic or numerical check is sufficient when a plotted reference curve adds no information. Record which quantities were checked.
 
-If a redraw is schematic, state which properties are schematic and which are equation-constrained. Use `Partial` rather than `Validated` if a material equation-defined part remains unchecked.
+If a redraw is schematic, state which properties are schematic and which are equation-constrained. Use `Partial` rather than `AI-checked` if a material equation-defined part remains unchecked.
 
 ## Vector verification workflow
 
@@ -98,4 +98,4 @@ When an intentional raster edit is necessary:
 
 After figure work, run the relevant comparison plus the publication build containing the figure. For a coherent batch, finish with `./scripts/build.sh all`.
 
-Before considering a figure audit complete, confirm that every figure/direct source crop has an explicit equation-validation state and that every `Validated`/`Partial` claim has recoverable calculation/equation evidence. Scientific validation is never a substitute for the separate human-approval requirement for substantive source corrections.
+Before considering a figure audit complete, confirm that every figure/direct source crop has an explicit equation-validation state and that every `AI-checked`/`Partial` claim has recoverable calculation/equation evidence. AI checking is never a substitute for the separate human-approval requirement for substantive source corrections.
