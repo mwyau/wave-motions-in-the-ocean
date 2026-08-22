@@ -48,6 +48,25 @@ prepare_bibtex() {
 prepare_build_info() {
   need uv
   "${PYTHON[@]}" "$ROOT/scripts/publication.py" build-info --tex "$BUILD/build-info.tex"
+
+  # CITATION.cff is the single maintained DOI source.
+  local doi
+  doi=$(awk '
+    /^[[:space:]]*doi:[[:space:]]*/ {
+      count++
+      value=$0
+      sub(/^[[:space:]]*doi:[[:space:]]*/, "", value)
+      gsub(/"/, "", value)
+    }
+    END {
+      if (count != 1) exit 2
+      print value
+    }
+  ' "$ROOT/CITATION.cff") || {
+    echo "expected exactly one doi field in CITATION.cff" >&2
+    exit 1
+  }
+  printf '\\providecommand{\\wavedoi}{%s}\n' "$doi" >> "$BUILD/build-info.tex"
 }
 
 run_latexmk_cached() {
