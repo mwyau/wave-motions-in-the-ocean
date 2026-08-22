@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Publication validation with EPUB, math, artifact, release, and all modes."""
+
 from __future__ import annotations
 
 import argparse
@@ -14,7 +15,7 @@ import tempfile
 import urllib.parse
 import xml.etree.ElementTree as ET
 import zipfile
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 
 from build_epub import (
@@ -40,9 +41,13 @@ from publication import (
     AUTHORS,
     EDITOR,
     LANGUAGE,
-    MATHJAX_URL as MATHJAX_PINNED,
-    PUBLICATION_TITLE as TITLE,
     current_build,
+)
+from publication import (
+    MATHJAX_URL as MATHJAX_PINNED,
+)
+from publication import (
+    PUBLICATION_TITLE as TITLE,
 )
 from release import DEFAULT_FILES, verify_manifest
 
@@ -54,9 +59,10 @@ README = ROOT / "README.md"
 EPUB = DIST / "wave-motions.epub"
 MODERN_PDF = DIST / "wave-motions.pdf"
 FACSIMILE_PDF = DIST / "wave-motions-facsimile.pdf"
-LATEX_CACHE = Path(
-    os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motions"))
-) / "latex"
+LATEX_CACHE = (
+    Path(os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motions")))
+    / "latex"
+)
 MATHML_NS = "http://www.w3.org/1998/Math/MathML"
 FACSIMILE_EXPECTED_PAGES = 184
 FACSIMILE_FRONT_MATTER_PAGES = 10
@@ -95,7 +101,7 @@ NATIVE_TAG_RE = re.compile(r"\\tag\{(?P<tag>\d+\.\d+)\}")
 MATH_ENV_RE = re.compile(
     r"\\begin\{(?P<env>waveequation|wavealign|align\*?|equation\*?|gather\*?|multline\*?)\}"
     r"(?P<body>.*?)\\end\{(?P=env)\}",
-    re.S,
+    re.DOTALL,
 )
 MATH_TEXT_COMMAND_RE = re.compile(
     r"\\(?:text|textrm|textsf|texttt|textit|textbf|mathrm|operatorname)\{[^{}]*\}"
@@ -132,11 +138,11 @@ def strip_tex_comments(text: str) -> str:
 
 def tex_math_regions(text: str) -> list[str]:
     """Return TeX regions that are actually interpreted as mathematics."""
-    regions = [m.group(1) for m in re.finditer(r"\\\[(.*?)\\\]", text, re.S)]
+    regions = [m.group(1) for m in re.finditer(r"\\\[(.*?)\\\]", text, re.DOTALL)]
     regions.extend(m.group("body") for m in MATH_ENV_RE.finditer(text))
     regions.extend(
         m.group(1)
-        for m in re.finditer(r"(?<!\\)\$(?!\$)(.*?)(?<!\\)\$", text, re.S)
+        for m in re.finditer(r"(?<!\\)\$(?!\$)(.*?)(?<!\\)\$", text, re.DOTALL)
     )
     return regions
 
@@ -179,9 +185,13 @@ def check_punctuation() -> None:
     for path in canonical_paths:
         text = strip_tex_comments(path.read_text())
         if SMART_PUNCTUATION_RE.search(text):
-            fail(f"{path.name}: literal smart punctuation is not canonical TeX source syntax")
+            fail(
+                f"{path.name}: literal smart punctuation is not canonical TeX source syntax"
+            )
         if "Attribution--NonCommercial--ShareAlike" in text:
-            fail(f"{path.name}: Creative Commons license name uses TeX en dashes instead of hyphens")
+            fail(
+                f"{path.name}: Creative Commons license name uses TeX en dashes instead of hyphens"
+            )
         if any("−" in region for region in tex_math_regions(text)):
             fail(f"{path.name}: Unicode mathematical minus found in canonical math")
 
@@ -198,7 +208,9 @@ def check_punctuation() -> None:
     require_file(README)
     readme = README.read_text(errors="replace")
     if "# Wave Motions in the Ocean: Myrl’s View" not in readme:
-        fail("README display metadata did not render the subtitle apostrophe typographically")
+        fail(
+            "README display metadata did not render the subtitle apostrophe typographically"
+        )
     if PUNCTUATION_ENTITY_RE.search(readme):
         fail("README contains a named typographic punctuation entity")
 
@@ -228,11 +240,17 @@ def canonical_equation_labels() -> dict[int, tuple[str, ...]]:
         wrapper_count = len(NUMBERED_ENV_RE.findall(text))
         native = tuple(f"({m.group('tag')})" for m in NATIVE_TAG_RE.finditer(text))
         if native and wrapper_count:
-            fail(f"{path.name}: mixes historical native tags with editorial numbering wrappers")
+            fail(
+                f"{path.name}: mixes historical native tags with editorial numbering wrappers"
+            )
         if native:
-            expected = tuple(f"({chapter_number}.{index})" for index in range(1, len(native) + 1))
+            expected = tuple(
+                f"({chapter_number}.{index})" for index in range(1, len(native) + 1)
+            )
             if native != expected:
-                fail(f"{path.name}: native equation tags are not contiguous/in order: {native}")
+                fail(
+                    f"{path.name}: native equation tags are not contiguous/in order: {native}"
+                )
             labels[chapter_number] = native
         elif wrapper_count:
             labels[chapter_number] = tuple(
@@ -285,7 +303,9 @@ def check_readme() -> None:
 
     for expr in README_MATH_SENTINELS:
         if not any(pattern.search(section) for pattern in github_math_patterns(expr)):
-            fail(f"README no longer preserves GitHub-renderable inline math for {expr!r}")
+            fail(
+                f"README no longer preserves GitHub-renderable inline math for {expr!r}"
+            )
     if "`\\ell`" in section and "$`\\ell`$" not in section:
         fail("README contains a code-formatted \\ell outside GitHub math delimiters")
 
@@ -344,7 +364,9 @@ def check_epub_mathml() -> None:
         package_dir = Path(opf_name).parent.as_posix()
         xhtml_items: dict[str, ET.Element] = {}
         for item in manifest.findall("{*}item"):
-            if item.get("media-type") != "application/xhtml+xml" or not item.get("href"):
+            if item.get("media-type") != "application/xhtml+xml" or not item.get(
+                "href"
+            ):
                 continue
             href = urllib.parse.unquote(item.get("href") or "")
             member = str(Path(package_dir, href)).replace("\\", "/")
@@ -369,7 +391,9 @@ def check_epub_mathml() -> None:
             fail(f"EPUB contains only {len(math_elements)} MathML expressions")
         displays = {math.get("display") for math in math_elements}
         if not {"inline", "block"}.issubset(displays):
-            fail(f"EPUB lacks inline or block MathML: {sorted(str(v) for v in displays)}")
+            fail(
+                f"EPUB lacks inline or block MathML: {sorted(str(v) for v in displays)}"
+            )
 
         required_structures = (
             "mi",
@@ -400,7 +424,9 @@ def check_epub_mathml() -> None:
             if symbol not in mi_text:
                 fail(f"EPUB variable {symbol!r} is not represented as <mi>")
             if symbol in mo_text:
-                fail(f"EPUB variable {symbol!r} is incorrectly represented as operator <mo>")
+                fail(
+                    f"EPUB variable {symbol!r} is incorrectly represented as operator <mo>"
+                )
 
         # texmath changed its MathML serialization of named functions. Older
         # versions used <mo>sin</mo>; newer versions use an <mi> function token
@@ -418,7 +444,8 @@ def check_epub_mathml() -> None:
                             child.tag == f"{ns}mi"
                             and "".join(child.itertext()).strip() == name
                             and children[index + 1].tag == f"{ns}mo"
-                            and "".join(children[index + 1].itertext()).strip() == "\u2061"
+                            and "".join(children[index + 1].itertext()).strip()
+                            == "\u2061"
                         ):
                             return True
             return False
@@ -431,9 +458,7 @@ def check_epub_mathml() -> None:
                 )
 
         atmosphere_math = [
-            math
-            for math in math_elements
-            if "atmosphere" in "".join(math.itertext())
+            math for math in math_elements if "atmosphere" in "".join(math.itertext())
         ]
         if not atmosphere_math:
             fail("EPUB lost the p_atmosphere mathematical expression")
@@ -449,13 +474,10 @@ def check_epub_mathml() -> None:
             fail("EPUB p_atmosphere subscript is not upright semantic math text")
 
         epub_markup = "\n".join(
-            archive.read(name).decode("utf-8", errors="replace")
-            for name in xhtml_items
+            archive.read(name).decode("utf-8", errors="replace") for name in xhtml_items
         )
         all_labels = tuple(
-            label
-            for labels in canonical_equation_labels().values()
-            for label in labels
+            label for labels in canonical_equation_labels().values() for label in labels
         )
         require_labels(epub_markup, all_labels, artifact="EPUB")
 
@@ -510,10 +532,14 @@ def validate_epub_bodymatter_landmark(
     ]
     if len(links) != 1:
         fail(f"expected one EPUB bodymatter landmark, found {len(links)}")
-    target = urllib.parse.unquote(urllib.parse.urlsplit(links[0].get("href") or "").path)
+    target = urllib.parse.unquote(
+        urllib.parse.urlsplit(links[0].get("href") or "").path
+    )
     resolved = posixpath.normpath(posixpath.join(posixpath.dirname(nav_member), target))
     if resolved != expected:
-        fail(f"EPUB bodymatter landmark resolves to {resolved!r}; expected {expected!r}")
+        fail(
+            f"EPUB bodymatter landmark resolves to {resolved!r}; expected {expected!r}"
+        )
 
 
 def epub_alternative_bucket(value: str | None) -> str:
@@ -554,7 +580,11 @@ def epub_image_alternative_inventory(
             value = svg.get("aria-label")
             if not value:
                 title = svg.find(f"{{{SVG_NS}}}title")
-                value = " ".join("".join(title.itertext()).split()) if title is not None else None
+                value = (
+                    " ".join("".join(title.itertext()).split())
+                    if title is not None
+                    else None
+                )
             bucket = epub_alternative_bucket(value)
             if bucket == "meaningful":
                 meaningful += 1
@@ -620,11 +650,12 @@ def check_epub_policy() -> None:
         if features & EPUB_FALSE_ACCESSIBILITY_FEATURES:
             fail("EPUB claims accessibility features that are not fully audited")
         for element in metadata.findall("{*}meta"):
-            if (
-                element.get("property") == "dcterms:conformsTo"
-                and (element.text or "").strip().startswith("EPUB Accessibility")
-            ):
-                fail("EPUB must not claim accessibility conformance before the audit is complete")
+            if element.get("property") == "dcterms:conformsTo" and (
+                element.text or ""
+            ).strip().startswith("EPUB Accessibility"):
+                fail(
+                    "EPUB must not claim accessibility conformance before the audit is complete"
+                )
 
         manifest_items = list(manifest.findall("{*}item"))
         cover_items = [
@@ -651,7 +682,9 @@ def check_epub_policy() -> None:
         spine_ids = [item.get("idref") for item in spine.findall("{*}itemref")]
         by_id = {item.get("id"): item for item in manifest_items if item.get("id")}
         if len(spine_ids) < 8 or any(item_id not in by_id for item_id in spine_ids):
-            fail("EPUB spine is unexpectedly short or references missing manifest items")
+            fail(
+                "EPUB spine is unexpectedly short or references missing manifest items"
+            )
 
         xhtml_names = manifest_xhtml_members(opf_name, opf_root)
         xhtml = b"\n".join(archive.read(name) for name in xhtml_names)
@@ -662,13 +695,15 @@ def check_epub_policy() -> None:
         if b"<table" not in xhtml:
             fail("EPUB contains no table markup")
         image_count = sum(
-            1 for item in manifest_items if (item.get("media-type") or "").startswith("image/")
+            1
+            for item in manifest_items
+            if (item.get("media-type") or "").startswith("image/")
         )
         if image_count < 5:
             fail(f"EPUB contains only {image_count} image asset(s)")
 
-        total, meaningful, generic, empty, missing, alternatives = epub_image_alternative_inventory(
-            archive, opf_name, opf_root
+        total, meaningful, generic, empty, missing, alternatives = (
+            epub_image_alternative_inventory(archive, opf_name, opf_root)
         )
         if total == 0:
             fail("EPUB contains no images to audit for alternative text")
@@ -702,7 +737,11 @@ def check_epub_policy() -> None:
         info = current_build()
         label = html.escape(info.label).encode()
         url = html.escape(info.commit_url, quote=True).encode()
-        if xhtml.count(b'class="build-info"') != 1 or label not in xhtml or url not in xhtml:
+        if (
+            xhtml.count(b'class="build-info"') != 1
+            or label not in xhtml
+            or url not in xhtml
+        ):
             fail("EPUB exact build identity is missing or duplicated")
 
     print("EPUB accessibility/finalization policy OK")
@@ -712,10 +751,12 @@ def check_epub_policy() -> None:
         f"empty={empty}, missing={missing}"
     )
     if generic or missing:
-        print("Accessibility audit remains open: scientific figure alternatives are incomplete")
+        print(
+            "Accessibility audit remains open: scientific figure alternatives are incomplete"
+        )
 
 
-@lru_cache(maxsize=None)
+@cache
 def pdf_text(path: Path) -> str:
     if shutil.which("pdftotext") is None:
         fail("pdftotext is required for PDF text checks")
@@ -750,9 +791,7 @@ def check_pdf_math() -> None:
 
     modern_text = extracted[MODERN_PDF]
     all_labels = tuple(
-        label
-        for labels in canonical_equation_labels().values()
-        for label in labels
+        label for labels in canonical_equation_labels().values() for label in labels
     )
     require_labels(modern_text, all_labels, artifact=MODERN_PDF.name)
 
@@ -799,6 +838,7 @@ def run_epubcheck(require: bool) -> None:
 
     proc = subprocess.run(
         cmd,
+        check=False,
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
@@ -815,17 +855,16 @@ def require_command(command: str) -> None:
         fail(f"missing required command: {command}")
 
 
-@lru_cache(maxsize=None)
+@cache
 def pdf_pages(path: Path) -> int:
     require_command("pdfinfo")
     proc = subprocess.run(
         ["pdfinfo", str(path)],
         check=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
     )
-    match = re.search(r"^Pages:\s+(\d+)\s*$", proc.stdout, flags=re.M)
+    match = re.search(r"^Pages:\s+(\d+)\s*$", proc.stdout, flags=re.MULTILINE)
     if not match:
         fail(f"pdfinfo did not report a page count for {path}")
     return int(match.group(1))
@@ -861,9 +900,7 @@ def facsimile_layout_diagnostics(*, strict: bool) -> None:
             f"expected {FACSIMILE_BODY_BOUNDARIES}"
         )
     else:
-        for expected, (index, page, _spare) in enumerate(
-            boundaries, start=1
-        ):
+        for expected, (index, page, _spare) in enumerate(boundaries, start=1):
             if index != expected or page != expected:
                 problems.append(
                     "source-page boundary drift: "
@@ -925,7 +962,9 @@ def check_pdf_integrity() -> None:
                 ["qpdf", "--check", str(path)], check=True, stdout=subprocess.DEVNULL
             )
         else:
-            subprocess.run(["pdfinfo", str(path)], check=True, stdout=subprocess.DEVNULL)
+            subprocess.run(
+                ["pdfinfo", str(path)], check=True, stdout=subprocess.DEVNULL
+            )
 
     fac_pages = pdf_pages(FACSIMILE_PDF)
     mod_pages = pdf_pages(MODERN_PDF)
@@ -948,7 +987,9 @@ def check_pdf_destinations() -> None:
     )
     for log_path in logs:
         require_file(log_path)
-        if "destination with the same identifier" in log_path.read_text(errors="replace"):
+        if "destination with the same identifier" in log_path.read_text(
+            errors="replace"
+        ):
             fail(f"duplicate PDF destination reported in {log_path}")
     print("PDF destination checks OK")
 
@@ -992,7 +1033,9 @@ def check_pdf_render() -> None:
                 stderr=subprocess.PIPE,
             )
         if len(list(destination.glob("page-*.png"))) != 3:
-            fail(f"PDF render smoke check produced the wrong number of pages for {kind}")
+            fail(
+                f"PDF render smoke check produced the wrong number of pages for {kind}"
+            )
     print("PDF render smoke checks OK")
 
 
@@ -1029,8 +1072,7 @@ def check_build_identity() -> None:
     pdfinfo = subprocess.run(
         ["pdfinfo", str(FACSIMILE_PDF)],
         check=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
     )
     if label not in pdfinfo.stdout:
@@ -1055,7 +1097,9 @@ def check_checksums() -> None:
 
 
 def check_release_gate() -> None:
-    tag = os.environ.get("WAVE_BUILD_VERSION") or os.environ.get("GITHUB_REF_NAME") or ""
+    tag = (
+        os.environ.get("WAVE_BUILD_VERSION") or os.environ.get("GITHUB_REF_NAME") or ""
+    )
     if not re.fullmatch(r"v\d+\.\d+\.\d+", tag):
         fail(
             "release tag must be a stable semantic version such as v1.0.0; "

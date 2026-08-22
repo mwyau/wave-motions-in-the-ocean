@@ -55,7 +55,7 @@ perturbations defines the medium through which the waves propagate. If we \emph{
 that the medium is homogeneous in space and time (even if it strictly is not), then
 possible solutions often have the form of a \emph{plane wave}:
 \[
- \phi(\vec{x},t)=\Re\,A e^{i(\vec{k}\cdot\vec{x}-\sigma t)}.
+	\phi(\vec{x},t)=\Re\,A e^{i(\vec{k}\cdot\vec{x}-\sigma t)}.
 \]
 
 \sourcepagebreak
@@ -68,16 +68,16 @@ $p$, density $\rho$, etc.), $A$ is the amplitude, $\vec{k}=(k,\ell,m)$ is the
 wavenumber, $\sigma$ is the radian frequency, and $\Re$ means that we take the real
 part of the expression. Customary auxiliary definitions are
 \[
- \lambda=2\pi/|\vec{k}|=\text{wavelength},\qquad
- f=\sigma/2\pi=\text{frequency},\qquad
- T=2\pi/\sigma=1/f=\text{period}.
+	\lambda=2\pi/|\vec{k}|=\text{wavelength},\qquad
+	f=\sigma/2\pi=\text{frequency},\qquad
+	T=2\pi/\sigma=1/f=\text{period}.
 \]
 
 Since $A$ is complex, it carries with it not only amplitude but also phase information.
 We could, of course, write
 \[
- \phi(\vec{x},t)=|A|\cos\left(\vec{k}\cdot\vec{x}-\sigma t
- +\tan^{-1}\frac{\Im A}{\Re A}\right)
+	\phi(\vec{x},t)=|A|\cos\left(\vec{k}\cdot\vec{x}-\sigma t
+	+\tan^{-1}\frac{\Im A}{\Re A}\right)
 \]
 where $\Im$ refers to the imaginary part of the expression. However, it is often much
 more convenient to work with the complex form of all variables and to take the real
@@ -99,22 +99,22 @@ In two dimensions we have
 % -----------------------------------------------------------------------------
 \par\smallskip
 \begin{center}
-\input{figures/ch01-p004-phase-speed.tikz}
-\wavefiguremark
+	\input{figures/ch01-p004-phase-speed.tikz}
+	\wavefiguremark
 \end{center}
 \smallskip
 
 The speed at which phase planes move along $\vec{k}$ is the \emph{phase speed}
 \[
- c=\sigma/|\vec{k}|=\lambda/T.
+	c=\sigma/|\vec{k}|=\lambda/T.
 \]
 It is directed along $\vec{k}$. Note that the speed of phase plane intersection with the
 $x$-axis is not $c\cos\theta$ but rather is
 \[
- \frac{c}{\cos\theta}
- =\left(\frac{\sigma}{|\vec{k}|}\right)
-  \left(\frac{|\vec{k}|}{k}\right)
- =\sigma/k
+	\frac{c}{\cos\theta}
+	=\left(\frac{\sigma}{|\vec{k}|}\right)
+	\left(\frac{|\vec{k}|}{k}\right)
+	=\sigma/k
 \]
 which can be considerably faster than $c$. In fact, as $\theta\to\pi/2$, the phase
 speed in the $x$-direction approaches infinity!
@@ -122,9 +122,9 @@ speed in the $x$-direction approaches infinity!
 The form $Ae^{i(\vec{k}\cdot\vec{x}-\sigma t)}$ is called a `travelling plane wave'.
 The superposition of oppositely travelling plane waves
 \[
- Ae^{i(\vec{k}\cdot\vec{x}-\sigma t)}
- +Ae^{i(-\vec{k}\cdot\vec{x}-\sigma t)}
- =2Ae^{-i\sigma t}\cos(\vec{k}\cdot\vec{x})
+	Ae^{i(\vec{k}\cdot\vec{x}-\sigma t)}
+	+Ae^{i(-\vec{k}\cdot\vec{x}-\sigma t)}
+	=2Ae^{-i\sigma t}\cos(\vec{k}\cdot\vec{x})
 \]
 is called a \emph{standing wave} because the crests and troughs do not propagate with
 time. It is not always possible to construct such a superposition because oppositely
@@ -141,7 +141,7 @@ different wavenumbers.
 All of the foregoing is kinematics, true for any given $\sigma,\vec{k}$ with no physics.
 The physics are contained in the \emph{dispersion relation}
 \[
- \sigma=\Omega(\vec{k})
+	\sigma=\Omega(\vec{k})
 \]
 which is obtained by requiring the plane waves to be solutions of the linearized,
 dissipationless equations of motion. The following table contains some examples of wave
@@ -149,22 +149,22 @@ equations (all of which we will encounter later) with their respective dispersio
 relations.
 
 \begin{center}
-\begin{tabular}{c@{\quad}l@{\quad}l@{\quad}l}
- & Linearized Equation & Plane wave & Dispersion Relation\\[3pt]
- a) & $\phi_t+c_0\phi_x=0$
-    & $e^{ikx-i\sigma t}$ & $\sigma=c_0k$\\
- b) & $\phi_{tt}-c_0^2\phi_{xx}=0$
-    & $e^{ikx-i\sigma t}$ & $\sigma^2=c_0^2k^2$\\
- c) & $\phi_t+\vec c_0\cdot\nabla\phi=0$
-    & $e^{i\vec{k}\cdot\vec{x}-i\sigma t}$
-    & $\sigma=\vec c_0\cdot\vec{k}$\\
- d) & $\phi_{tt}-c_0^2\nabla^2\phi=0$
-    & $e^{i\vec{k}\cdot\vec{x}-i\sigma t}$
-    & $\sigma^2=c_0^2|\vec{k}|^2$\\
- e) & $\nabla^2\phi_t+\beta\phi_x=0$
-    & $e^{i\vec{k}\cdot\vec{x}-i\sigma t}$
-    & $\sigma=-\beta k/|\vec{k}|^2$
-\end{tabular}
+	\begin{tabular}{c@{\quad}l@{\quad}l@{\quad}l}
+		   & Linearized Equation                  & Plane wave          & Dispersion Relation \\[3pt]
+		a) & $\phi_t+c_0\phi_x=0$
+		   & $e^{ikx-i\sigma t}$                  & $\sigma=c_0k$                             \\
+		b) & $\phi_{tt}-c_0^2\phi_{xx}=0$
+		   & $e^{ikx-i\sigma t}$                  & $\sigma^2=c_0^2k^2$                       \\
+		c) & $\phi_t+\vec c_0\cdot\nabla\phi=0$
+		   & $e^{i\vec{k}\cdot\vec{x}-i\sigma t}$
+		   & $\sigma=\vec c_0\cdot\vec{k}$                                                    \\
+		d) & $\phi_{tt}-c_0^2\nabla^2\phi=0$
+		   & $e^{i\vec{k}\cdot\vec{x}-i\sigma t}$
+		   & $\sigma^2=c_0^2|\vec{k}|^2$                                                      \\
+		e) & $\nabla^2\phi_t+\beta\phi_x=0$
+		   & $e^{i\vec{k}\cdot\vec{x}-i\sigma t}$
+		   & $\sigma=-\beta k/|\vec{k}|^2$
+	\end{tabular}
 \end{center}
 
 Each linearized equation is a statement of approximate dynamical and thermodynamical
@@ -207,7 +207,7 @@ In a homogeneous medium, initial value problems are solvable as Fourier integral
 amounts to summing an infinite number of plane wave solutions. If the dispersion
 relation has $n$ branches
 \[
- \sigma=\Omega_j(\vec{k}),\qquad j=1,\ldots,n
+	\sigma=\Omega_j(\vec{k}),\qquad j=1,\ldots,n
 \]
 
 \sourcepagebreak
@@ -217,32 +217,32 @@ relation has $n$ branches
 % -----------------------------------------------------------------------------
 then $n$ initial conditions are normally required. The solution takes the form
 \[
- \phi(\vec{x},t)=\sum_{j=1}^n
- \iiint_{-\infty}^{\infty}
- A_j(\vec{k})e^{i[\vec{k}\cdot\vec{x}-\Omega_j(\vec{k})t]}
- \,d\vec{k}
+	\phi(\vec{x},t)=\sum_{j=1}^n
+	\iiint_{-\infty}^{\infty}
+	A_j(\vec{k})e^{i[\vec{k}\cdot\vec{x}-\Omega_j(\vec{k})t]}
+	\,d\vec{k}
 \]
 where the $A_j(\vec{k})$ are fixed by the initial conditions. For example, if $n=1$,
 and we are in one dimension
 \[
- \sigma=\Omega(k)
+	\sigma=\Omega(k)
 \]
 \[
- \phi(x,t)=\int_{-\infty}^{\infty}
- A(k)e^{i[kx-\Omega(k)t]}
- \,dk.
+	\phi(x,t)=\int_{-\infty}^{\infty}
+	A(k)e^{i[kx-\Omega(k)t]}
+	\,dk.
 \]
 $A(k)$ is fixed by specifying $\phi(x,0)$, that is
 \[
- \phi(x,0)=\int_{-\infty}^{\infty}A(k)e^{ikx}\,dk;
- \qquad
- A(k)=\frac{1}{2\pi}\int_{-\infty}^{\infty}\phi(x,0)e^{-ikx}\,dx.
+	\phi(x,0)=\int_{-\infty}^{\infty}A(k)e^{ikx}\,dk;
+	\qquad
+	A(k)=\frac{1}{2\pi}\int_{-\infty}^{\infty}\phi(x,0)e^{-ikx}\,dx.
 \]
 Notice that if $\Omega=ck$, then
 \[
- \phi(x,t)=\int_{-\infty}^{\infty}A(k)e^{ik(x-ct)}\,dk
- =\int_{-\infty}^{\infty}A(k)e^{ikx'}\,dk
- =\phi(x-ct,0).
+	\phi(x,t)=\int_{-\infty}^{\infty}A(k)e^{ik(x-ct)}\,dk
+	=\int_{-\infty}^{\infty}A(k)e^{ikx'}\,dk
+	=\phi(x-ct,0).
 \]
 This means that, in this special case, the initial condition $\phi(x,0)$ translates
 towards $x>0$ at speed $c$ without changing shape.
@@ -266,24 +266,24 @@ special initial condition $\phi(x,0)=a(x)e^{ik_0x}$.
 
 \par\smallskip
 \begin{center}
-\input{figures/ch01-p008-wave-packet.tikz}
-\wavefiguremark
+	\input{figures/ch01-p008-wave-packet.tikz}
+	\wavefiguremark
 \end{center}
 \smallskip
 
 This represents a slowly modulated plane wave with envelope $a(x)$. We can always
 write
 \[
- \phi(x,0)=\int_{-\infty}^{\infty}A(k)e^{ikx}\,dk;
- \qquad
- A(k)=\frac{1}{2\pi}\int_{-\infty}^{\infty}\phi(x,0)e^{-ikx}\,dx
+	\phi(x,0)=\int_{-\infty}^{\infty}A(k)e^{ikx}\,dk;
+	\qquad
+	A(k)=\frac{1}{2\pi}\int_{-\infty}^{\infty}\phi(x,0)e^{-ikx}\,dx
 \]
 and so
 \[
- A(k)=\frac{1}{2\pi}\int_{-\infty}^{\infty}
- a(x)e^{i(k_0-k)x}\,dx;
- \qquad
- a(x)=\int_{-\infty}^{\infty}A(k)e^{i(k-k_0)x}\,dk.
+	A(k)=\frac{1}{2\pi}\int_{-\infty}^{\infty}
+	a(x)e^{i(k_0-k)x}\,dx;
+	\qquad
+	a(x)=\int_{-\infty}^{\infty}A(k)e^{i(k-k_0)x}\,dk.
 \]
 In the integral for $A(k)$, the contribution to the integral itself is mostly from the
 regions where the quantity $(k_0-k)x$ is small. In fact, where this quantity is large,
@@ -293,8 +293,8 @@ this special choice of $\phi(x,0)$.
 
 \par\smallskip
 \begin{center}
-\input{figures/ch01-p008-spectrum.tikz}
-\wavefiguremark
+	\input{figures/ch01-p008-spectrum.tikz}
+	\wavefiguremark
 \end{center}
 \smallskip
 
@@ -307,27 +307,27 @@ The modulated plane wave is said to be a `narrow band signal'.
 % -----------------------------------------------------------------------------
 We can evaluate $\phi(x,t)$ by expanding $\Omega(k)$ in a Taylor series about $k_0$:
 \begin{align*}
- \phi(x,t)
- &=\int_{-\infty}^{\infty}A(k)e^{i[kx-\Omega(k)t]}\,dk\\
- &\simeq\int_{-\infty}^{\infty}A(k)
- e^{i[kx-\Omega(k_0)t-(k-k_0)(\partial\Omega/\partial k)|_{k=k_0}t]}\,dk\\
- &=\int_{-\infty}^{\infty}A(k)
- e^{i[kx-\Omega(k_0)t-(k-k_0)(\partial\Omega/\partial k)|_{k=k_0}t]}
- e^{ik_0x-ik_0x}\,dk\\
- &=e^{i[k_0x-\Omega(k_0)t]}
- \int_{-\infty}^{\infty}A(k)
- e^{i(k-k_0)[x-(\partial\Omega/\partial k)|_{k=k_0}t]}\,dk.
+	\phi(x,t)
+	 & =\int_{-\infty}^{\infty}A(k)e^{i[kx-\Omega(k)t]}\,dk                 \\
+	 & \simeq\int_{-\infty}^{\infty}A(k)
+	e^{i[kx-\Omega(k_0)t-(k-k_0)(\partial\Omega/\partial k)|_{k=k_0}t]}\,dk \\
+	 & =\int_{-\infty}^{\infty}A(k)
+	e^{i[kx-\Omega(k_0)t-(k-k_0)(\partial\Omega/\partial k)|_{k=k_0}t]}
+	e^{ik_0x-ik_0x}\,dk                                                     \\
+	 & =e^{i[k_0x-\Omega(k_0)t]}
+	\int_{-\infty}^{\infty}A(k)
+	e^{i(k-k_0)[x-(\partial\Omega/\partial k)|_{k=k_0}t]}\,dk.
 \end{align*}
 That is
 \[
- \phi(x,t)=e^{i[k_0x-\Omega(k_0)t]}
- a\left(x-\left.\frac{\partial\Omega}{\partial k}\right|_{k=k_0}t\right).
+	\phi(x,t)=e^{i[k_0x-\Omega(k_0)t]}
+	a\left(x-\left.\frac{\partial\Omega}{\partial k}\right|_{k=k_0}t\right).
 \]
 The modulating envelope moves at a velocity
 $\left.\partial\Omega/\partial k\right|_{k=k_0}$, defined by the dispersion relation
 $\sigma=\Omega(k)$. This velocity is called the \emph{group velocity}
 \[
- c_g=\left.\frac{\partial\Omega}{\partial k}\right|_{k=k_0}
+	c_g=\left.\frac{\partial\Omega}{\partial k}\right|_{k=k_0}
 \]
 and is not, in general, equal to the phase speed $c=\sigma/k$ of the modulated plane
 wave. Therefore, the dominant wavelength $\lambda=2\pi/k_0$ has two speeds associated
@@ -338,15 +338,15 @@ wave rather than with them.
 
 The restriction to narrow band processes is illustrative but not necessary. Consider
 \[
- \phi(x,t)=\int_{-\infty}^{\infty}A(k)e^{i[kx-\Omega(k)t]}\,dk.
+	\phi(x,t)=\int_{-\infty}^{\infty}A(k)e^{i[kx-\Omega(k)t]}\,dk.
 \]
 Define
 \[
- \Theta(k;x,t)=kx/t-\Omega(k).
+	\Theta(k;x,t)=kx/t-\Omega(k).
 \]
 Then
 \[
- \phi(x,t)=\int_{-\infty}^{\infty}A(k)e^{it\Theta(k;x,t)}\,dk.
+	\phi(x,t)=\int_{-\infty}^{\infty}A(k)e^{it\Theta(k;x,t)}\,dk.
 \]
 
 \sourcepagebreak
@@ -370,28 +370,28 @@ $\partial\Theta/\partial k=0$ somewhere.
 
 Stationary phase now asserts
 \[
- \phi(x,t)\simeq\int_{-\infty}^{\infty}A(k)
- e^{it[\Theta(k_0)+(k-k_0)\Theta'(k_0)
- +(k-k_0)^2\Theta''(k_0)/2]}\,dk.
+	\phi(x,t)\simeq\int_{-\infty}^{\infty}A(k)
+	e^{it[\Theta(k_0)+(k-k_0)\Theta'(k_0)
+					+(k-k_0)^2\Theta''(k_0)/2]}\,dk.
 \]
 In other words, at a given $x$ and $t$, the greatest contribution to $\phi(x,t)$ is from
 that wavenumber $k_0$ at which $\Theta'(k_0;x,t)=0$. Since
 $\Theta(k;x,t)=kx/t-\Omega(k)$ we have
 \[
- x/t-\left.\frac{\partial\Omega}{\partial k}\right|_{k_0}=0
+	x/t-\left.\frac{\partial\Omega}{\partial k}\right|_{k_0}=0
 \]
 which means that the wavenumber $k_0$ that makes the biggest contribution to
 $\phi(x,t)$ is the one for which
 \[
- \left.\frac{\partial\Omega}{\partial k}\right|_{k_0}=x/t;
+	\left.\frac{\partial\Omega}{\partial k}\right|_{k_0}=x/t;
 \]
 i.e., the one whose group velocity is $x/t$.
 
 To estimate that contribution, realise that $\Theta'(k_0)=0$, so that
 \[
- \phi(x,t)\simeq A(k_0)e^{it\Theta(k_0)}
- \int_{-\infty}^{\infty}
- e^{i(k-k_0)^2\Theta''(k_0)t/2}\,dk.
+	\phi(x,t)\simeq A(k_0)e^{it\Theta(k_0)}
+	\int_{-\infty}^{\infty}
+	e^{i(k-k_0)^2\Theta''(k_0)t/2}\,dk.
 \]
 
 \sourcepagebreak
@@ -401,17 +401,17 @@ To estimate that contribution, realise that $\Theta'(k_0)=0$, so that
 % -----------------------------------------------------------------------------
 or, since $\int_{-\infty}^{\infty}e^{-\alpha x^2}\,dx=(\pi/\alpha)^{1/2}$, then
 \[
- \phi(x,t)\simeq A(k_0)e^{it\Theta(k_0)}
- [2\pi/-it\Theta''(k_0;x,t)]^{1/2}
+	\phi(x,t)\simeq A(k_0)e^{it\Theta(k_0)}
+		[2\pi/-it\Theta''(k_0;x,t)]^{1/2}
 \]
 \[
- \phi(x,t)\simeq A(k_0)e^{i[k_0x-\Omega(k_0)t]}
- [2\pi/-it\Theta''(k_0;x,t)]^{1/2}.
+	\phi(x,t)\simeq A(k_0)e^{i[k_0x-\Omega(k_0)t]}
+		[2\pi/-it\Theta''(k_0;x,t)]^{1/2}.
 \]
 The solution is thus a slowly modulated plane wave whose wavenumber $k_0$ is
 characterized by
 \[
- \left.\frac{\partial\Omega}{\partial k}\right|_{k_0}=x/t.
+	\left.\frac{\partial\Omega}{\partial k}\right|_{k_0}=x/t.
 \]
 
 The solution is only valid for very large $t$ and $x$ because it requires the rapid
@@ -433,7 +433,7 @@ first and second orders of approximation of the WKB method, can be used.
 
 Let us consider a locally periodic solution of the form
 \[
- \phi=a(\vec{x},t)e^{i\Theta(\vec{x},t)}
+	\phi=a(\vec{x},t)e^{i\Theta(\vec{x},t)}
 \]
 in which the amplitude $a$ and the phase $\Theta$ are slowly varying functions of
 $\vec{x}$ and $t$; i.e., they vary with the large space and time scales of the medium or
@@ -447,9 +447,9 @@ of the wave groups
 and not the small scale of the sinusoidal plane wave. We can define the local
 wavenumber $\vec{k}$ and the local frequency $N$ by
 \[
- \vec{k}=\left.\nabla\Theta\right|_t;
- \qquad
- N=-\left.\Theta_t\right|_{\vec{x}}
+	\vec{k}=\left.\nabla\Theta\right|_t;
+	\qquad
+	N=-\left.\Theta_t\right|_{\vec{x}}
 \]
 where $\nabla$ is the gradient operator and $|_t$, $|_{\vec{x}}$ indicate that the
 partial derivatives are carried out keeping the other coordinate constant. Thus,
@@ -457,7 +457,7 @@ $\Delta a/a\ll1$ and $\Delta\Theta/\Theta\ll1$ over $|\vec{k}|^{-1}$ and $N^{-1}
 
 For these definitions, we see first that
 \[
- \nabla\times\vec{k}=0
+	\nabla\times\vec{k}=0
 \]
 which states that the local wavenumber is irrotational. Now suppose we go from place
 $A$ to place $B$ over the path $\Gamma$.
@@ -467,7 +467,7 @@ $A$ to place $B$ over the path $\Gamma$.
 
 The number of wave crests we pass through is
 \[
- n=\frac{1}{2\pi}\int_A^B\vec{k}\cdot d\vec{s}.
+	n=\frac{1}{2\pi}\int_A^B\vec{k}\cdot d\vec{s}.
 \]
 But since
 $\oint\vec{k}\cdot d\vec{s}=\int\hat{k}\cdot\nabla\times\vec{k}\,dr=0$
@@ -484,16 +484,16 @@ true for slowly varying plane waves as defined above.
 % -----------------------------------------------------------------------------
 From the definition of $\vec{k}$ and $N$, it follows that
 \begin{equation}
- \left.\frac{\partial\vec{k}}{\partial t}\right|_{\vec{x}}
- +\left.\nabla N\right|_t=0.
- \tag{1.1}
+	\left.\frac{\partial\vec{k}}{\partial t}\right|_{\vec{x}}
+	+\left.\nabla N\right|_t=0.
+	\tag{1.1}
 \end{equation}
 Now with the above definition of $n$, we have
 \[
- \frac{\partial n}{\partial t}
- =\frac{1}{2\pi}\int_A^B\frac{\partial\vec{k}}{\partial t}\cdot d\vec{s}
- =-\frac{1}{2\pi}\int_A^B\nabla N\cdot d\vec{s}
- =\frac{1}{2\pi}(N_A-N_B).
+	\frac{\partial n}{\partial t}
+	=\frac{1}{2\pi}\int_A^B\frac{\partial\vec{k}}{\partial t}\cdot d\vec{s}
+	=-\frac{1}{2\pi}\int_A^B\nabla N\cdot d\vec{s}
+	=\frac{1}{2\pi}(N_A-N_B).
 \]
 This says that the rate of change of the number of wave crests between $A$ and $B$ is
 equal to the rate of crest inflow at $A$ minus the rate of crest outflow at $B$. Thus
@@ -505,7 +505,7 @@ $\Theta$. There has been no direct statement of dynamics. We introduce dynamics 
 asserting that the wavenumber and frequency must be related in just the same way that
 they are for a plane wave!
 \[
- N=\Omega(\vec{k};\vec{x},t)
+	N=\Omega(\vec{k};\vec{x},t)
 \]
 where, if we solved for plane waves $e^{i(\vec{k}\cdot\vec{x}-\sigma t)}$ while keeping
 all variable medium parameters momentarily constant, we would obtain
@@ -516,16 +516,16 @@ arbitrary recipe.
 Now this assertion and the definitions of $\vec{k}$ and $N$ allow us to introduce the
 group velocity in another way.
 \[
- \left.\frac{\partial N}{\partial t}\right|_{\vec{x}}
- =\left.\frac{\partial\Omega}{\partial t}\right|_{\vec{k},\vec{x}}
- +\left.\frac{\partial\Omega}{\partial k_i}\right|_{\vec{x},t}
-  \left.\frac{\partial k_i}{\partial t}\right|_{\vec{x}}
- =\left.\frac{\partial\Omega}{\partial t}\right|_{\vec{k},\vec{x}}
- -c_{g_i}\left.\frac{\partial N}{\partial x_i}\right|_t
+	\left.\frac{\partial N}{\partial t}\right|_{\vec{x}}
+	=\left.\frac{\partial\Omega}{\partial t}\right|_{\vec{k},\vec{x}}
+	+\left.\frac{\partial\Omega}{\partial k_i}\right|_{\vec{x},t}
+	\left.\frac{\partial k_i}{\partial t}\right|_{\vec{x}}
+	=\left.\frac{\partial\Omega}{\partial t}\right|_{\vec{k},\vec{x}}
+	-c_{g_i}\left.\frac{\partial N}{\partial x_i}\right|_t
 \]
 in which the group velocity has been defined as
 \[
- c_{g_i}=\frac{\partial N}{\partial k_i}=\frac{\partial\Omega}{\partial k_i}.
+	c_{g_i}=\frac{\partial N}{\partial k_i}=\frac{\partial\Omega}{\partial k_i}.
 \]
 
 \sourcepagebreak
@@ -535,23 +535,23 @@ in which the group velocity has been defined as
 % -----------------------------------------------------------------------------
 and the repeated index implies summation. In vector form, we have
 \begin{equation}
- \frac{\partial N}{\partial t}+\vec{c}_g\cdot\nabla N
- =\left.\frac{\partial\Omega}{\partial t}\right|_{\vec{k},\vec{x}}.
- \tag{1.2}
+	\frac{\partial N}{\partial t}+\vec{c}_g\cdot\nabla N
+	=\left.\frac{\partial\Omega}{\partial t}\right|_{\vec{k},\vec{x}}.
+	\tag{1.2}
 \end{equation}
 In a similar manner starting with (1.1)
 \[
- \frac{\partial k_i}{\partial t}
- +\frac{\partial\Omega}{\partial x_i}
- +\frac{\partial\Omega}{\partial k_j}
-  \frac{\partial k_j}{\partial x_i}=0.
+	\frac{\partial k_i}{\partial t}
+	+\frac{\partial\Omega}{\partial x_i}
+	+\frac{\partial\Omega}{\partial k_j}
+	\frac{\partial k_j}{\partial x_i}=0.
 \]
 Since $\nabla\times\vec{k}=0$, then
 $\partial k_j/\partial x_i=\partial k_i/\partial x_j$, so we have
 \begin{equation}
- \frac{\partial k_i}{\partial t}+\vec{c}_g\cdot\nabla k_i
- =-\left.\frac{\partial\Omega}{\partial x_i}\right|_{\vec{k},t}.
- \tag{1.3}
+	\frac{\partial k_i}{\partial t}+\vec{c}_g\cdot\nabla k_i
+	=-\left.\frac{\partial\Omega}{\partial x_i}\right|_{\vec{k},t}.
+	\tag{1.3}
 \end{equation}
 We thus have very simple expressions, (1.2) and (1.3), for the evolution of local
 wavenumber $\vec{k}$ and local frequency $N$ as we move along a ray (i.e., we move at
@@ -591,12 +591,12 @@ The initial frequency is obtained from
 $N(\vec{x},0)=\Omega[\vec{k}(\vec{x},0)]$. To find
 $N(\vec{x},t)$, $\vec{k}(\vec{x},t)$ we solve the initial value problem
 \[
- \frac{\partial k_i}{\partial t}
- +c_{g_j}\frac{\partial k_i}{\partial x_j}=0
+	\frac{\partial k_i}{\partial t}
+	+c_{g_j}\frac{\partial k_i}{\partial x_j}=0
 \]
 \[
- \frac{\partial N}{\partial t}
- +c_{g_j}\frac{\partial N}{\partial x_j}=0
+	\frac{\partial N}{\partial t}
+	+c_{g_j}\frac{\partial N}{\partial x_j}=0
 \]
 because the assumed homogeneity of the medium implies
 $\partial\Omega/\partial t=0$ and $\partial\Omega/\partial x_i=0$. This initial value
@@ -620,8 +620,8 @@ fixed $\vec{x}$, $\partial N/\partial t\ne0$, $\partial\vec{k}/\partial t\ne0$, 
 general, even though the medium is homogeneous. The whole idea fails if the rays,
 given by
 \[
- \vec{x}=\vec{x}_0+
- \int_0^t\vec{c}_g[\vec{k}(\vec{x},t)]\,dt
+	\vec{x}=\vec{x}_0+
+	\int_0^t\vec{c}_g[\vec{k}(\vec{x},t)]\,dt
 \]
 cross each other. In that case, the solution is no longer of slowly varying form.
 
@@ -629,16 +629,16 @@ From this point of view, the medium inhomogeneities are only technical complicat
 In the general inhomogeneous case, we must solve (1.2) and (1.3), so $\vec{k}$ and $N$
 vary even though we move with a group. If we define a `total' derivative as
 \[
- \frac{d}{dt}=\frac{\partial}{\partial t}+\vec{c}_g\cdot\nabla
+	\frac{d}{dt}=\frac{\partial}{\partial t}+\vec{c}_g\cdot\nabla
 \]
 which is the derivative following the wave group (or wave packet), then (1.2) and (1.3)
 can be rewritten as
 \[
- \frac{dk_i}{dt}=-\frac{\partial\Omega}{\partial x_i}
+	\frac{dk_i}{dt}=-\frac{\partial\Omega}{\partial x_i}
 \]
 and
 \[
- \frac{dN}{dt}=\frac{\partial\Omega}{\partial t}.
+	\frac{dN}{dt}=\frac{\partial\Omega}{\partial t}.
 \]
 
 \sourcepagebreak
@@ -648,7 +648,7 @@ and
 % -----------------------------------------------------------------------------
 while the position of the wave group is given by
 \[
- \frac{d\vec{x}}{dt}=\vec{c}_g[\vec{k}(\vec{x},t)].
+	\frac{d\vec{x}}{dt}=\vec{c}_g[\vec{k}(\vec{x},t)].
 \]
 Then we have a set of three ordinary differential equations for $\vec{x}$ (position of
 the wave packet), $\vec{k}$ and $N$. These may be integrated in time from a number of
@@ -660,8 +660,8 @@ The lowest order of the corresponding WKB calculation justifies the foregoing
 assertions. The next order of the WKB calculation fixes the amplitude. In many cases,
 the more complex WKB calculation amounts to solving
 \[
- \frac{\partial\mathcal{A}}{\partial t}
- +\nabla\cdot(\vec{c}_g\mathcal{A})=0
+	\frac{\partial\mathcal{A}}{\partial t}
+	+\nabla\cdot(\vec{c}_g\mathcal{A})=0
 \]
 where $\mathcal{A}=\mathcal{E}/N$ and $\mathcal{E}$ is the wave energy. $\mathcal{A}$
 is called the \emph{action} of the wave. Usually $\mathcal{E}\propto a^2$ so this

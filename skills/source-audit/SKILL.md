@@ -13,9 +13,9 @@ Scientific review is diagnostic. It can identify a likely error and support a pr
 For every difference or suspected error, use this order:
 
 1. **Reconstruction differs from the PDF unintentionally:** restore the PDF reading unless the difference is a minor mechanical correction allowed by item 2.
-2. **Small unambiguous mechanical correction:** spelling, grammar, transcription, punctuation, or TeX punctuation syntax may be corrected autonomously when there is no plausible change in scientific, mathematical, bibliographic, or substantive editorial meaning. If uncertain, do not use this exception.
-3. **Substantive or ambiguous source problem:** keep or restore the source reading in the reconstruction, record the proposed correction and evidence in `reconstruction/ERRATA.md` with `pending-human-approval`, and ask the human owner for approval.
-4. **Explicit human approval:** only then apply the substantive correction and record it as `human-approved`, with enough context to identify what was approved.
+1. **Small unambiguous mechanical correction:** spelling, grammar, transcription, punctuation, or TeX punctuation syntax may be corrected autonomously when there is no plausible change in scientific, mathematical, bibliographic, or substantive editorial meaning. If uncertain, do not use this exception.
+1. **Substantive or ambiguous source problem:** keep or restore the source reading in the reconstruction, record the proposed correction and evidence in `reconstruction/ERRATA.md` with `pending-human-approval`, and ask the human owner for approval.
+1. **Explicit human approval:** only then apply the substantive correction and record it as `human-approved`, with enough context to identify what was approved.
 
 Agents can never approve an erratum. Do not infer approval from mathematical correctness, external literature, issue closure, another agent's judgment, an existing commit, or an existing status. If an older substantive entry lacks traceable explicit human approval, do not treat it as precedent or permission; flag it for human review when encountered.
 

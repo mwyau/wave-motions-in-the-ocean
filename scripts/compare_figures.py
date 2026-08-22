@@ -9,6 +9,7 @@ Outputs are temporary side-by-side images written directly under
 audit/figures/comparisons/<figure>.png.
 No overlay or difference image is produced.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -18,7 +19,6 @@ import tempfile
 from pathlib import Path
 
 from PIL import Image, ImageDraw
-
 from publication import render_source_crop, render_tikz_png
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -41,7 +41,9 @@ def side_by_side(left_path: Path, right_path: Path, out_path: Path) -> None:
         if img.height == target_h:
             return img
         scale = target_h / img.height
-        return img.resize((max(1, round(img.width * scale)), target_h), Image.Resampling.LANCZOS)
+        return img.resize(
+            (max(1, round(img.width * scale)), target_h), Image.Resampling.LANCZOS
+        )
 
     left = fit_height(left)
     right = fit_height(right)
@@ -87,7 +89,9 @@ def compare(stem: str, dpi: int) -> Path:
                 page = int(info["wave-source-page"])
                 trim = str(info["wave-source-trim"])
             except KeyError as exc:
-                raise RuntimeError(f"Missing embedded wave-source metadata in {raster}") from exc
+                raise RuntimeError(
+                    f"Missing embedded wave-source metadata in {raster}"
+                ) from exc
         kind = "edited-raster"
     else:
         raise FileNotFoundError(f"No retained vector or edited raster named {stem!r}")
@@ -117,10 +121,15 @@ def main() -> int:
         "figure", nargs="?", help="figure basename, e.g. ch05-p116-edge-wave-dispersion"
     )
     group.add_argument(
-        "--all", action="store_true", help="regenerate comparisons for every retained TikZ figure"
+        "--all",
+        action="store_true",
+        help="regenerate comparisons for every retained TikZ figure",
     )
     parser.add_argument(
-        "--dpi", type=int, default=180, help="render resolution for audit evidence (default: 180)"
+        "--dpi",
+        type=int,
+        default=180,
+        help="render resolution for audit evidence (default: 180)",
     )
     args = parser.parse_args()
 
@@ -141,7 +150,7 @@ def main() -> int:
         try:
             path = compare(stem, args.dpi)
             print(f"{stem}: {path.relative_to(ROOT)}")
-        except Exception as exc:  # report all failures in --all mode
+        except Exception as exc:  # noqa: BLE001
             failures.append((stem, exc))
             print(f"{stem}: ERROR: {exc}", file=sys.stderr)
             if not args.all:

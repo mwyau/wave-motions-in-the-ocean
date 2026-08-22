@@ -17,18 +17,18 @@
 \NewCommandCopy{\WaveOriginalBibItem}{\bibitem}
 \ExplSyntaxOn
 \NewDocumentCommand{\WaveMaybeBibBreak}{m}{%
-  \str_case:nn {#1}
-    {
-      {hough1897}{\clearpage}
-      {rossby1939}{\clearpage}
-    }%
+	\str_case:nn {#1}
+	{
+		{hough1897}{\clearpage}
+		{rossby1939}{\clearpage}
+	}%
 }
 \ExplSyntaxOff
 \RenewDocumentCommand{\bibitem}{o m}{%
-  \WaveMaybeBibBreak{#2}%
-  \IfNoValueTF{#1}
-    {\WaveOriginalBibItem{#2}}
-    {\WaveOriginalBibItem[#1]{#2}}%
+	\WaveMaybeBibBreak{#2}%
+	\IfNoValueTF{#1}
+	{\WaveOriginalBibItem{#2}}
+	{\WaveOriginalBibItem[#1]{#2}}%
 }
 \bibliographystyle{plainnat}
 \bibliography{references}

@@ -9,8 +9,8 @@ The committed source PDFs are the historical visual authority. A figure audit ma
 Choose the least destructive faithful representation:
 
 1. **Untouched complex/historical art:** use a direct crop from the committed source PDF. Do not commit an intermediate raster.
-2. **Simple analytic or geometric diagrams:** use TikZ/vector source only when the visible geometry, labels, orientation, and scientific meaning can be reproduced reliably.
-3. **Genuinely damaged/skewed raster art:** extract at native embedded resolution where practical, make only controlled edits, and commit only the final edited raster.
+1. **Simple analytic or geometric diagrams:** use TikZ/vector source only when the visible geometry, labels, orientation, and scientific meaning can be reproduced reliably.
+1. **Genuinely damaged/skewed raster art:** extract at native embedded resolution where practical, make only controlled edits, and commit only the final edited raster.
 
 Do **not** use generative image synthesis to reconstruct scientific figures. Do not invent missing geometry or labels.
 
@@ -66,20 +66,20 @@ If a redraw is schematic, state which properties are schematic and which are equ
 For each new or materially changed vector:
 
 1. Inspect the full source page at high resolution.
-2. Inspect surrounding equations and prose.
-3. List the scientifically meaningful constraints shown by the figure.
-4. Independently check applicable equations/geometry.
-5. Build a faithful TikZ/vector representation without silently repairing source errors.
-6. Compile the TikZ independently.
-7. Inspect at final publication scale for labels, arrows, line contact, clipping, scale, and whitespace.
-8. Regenerate the comparison:
+1. Inspect surrounding equations and prose.
+1. List the scientifically meaningful constraints shown by the figure.
+1. Independently check applicable equations/geometry.
+1. Build a faithful TikZ/vector representation without silently repairing source errors.
+1. Compile the TikZ independently.
+1. Inspect at final publication scale for labels, arrows, line contact, clipping, scale, and whitespace.
+1. Regenerate the comparison:
 
 ```bash
 python3 scripts/compare_figures.py <figure-name>
 ```
 
 9. Inspect the affected full PDF/HTML/EPUB output as appropriate.
-10. Update `FIGURES.md`; record any substantive source problem in `ERRATA.md` as `pending-human-approval` unless explicit human approval already exists.
+1. Update `FIGURES.md`; record any substantive source problem in `ERRATA.md` as `pending-human-approval` unless explicit human approval already exists.
 
 Use `python3 scripts/compare_figures.py --all` only for a deliberate whole-ledger pass. Keep generated comparisons under `audit/figures/comparisons/`; do not use `build/` for persistent audit evidence.
 

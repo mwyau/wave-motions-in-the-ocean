@@ -5,6 +5,7 @@ This builder prepares its own generated TeX and figures, then applies the
 single final EPUB ZIP rewrite for metadata, accessibility, bodymatter,
 language, and build identity before returning a completed artifact.
 """
+
 from __future__ import annotations
 
 import html
@@ -73,10 +74,12 @@ COVER_ALTERNATIVE = (
     f"Cover of {PUBLICATION_TITLE}, featuring Katsushika "
     "Hokusai's Under the Wave off Kanagawa (The Great Wave)."
 )
-BUILD_STAMP_RE = re.compile(br'<p class="build-info">.*?</p>\s*', re.S)
+BUILD_STAMP_RE = re.compile(rb'<p class="build-info">.*?</p>\s*', re.DOTALL)
 
 
-def run(cmd: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None) -> None:
+def run(
+    cmd: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None
+) -> None:
     subprocess.run(cmd, cwd=cwd, env=env, check=True)
 
 
@@ -96,7 +99,9 @@ def epub_inputs() -> list[Path]:
     marker = r"\wavecovercredit"
     if marker not in front_text:
         raise SystemExit("EPUB front matter is missing the cover-credit marker")
-    frontmatter.write_text(front_text.replace(marker, credit_source.read_text().strip(), 1))
+    frontmatter.write_text(
+        front_text.replace(marker, credit_source.read_text().strip(), 1)
+    )
 
     for chapter in paths[1:]:
         chapter.write_text(normalize_epub_math_tex(chapter.read_text()))
@@ -165,7 +170,7 @@ def write_metadata() -> Path:
         "author:\n"
         + "".join(f"  - {author}\n" for author in AUTHORS)
         + 'date: "1989"\n'
-        f'lang: {LANGUAGE}\n'
+        f"lang: {LANGUAGE}\n"
         'rights: "CC BY-NC-SA 4.0"\n'
         f'identifier: "{SITE_URL}/"\n'
         f'contributor: "{EDITOR}"\n'
@@ -177,7 +182,9 @@ def write_metadata() -> Path:
 def build_epub(inputs: list[Path], metadata: Path) -> None:
     EPUB.parent.mkdir(parents=True, exist_ok=True)
     EPUB.unlink(missing_ok=True)
-    resource_path = os.pathsep.join((str(BUILD), str(BUILD / "source"), str(OUT), str(RECON)))
+    resource_path = os.pathsep.join(
+        (str(BUILD), str(BUILD / "source"), str(OUT), str(RECON))
+    )
     run(
         [
             "pandoc",
@@ -237,7 +244,7 @@ def validate_internal_refs(archive: zipfile.ZipFile, xhtml_names: list[str]) -> 
     xhtml_name_set = set(xhtml_names)
     ids_by_name = {name: xhtml_ids(archive, name) for name in xhtml_names}
     broken: list[tuple[str, str]] = []
-    ref_re = re.compile(rb'(?:href|src)=["\']([^"\']+)["\']', re.I)
+    ref_re = re.compile(rb'(?:href|src)=["\']([^"\']+)["\']', re.IGNORECASE)
     for name in xhtml_names:
         for raw_ref in ref_re.findall(archive.read(name)):
             ref = html.unescape(raw_ref.decode("utf-8", errors="replace"))
@@ -360,9 +367,7 @@ def first_bodymatter_member(
             raise SystemExit("EPUB manifest/spine is incomplete")
         return None
     by_id = {
-        item.get("id"): item
-        for item in manifest.findall("{*}item")
-        if item.get("id")
+        item.get("id"): item for item in manifest.findall("{*}item") if item.get("id")
     }
     for itemref in spine.findall("{*}itemref"):
         item = by_id.get(itemref.get("idref"))
@@ -419,34 +424,48 @@ def set_svg_accessible_name(svg: ET.Element, text: str) -> None:
     title.text = text
 
 
-def ensure_bodymatter_landmark(root: ET.Element, nav_member: str, bodymatter_member: str) -> bool:
+def ensure_bodymatter_landmark(
+    root: ET.Element, nav_member: str, bodymatter_member: str
+) -> bool:
     landmarks = [
         nav
         for nav in root.findall(".//{*}nav")
         if "landmarks" in (nav.get(EPUB_TYPE) or "").split()
     ]
     if len(landmarks) != 1:
-        raise SystemExit(f"expected one EPUB landmarks navigation element, found {len(landmarks)}")
+        raise SystemExit(
+            f"expected one EPUB landmarks navigation element, found {len(landmarks)}"
+        )
     landmark = landmarks[0]
     existing = [
         link
         for link in landmark.findall(".//{*}a")
         if "bodymatter" in (link.get(EPUB_TYPE) or "").split()
     ]
-    expected_href = posixpath.relpath(bodymatter_member, posixpath.dirname(nav_member) or ".")
+    expected_href = posixpath.relpath(
+        bodymatter_member, posixpath.dirname(nav_member) or "."
+    )
     if existing:
         if len(existing) != 1:
             raise SystemExit("EPUB landmarks contain multiple bodymatter entries")
-        target = urllib.parse.unquote(urllib.parse.urlsplit(existing[0].get("href") or "").path)
-        resolved = posixpath.normpath(posixpath.join(posixpath.dirname(nav_member), target))
+        target = urllib.parse.unquote(
+            urllib.parse.urlsplit(existing[0].get("href") or "").path
+        )
+        resolved = posixpath.normpath(
+            posixpath.join(posixpath.dirname(nav_member), target)
+        )
         if resolved != bodymatter_member:
-            raise SystemExit("EPUB bodymatter landmark points to the wrong content document")
+            raise SystemExit(
+                "EPUB bodymatter landmark points to the wrong content document"
+            )
         return False
     ordered_list = landmark.find("./{*}ol")
     if ordered_list is None:
         raise SystemExit("EPUB landmarks navigation has no ordered list")
     item = ET.SubElement(ordered_list, f"{{{XHTML_NS}}}li")
-    link = ET.SubElement(item, f"{{{XHTML_NS}}}a", {"href": expected_href, EPUB_TYPE: "bodymatter"})
+    link = ET.SubElement(
+        item, f"{{{XHTML_NS}}}a", {"href": expected_href, EPUB_TYPE: "bodymatter"}
+    )
     link.text = "Start reading"
     return True
 
@@ -458,7 +477,9 @@ def set_known_accessibility(
 ) -> dict[str, bytes]:
     cover_basename = cover_image_basename(opf_root, required=False)
     nav_member = navigation_member(opf_name, opf_root, required=False)
-    bodymatter_member = first_bodymatter_member(source, opf_name, opf_root, required=False)
+    bodymatter_member = first_bodymatter_member(
+        source, opf_name, opf_root, required=False
+    )
     rewritten: dict[str, bytes] = {}
     ET.register_namespace("", XHTML_NS)
     ET.register_namespace("epub", EPUB_NS)
@@ -494,9 +515,14 @@ def set_known_accessibility(
                 set_svg_accessible_name(svg, COVER_ALTERNATIVE)
                 changed = True
         if member == nav_member and bodymatter_member:
-            changed = ensure_bodymatter_landmark(root, nav_member, bodymatter_member) or changed
+            changed = (
+                ensure_bodymatter_landmark(root, nav_member, bodymatter_member)
+                or changed
+            )
         if changed:
-            rewritten[member] = ET.tostring(root, encoding="utf-8", xml_declaration=True)
+            rewritten[member] = ET.tostring(
+                root, encoding="utf-8", xml_declaration=True
+            )
     return rewritten
 
 
@@ -513,17 +539,23 @@ def update_package_metadata(opf_root: ET.Element) -> bytes:
     else:
         ET.SubElement(metadata, f"{{{DC_NS}}}language").text = LANGUAGE
     for element in list(metadata):
-        if element.tag.endswith("}meta") and element.get("property") in ACCESSIBILITY_PROPERTIES:
+        if (
+            element.tag.endswith("}meta")
+            and element.get("property") in ACCESSIBILITY_PROPERTIES
+        ):
             metadata.remove(element)
     for property_name, value in ACCESSIBILITY_METADATA:
-        element = ET.SubElement(metadata, f"{{{OPF_NS}}}meta", {"property": property_name})
+        element = ET.SubElement(
+            metadata, f"{{{OPF_NS}}}meta", {"property": property_name}
+        )
         element.text = value
     for element in metadata.findall("{*}meta"):
-        if (
-            element.get("property") == "dcterms:conformsTo"
-            and (element.text or "").strip().startswith("EPUB Accessibility")
-        ):
-            raise SystemExit("EPUB declares accessibility conformance before the audit is complete")
+        if element.get("property") == "dcterms:conformsTo" and (
+            element.text or ""
+        ).strip().startswith("EPUB Accessibility"):
+            raise SystemExit(
+                "EPUB declares accessibility conformance before the audit is complete"
+            )
     ET.register_namespace("", OPF_NS)
     ET.register_namespace("dc", DC_NS)
     return ET.tostring(opf_root, encoding="utf-8", xml_declaration=True)
@@ -586,7 +618,11 @@ def rewrite_epub(epub: Path, replacements: dict[str, bytes]) -> None:
     try:
         with zipfile.ZipFile(temporary, "w") as target:
             for info, data in entries:
-                compression = zipfile.ZIP_STORED if info.filename == "mimetype" else info.compress_type
+                compression = (
+                    zipfile.ZIP_STORED
+                    if info.filename == "mimetype"
+                    else info.compress_type
+                )
                 target.writestr(info, data, compress_type=compression)
         os.replace(temporary, epub)
     finally:
@@ -610,7 +646,9 @@ def finalize(epub: Path) -> None:
             replacements[member] = data
             stamped = stamped or found
         if not stamped:
-            raise SystemExit("could not locate EPUB editor front matter for build stamp")
+            raise SystemExit(
+                "could not locate EPUB editor front matter for build stamp"
+            )
     rewrite_epub(epub, replacements)
     validate_structure(epub)
     print(f"EPUB finalization OK: {epub.relative_to(ROOT)}")
@@ -618,7 +656,9 @@ def finalize(epub: Path) -> None:
 
 def main() -> int:
     if len(sys.argv) != 1:
-        raise SystemExit("build_epub.py does not accept options; use validate.py epub to validate")
+        raise SystemExit(
+            "build_epub.py does not accept options; use validate.py epub to validate"
+        )
     for command in ("pandoc", "lualatex", "pdftoppm"):
         if shutil.which(command) is None:
             raise SystemExit(f"missing required command: {command}")

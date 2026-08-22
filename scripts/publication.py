@@ -8,6 +8,7 @@ exposes the shared identity writer needed by the PDF build. Nothing written
 here is a maintained source of book text: inputs always come from
 ``reconstruction/``.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -22,7 +23,7 @@ import tempfile
 import unicodedata
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 
 from PIL import Image
@@ -45,7 +46,9 @@ EDITOR = "Albert M. W. Yau (digital editor)"
 LANGUAGE = "en-US"
 MATHJAX_URL = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"
 SITE_URL = "https://mwyau.github.io/wave-motions-in-the-ocean"
-ORIGINAL_SOURCE_URL = "https://oxbow.sr.unh.edu/ChapmanRizzoli/Wave_Motions_in_the_Ocean.html"
+ORIGINAL_SOURCE_URL = (
+    "https://oxbow.sr.unh.edu/ChapmanRizzoli/Wave_Motions_in_the_Ocean.html"
+)
 LICENSE_URL = "https://creativecommons.org/licenses/by-nc-sa/4.0/"
 REPOSITORY_URL = "https://github.com/mwyau/wave-motions-in-the-ocean"
 DOWNLOADS = (
@@ -98,42 +101,48 @@ SIGNATURE_RE = re.compile(
 DIRECT_PDF_RE = re.compile(
     r"\\includegraphics\[(?P<opts>[^]]*page=(?P<page>\d+)[^]]*trim=(?P<trim>[^,\]]+)[^]]*)\]"
     r"\s*\{(?P<path>\.\./source/(?P<pdf>[^}]+))\}",
-    re.S,
+    re.DOTALL,
 )
 LOCAL_RASTER_RE = re.compile(
     r"\\includegraphics(?:\[[^]]*\])?\s*\{figures/(?P<name>[^}]+\.(?:png|jpe?g))\}",
-    re.I,
+    re.IGNORECASE,
 )
 PDF_ONLY_RE = re.compile(
     r"\\begin\{wavepdfonly\}.*?\\end\{wavepdfonly\}",
-    re.S,
+    re.DOTALL,
 )
 WAVE_NUMBERED_RE = re.compile(
     r"\\begin\{(?P<env>waveequation|wavealign)\}(?P<body>.*?)"
     r"\\end\{(?P=env)\}",
-    re.S,
+    re.DOTALL,
 )
 NATIVE_TAGGED_EQUATION_RE = re.compile(
     r"\\begin\{equation\}(?P<body>.*?)\\tag\{(?P<tag>\d+\.\d+)\}(?P<tail>.*?)"
     r"\\end\{equation\}",
-    re.S,
+    re.DOTALL,
 )
 FIGURE_MARK_RE = re.compile(r"\\wavefiguremark")
 
 
 def run(cmd: list[str], *, cwd: Path | None = None, quiet: bool = True) -> None:
-    kwargs = {"cwd": cwd, "check": True}
-    if quiet:
-        kwargs.update(stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+    stdout = subprocess.DEVNULL if quiet else None
+    stderr = subprocess.PIPE if quiet else None
     try:
-        subprocess.run(cmd, **kwargs)
+        subprocess.run(
+            cmd,
+            cwd=cwd,
+            check=True,
+            stdout=stdout,
+            stderr=stderr,
+            text=True,
+        )
     except subprocess.CalledProcessError as exc:
         if quiet and exc.stderr:
             sys.stderr.write(exc.stderr[-12000:])
         raise
 
 
-@lru_cache(maxsize=None)
+@cache
 def file_sha256(path_text: str) -> str:
     digest = hashlib.sha256()
     with Path(path_text).open("rb") as handle:
@@ -164,7 +173,9 @@ def _asset_path(assets_root: Path, asset_prefix: str, name: str) -> Path:
     return assets_root / Path(asset_prefix) / name
 
 
-def _render_pdf_page(pdf: Path, page: int, dpi: int, prefix: Path, *, quiet: bool = True) -> Path:
+def _render_pdf_page(
+    pdf: Path, page: int, dpi: int, prefix: Path, *, quiet: bool = True
+) -> Path:
     run(
         [
             "pdftoppm",
@@ -375,7 +386,9 @@ def referenced_tikz() -> list[str]:
 def prepare_vector_assets(assets_root: Path, work_root: Path) -> None:
     stems = referenced_tikz()
     workers = max(1, min(4, os.cpu_count() or 2))
-    print(f"Rendering {len(stems)} TikZ figures to SVG ({workers} workers; cache enabled)...")
+    print(
+        f"Rendering {len(stems)} TikZ figures to SVG ({workers} workers; cache enabled)..."
+    )
     failures: list[tuple[str, Exception]] = []
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futures = {
@@ -386,7 +399,7 @@ def prepare_vector_assets(assets_root: Path, work_root: Path) -> None:
             stem = futures[future]
             try:
                 future.result()
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 failures.append((stem, exc))
     if failures:
         for stem, exc in failures:
@@ -394,11 +407,19 @@ def prepare_vector_assets(assets_root: Path, work_root: Path) -> None:
         raise SystemExit(f"{len(failures)} TikZ figure render(s) failed")
 
 
-def copy_raster_assets(assets_root: Path, *, asset_prefix: str = FIGURE_ASSET_PREFIX) -> None:
+def copy_raster_assets(
+    assets_root: Path, *, asset_prefix: str = FIGURE_ASSET_PREFIX
+) -> None:
     for raster in FIGURES.rglob("*"):
-        if not raster.is_file() or raster.suffix.lower() not in {".png", ".jpg", ".jpeg"}:
+        if not raster.is_file() or raster.suffix.lower() not in {
+            ".png",
+            ".jpg",
+            ".jpeg",
+        }:
             continue
-        destination = _asset_path(assets_root, asset_prefix, str(raster.relative_to(FIGURES)))
+        destination = _asset_path(
+            assets_root, asset_prefix, str(raster.relative_to(FIGURES))
+        )
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(raster, destination)
 
@@ -434,7 +455,10 @@ def transform_tex(
     text = SIGNATURE_RE.sub(signature_sub, text)
 
     def vector_sub(match: re.Match[str]) -> str:
-        return rf"\includegraphics{{{asset_prefix}/{match.group('stem')}.svg}}" + "\n\\wavefiguremark"
+        return (
+            rf"\includegraphics{{{asset_prefix}/{match.group('stem')}.svg}}"
+            + "\n\\wavefiguremark"
+        )
 
     text = VECTOR_RE.sub(vector_sub, text)
     text = TIKZ_INPUT_RE.sub(
@@ -489,12 +513,8 @@ def transform_tex(
         native_labels.append(f"({tag})")
         body = (match.group("body") + match.group("tail")).strip()
         return (
-            "\\[\n"
-            + body
-            + "\n\\]\n"
-            "\\begin{flushright}\n\\textup{("
-            + tag
-            + ")}\n\\end{flushright}"
+            "\\[\n" + body + "\n\\]\n"
+            "\\begin{flushright}\n\\textup{(" + tag + ")}\n\\end{flushright}"
         )
 
     text = NATIVE_TAGGED_EQUATION_RE.sub(native_equation_sub, text)
@@ -509,12 +529,8 @@ def transform_tex(
             body = r"\begin{aligned}" + body + r"\end{aligned}"
         label = f"({chapter_number}.{equation_number})"
         return (
-            "\\[\n"
-            + body
-            + "\n\\]\n"
-            "\\begin{flushright}\n\\textup{"
-            + label
-            + "}\n\\end{flushright}"
+            "\\[\n" + body + "\n\\]\n"
+            "\\begin{flushright}\n\\textup{" + label + "}\n\\end{flushright}"
         )
 
     text = WAVE_NUMBERED_RE.sub(numbered_equation_sub, text)
@@ -611,7 +627,7 @@ def tex_plain(text: str) -> str:
     """Normalize TeX enough for headings, anchors, and reader metadata."""
     text = text.replace("---", "—").replace("--", "–")
     text = text.replace(r"\'e", "é").replace(r"\'E", "É")
-    text = text.replace(r'\"a', "ä").replace(r'\"o', "ö").replace(r'\"u', "ü")
+    text = text.replace(r"\"a", "ä").replace(r"\"o", "ö").replace(r"\"u", "ü")
     text = text.replace(r"\ell", "ℓ").replace(r"\pi", "π").replace(r"\beta", "β")
     text = text.replace("$", "")
     for cmd in ("textit", "emph", "textbf", "mathrm", "mbox"):
@@ -639,7 +655,9 @@ def book_structure() -> tuple[Chapter, ...]:
         text = path.read_text()
         chapter_titles = _balanced_command_args(text, "chapter")
         if len(chapter_titles) != 1:
-            raise ValueError(f"{path}: expected one \\chapter, found {len(chapter_titles)}")
+            raise ValueError(
+                f"{path}: expected one \\chapter, found {len(chapter_titles)}"
+            )
         section_titles = tuple(_balanced_command_args(text, "section"))
         chapters.append(
             Chapter(
@@ -730,9 +748,12 @@ def markdown_license() -> str:
 
 def _git(*args: str) -> str | None:
     try:
-        return subprocess.check_output(
-            ["git", *args], cwd=ROOT, text=True, stderr=subprocess.DEVNULL
-        ).strip() or None
+        return (
+            subprocess.check_output(
+                ["git", *args], cwd=ROOT, text=True, stderr=subprocess.DEVNULL
+            ).strip()
+            or None
+        )
     except (OSError, subprocess.CalledProcessError):
         return None
 
@@ -763,7 +784,11 @@ class BuildInfo:
 
     @property
     def label(self) -> str:
-        return f"{self.version} ({self.revision_label})" if self.version else self.revision_label
+        return (
+            f"{self.version} ({self.revision_label})"
+            if self.version
+            else self.revision_label
+        )
 
     @property
     def commit_url(self) -> str:
@@ -781,7 +806,9 @@ def current_build() -> BuildInfo:
         version = os.environ.get("GITHUB_REF_NAME")
     if not version:
         version = _git("describe", "--tags", "--exact-match", "--match", "v[0-9]*")
-    return BuildInfo(sha=sha, short_sha=short_sha, version=version.strip() if version else None)
+    return BuildInfo(
+        sha=sha, short_sha=short_sha, version=version.strip() if version else None
+    )
 
 
 def write_build_info_tex(path: Path, info: BuildInfo | None = None) -> None:
@@ -829,7 +856,9 @@ def _build_info_cli(argv: list[str] | None = None) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Shared publication support utilities")
     subparsers = parser.add_subparsers(dest="command", required=True)
-    subparsers.add_parser("build-info", help="print or write the current build identity")
+    subparsers.add_parser(
+        "build-info", help="print or write the current build identity"
+    )
     args, remainder = parser.parse_known_args(argv)
     if args.command == "build-info":
         return _build_info_cli(remainder)

@@ -5,6 +5,7 @@ Pandoc supplies the document markup after the shared canonical publication
 preparation. This script owns dynamic publication data and final assembly; the
 maintained reader shell lives in reconstruction/templates/wave-html.html.
 """
+
 from __future__ import annotations
 
 import html
@@ -164,7 +165,7 @@ def build_shell(path: Path) -> None:
         f"<title>{html.escape(title)}</title>",
         text,
         count=1,
-        flags=re.S,
+        flags=re.DOTALL,
     )
     if "assets/wave.css" not in text:
         text = text.replace(
@@ -179,7 +180,7 @@ def build_shell(path: Path) -> None:
             1,
         )
 
-    match = re.search(r"<body>\s*(?P<body>.*?)\s*</body>", text, flags=re.S)
+    match = re.search(r"<body>\s*(?P<body>.*?)\s*</body>", text, flags=re.DOTALL)
     if match is None or text.count("<body>") != 1 or text.count("</body>") != 1:
         raise SystemExit(f"HTML body boundaries are not unique in {path.name}")
 
@@ -192,7 +193,9 @@ def build_shell(path: Path) -> None:
         **navigation_state(index),
     }
     shell = Template(HTML_TEMPLATE.read_text()).substitute(values)
-    text = text[: match.start()] + "<body>\n" + shell + "\n</body>" + text[match.end() :]
+    text = (
+        text[: match.start()] + "<body>\n" + shell + "\n</body>" + text[match.end() :]
+    )
     path.write_text(text)
 
 
@@ -206,24 +209,34 @@ def normalized_heading_text(text: str) -> str:
 
 
 def install_stable_section_ids() -> None:
-    heading_re = re.compile(r"<h2(?P<attrs>[^>]*)>(?P<body>.*?)</h2>", re.S | re.I)
+    heading_re = re.compile(
+        r"<h2(?P<attrs>[^>]*)>(?P<body>.*?)</h2>", re.DOTALL | re.IGNORECASE
+    )
     for chapter in book_structure():
         page = OUT / f"chapter{chapter.number}.html"
         text = page.read_text(errors="replace")
         index = 0
+        sections = chapter.sections
 
-        def replace_heading(match: re.Match[str]) -> str:
+        def replace_heading(
+            match: re.Match[str],
+            *,
+            sections: tuple[str, ...] = sections,
+            page_name: str = page.name,
+        ) -> str:
             nonlocal index
-            if index >= len(chapter.sections):
+            if index >= len(sections):
                 return match.group(0)
-            section = chapter.sections[index]
+            section = sections[index]
             rendered = heading_text(match.group("body"))
             if normalized_heading_text(rendered) != normalized_heading_text(section):
                 raise SystemExit(
-                    f"{page.name}: section heading {index + 1} is {rendered!r}; expected {section!r}"
+                    f"{page_name}: section heading {index + 1} is {rendered!r}; expected {section!r}"
                 )
             index += 1
-            attrs = re.sub(r'\s+id="[^"]*"', "", match.group("attrs"), flags=re.I)
+            attrs = re.sub(
+                r'\s+id="[^"]*"', "", match.group("attrs"), flags=re.IGNORECASE
+            )
             return f'<h2 id="{section_slug(section)}"{attrs}>{match.group("body")}</h2>'
 
         updated = heading_re.sub(replace_heading, text)
@@ -238,13 +251,17 @@ def build_index(source_dir: Path) -> None:
     page = OUT / "index.html"
     pandoc_page(source_dir / "frontmatter.tex", page, PUBLICATION_TITLE)
     text = page.read_text(errors="replace")
-    text = text.replace("</body>", html_contents() + "\n" + html_license() + "\n</body>", 1)
+    text = text.replace(
+        "</body>", html_contents() + "\n" + html_license() + "\n</body>", 1
+    )
     page.write_text(text)
 
 
 def build_references(source_dir: Path) -> None:
     references = source_dir / "references.md"
-    references.write_text(f"---\ntitle: References\nlang: {LANGUAGE}\nnocite: |\n  @*\n---\n")
+    references.write_text(
+        f"---\ntitle: References\nlang: {LANGUAGE}\nnocite: |\n  @*\n---\n"
+    )
     resource_path = os.pathsep.join((str(OUT), str(source_dir), str(RECON)))
     run(
         [
@@ -276,7 +293,7 @@ def validate_local_references() -> None:
                 for value in re.findall(
                     r'\bid=["\']([^"\']+)["\']',
                     path.read_text(errors="replace"),
-                    flags=re.I,
+                    flags=re.IGNORECASE,
                 )
             }
         return ids_by_page[path]
@@ -284,20 +301,34 @@ def validate_local_references() -> None:
     for page in pages:
         text = page.read_text(errors="replace")
         for attr in ("src", "href"):
-            for raw_ref in re.findall(rf'{attr}=["\']([^"\']+)["\']', text, flags=re.I):
+            for raw_ref in re.findall(
+                rf'{attr}=["\']([^"\']+)["\']', text, flags=re.IGNORECASE
+            ):
                 ref = html.unescape(raw_ref)
                 parsed = urllib.parse.urlsplit(ref)
-                if parsed.scheme or parsed.netloc or ref.startswith(("mailto:", "javascript:", "data:")):
+                if (
+                    parsed.scheme
+                    or parsed.netloc
+                    or ref.startswith(("mailto:", "javascript:", "data:"))
+                ):
                     continue
-                target = page if not parsed.path else page.parent / urllib.parse.unquote(parsed.path)
+                target = (
+                    page
+                    if not parsed.path
+                    else page.parent / urllib.parse.unquote(parsed.path)
+                )
                 if parsed.path and not target.exists():
                     if target.name in optional_sibling_downloads:
                         continue
                     broken.append((page.name, raw_ref))
                     continue
-                if parsed.fragment and target.suffix.lower() in {".html", ".htm"} and target.is_file():
-                    if urllib.parse.unquote(parsed.fragment) not in ids_for(target):
-                        broken.append((page.name, raw_ref))
+                if (
+                    parsed.fragment
+                    and target.suffix.lower() in {".html", ".htm"}
+                    and target.is_file()
+                    and urllib.parse.unquote(parsed.fragment) not in ids_for(target)
+                ):
+                    broken.append((page.name, raw_ref))
     if broken:
         for page, ref in broken[:40]:
             print(f"broken local HTML reference: {page}: {ref}", file=sys.stderr)
@@ -305,14 +336,23 @@ def validate_local_references() -> None:
 
 
 def validate() -> None:
-    missing = [path.name for path in EXPECTED_PAGES if not path.is_file() or path.stat().st_size == 0]
+    missing = [
+        path.name
+        for path in EXPECTED_PAGES
+        if not path.is_file() or path.stat().st_size == 0
+    ]
     if missing:
         raise SystemExit("missing HTML outputs: " + ", ".join(missing))
     if not HTML_TEMPLATE.is_file() or HTML_TEMPLATE.stat().st_size == 0:
         raise SystemExit(f"missing HTML reader template: {HTML_TEMPLATE}")
 
     combined = "\n".join(path.read_text(errors="replace") for path in EXPECTED_PAGES)
-    for sentinel in ("David C. Chapman", "Paola Malanotte-Rizzoli", "CC BY-NC-SA 4.0", "Apel"):
+    for sentinel in (
+        "David C. Chapman",
+        "Paola Malanotte-Rizzoli",
+        "CC BY-NC-SA 4.0",
+        "Apel",
+    ):
         if sentinel not in combined:
             raise SystemExit(f"HTML sentinel missing: {sentinel}")
     info = current_build()
@@ -320,7 +360,9 @@ def validate() -> None:
     url = html.escape(info.commit_url, quote=True)
     for page in EXPECTED_PAGES:
         text = page.read_text(errors="replace")
-        if not re.search(rf'<html[^>]+lang="{re.escape(LANGUAGE)}"', text, flags=re.I):
+        if not re.search(
+            rf'<html[^>]+lang="{re.escape(LANGUAGE)}"', text, flags=re.IGNORECASE
+        ):
             raise SystemExit(f"HTML language metadata missing from {page.name}")
         for required in (
             '<main id="main-content">',
@@ -328,16 +370,18 @@ def validate() -> None:
             'class="reader-header page-shell"',
             'class="book-nav"',
             'class="appearance-control"',
-            'data-theme-select',
+            "data-theme-select",
             'class="build-info"',
-            '>Source</a>',
+            ">Source</a>",
             "assets/wave.css",
             "assets/wave.js",
             label,
             url,
         ):
             if required not in text:
-                raise SystemExit(f"HTML requirement {required!r} is missing from {page.name}")
+                raise SystemExit(
+                    f"HTML requirement {required!r} is missing from {page.name}"
+                )
         if text.count('class="build-info"') != 1:
             raise SystemExit(f"HTML build stamp count is not one in {page.name}")
         if 'class="book-context"' in text or 'class="theme-toggle"' in text:
@@ -351,7 +395,14 @@ def validate() -> None:
 
 
 def main() -> int:
-    for command in ("pandoc", "latexmk", "lualatex", "pdftocairo", "pdftoppm", "pdfinfo"):
+    for command in (
+        "pandoc",
+        "latexmk",
+        "lualatex",
+        "pdftocairo",
+        "pdftoppm",
+        "pdfinfo",
+    ):
         require(command)
     shutil.rmtree(BUILD, ignore_errors=True)
     shutil.rmtree(ASSETS, ignore_errors=True)

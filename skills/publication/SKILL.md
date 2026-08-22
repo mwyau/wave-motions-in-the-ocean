@@ -33,25 +33,25 @@ The modern PDF and EPUB use the same cover generated from `cover-modern.tex`; EP
 Preserve these cover invariants unless explicitly redesigned by the owner:
 
 1. `WAVE MOTIONS IN THE OCEAN` is the dominant dark-ocean-blue title.
-2. `Myrl's View` is the italic subtitle.
-3. The full rectangular Met image of Hokusai's *Under the Wave off Kanagawa* is reproduced without speculative color correction or generative reconstruction.
-4. `Presented to Myrl C. Hendershott` appears below the image and above the authors.
-5. David C. Chapman and Paola Malanotte-Rizzoli are the authors.
-6. Years, digital-editor credit, license marks, museum credit, and badges do not belong on the front cover.
+1. `Myrl's View` is the italic subtitle.
+1. The full rectangular Met image of Hokusai's *Under the Wave off Kanagawa* is reproduced without speculative color correction or generative reconstruction.
+1. `Presented to Myrl C. Hendershott` appears below the image and above the authors.
+1. David C. Chapman and Paola Malanotte-Rizzoli are the authors.
+1. Years, digital-editor credit, license marks, museum credit, and badges do not belong on the front cover.
 
 The committed Hokusai source image is `reconstruction/figures/frontmatter/great-wave-met-dp130155.jpg`. Preserve its composition.
 
 The paged modern PDF preliminaries are:
 
 1. half-title,
-2. Lake Como frontispiece,
-3. full title page,
-4. copyright / edition-notice verso,
-5. Contents,
-6. Preface — David C. Chapman,
-7. Preface — Paola Malanotte-Rizzoli,
-8. Editor's note,
-9. Chapter 1.
+1. Lake Como frontispiece,
+1. full title page,
+1. copyright / edition-notice verso,
+1. Contents,
+1. Preface — David C. Chapman,
+1. Preface — Paola Malanotte-Rizzoli,
+1. Editor's note,
+1. Chapter 1.
 
 `frontmatter-modern-book.tex` owns that PDF-only sequence. Preliminary leaves count in Roman pagination; Contents begins visibly at v; Chapter 1 resets to Arabic page 1.
 

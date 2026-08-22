@@ -35,17 +35,17 @@ The change in pressure experienced by the parcel is $dp=-\rho_0g\xi$ while the c
 density is $d\rho=dp/c^2$. At this point, the buoyancy force acting on the parcel (per unit
 volume) introduces an acceleration, so that
 \[
- g(\rho_{out}-\rho_{in})
- =g[(\rho_0+\rho_{0z}\xi)-(\rho_0-\rho_0g\xi/c^2)]
- =\rho_0\xi_{tt}.
+	g(\rho_{out}-\rho_{in})
+	=g[(\rho_0+\rho_{0z}\xi)-(\rho_0-\rho_0g\xi/c^2)]
+	=\rho_0\xi_{tt}.
 \]
 Rearranging
 \[
- \xi_{tt}+\xi\left(-\frac{g\rho_{0z}}{\rho_0}-\frac{g^2}{c^2}\right)=0
+	\xi_{tt}+\xi\left(-\frac{g\rho_{0z}}{\rho_0}-\frac{g^2}{c^2}\right)=0
 \]
 which is a simple harmonic oscillator equation with solution $e^{\pm iNt}$ where
 \[
- N^2(z)=-\frac{g\rho_{0z}}{\rho_0}-\frac{g^2}{c^2}.
+	N^2(z)=-\frac{g\rho_{0z}}{\rho_0}-\frac{g^2}{c^2}.
 \]
 Thus the parcel oscillates about its equilibrium position at a natural frequency
 determined by the local density stratification and the fluid's compressibility. This
@@ -65,44 +65,44 @@ used. A brief discussion of this case is presented by Gill (1982, pp. 169--175).
 The momentum, mass and continuity equations for a rotating, incompressible
 fluid are
 \[
- \frac{D\vec u^{\,*}}{Dt}+f\hat k\times\vec u^{\,*}
- =-\frac{\nabla p^*}{\rho^*}-g\hat k
+	\frac{D\vec u^{\,*}}{Dt}+f\hat k\times\vec u^{\,*}
+	=-\frac{\nabla p^*}{\rho^*}-g\hat k
 \]
 \[
- \frac{\partial\rho^*}{\partial t}+\nabla\cdot\rho^*\vec u^{\,*}=0
+	\frac{\partial\rho^*}{\partial t}+\nabla\cdot\rho^*\vec u^{\,*}=0
 \]
 \[
- \frac{D\rho^*}{Dt}=0\ \Rightarrow\ \nabla\cdot\vec u^{\,*}=0.
+	\frac{D\rho^*}{Dt}=0\ \Rightarrow\ \nabla\cdot\vec u^{\,*}=0.
 \]
 One solution to these equations is a motionless, hydrostatic balance, i.e.
 $\vec u_0=0$; $0=-p_{0z}-g\rho_0(z)$. Each dynamic variable may then be separated into a
 hydrostatic part and a small departure from it
 \[
- \vec u^{\,*}=\vec u_0+\vec u\ ;\qquad p^*=p_0+p\ ;\qquad \rho^*=\rho_0+\rho.
+	\vec u^{\,*}=\vec u_0+\vec u\ ;\qquad p^*=p_0+p\ ;\qquad \rho^*=\rho_0+\rho.
 \]
 After substituting these into the full equations, assuming that the departures are very
 small perturbations and neglecting the nonlinear terms, we obtain
 \[
- \frac{\partial\vec u}{\partial t}+f\hat k\times\vec u
- =-\frac{\nabla p}{\rho_0}-\frac{g\rho\hat k}{\rho_0}
+	\frac{\partial\vec u}{\partial t}+f\hat k\times\vec u
+	=-\frac{\nabla p}{\rho_0}-\frac{g\rho\hat k}{\rho_0}
 \]
 \[
- \rho_t+w\rho_{0z}=0
+	\rho_t+w\rho_{0z}=0
 \]
 \[
- \nabla\cdot\vec u=0.
+	\nabla\cdot\vec u=0.
 \]
 Next we specialize to periodic motion $e^{-i\sigma t}$ and write out components
 \begin{align*}
- -i\sigma u-fv&=-p_x/\rho_0,\\
- -i\sigma v+fu&=-p_y/\rho_0,\\
- -i\sigma w&=-p_z/\rho_0-g\rho/\rho_0,\\
- u_x+v_y+w_z&=0,\\
- -i\sigma\rho+w\rho_{0z}&=0.
+	-i\sigma u-fv           & =-p_x/\rho_0,              \\
+	-i\sigma v+fu           & =-p_y/\rho_0,              \\
+	-i\sigma w              & =-p_z/\rho_0-g\rho/\rho_0, \\
+	u_x+v_y+w_z             & =0,                        \\
+	-i\sigma\rho+w\rho_{0z} & =0.
 \end{align*}
 Eliminate $\rho$ between the vertical momentum equation and the density equation
 \[
- \rho_0(N^2-\sigma^2)w=i\sigma p_z.
+	\rho_0(N^2-\sigma^2)w=i\sigma p_z.
 \]
 
 \sourcepagebreak
@@ -112,28 +112,28 @@ Eliminate $\rho$ between the vertical momentum equation and the density equation
 % -----------------------------------------------------------------------------
 The horizontal momentum equations may be rewritten
 \[
- u=\frac{1}{\rho_0}\frac{-i\sigma p_x+fp_y}{\sigma^2-f^2}
+	u=\frac{1}{\rho_0}\frac{-i\sigma p_x+fp_y}{\sigma^2-f^2}
 \]
 \[
- v=\frac{1}{\rho_0}\frac{-i\sigma p_y-fp_x}{\sigma^2-f^2}
+	v=\frac{1}{\rho_0}\frac{-i\sigma p_y-fp_x}{\sigma^2-f^2}
 \]
 from which continuity becomes
 \[
- -i\sigma\nabla_H^2p+(\sigma^2-f^2)\rho_0w_z=0
+	-i\sigma\nabla_H^2p+(\sigma^2-f^2)\rho_0w_z=0
 \]
 where $\nabla_H^2=\partial^2/\partial x^2+\partial^2/\partial y^2$. Now eliminate the pressure to obtain
 \[
- \rho_0(N^2-\sigma^2)\nabla_H^2w-(\sigma^2-f^2)(\rho_0w_z)_z=0
+	\rho_0(N^2-\sigma^2)\nabla_H^2w-(\sigma^2-f^2)(\rho_0w_z)_z=0
 \]
 or
 \[
- \frac{1}{\rho_0}(\rho_0w_z)_z
- -\left(\frac{N^2-\sigma^2}{\sigma^2-f^2}\right)\nabla_H^2w=0.
+	\frac{1}{\rho_0}(\rho_0w_z)_z
+	-\left(\frac{N^2-\sigma^2}{\sigma^2-f^2}\right)\nabla_H^2w=0.
 \]
 Now if we had let $\rho_0$ be constant in the momentum equations [so that it is
-differentiated only in $N^2(z)$], then we would have obtained
+		differentiated only in $N^2(z)$], then we would have obtained
 \[
- w_{zz}-\frac{N^2-\sigma^2}{\sigma^2-f^2}\nabla_H^2w=0.
+	w_{zz}-\frac{N^2-\sigma^2}{\sigma^2-f^2}\nabla_H^2w=0.
 \]
 This last simplification is called the \emph{Boussinesq approximation} and it means that
 $\rho_{0z}/\rho_0\ll w_z/w$, i.e. $\rho_0(z)$ changes over a large vertical scale. It is quite adequate in
@@ -142,15 +142,15 @@ the ocean.
 At the free surface (very close to $z=0$), we have $Dp^*/Dt=0$. Let $p^*=p_0+p$,
 linearize and apply the result at $z=0$:
 \[
- -i\sigma p+w p_{0z}=0\qquad\text{at}\qquad z=0
+	-i\sigma p+w p_{0z}=0\qquad\text{at}\qquad z=0
 \]
 or
 \[
- -i\sigma p-wg\rho_0=0\qquad\text{at}\qquad z=0.
+	-i\sigma p-wg\rho_0=0\qquad\text{at}\qquad z=0.
 \]
 Now use the previous equations to eliminate $p$
 \[
- (\sigma^2-f^2)w_z+g\nabla_H^2w=0\qquad\text{at}\qquad z=0.
+	(\sigma^2-f^2)w_z+g\nabla_H^2w=0\qquad\text{at}\qquad z=0.
 \]
 
 \sourcepagebreak
@@ -160,7 +160,7 @@ Now use the previous equations to eliminate $p$
 % -----------------------------------------------------------------------------
 At a flat bottom
 \[
- w=0\qquad\text{at}\qquad z=-D.
+	w=0\qquad\text{at}\qquad z=-D.
 \]
 So we have to solve
 
@@ -173,15 +173,15 @@ We suppose for the moment that $N^2(z)=\text{constant}$. We also assume that the
 coordinates rotate around the $z$ axis at $\Omega$ so that $f=2\Omega=\text{constant}$ which is the
 $f$-plane approximation. The field equation is
 \begin{waveequation}
- w_{zz}-\left(\frac{N^2-\sigma^2}{\sigma^2-f^2}\right)(w_{xx}+w_{yy})=0.
+	w_{zz}-\left(\frac{N^2-\sigma^2}{\sigma^2-f^2}\right)(w_{xx}+w_{yy})=0.
 \end{waveequation}
 Since $N,f$ are constants, exact solutions are
 \[
- w=e^{-i\sigma t+ikx+i\ell y+imz}
+	w=e^{-i\sigma t+ikx+i\ell y+imz}
 \]
 from which
 \begin{waveequation}
- m^2=\left(\frac{N^2-\sigma^2}{\sigma^2-f^2}\right)(k^2+\ell^2)
+	m^2=\left(\frac{N^2-\sigma^2}{\sigma^2-f^2}\right)(k^2+\ell^2)
 \end{waveequation}
 is the dispersion relation. In $k,\ell,m$ space, the dispersion relation is a cone if
 $f^2<\sigma^2<N^2$ or $f^2>\sigma^2>N^2$.
@@ -198,15 +198,15 @@ All possible wave vectors for waves of frequency $\sigma$ lie on this cone. They
 any length. Fixing $\sigma$ fixes their direction. If we define $\theta$ as in the sketch, then with
 $K=(k^2+\ell^2+m^2)^{1/2}$, we can write
 \[
- m=K\cos\theta\ ;\qquad (k^2+\ell^2)^{1/2}=K\sin\theta
+	m=K\cos\theta\ ;\qquad (k^2+\ell^2)^{1/2}=K\sin\theta
 \]
 and the dispersion relation may be rewritten as
 \[
- \sigma^2=N^2\sin^2\theta+f^2\cos^2\theta
+	\sigma^2=N^2\sin^2\theta+f^2\cos^2\theta
 \]
 or
 \[
- \sigma^2K^2=N^2(k^2+\ell^2)+f^2m^2.
+	\sigma^2K^2=N^2(k^2+\ell^2)+f^2m^2.
 \]
 These waves are of the form
 $(\vec u,p,\rho)=(\vec u_0,p_0,\rho_0)e^{-i\sigma t+i\vec k\cdot\vec x}$. By continuity,
@@ -220,7 +220,7 @@ If $f=0$, then the momentum equation in any direction normal to $\vec k$
 
 becomes
 \[
- u_t=-gp\sin\theta/\rho_0
+	u_t=-gp\sin\theta/\rho_0
 \]
 
 \sourcepagebreak
@@ -230,12 +230,12 @@ becomes
 % -----------------------------------------------------------------------------
 while
 \[
- \rho_t+u\sin\theta\,\rho_{0z}=0
+	\rho_t+u\sin\theta\,\rho_{0z}=0
 \]
 because the pressure gradient forces are along $\vec k$. This says that only the density
 gradient along $\vec u$ matters, from which
 \[
- u_{tt}+N^2\sin^2\theta\,u=0\ ;\qquad \sigma^2=N^2\sin^2\theta
+	u_{tt}+N^2\sin^2\theta\,u=0\ ;\qquad \sigma^2=N^2\sin^2\theta
 \]
 and motion is along a straight line perpendicular to $\vec k$.
 
@@ -245,20 +245,20 @@ If $N=0$, then the momentum equation in any direction normal to $\vec k$
 
 becomes
 \[
- \vec u_t+f\cos\theta\,\hat k'\times\vec u=0.
+	\vec u_t+f\cos\theta\,\hat k'\times\vec u=0.
 \]
 Thus the motion occurs in inertial circles at $\sigma^2=f^2\cos^2\theta$.
 
 We can examine the group velocity by defining
 \[
- W(k,\ell,m,\sigma)
- =m^2-\frac{N^2-\sigma^2}{\sigma^2-f^2}(k^2+\ell^2)=0.
+	W(k,\ell,m,\sigma)
+	=m^2-\frac{N^2-\sigma^2}{\sigma^2-f^2}(k^2+\ell^2)=0.
 \]
 Now
 \[
- dW\big|_{\ell,m}
- =\frac{\partial W}{\partial k}\,dk
- +\frac{\partial W}{\partial\sigma}\,d\sigma=0
+	dW\big|_{\ell,m}
+	=\frac{\partial W}{\partial k}\,dk
+	+\frac{\partial W}{\partial\sigma}\,d\sigma=0
 \]
 
 \sourcepagebreak
@@ -268,40 +268,40 @@ Now
 % -----------------------------------------------------------------------------
 so
 \[
- \left.\frac{\partial\sigma}{\partial k}\right|_{\ell,m}
- =-\frac{\left.\partial W/\partial k\right|_{\ell,m}}
-         {\left.\partial W/\partial\sigma\right|_{\ell,m}}
- \qquad\text{etc.}
+	\left.\frac{\partial\sigma}{\partial k}\right|_{\ell,m}
+	=-\frac{\left.\partial W/\partial k\right|_{\ell,m}}
+	{\left.\partial W/\partial\sigma\right|_{\ell,m}}
+	\qquad\text{etc.}
 \]
 From this
 \begin{align*}
- c_{gx}&=\frac{\partial\sigma}{\partial k}
- =\frac{k}{\sigma}\frac{N^2-\sigma^2}{K^2},\\
- c_{gy}&=\frac{\partial\sigma}{\partial\ell}
- =\frac{\ell}{\sigma}\frac{N^2-\sigma^2}{K^2},\\
- c_{gz}&=\frac{\partial\sigma}{\partial m}
- =-\frac{m}{\sigma}\frac{\sigma^2-f^2}{K^2}.
+	c_{gx} & =\frac{\partial\sigma}{\partial k}
+	=\frac{k}{\sigma}\frac{N^2-\sigma^2}{K^2},    \\
+	c_{gy} & =\frac{\partial\sigma}{\partial\ell}
+	=\frac{\ell}{\sigma}\frac{N^2-\sigma^2}{K^2}, \\
+	c_{gz} & =\frac{\partial\sigma}{\partial m}
+	=-\frac{m}{\sigma}\frac{\sigma^2-f^2}{K^2}.
 \end{align*}
 First notice that
 \begin{align*}
- \vec k\cdot\vec c_g
- &=\left(\frac{k^2}{\sigma}+\frac{\ell^2}{\sigma}\right)
- \left(\frac{N^2-\sigma^2}{K^2}\right)
- -\frac{m^2}{\sigma}\left(\frac{\sigma^2-f^2}{K^2}\right)\\
- &=\frac{-\sigma^2(k^2+\ell^2+m^2)+N^2(k^2+\ell^2)+f^2m^2}{K^2\sigma}\\
- &=0.
+	\vec k\cdot\vec c_g
+	 & =\left(\frac{k^2}{\sigma}+\frac{\ell^2}{\sigma}\right)
+	\left(\frac{N^2-\sigma^2}{K^2}\right)
+	-\frac{m^2}{\sigma}\left(\frac{\sigma^2-f^2}{K^2}\right)               \\
+	 & =\frac{-\sigma^2(k^2+\ell^2+m^2)+N^2(k^2+\ell^2)+f^2m^2}{K^2\sigma} \\
+	 & =0.
 \end{align*}
 This means that the group velocity is perpendicular to the phase velocity! Next
 observe that
 \[
- \vec c_g=\frac{1}{\sigma K^2}
- [\hat i k(N^2-\sigma^2)+\hat j\ell(N^2-\sigma^2)
- +\hat k m(f^2-\sigma^2+N^2-N^2)]
+	\vec c_g=\frac{1}{\sigma K^2}
+	[\hat i k(N^2-\sigma^2)+\hat j\ell(N^2-\sigma^2)
+		+\hat k m(f^2-\sigma^2+N^2-N^2)]
 \]
 That is
 \[
- \vec c_g=\frac{1}{\sigma K^2}
- [\vec k(N^2-\sigma^2)-\hat k m(N^2-f^2)].
+	\vec c_g=\frac{1}{\sigma K^2}
+	[\vec k(N^2-\sigma^2)-\hat k m(N^2-f^2)].
 \]
 This allows us to visualize the direction of $\vec c_g$.
 
@@ -314,22 +314,22 @@ This allows us to visualize the direction of $\vec c_g$.
 
 Finally, using the dispersion relation,
 \begin{align*}
- |\vec c_g|
- &=\left(c_{gx}^2+c_{gy}^2+c_{gz}^2\right)^{1/2}\\
- &=\frac{[k^2(N^2-\sigma^2)^2+\ell^2(N^2-\sigma^2)^2
- +m^2(\sigma^2-f^2)^2]^{1/2}}{\sigma K^2}\\
- &=\frac{[(N^2-\sigma^2)^2\sin^2\theta
- +(\sigma^2-f^2)^2\cos^2\theta]^{1/2}}{\sigma K}\\
- &=\frac{[(N^2-f^2)^2\sin^4\theta\cos^2\theta
- +(N^2-f^2)^2\cos^4\theta\sin^2\theta]^{1/2}}{\sigma K}\\
- &=\frac{|N^2-f^2|\sin\theta\cos\theta}{\sigma K}.
+	|\vec c_g|
+	 & =\left(c_{gx}^2+c_{gy}^2+c_{gz}^2\right)^{1/2}            \\
+	 & =\frac{[k^2(N^2-\sigma^2)^2+\ell^2(N^2-\sigma^2)^2
+			    +m^2(\sigma^2-f^2)^2]^{1/2}}{\sigma K^2}         \\
+	 & =\frac{[(N^2-\sigma^2)^2\sin^2\theta
+			    +(\sigma^2-f^2)^2\cos^2\theta]^{1/2}}{\sigma K}        \\
+	 & =\frac{[(N^2-f^2)^2\sin^4\theta\cos^2\theta
+			    +(N^2-f^2)^2\cos^4\theta\sin^2\theta]^{1/2}}{\sigma K} \\
+	 & =\frac{|N^2-f^2|\sin\theta\cos\theta}{\sigma K}.
 \end{align*}
 An alternative is to define $\phi$ as the angle of energy propagation such that
 \[
- \sigma^2=N^2\cos^2\phi+f^2\sin^2\phi
+	\sigma^2=N^2\cos^2\phi+f^2\sin^2\phi
 \]
 \[
- |\vec c_g|=|N^2-f^2|\sin\phi\cos\phi/(\sigma K).
+	|\vec c_g|=|N^2-f^2|\sin\phi\cos\phi/(\sigma K).
 \]
 
 \wavevectorart[0.72]{ch04-p072-phase-energy-phi}
@@ -354,7 +354,7 @@ $\sigma^2=N^2\cos^2\phi+f^2\sin^2\phi$.
 
 (i) Rotation only: $N=0$, $f\ne0$. We have
 \[
- \sigma=f\sin\phi\ ;\qquad |\vec c_g|=f\cos\phi/K.
+	\sigma=f\sin\phi\ ;\qquad |\vec c_g|=f\cos\phi/K.
 \]
 
 \wavevectorart[0.72]{ch04-p073-rotation-only-limits}
@@ -368,7 +368,7 @@ group velocity is zero. The wavenumber is purely vertical, i.e. $k=\ell=0$. This
 corresponds to solutions of the horizontal momentum equations in which $p$ is a
 function of $z$ only. The pressure gradient terms disappear leaving
 \[
- u_t-fv=0
+	u_t-fv=0
 \]
 
 \sourcepagebreak
@@ -377,7 +377,7 @@ function of $z$ only. The pressure gradient terms disappear leaving
 % Source printed page 74 / physical page 11
 % -----------------------------------------------------------------------------
 \[
- v_t+fu=0
+	v_t+fu=0
 \]
 which has the solution $\sigma=f$, $u=iv$. Thus, we see that in a rotating homogeneous
 fluid, low frequency energy flows vertically in the form of Taylor columns, while inertial
@@ -385,7 +385,7 @@ oscillations at different depths are entirely independent.
 
 (ii) Stratification only: $f=0$, $N\ne0$. We have
 \[
- \sigma=N\cos\phi\ ;\qquad |\vec c_g|=N\sin\phi/K.
+	\sigma=N\cos\phi\ ;\qquad |\vec c_g|=N\sin\phi/K.
 \]
 
 \wavevectorart[0.72]{ch04-p074-stratification-only-limits}
@@ -414,10 +414,10 @@ very similar in their mathematical expression.
 
 (iii) Both rotation and constant stratification:
 \[
- \sigma^2=N^2\cos^2\phi+f^2\sin^2\phi
+	\sigma^2=N^2\cos^2\phi+f^2\sin^2\phi
 \]
 \[
- |\vec c_g|=|N^2-f^2|\sin\phi\cos\phi/(\sigma K).
+	|\vec c_g|=|N^2-f^2|\sin\phi\cos\phi/(\sigma K).
 \]
 
 \wavevectorart[0.72]{ch04-p075-rotation-stratification-limits}
@@ -430,13 +430,13 @@ the cone whose sides lie at $\phi$ to the vertical.
 What happens if the source frequency is outside the range of $f$ to $N$? In that
 case the field equation can be written
 \[
- w_{zz}+\frac{\sigma^2-N^2}{\sigma^2-f^2}(w_{xx}+w_{yy})=0
+	w_{zz}+\frac{\sigma^2-N^2}{\sigma^2-f^2}(w_{xx}+w_{yy})=0
 \]
 and we see that the very nature of the equation has changed from a hyperbolic (or
 wave-type) equation to an elliptic (or potential flow type) equation because the sign of
 the coefficient has changed. Our free-wave dispersion relation now becomes
 \[
- m^2=-\frac{\sigma^2-N^2}{\sigma^2-f^2}(k^2+\ell^2).
+	m^2=-\frac{\sigma^2-N^2}{\sigma^2-f^2}(k^2+\ell^2).
 \]
 
 \sourcesetpage{76}
@@ -459,8 +459,8 @@ contend with.
 
 Initially we restrict ourselves to $N^2=\text{constant}$. The signs of
 \[
- S^2\equiv\sigma^2-f^2\ ;\qquad
- R^2\equiv\frac{N^2-\sigma^2}{\sigma^2-f^2}
+	S^2\equiv\sigma^2-f^2\ ;\qquad
+	R^2\equiv\frac{N^2-\sigma^2}{\sigma^2-f^2}
 \]
 are crucial and we have several cases to consider.
 
@@ -478,25 +478,25 @@ on whether $N^2>f^2$ or $N^2<f^2$. We will look at cases A and B separately.
 
 Case A: Define $R_1^2=(\sigma^2-N^2)/(\sigma^2-f^2)$ and consider $R_1^2>0$. We let
 \[
- w=e^{-i\sigma t+ikx}\omega(z)
+	w=e^{-i\sigma t+ikx}\omega(z)
 \]
 and $\omega$ satisfies
 \[
- (\sigma^2-f^2)\omega_z-gk^2\omega=0\qquad z=0
+	(\sigma^2-f^2)\omega_z-gk^2\omega=0\qquad z=0
 \]
 \[
- \omega_{zz}-k^2R_1^2\omega=0
+	\omega_{zz}-k^2R_1^2\omega=0
 \]
 \[
- \omega=0\qquad z=-D.
+	\omega=0\qquad z=-D.
 \]
 Solutions are
 \[
- w=e^{-i\sigma t+ikx}\sinh[kR_1(z+D)]
+	w=e^{-i\sigma t+ikx}\sinh[kR_1(z+D)]
 \]
 and they satisfy the top ($z=0$) boundary condition only if
 \begin{waveequation}
- \frac{R_1(\sigma^2-f^2)}{gk}=\tanh(kR_1D).
+	\frac{R_1(\sigma^2-f^2)}{gk}=\tanh(kR_1D).
 \end{waveequation}
 This last relation is effectively the dispersion relation; its solution is $\sigma=\sigma(k)$ or, as we
 have done the problem, $k=k(\sigma)$. To see what solutions exist, plot the left-hand side
@@ -514,7 +514,7 @@ This is case A with $S^2=\sigma^2-f^2>0$. There are two oppositely travelling wa
 we can identify with the usual surface waves existing in the absence of stratification
 and rotation.
 \[
- N^2=f^2=0\ ;\qquad R_1^2=1\ ;\qquad \sigma^2-f^2=\sigma^2>0.
+	N^2=f^2=0\ ;\qquad R_1^2=1\ ;\qquad \sigma^2-f^2=\sigma^2>0.
 \]
 Notice that in case A1 ($\sigma^2<f^2,N^2$), no waves exist. The plot of the left-hand side
 and the right-hand side versus $k$ looks like
@@ -528,14 +528,14 @@ impossible to satisfy.
 
 Case B: Now $R^2=(N^2-\sigma^2)/(\sigma^2-f^2)>0$. We let
 \[
- w=e^{-i\sigma t+ikx}\omega(z)
+	w=e^{-i\sigma t+ikx}\omega(z)
 \]
 and $\omega$ satisfies
 \[
- (\sigma^2-f^2)\omega_z-gk^2\omega=0\qquad z=0
+	(\sigma^2-f^2)\omega_z-gk^2\omega=0\qquad z=0
 \]
 \[
- \omega_{zz}+k^2R^2\omega=0.
+	\omega_{zz}+k^2R^2\omega=0.
 \]
 
 \sourcepagebreak
@@ -544,15 +544,15 @@ and $\omega$ satisfies
 % Source printed page 79 / physical page 16
 % -----------------------------------------------------------------------------
 \[
- \omega=0\qquad z=-D.
+	\omega=0\qquad z=-D.
 \]
 Solutions this time are
 \[
- w=e^{-i\sigma t+ikx}\sin[kR(z+D)]
+	w=e^{-i\sigma t+ikx}\sin[kR(z+D)]
 \]
 with
 \[
- \frac{R(\sigma^2-f^2)}{gk}=\tan(kRD).
+	\frac{R(\sigma^2-f^2)}{gk}=\tan(kRD).
 \]
 Again we look at the dispersion relation
 
@@ -564,16 +564,16 @@ case $\sigma^2>f^2$ has an additional pair of small-$k$ modes not present in the
 
 For large $k$, the $n=1,2,\ldots$ modes have the approximate dispersion relation
 \[
- k_nRD=\pm n\pi,
+	k_nRD=\pm n\pi,
 \]
 or
 \[
- k_nD\left(\frac{N^2-\sigma^2}{\sigma^2-f^2}\right)^{1/2}=\pm n\pi.
+	k_nD\left(\frac{N^2-\sigma^2}{\sigma^2-f^2}\right)^{1/2}=\pm n\pi.
 \]
 This does not hold for the small $k$ ($n=0$) modes. For them, if $kRD\ll1$, then we
 obtain
 \[
- \frac{\sigma^2-f^2}{gD}=k_0^2.
+	\frac{\sigma^2-f^2}{gD}=k_0^2.
 \]
 These we recognize as the old surface modes in shallow water now modified by
 rotation. Note that they do not exist when $\sigma^2<f^2$.
@@ -589,14 +589,14 @@ the surface modes $k_0$.
 
 Let's look at the dispersion relations more closely. For the surface modes
 \[
- \sigma^2\simeq k^2gD+f^2.
+	\sigma^2\simeq k^2gD+f^2.
 \]
 For the internal modes
 \[
- (\sigma^2-f^2)(n\pi/kD)^2\simeq(N^2-\sigma^2)
+	(\sigma^2-f^2)(n\pi/kD)^2\simeq(N^2-\sigma^2)
 \]
 \[
- \sigma^2[1+(n\pi/kD)^2]\simeq N^2+f^2(n\pi/kD)^2.
+	\sigma^2[1+(n\pi/kD)^2]\simeq N^2+f^2(n\pi/kD)^2.
 \]
 
 % Equation-generated waveguide dispersion branches.
@@ -607,11 +607,11 @@ limits are also points of vanishing $\vec c_g$ which is easily seen since $\part
 
 It is useful to examine the kinematics of the internal modes. We have
 \[
- w=w_0e^{-i\sigma t+ikx}\sin[kR(z+D)].
+	w=w_0e^{-i\sigma t+ikx}\sin[kR(z+D)].
 \]
 From continuity ($u_x+w_z=0$)
 \[
- u=iRw_0e^{-i\sigma t+ikx}\cos[kR(z+D)].
+	u=iRw_0e^{-i\sigma t+ikx}\cos[kR(z+D)].
 \]
 
 \sourcepagebreak
@@ -621,8 +621,8 @@ From continuity ($u_x+w_z=0$)
 % -----------------------------------------------------------------------------
 Consider the lowest mode $n=1$. Then from the dispersion relation $k_1\simeq\pi/RD$ and
 \[
- w=w_0\cos(k_1x-\sigma t)\sin[\pi(z+D)/D]\ ;\qquad
- u=-Rw_0\sin(k_1x-\sigma t)\cos[\pi(z+D)/D]
+	w=w_0\cos(k_1x-\sigma t)\sin[\pi(z+D)/D]\ ;\qquad
+	u=-Rw_0\sin(k_1x-\sigma t)\cos[\pi(z+D)/D]
 \]
 after taking the real part. The vertical structure looks like
 
@@ -658,23 +658,23 @@ been used to infer the presence of internal waves, especially internal solitary 
 We can reexamine the cases considered above but assuming that the wave decays in
 the $x$ direction. For case A, we have
 \[
- w=e^{-i\sigma t+kx}\omega(z)
+	w=e^{-i\sigma t+kx}\omega(z)
 \]
 \[
- (\sigma^2-f^2)\omega_z+gk^2\omega=0\qquad\text{at }z=0
+	(\sigma^2-f^2)\omega_z+gk^2\omega=0\qquad\text{at }z=0
 \]
 \[
- \omega_{zz}+k^2R_1^2\omega=0
+	\omega_{zz}+k^2R_1^2\omega=0
 \]
 \[
- \omega=0\qquad\text{at }z=-D.
+	\omega=0\qquad\text{at }z=-D.
 \]
 Solutions are
 \[
- w=e^{-i\sigma t+kx}\sin[kR_1(z+D)]
+	w=e^{-i\sigma t+kx}\sin[kR_1(z+D)]
 \]
 \[
- \frac{R_1(\sigma^2-f^2)}{gk}=-\tan kR_1D.
+	\frac{R_1(\sigma^2-f^2)}{gk}=-\tan kR_1D.
 \]
 
 \sourcepagebreak
@@ -690,23 +690,23 @@ A. Putting on the rigid lid reduces A1 to A, i.e. $\sin(kR_1D)=0$.
 
 For case B, we have
 \[
- w=e^{-i\sigma t+kx}\omega(z)
+	w=e^{-i\sigma t+kx}\omega(z)
 \]
 \[
- (\sigma^2-f^2)\omega_z+gk^2\omega=0\qquad\text{at }z=0
+	(\sigma^2-f^2)\omega_z+gk^2\omega=0\qquad\text{at }z=0
 \]
 \[
- \omega_{zz}-k^2R^2\omega=0
+	\omega_{zz}-k^2R^2\omega=0
 \]
 \[
- \omega=0\qquad\text{at }z=-D.
+	\omega=0\qquad\text{at }z=-D.
 \]
 Solutions are
 \[
- w=e^{-i\sigma t+kx}\sinh[kR(z+D)]
+	w=e^{-i\sigma t+kx}\sinh[kR(z+D)]
 \]
 \[
- \frac{R(\sigma^2-f^2)}{gk}=-\tanh kRD.
+	\frac{R(\sigma^2-f^2)}{gk}=-\tanh kRD.
 \]
 
 \sourcepagebreak
@@ -750,29 +750,29 @@ The mean flow has magnitude $U$ in the $x$ direction.
 The topography has the form $h=h_0\sin(kx)$ with amplitude $h_0$. Moving along with
 the mean flow, the topography has the form
 \[
- h=h_0\sin[k(x+Ut)]
+	h=h_0\sin[k(x+Ut)]
 \]
 from which we see that the frequency of the resulting motions will be
 \[
- \sigma=-Uk.
+	\sigma=-Uk.
 \]
 The topography introduces a vertical velocity because the particles near the boundary
 must follow, to some extent, the undulations of the boundary. So,
 \[
- w=U\frac{\partial h}{\partial x}=w_0e^{-i\sigma t+ikx}
- \qquad\text{on}\qquad z=0.
+	w=U\frac{\partial h}{\partial x}=w_0e^{-i\sigma t+ikx}
+	\qquad\text{on}\qquad z=0.
 \]
 This says that $w_0=Ukh_0$. The field equation for the region above the boundary is
 \[
- w_{zz}-\frac{N^2-\sigma^2}{\sigma^2}w_{xx}=0.
+	w_{zz}-\frac{N^2-\sigma^2}{\sigma^2}w_{xx}=0.
 \]
 A solution is
 \[
- w=w_0e^{-i\sigma t+ikx+imz}
+	w=w_0e^{-i\sigma t+ikx+imz}
 \]
 where
 \begin{waveequation}
- m^2=k^2(N^2-\sigma^2)/\sigma^2=(N/U)^2-k^2
+	m^2=k^2(N^2-\sigma^2)/\sigma^2=(N/U)^2-k^2
 \end{waveequation}
 
 \sourcepagebreak
@@ -790,21 +790,21 @@ Suppose $\sigma^2>N^2$ which means $k>N/U$. This corresponds to short
 wavelengths or undulations on the boundary. In this case $m^2<0$ so that $m$ must be
 imaginary. The solution becomes
 \[
- w=w_0e^{-i\sigma t+ikx-mz}\ ;\qquad
- m^2=k^2-(N/U)^2
+	w=w_0e^{-i\sigma t+ikx-mz}\ ;\qquad
+	m^2=k^2-(N/U)^2
 \]
 where the sign of $m$ is chosen to ensure that the solution remains finite. Recall that
 \[
- \rho_0w_{zt}=p_{xx}
+	\rho_0w_{zt}=p_{xx}
 \]
 from the momentum and continuity equations. This produces
 \[
- \rho_0i\sigma mw=-k^2p
+	\rho_0i\sigma mw=-k^2p
 \]
 from which
 \[
- p=\frac{-\rho_0i\sigma m}{k^2}w
- =\frac{-\rho_0i\sigma m}{k^2}w_0e^{-i\sigma t+ikx-mz}.
+	p=\frac{-\rho_0i\sigma m}{k^2}w
+	=\frac{-\rho_0i\sigma m}{k^2}w_0e^{-i\sigma t+ikx-mz}.
 \]
 We see that $w$ and $p$ are out of phase by $\pi/2$. Therefore, the vertical energy flux,
 $\overline{wp}=0$, is identically equal to zero, i.e. there is no vertical energy flux. This makes
@@ -817,7 +817,7 @@ Suppose $\sigma^2<N^2$ which means $k<N/U$. This corresponds to longer
 wavelengths or undulations on the boundary. Now $m^2>0$, so $m$ is real and
 $m^2=(N/U)^2-k^2$. The solution is
 \[
- w=w_0e^{-i\sigma t+ikx+imz}.
+	w=w_0e^{-i\sigma t+ikx+imz}.
 \]
 
 \sourcepagebreak
@@ -828,19 +828,19 @@ $m^2=(N/U)^2-k^2$. The solution is
 The form of this solution says that energy is continually being transported toward
 $z\to\infty$. We have $\rho_0\sigma mw=-k^2p$, so
 \[
- p=\frac{-\rho_0\sigma m}{k^2}w
- =\frac{-\rho_0\sigma m}{k^2}w_0e^{-i\sigma t+ikx+imz}.
+	p=\frac{-\rho_0\sigma m}{k^2}w
+	=\frac{-\rho_0\sigma m}{k^2}w_0e^{-i\sigma t+ikx+imz}.
 \]
 Now $w$ and $p$ are in phase, so $\overline{wp}\ne0$ and there is a net upward flux of energy. This
 produces a drag on the mean flow because the energy must come from the mean flow.
 The drag per unit surface area is the rate at which horizontal momentum is transferred
 vertically
 \[
- \tau=-\rho_0\overline{uw}
- =\frac{\overline{wp}}{U}
- =\frac{-\rho_0\sigma m w_0^2}{2k^2}\frac1U
- =\frac12\rho_0kh_0^2U^2
- \left(\frac{N^2}{U^2}-k^2\right)^{1/2}.
+	\tau=-\rho_0\overline{uw}
+	=\frac{\overline{wp}}{U}
+	=\frac{-\rho_0\sigma m w_0^2}{2k^2}\frac1U
+	=\frac12\rho_0kh_0^2U^2
+	\left(\frac{N^2}{U^2}-k^2\right)^{1/2}.
 \]
 The cutoff wavenumber which separates the two cases, $k_c=N/U$, corresponds
 to the wavelength $2\pi/k_c$ which is the horizontal distance traveled by a particle in one
@@ -857,7 +857,7 @@ Here we consider the reflection of an internal gravity wave from a solid boundar
 is at some angle to the horizontal. To start, consider the two-dimensional solution
 $e^{-i\sigma t+ikx+imz}$ which satisfies
 \[
- w_{zz}-R^2w_{xx}=0
+	w_{zz}-R^2w_{xx}=0
 \]
 
 \sourcepagebreak
@@ -868,11 +868,11 @@ $e^{-i\sigma t+ikx+imz}$ which satisfies
 where $R^2=(N^2-\sigma^2)/(\sigma^2-f^2)$ and $m=\pm Rk$. Lines of constant phase are those for
 which
 \[
- -\sigma t+kx\pm Rkz=\text{constant}.
+	-\sigma t+kx\pm Rkz=\text{constant}.
 \]
 That is
 \[
- x\pm Rz=(\sigma/k)t+\text{constant}.
+	x\pm Rz=(\sigma/k)t+\text{constant}.
 \]
 
 % Exact characteristic/wavevector geometry.
@@ -881,15 +881,15 @@ That is
 Phases propagate at right angles to $x\pm Rz=\text{constant}$. We see that energy flows
 along $x\pm Rz=\text{constant}$ because
 \[
- z_x=\pm R^{-1}
- =\pm\left(\frac{\sigma^2-f^2}{N^2-\sigma^2}\right)^{1/2}
- =\pm\left(\frac{(N^2-f^2)\cos^2\phi}
-                 {(N^2-f^2)\sin^2\phi}\right)^{1/2}
- =\pm\cot\phi.
+	z_x=\pm R^{-1}
+	=\pm\left(\frac{\sigma^2-f^2}{N^2-\sigma^2}\right)^{1/2}
+	=\pm\left(\frac{(N^2-f^2)\cos^2\phi}
+	{(N^2-f^2)\sin^2\phi}\right)^{1/2}
+	=\pm\cot\phi.
 \]
 These lines are the characteristics of the \emph{hyperbolic} $w$ equation, i.e.
 \[
- w=F(x+Rz)+G(x-Rz)
+	w=F(x+Rz)+G(x-Rz)
 \]
 is the solution.
 
@@ -919,11 +919,11 @@ wave is $\vec k_r$.
 
 The projection of incident and reflected wavenumbers along $z=ax$ must be equal.
 \[
- |\vec k_i|\cos(\tan^{-1}R-\tan^{-1}a)
- =|\vec k_r|\cos(\tan^{-1}R+\tan^{-1}a).
+	|\vec k_i|\cos(\tan^{-1}R-\tan^{-1}a)
+	=|\vec k_r|\cos(\tan^{-1}R+\tan^{-1}a).
 \]
 We can evaluate these by geometry and the law of cosines
-[$\cos\theta=(a^2+b^2-c^2)/2ab$].
+	[$\cos\theta=(a^2+b^2-c^2)/2ab$].
 
 \sourcepagebreak
 
@@ -935,11 +935,11 @@ We can evaluate these by geometry and the law of cosines
 
 After some algebra, the result is
 \begin{waveequation}
- |\vec k_r|=|\vec k_i|\left(\frac{1+aR}{1-aR}\right).
+	|\vec k_r|=|\vec k_i|\left(\frac{1+aR}{1-aR}\right).
 \end{waveequation}
 \[
- m_r=\pm m_i\left(\frac{1+aR}{1-aR}\right)
- \left(\frac{R+a}{R-a}\right).
+	m_r=\pm m_i\left(\frac{1+aR}{1-aR}\right)
+	\left(\frac{R+a}{R-a}\right).
 \]
 where the signs have been taken from the sketch. This gives the new wavenumbers in
 terms of the old ones. Because waves of a given frequency $\sigma$ can only go in the two
@@ -952,12 +952,12 @@ rotation vector. We have
 
 The normal component of velocity must vanish at the wall, so
 \[
- |\vec v_i|\sin(\tan^{-1}R^{-1}+\tan^{-1}a)
- =|\vec v_r|\sin(\tan^{-1}R^{-1}-\tan^{-1}a).
+	|\vec v_i|\sin(\tan^{-1}R^{-1}+\tan^{-1}a)
+	=|\vec v_r|\sin(\tan^{-1}R^{-1}-\tan^{-1}a).
 \]
 Again we can use geometry to obtain
 \begin{waveequation}
- |\vec v_r|=|\vec v_i|\left(\frac{1+aR}{1-aR}\right).
+	|\vec v_r|=|\vec v_i|\left(\frac{1+aR}{1-aR}\right).
 \end{waveequation}
 
 \sourcepagebreak
@@ -994,19 +994,19 @@ in the ocean are
 In most of the ocean $N^2>f^2$ although there are not many reliable values for the
 deepest parts of the ocean. With this sort of profile, we have
 \[
- R^2(z)=\frac{N^2(z)-\sigma^2}{\sigma^2-f^2}
+	R^2(z)=\frac{N^2(z)-\sigma^2}{\sigma^2-f^2}
 \]
 and $R^2$ may be greater than or less than zero. We can examine the changes in the
 solution which result from this vertical dependence by looking for a wave solution like
 \[
- w=e^{-i\sigma t+ikx}\omega(z).
+	w=e^{-i\sigma t+ikx}\omega(z).
 \]
 The waveguide internal wave problem becomes
 \[
- (\sigma^2-f^2)\omega_z-gk^2\omega=0\qquad\text{at }z=0
+	(\sigma^2-f^2)\omega_z-gk^2\omega=0\qquad\text{at }z=0
 \]
 \[
- \omega_{zz}+k^2R^2(z)\omega=0
+	\omega_{zz}+k^2R^2(z)\omega=0
 \]
 
 \sourcepagebreak
@@ -1015,7 +1015,7 @@ The waveguide internal wave problem becomes
 % Source printed page 93 / physical page 30
 % -----------------------------------------------------------------------------
 \[
- \omega=0\qquad\text{at }z=-D.
+	\omega=0\qquad\text{at }z=-D.
 \]
 If $R^2(z)>0$, then the solution is trigonometric (travelling wave) because
 $\omega_{zz}/\omega<0$. If $R^2(z)<0$, then the solution is exponential (evanescent mode) because
@@ -1031,19 +1031,19 @@ details of Sturm--Liouville theory because it can be found in many textbooks (an
 should be familiar with it). We can summarize some relevant properties which will be
 useful for understanding the present problem. The usual Sturm--Liouville problem is
 \[
- (p\psi_z)_z+(q+\lambda r)\psi=0
+	(p\psi_z)_z+(q+\lambda r)\psi=0
 \]
 \[
- a_{1,2}\psi_z+b_{1,2}\psi=0\qquad\text{at }z=0,-D
+	a_{1,2}\psi_z+b_{1,2}\psi=0\qquad\text{at }z=0,-D
 \]
 with $p,r>0$; $q<0$ or $q>0$. The parameters $p,q,r,a,b$ are all real. There is a singly
 infinite, denumerable set of eigenvalues
 \[
- \lambda_1\le\lambda_2\le\lambda_3\le\cdots\to\infty.
+	\lambda_1\le\lambda_2\le\lambda_3\le\cdots\to\infty.
 \]
 The eigenfunctions are orthogonal and can be orthonormalized as
 \[
- \int_{-D}^{0}\psi_i\psi_jr(z)\,dz=\delta_{ij}
+	\int_{-D}^{0}\psi_i\psi_jr(z)\,dz=\delta_{ij}
 \]
 where $\delta_{ij}$ is the Kronecker delta.
 
@@ -1054,7 +1054,7 @@ where $\delta_{ij}$ is the Kronecker delta.
 % -----------------------------------------------------------------------------
 In terms of the Sturm--Liouville notation, we have
 \[
- \lambda=k^2,\qquad r=R^2(z),\qquad p=1,\qquad q=0.
+	\lambda=k^2,\qquad r=R^2(z),\qquad p=1,\qquad q=0.
 \]
 Our present problem differs from the standard Sturm--Liouville problem in two ways.
 First, the eigenvalue $k^2$ appears in the boundary condition at $z=0$. Second, $R^2(z)$
@@ -1063,7 +1063,7 @@ changes sign in the definition interval, the generalized Sturm--Liouville theory
 demonstrates the existence of an infinite, denumerable set of eigenvalues which are real
 and have no lower bound to the sequence
 \[
- -\infty<\cdots<(k_2^e)^2<(k_1^e)^2<0<(k_1^w)^2<(k_2^w)^2<\cdots<+\infty
+	-\infty<\cdots<(k_2^e)^2<(k_1^e)^2<0<(k_1^w)^2<(k_2^w)^2<\cdots<+\infty
 \]
 where the superscript $e$ represents an evanescent mode, and the superscript $w$
 represents a travelling wave. The situation corresponds to
@@ -1076,8 +1076,8 @@ Thus, in this case, both evanescent and travelling modes are present simultaneou
 The effect of the appearance of $k^2$ in the surface boundary condition manifests
 itself as
 \begin{waveequation}
- \int_{-D}^{0}\omega_i\omega_jR^2(z)\,dz
- =-\omega_i(0)\omega_j(0)g/(\sigma^2-f^2).
+	\int_{-D}^{0}\omega_i\omega_jR^2(z)\,dz
+	=-\omega_i(0)\omega_j(0)g/(\sigma^2-f^2).
 \end{waveequation}
 This says that the eigenfunctions $\omega_i$ are not orthogonal unless the surface boundary is
 the rigid lid, i.e. $\omega_i(0)=0$.
