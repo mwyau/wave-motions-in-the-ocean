@@ -23,11 +23,11 @@ from publication import (
     DOWNLOADS,
     LANGUAGE,
     MATHJAX_URL,
+    ORIGINAL_SOURCE_URL,
     PUBLICATION_TITLE,
     REPOSITORY_URL,
     book_structure,
     current_build,
-    html_contents,
     html_license,
     prepare_assets,
     prepare_flowing_sources,
@@ -45,6 +45,14 @@ EXPECTED_PAGES = [
     *(OUT / f"chapter{i}.html" for i in range(1, 7)),
     OUT / "references.html",
 ]
+HTML_DOWNLOADS = tuple(
+    item for item in DOWNLOADS if item[0] != "wave-motions-facsimile.pdf"
+)
+FRONTMATTER_SECTIONS = (
+    ("preface-david-c-chapman", "Preface — David C. Chapman"),
+    ("preface-paola-malanotte-rizzoli", "Preface — Paola Malanotte-Rizzoli"),
+    ("editors-note", "Editor's note"),
+)
 HEADING_TRANSLATION = str.maketrans(
     {
         "‘": "'",
@@ -106,7 +114,7 @@ def pandoc_page(source_tex: Path, output: Path, title: str) -> None:
 
 def page_context(path: Path) -> str:
     if path.name == "index.html":
-        return "Front matter & contents"
+        return "Front matter"
     if path.name == "references.html":
         return "References"
     match = re.fullmatch(r"chapter([1-6])\.html", path.name)
@@ -130,61 +138,119 @@ def page_index(path: Path) -> int | None:
 
 def navigation_state(index: int | None) -> dict[str, str]:
     previous_url = ""
+    previous_label = ""
     next_url = ""
-    references_url = ""
+    next_label = ""
 
-    if index == 0:
+    if index is None:
+        next_url = "chapter1.html"
+        next_label = "Chapter 1"
+    elif index == 0:
         previous_url = "chapter6.html"
-    elif index is not None:
-        if index > 1:
+        previous_label = "Chapter 6"
+    else:
+        if index == 1:
+            previous_url = "index.html"
+            previous_label = "Front matter"
+        else:
             previous_url = f"chapter{index - 1}.html"
+            previous_label = f"Chapter {index - 1}"
         if index < 6:
             next_url = f"chapter{index + 1}.html"
+            next_label = f"Chapter {index + 1}"
         else:
-            references_url = "references.html"
+            next_url = "references.html"
+            next_label = "References"
 
     return {
         "previous_url": html.escape(previous_url, quote=True),
+        "previous_label": html.escape(previous_label),
         "previous_hidden": "" if previous_url else " hidden",
         "next_url": html.escape(next_url, quote=True),
+        "next_label": html.escape(next_label),
         "next_hidden": "" if next_url else " hidden",
-        "references_url": html.escape(references_url, quote=True),
-        "references_hidden": "" if references_url else " hidden",
-        "chapter_nav_hidden": " hidden" if index is None else "",
     }
 
 
 def reader_state(index: int | None) -> dict[str, str]:
     if index is None:
         return {
-            "reader_context_hidden": " hidden",
-            "reader_chapter": "",
+            "reader_chapter": "Front matter",
             "reader_title": "",
             "reader_title_hidden": " hidden",
-            "chapter_toc": "",
         }
     if index == 0:
         return {
-            "reader_context_hidden": "",
             "reader_chapter": "References",
             "reader_title": "",
             "reader_title_hidden": " hidden",
-            "chapter_toc": "",
         }
 
     chapter = next(item for item in book_structure() if item.number == index)
-    toc_items = "".join(
-        f'<li><a href="#{section_slug(section)}" data-section-link="{section_slug(section)}">'
-        f"{html.escape(section)}</a></li>"
-        for section in chapter.sections
-    )
     return {
-        "reader_context_hidden": "",
         "reader_chapter": f"Chapter {chapter.number}",
         "reader_title": html.escape(chapter.title),
         "reader_title_hidden": "",
-        "chapter_toc": f"<ol>{toc_items}</ol>" if toc_items else "",
     }
+
+
+def book_toc(index: int | None) -> str:
+    def current_page(active: bool) -> str:
+        return ' class="is-current" aria-current="page"' if active else ""
+
+    front_sections = "".join(
+        f'<li><a href="index.html#{anchor}"'
+        + (f' data-section-link="{anchor}"' if index is None else "")
+        + f">{html.escape(title)}</a></li>"
+        for anchor, title in FRONTMATTER_SECTIONS
+    )
+    items = [
+        '<li class="book-toc-page">'
+        + f'<details class="book-toc-group"{" open" if index is None else ""}>'
+        + '<summary><a href="index.html"'
+        + current_page(index is None)
+        + '>Front matter</a></summary>'
+        + f'<ol>{front_sections}</ol></details></li>'
+    ]
+
+    for chapter in book_structure():
+        active = index == chapter.number
+        sections = "".join(
+            f'<li><a href="chapter{chapter.number}.html#{section_slug(section)}"'
+            + (
+                f' data-section-link="{section_slug(section)}"'
+                if active
+                else ""
+            )
+            + f">{html.escape(section)}</a></li>"
+            for section in chapter.sections
+        )
+        items.append(
+            '<li class="book-toc-page">'
+            + f'<details class="book-toc-group"{" open" if active else ""}>'
+            + f'<summary><a href="chapter{chapter.number}.html#chapter-{chapter.number}"'
+            + current_page(active)
+            + f'>{chapter.number} · {html.escape(chapter.title)}</a></summary>'
+            + f'<ol>{sections}</ol></details></li>'
+        )
+
+    items.append(
+        '<li class="book-toc-page"><a href="references.html"'
+        + current_page(index == 0)
+        + '>References</a></li>'
+    )
+    return '<ol class="book-toc-list">' + "".join(items) + "</ol>"
+
+
+def source_url(index: int | None, sha: str) -> str:
+    if index is None:
+        source_path = "reconstruction/frontmatter-modern.tex"
+    elif index == 0:
+        source_path = "reconstruction/references.bib"
+    else:
+        source_path = f"reconstruction/chapter{index}.tex"
+    revision = sha if sha != "unknown" else "main"
+    return f"{REPOSITORY_URL}/blob/{revision}/{source_path}"
 
 
 def mark_chapter_title_block(page: Path) -> None:
@@ -199,6 +265,64 @@ def mark_chapter_title_block(page: Path) -> None:
             1,
         )
     )
+
+
+def heading_text(fragment: str) -> str:
+    return " ".join(html.unescape(re.sub(r"<[^>]+>", "", fragment)).split())
+
+
+def normalized_heading_text(text: str) -> str:
+    normalized = unicodedata.normalize("NFKC", text).translate(HEADING_TRANSLATION)
+    return " ".join(normalized.split())
+
+
+def install_frontmatter_ids(page: Path) -> None:
+    text = page.read_text(errors="replace")
+    title_end = text.find("</header>")
+    if title_end < 0:
+        raise SystemExit("HTML front matter title block is missing")
+    prefix = text[: title_end + len("</header>")]
+    tail = text[title_end + len("</header>") :]
+    heading_re = re.compile(r"<h1(?P<attrs>[^>]*)>(?P<body>.*?)</h1>", re.S | re.I)
+    index = 0
+
+    def replace_heading(match: re.Match[str]) -> str:
+        nonlocal index
+        if index >= len(FRONTMATTER_SECTIONS):
+            return match.group(0)
+        anchor, expected = FRONTMATTER_SECTIONS[index]
+        rendered = heading_text(match.group("body"))
+        if normalized_heading_text(rendered) != normalized_heading_text(expected):
+            raise SystemExit(
+                f"index.html: front matter heading {index + 1} is {rendered!r}; expected {expected!r}"
+            )
+        index += 1
+        attrs = re.sub(r'\s+id="[^"]*"', "", match.group("attrs"), flags=re.I)
+        return f'<h1 id="{anchor}"{attrs}>{match.group("body")}</h1>'
+
+    tail = heading_re.sub(replace_heading, tail)
+    if index != len(FRONTMATTER_SECTIONS):
+        raise SystemExit(
+            f"index.html: found {index} front matter headings, expected {len(FRONTMATTER_SECTIONS)}"
+        )
+    page.write_text(prefix + tail)
+
+
+def install_chapter_id(page: Path, chapter_number: int) -> None:
+    text = page.read_text(errors="replace")
+    marker = '<header id="title-block-header" class="chapter-title-block">'
+    title_start = text.find(marker)
+    title_end = text.find("</header>", title_start)
+    if title_start < 0 or title_end < 0:
+        raise SystemExit(f"HTML chapter title block missing from {page.name}")
+    heading = re.search(r"<h1(?P<attrs>[^>]*)>", text[title_end + len("</header>") :], re.I)
+    if heading is None:
+        raise SystemExit(f"HTML chapter heading missing from {page.name}")
+    absolute_start = title_end + len("</header>") + heading.start()
+    absolute_end = title_end + len("</header>") + heading.end()
+    attrs = re.sub(r'\s+id="[^"]*"', "", heading.group("attrs"), flags=re.I)
+    opening = f'<h1 id="chapter-{chapter_number}"{attrs}>'
+    page.write_text(text[:absolute_start] + opening + text[absolute_end:])
 
 
 def build_shell(path: Path) -> None:
@@ -235,24 +359,16 @@ def build_shell(path: Path) -> None:
 
     values = {
         "body": match.group("body"),
-        "source_url": html.escape(REPOSITORY_URL, quote=True),
+        "source_url": html.escape(source_url(index, info.sha), quote=True),
         "build_label": html.escape(info.label),
         "build_url": html.escape(info.commit_url, quote=True),
+        "book_toc": book_toc(index),
         **navigation_state(index),
         **reader_state(index),
     }
     shell = Template(HTML_TEMPLATE.read_text()).substitute(values)
     text = text[: match.start()] + "<body>\n" + shell + "\n</body>" + text[match.end() :]
     path.write_text(text)
-
-
-def heading_text(fragment: str) -> str:
-    return " ".join(html.unescape(re.sub(r"<[^>]+>", "", fragment)).split())
-
-
-def normalized_heading_text(text: str) -> str:
-    normalized = unicodedata.normalize("NFKC", text).translate(HEADING_TRANSLATION)
-    return " ".join(normalized.split())
 
 
 def install_stable_section_ids() -> None:
@@ -284,12 +400,31 @@ def install_stable_section_ids() -> None:
         page.write_text(updated)
 
 
+def html_frontmatter_footer() -> str:
+    links = "".join(
+        f'<li><a href="{filename}">{html.escape(label)}</a></li>'
+        for filename, label in HTML_DOWNLOADS
+    )
+    return (
+        '<section class="edition-links"><h2>Read and download</h2><ul>'
+        + links
+        + "</ul>"
+        + f'<p><a href="{ORIGINAL_SOURCE_URL}">Original online source</a></p>'
+        + "</section>"
+    )
+
+
 def build_index(source_dir: Path) -> None:
     page = OUT / "index.html"
     pandoc_page(source_dir / "frontmatter.tex", page, PUBLICATION_TITLE)
     text = page.read_text(errors="replace")
-    text = text.replace("</body>", html_contents() + "\n" + html_license() + "\n</body>", 1)
+    text = text.replace(
+        "</body>",
+        html_frontmatter_footer() + "\n" + html_license() + "\n</body>",
+        1,
+    )
     page.write_text(text)
+    install_frontmatter_ids(page)
 
 
 def build_references(source_dir: Path) -> None:
@@ -317,7 +452,7 @@ def validate_local_references() -> None:
     pages = sorted(OUT.glob("*.html"))
     ids_by_page: dict[Path, set[str]] = {}
     broken: list[tuple[str, str]] = []
-    optional_sibling_downloads = {name for name, _ in DOWNLOADS}
+    optional_sibling_downloads = {name for name, _ in HTML_DOWNLOADS}
 
     def ids_for(path: Path) -> set[str]:
         if path not in ids_by_page:
@@ -367,9 +502,10 @@ def validate() -> None:
             raise SystemExit(f"HTML sentinel missing: {sentinel}")
     info = current_build()
     label = html.escape(info.label)
-    url = html.escape(info.commit_url, quote=True)
+    build_url = html.escape(info.commit_url, quote=True)
     for page in EXPECTED_PAGES:
         text = page.read_text(errors="replace")
+        index = page_index(page)
         if not re.search(rf'<html[^>]+lang="{re.escape(LANGUAGE)}"', text, flags=re.I):
             raise SystemExit(f"HTML language metadata missing from {page.name}")
         for required in (
@@ -377,35 +513,56 @@ def validate() -> None:
             'class="skip-link"',
             'class="reader-header page-shell"',
             'class="book-nav"',
-            'class="appearance-control"',
-            'data-theme-select',
+            'data-theme-cycle',
             'data-reader-context',
+            'class="book-contents-rail"',
+            'class="book-contents-popover"',
             'class="build-info"',
             '>Source</a>',
+            "Front matter",
+            "References",
             "assets/wave.css",
             "assets/wave.js",
             label,
-            url,
+            build_url,
+            html.escape(source_url(index, info.sha), quote=True),
         ):
             if required not in text:
                 raise SystemExit(f"HTML requirement {required!r} is missing from {page.name}")
         if text.count('class="build-info"') != 1:
             raise SystemExit(f"HTML build stamp count is not one in {page.name}")
-        if 'class="book-context"' in text or 'class="theme-toggle"' in text:
+        if 'class="book-context"' in text or 'data-theme-select' in text:
             raise SystemExit(f"obsolete HTML header controls remain in {page.name}")
 
     for chapter in book_structure():
         text = (OUT / f"chapter{chapter.number}.html").read_text(errors="replace")
-        if text.count("data-section-link=") != len(chapter.sections):
+        if text.count("data-section-link=") != 2 * len(chapter.sections):
             raise SystemExit(
-                f"chapter{chapter.number}.html: chapter contents count does not match source sections"
+                f"chapter{chapter.number}.html: active chapter contents count does not match source sections"
             )
+        if f'id="chapter-{chapter.number}"' not in text:
+            raise SystemExit(f"chapter{chapter.number}.html: stable chapter anchor is missing")
         if 'class="chapter-title-block"' not in text:
             raise SystemExit(f"chapter{chapter.number}.html: chapter title block is missing")
 
     index = (OUT / "index.html").read_text(errors="replace")
-    if 'id="contents"' not in index or "wave-motions.epub" not in index:
-        raise SystemExit("HTML Contents/Downloads block is incomplete")
+    for anchor, _ in FRONTMATTER_SECTIONS:
+        if f'id="{anchor}"' not in index:
+            raise SystemExit(f"HTML front matter anchor {anchor!r} is missing")
+    if "wave-motions.pdf" not in index or "wave-motions.epub" not in index:
+        raise SystemExit("HTML download links are incomplete")
+    if "wave-motions-facsimile.pdf" in index:
+        raise SystemExit("HTML front page must not link the facsimile PDF")
+    if 'id="contents"' in index:
+        raise SystemExit("inline HTML Contents block must not be rendered")
+    if 'href="chapter1.html"' not in index:
+        raise SystemExit("front matter must navigate forward to Chapter 1")
+    chapter1 = (OUT / "chapter1.html").read_text(errors="replace")
+    if 'href="index.html"' not in chapter1:
+        raise SystemExit("Chapter 1 must navigate back to front matter")
+    references = (OUT / "references.html").read_text(errors="replace")
+    if 'href="chapter6.html"' not in references:
+        raise SystemExit("References must navigate back to Chapter 6")
     if MATHJAX_URL not in combined:
         raise SystemExit("pinned MathJax URL is missing from generated HTML")
     validate_local_references()
@@ -436,12 +593,13 @@ def main() -> int:
             f"Chapter {chapter.number}",
         )
         mark_chapter_title_block(page)
+        install_chapter_id(page, chapter.number)
     build_references(source_dir)
     for page in EXPECTED_PAGES:
         build_shell(page)
     install_stable_section_ids()
     validate()
-    print("HTML build OK: index + 6 chapters + references")
+    print("HTML build OK: front matter + 6 chapters + references")
     return 0
 
 

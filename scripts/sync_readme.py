@@ -18,9 +18,11 @@ import tempfile
 from pathlib import Path
 
 from publication import (
+    DOWNLOADS,
+    ORIGINAL_SOURCE_URL,
     RECON,
     ROOT,
-    markdown_contents,
+    SITE_URL,
     markdown_license,
     reader_punctuation,
 )
@@ -166,7 +168,21 @@ def frontmatter_markdown(text: str) -> str:
             text=True,
         )
     rendered = process.stdout.strip()
-    return re.sub(r"(?m)^# ", "## ", rendered)
+    rendered = re.sub(r"(?m)^# ", "## ", rendered)
+    rendered = re.sub(
+        r'<img src="reconstruction/figures/frontmatter/salmon-hendershott-como-1980\.jpg"[^>]*>',
+        '<img src="reconstruction/figures/frontmatter/salmon-hendershott-como-1980.jpg" width="420" />',
+        rendered,
+    )
+    return rendered
+
+
+def read_download_markdown() -> str:
+    lines = ["## Read and download", "", f"- [HTML]({SITE_URL}/)"]
+    for filename, label in DOWNLOADS:
+        lines.append(f"- [{label}]({SITE_URL}/{filename})")
+    lines.append(f"- [Original online source]({ORIGINAL_SOURCE_URL})")
+    return "\n".join(lines)
 
 
 def expected_readme(current: str) -> str:
@@ -187,7 +203,7 @@ def expected_readme(current: str) -> str:
         + "\n\n"
         + frontmatter_markdown(source)
         + "\n\n"
-        + markdown_contents()
+        + read_download_markdown()
         + "\n\n"
         + markdown_license()
         + "\n"
