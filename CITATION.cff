@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "Please cite the digital edition using the preferred citation below."
+title: "Wave Motions in the Ocean: Myrl's View"
+authors:
+  - family-names: Chapman
+    given-names: "David C."
+  - family-names: Malanotte-Rizzoli
+    given-names: Paola
+license: CC-BY-NC-SA-4.0
+repository-code: "https://github.com/mwyau/wave-motions-in-the-ocean"
+url: "https://mwyau.github.io/wave-motions-in-the-ocean/"
+preferred-citation:
+  type: book
+  title: "Wave Motions in the Ocean: Myrl's View"
+  authors:
+    - family-names: Chapman
+      given-names: "David C."
+    - family-names: Malanotte-Rizzoli
+      given-names: Paola
+  editors:
+    - family-names: Yau
+      given-names: "Albert M. W."
+  edition: "Digital edition"
+  year: 2026
+  year-original: 1989
+  url: "https://mwyau.github.io/wave-motions-in-the-ocean/"
+  license: CC-BY-NC-SA-4.0
