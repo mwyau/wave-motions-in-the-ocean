@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+PYTHON=(uv run --with-requirements "$ROOT/requirements.txt" python)
 BUILD="$ROOT/build"
 DIST="$ROOT/dist"
 CACHE=${WAVE_CACHE_DIR:-"$ROOT/.cache/wave-motions"}
@@ -45,7 +46,8 @@ prepare_bibtex() {
 }
 
 prepare_build_info() {
-  python3 "$ROOT/scripts/publication.py" build-info --tex "$BUILD/build-info.tex"
+  need uv
+  "${PYTHON[@]}" "$ROOT/scripts/publication.py" build-info --tex "$BUILD/build-info.tex"
 }
 
 run_latexmk_cached() {
@@ -95,21 +97,23 @@ build_pdf() {
 }
 
 build_html() {
-  need python3
-  python3 "$ROOT/scripts/build_html.py"
+  need uv
+  "${PYTHON[@]}" "$ROOT/scripts/build_html.py"
 }
 
 build_epub() {
-  need python3
-  python3 "$ROOT/scripts/build_epub.py"
+  need uv
+  "${PYTHON[@]}" "$ROOT/scripts/build_epub.py"
 }
 
 check_readme() {
-  python3 "$ROOT/scripts/sync_readme.py" --check
+  need uv
+  "${PYTHON[@]}" "$ROOT/scripts/sync_readme.py" --check
 }
 
 write_checksums() {
-  python3 "$ROOT/scripts/release.py" checksums --root "$DIST" --write
+  need uv
+  "${PYTHON[@]}" "$ROOT/scripts/release.py" checksums --root "$DIST" --write
 }
 
 reset_generated() {
@@ -118,9 +122,10 @@ reset_generated() {
 }
 
 finish_all() {
+  need uv
   write_checksums
   if validation_enabled; then
-    python3 "$ROOT/scripts/validate.py" all
+    "${PYTHON[@]}" "$ROOT/scripts/validate.py" all
   else
     echo "Dedicated validation skipped (WAVE_SKIP_VALIDATION=1; builders retained structural checks)."
   fi
@@ -135,10 +140,11 @@ case "$TARGET" in
     finish_all
     ;;
   pdf)
+    need uv
     reset_generated
     build_pdf
     if validation_enabled; then
-      python3 "$ROOT/scripts/validate.py" pdf
+      "${PYTHON[@]}" "$ROOT/scripts/validate.py" pdf
     fi
     ;;
   html)
@@ -149,10 +155,11 @@ case "$TARGET" in
     fi
     ;;
   epub)
+    need uv
     reset_generated
     build_epub
     if validation_enabled; then
-      python3 "$ROOT/scripts/validate.py" epub
+      "${PYTHON[@]}" "$ROOT/scripts/validate.py" epub
     fi
     ;;
 esac
