@@ -14,8 +14,10 @@ import re
 import shutil
 import subprocess
 import sys
+import tarfile
 import unicodedata
 import urllib.parse
+import urllib.request
 from pathlib import Path
 from string import Template
 
@@ -43,10 +45,26 @@ SRC = ROOT / "src"
 BUILD = ROOT / "build" / "html-pandoc"
 OUT = ROOT / "dist"
 ASSETS = OUT / "assets"
+VENDOR_CACHE = ROOT / "build" / "html-vendor"
 HTML_TEMPLATE = SRC / "templates" / "wave-html.html"
 SOCIAL_PREVIEW_TEMPLATE = SRC / "templates" / "social-preview.tex"
 COVER_SOURCE = SRC / "cover-modern.tex"
 SOCIAL_PREVIEW = ASSETS / "social-preview.png"
+LOCAL_MATHJAX_URL = "assets/mathjax/tex-chtml-full.js"
+VENDOR_ARCHIVES = {
+    "mathjax-3.2.2": (
+        "https://codeload.github.com/mathjax/MathJax/tar.gz/"
+        "600692ad9d3552cc25f85510d5797bc942ecc9f7"
+    ),
+    "source-serif-4.005": (
+        "https://codeload.github.com/adobe-fonts/source-serif/tar.gz/"
+        "2823e993c53fca27c5c8749f529b56a5a7c77b6b"
+    ),
+    "source-sans-3.052": (
+        "https://codeload.github.com/adobe-fonts/source-sans/tar.gz/"
+        "ed1808970eb3c7301c9a523bee26473ba0bb62fa"
+    ),
+}
 SOCIAL_DESCRIPTION = (
     "Digital edition of Wave Motions in the Ocean: Myrl’s View by David C. Chapman "
     "and Paola Malanotte-Rizzoli, edited by Albert M. W. Yau."
@@ -111,6 +129,122 @@ def run(cmd: list[str], *, cwd: Path | None = None) -> None:
         if exc.stderr:
             sys.stderr.write(exc.stderr[-12000:])
         raise
+
+
+def cached_vendor_archive(name: str, url: str) -> Path:
+    VENDOR_CACHE.mkdir(parents=True, exist_ok=True)
+    archive = VENDOR_CACHE / f"{name}.tar.gz"
+    if archive.is_file() and archive.stat().st_size > 0:
+        return archive
+
+    temporary = archive.with_suffix(archive.suffix + ".part")
+    temporary.unlink(missing_ok=True)
+    request = urllib.request.Request(
+        url,
+        headers={"User-Agent": "wave-motions-html-builder"},
+    )
+    print(f"Fetching pinned HTML dependency: {name}", file=sys.stderr)
+    try:
+        with urllib.request.urlopen(request, timeout=90) as response:
+            with temporary.open("wb") as destination:
+                shutil.copyfileobj(response, destination)
+    except OSError as exc:
+        temporary.unlink(missing_ok=True)
+        raise SystemExit(
+            f"cannot fetch {name}; reuse build/html-vendor from a previous build "
+            f"for an offline rebuild: {exc}"
+        ) from exc
+    if not temporary.is_file() or temporary.stat().st_size == 0:
+        raise SystemExit(f"downloaded HTML dependency is empty: {name}")
+    temporary.replace(archive)
+    return archive
+
+
+def copy_archive_file(archive: Path, member_path: str, destination: Path) -> None:
+    suffix = "/" + member_path.lstrip("/")
+    with tarfile.open(archive, "r:gz") as package:
+        matches = [
+            member
+            for member in package.getmembers()
+            if member.isfile() and member.name.endswith(suffix)
+        ]
+        if len(matches) != 1:
+            raise SystemExit(
+                f"{archive.name}: expected one archive member {member_path!r}, "
+                f"found {len(matches)}"
+            )
+        source = package.extractfile(matches[0])
+        if source is None:
+            raise SystemExit(f"cannot read {member_path!r} from {archive.name}")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        with source, destination.open("wb") as target:
+            shutil.copyfileobj(source, target)
+
+
+def copy_archive_tree(archive: Path, member_dir: str, destination: Path) -> int:
+    marker = "/" + member_dir.strip("/") + "/"
+    count = 0
+    with tarfile.open(archive, "r:gz") as package:
+        for member in package.getmembers():
+            if not member.isfile() or marker not in member.name:
+                continue
+            relative = member.name.split(marker, 1)[1]
+            source = package.extractfile(member)
+            if source is None:
+                raise SystemExit(f"cannot read {member.name!r} from {archive.name}")
+            target = destination / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with source, target.open("wb") as output:
+                shutil.copyfileobj(source, output)
+            count += 1
+    if count == 0:
+        raise SystemExit(f"{archive.name}: archive tree {member_dir!r} is empty")
+    return count
+
+
+def install_html_vendor_assets() -> None:
+    archives = {
+        name: cached_vendor_archive(name, url)
+        for name, url in VENDOR_ARCHIVES.items()
+    }
+
+    mathjax = archives["mathjax-3.2.2"]
+    mathjax_root = ASSETS / "mathjax"
+    copy_archive_file(mathjax, "es5/tex-chtml-full.js", mathjax_root / "tex-chtml-full.js")
+    font_count = copy_archive_tree(
+        mathjax,
+        "es5/output/chtml/fonts/woff-v2",
+        mathjax_root / "output" / "chtml" / "fonts" / "woff-v2",
+    )
+    if font_count < 20:
+        raise SystemExit(f"MathJax font bundle is incomplete: found {font_count} WOFF files")
+    copy_archive_file(mathjax, "LICENSE", ASSETS / "licenses" / "MathJax-3.2.2.txt")
+
+    serif = archives["source-serif-4.005"]
+    copy_archive_file(
+        serif,
+        "WOFF2/VAR/SourceSerif4Variable-Roman.otf.woff2",
+        ASSETS / "fonts" / "SourceSerif4Variable-Roman.otf.woff2",
+    )
+    copy_archive_file(
+        serif,
+        "WOFF2/VAR/SourceSerif4Variable-Italic.otf.woff2",
+        ASSETS / "fonts" / "SourceSerif4Variable-Italic.otf.woff2",
+    )
+    copy_archive_file(serif, "LICENSE.md", ASSETS / "licenses" / "Source-Serif-4-OFL.txt")
+
+    sans = archives["source-sans-3.052"]
+    copy_archive_file(
+        sans,
+        "WOFF2/VF/SourceSans3VF-Upright.otf.woff2",
+        ASSETS / "fonts" / "SourceSans3VF-Upright.otf.woff2",
+    )
+    copy_archive_file(
+        sans,
+        "WOFF2/VF/SourceSans3VF-Italic.otf.woff2",
+        ASSETS / "fonts" / "SourceSans3VF-Italic.otf.woff2",
+    )
+    copy_archive_file(sans, "LICENSE.md", ASSETS / "licenses" / "Source-Sans-3-OFL.txt")
 
 
 def pandoc_page(source_tex: Path, output: Path, title: str) -> None:
@@ -459,6 +593,15 @@ def install_chapter_id(page: Path, chapter_number: int) -> None:
 
 def build_shell(path: Path) -> None:
     text = path.read_text(errors="replace")
+    if MATHJAX_URL in text:
+        text = text.replace(MATHJAX_URL, LOCAL_MATHJAX_URL)
+        text = text.replace(
+            "</head>",
+            '<meta name="mathjax-upstream" content="'
+            + html.escape(MATHJAX_URL, quote=True)
+            + '" />\n</head>',
+            1,
+        )
     index = page_index(path)
     context = page_context(path)
     title = BOOK_TITLE if path.name == "index.html" else f"{context} — {BOOK_TITLE}"
@@ -661,6 +804,18 @@ def validate() -> None:
         raise SystemExit(f"missing social preview template: {SOCIAL_PREVIEW_TEMPLATE}")
     if not SOCIAL_PREVIEW.is_file() or SOCIAL_PREVIEW.stat().st_size == 0:
         raise SystemExit("missing generated social preview image")
+    if not (ASSETS / "mathjax" / "tex-chtml-full.js").is_file():
+        raise SystemExit("missing bundled MathJax component")
+    if len(list((ASSETS / "mathjax" / "output" / "chtml" / "fonts" / "woff-v2").glob("*.woff"))) < 20:
+        raise SystemExit("bundled MathJax fonts are incomplete")
+    for font in (
+        "SourceSerif4Variable-Roman.otf.woff2",
+        "SourceSerif4Variable-Italic.otf.woff2",
+        "SourceSans3VF-Upright.otf.woff2",
+        "SourceSans3VF-Italic.otf.woff2",
+    ):
+        if not (ASSETS / "fonts" / font).is_file():
+            raise SystemExit(f"missing bundled HTML font: {font}")
     with Image.open(SOCIAL_PREVIEW) as image:
         if image.size != (1200, 630):
             raise SystemExit(f"social preview is {image.size[0]}x{image.size[1]}, expected 1200x630")
@@ -771,6 +926,8 @@ def validate() -> None:
         )
     if MATHJAX_URL not in combined:
         raise SystemExit("pinned MathJax URL is missing from generated HTML")
+    if LOCAL_MATHJAX_URL not in combined:
+        raise SystemExit("local MathJax component is missing from generated HTML")
     validate_local_references()
 
 
@@ -792,9 +949,13 @@ def main() -> int:
     BUILD.mkdir(parents=True)
     ASSETS.mkdir(parents=True)
     prepare_assets(OUT, BUILD)
+    install_html_vendor_assets()
     source_dir = BUILD / "source"
     prepare_flowing_sources(source_dir, OUT)
     shutil.copy2(SRC / "styles" / "wave-html.css", ASSETS / "wave.css")
+    with (ASSETS / "wave.css").open("a", encoding="utf-8") as stylesheet:
+        stylesheet.write("\n")
+        stylesheet.write((SRC / "styles" / "wave-fonts.css").read_text())
     shutil.copy2(SRC / "styles" / "wave-html.js", ASSETS / "wave.js")
     build_social_preview()
 
