@@ -18,17 +18,23 @@
     </span>
   </nav>
 </header>
-<aside class="book-contents-rail" aria-label="Contents" data-book-toc data-book-toc-rail hidden>
-  <strong class="book-contents-title">Contents</strong>
-  $book_toc
+<aside class="book-contents-rail" aria-label="Contents" data-book-toc-rail data-toc-scope hidden>
+  <div class="book-contents-toolbar">
+    <strong class="book-contents-title">Contents</strong>
+    <button class="toc-expand" type="button" data-toc-expand>Expand all</button>
+  </div>
+  <nav class="book-contents-nav" aria-label="Book contents">$book_toc</nav>
 </aside>
 <aside class="book-contents-popover" id="book-contents" popover hidden aria-labelledby="book-contents-heading">
-  <div class="book-contents-inner">
-    <div class="book-contents-header">
-      <strong id="book-contents-heading">Contents</strong>
-      <button class="toc-close" type="button" popovertarget="book-contents" popovertargetaction="hide" aria-label="Close contents">Close</button>
+  <div class="book-contents-inner" data-toc-scope>
+    <div class="book-contents-toolbar">
+      <strong class="book-contents-title" id="book-contents-heading">Contents</strong>
+      <span class="book-contents-actions">
+        <button class="toc-expand" type="button" data-toc-expand>Expand all</button>
+        <button class="toc-close" type="button" popovertarget="book-contents" popovertargetaction="hide" aria-label="Close contents">Close</button>
+      </span>
     </div>
-    <nav class="book-contents-nav" aria-label="Book contents" data-book-toc>$book_toc</nav>
+    <nav class="book-contents-nav" aria-label="Book contents">$book_toc</nav>
   </div>
 </aside>
 <main id="main-content">

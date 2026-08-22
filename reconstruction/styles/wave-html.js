@@ -3,6 +3,7 @@
   const themeKey = "wave-theme";
   const themeModes = ["auto", "light", "dark"];
   const themeNames = { auto: "Auto", light: "Light", dark: "Dark" };
+  const themeButtons = document.querySelectorAll("[data-theme-cycle]");
   let themeMode = "auto";
 
   try {
@@ -14,7 +15,7 @@
     if (themeMode === "auto") delete root.dataset.theme;
     else root.dataset.theme = themeMode;
     const nextMode = themeModes[(themeModes.indexOf(themeMode) + 1) % themeModes.length];
-    document.querySelectorAll("[data-theme-cycle]").forEach((button) => {
+    themeButtons.forEach((button) => {
       const label = button.querySelector("[data-theme-label]");
       if (label) label.textContent = themeNames[themeMode];
       button.setAttribute(
@@ -25,7 +26,7 @@
     });
   };
 
-  document.querySelectorAll("[data-theme-cycle]").forEach((button) => {
+  themeButtons.forEach((button) => {
     button.addEventListener("click", () => {
       themeMode = themeModes[(themeModes.indexOf(themeMode) + 1) % themeModes.length];
       try {
@@ -40,16 +41,42 @@
   const installPermalinks = () => {
     document.querySelectorAll("main > h1[id], main h2[id]").forEach((heading) => {
       if (heading.querySelector(":scope > .heading-permalink")) return;
+      heading.dataset.readerTitle = heading.textContent.trim();
       const link = document.createElement("a");
       link.className = "heading-permalink";
       link.href = `#${encodeURIComponent(heading.id)}`;
       link.textContent = "#";
-      link.setAttribute("aria-label", `Permalink to ${heading.textContent.trim()}`);
+      link.setAttribute("aria-label", `Permalink to ${heading.dataset.readerTitle}`);
       link.title = "Permalink";
       heading.append(link);
     });
   };
   installPermalinks();
+
+  document.querySelectorAll("[data-toc-scope]").forEach((scope) => {
+    const button = scope.querySelector("[data-toc-expand]");
+    const groups = Array.from(scope.querySelectorAll("details.book-toc-group"));
+    if (!button || !groups.length) return;
+
+    const syncLabel = () => {
+      const allOpen = groups.every((group) => group.open);
+      button.textContent = allOpen ? "Collapse all" : "Expand all";
+      button.setAttribute(
+        "aria-label",
+        allOpen ? "Collapse all contents groups" : "Expand all contents groups",
+      );
+    };
+
+    button.addEventListener("click", () => {
+      const open = !groups.every((group) => group.open);
+      groups.forEach((group) => {
+        group.open = open;
+      });
+      syncLabel();
+    });
+    groups.forEach((group) => group.addEventListener("toggle", syncLabel));
+    syncLabel();
+  });
 
   const tocPanel = document.querySelector("#book-contents");
   const tocToggle = document.querySelector("[data-toc-toggle]");
@@ -58,60 +85,52 @@
   const mainContent = document.querySelector("#main-content");
   const supportsPopover = "showPopover" in HTMLElement.prototype;
 
+  const updateContentsTop = () => {
+    const gutter = 16;
+    const headerBottom = readerHeader?.getBoundingClientRect().bottom ?? 0;
+    const top = Math.max(gutter, headerBottom + 8);
+    root.style.setProperty("--book-contents-top", `${top}px`);
+  };
+
   const updateContentsMode = () => {
     if (!tocRail || !tocToggle || !mainContent) return;
 
-    // The stylesheet decides when a persistent rail is a candidate. JavaScript
-    // only shows it when it fits entirely in the unused gutter beside this page.
     tocRail.hidden = false;
     tocRail.style.visibility = "hidden";
     tocRail.style.pointerEvents = "none";
     tocRail.style.removeProperty("left");
 
-    const eligible = getComputedStyle(tocRail).display !== "none";
-    let showRail = false;
-    if (eligible) {
-      const contentRects = Array.from(mainContent.children)
-        .map((element) => element.getBoundingClientRect())
-        .filter((rect) => rect.width > 0 && rect.height > 0);
-      const contentLeft = contentRects.length
-        ? Math.min(...contentRects.map((rect) => rect.left))
-        : mainContent.getBoundingClientRect().left;
-      const railWidth = tocRail.getBoundingClientRect().width;
-      const rem = Number.parseFloat(getComputedStyle(root).fontSize) || 16;
-      const gutter = Math.max(16, rem);
-      const gap = 1.5 * rem;
-      const left = contentLeft - gap - railWidth;
-      showRail = left >= gutter;
-      if (showRail) tocRail.style.left = `${left}px`;
-    }
+    const contentLeft = mainContent.getBoundingClientRect().left;
+    const railWidth = tocRail.getBoundingClientRect().width;
+    const rem = Number.parseFloat(getComputedStyle(root).fontSize) || 16;
+    const gutter = Math.max(16, rem);
+    const gap = 1.5 * rem;
+    const left = contentLeft - gap - railWidth;
+    const showRail = left >= gutter;
 
+    if (showRail) tocRail.style.left = `${left}px`;
     tocRail.hidden = !showRail;
     tocRail.style.removeProperty("visibility");
     tocRail.style.removeProperty("pointer-events");
-    if (showRail) tocToggle.style.removeProperty("display");
-    else tocToggle.style.setProperty("display", "inline-flex");
+    tocToggle.hidden = showRail;
+
+    if (showRail && tocPanel?.matches(":popover-open")) tocPanel.hidePopover();
+  };
+
+  const positionContents = () => {
+    if (!tocPanel || !tocToggle) return;
+    updateContentsTop();
+    const gutter = 16;
+    const toggleRect = tocToggle.getBoundingClientRect();
+    const panelWidth = Number.parseFloat(getComputedStyle(tocPanel).width) || 320;
+    const maxLeft = Math.max(gutter, innerWidth - panelWidth - gutter);
+    const left = Math.min(Math.max(toggleRect.left, gutter), maxLeft);
+    tocPanel.style.setProperty("--book-contents-left", `${left}px`);
   };
 
   if (tocPanel && tocToggle) {
     if (supportsPopover) {
       tocPanel.hidden = false;
-      const compactContents = matchMedia("(max-width: 36rem)");
-      const positionContents = () => {
-        if (compactContents.matches) return;
-        const gutter = 16;
-        const headerBottom = readerHeader?.getBoundingClientRect().bottom ?? 0;
-        const toggleRect = tocToggle.getBoundingClientRect();
-        const panelWidth = parseFloat(getComputedStyle(tocPanel).width) || 320;
-        const maxLeft = Math.max(gutter, innerWidth - panelWidth - gutter);
-        const left = Math.min(Math.max(toggleRect.left, gutter), maxLeft);
-        tocPanel.style.setProperty("--book-contents-left", `${left}px`);
-        tocPanel.style.setProperty(
-          "--book-contents-top",
-          `${Math.max(gutter, headerBottom + 8)}px`,
-        );
-      };
-
       tocPanel.addEventListener("beforetoggle", (event) => {
         if (event.newState === "open") positionContents();
       });
@@ -120,21 +139,33 @@
           tocPanel.hidePopover();
         }
       });
-      addEventListener(
-        "resize",
-        () => {
-          updateContentsMode();
-          if (tocPanel.matches(":popover-open")) positionContents();
-        },
-        { passive: true },
-      );
     } else {
       tocToggle.addEventListener("click", () => {
         location.href = "index.html";
       });
     }
   }
-  updateContentsMode();
+
+  const updateContentsLayout = () => {
+    updateContentsTop();
+    updateContentsMode();
+    if (tocPanel?.matches(":popover-open")) positionContents();
+  };
+  updateContentsLayout();
+  addEventListener("resize", updateContentsLayout, { passive: true });
+
+  let contentsScrollFrame = 0;
+  addEventListener(
+    "scroll",
+    () => {
+      if (contentsScrollFrame) return;
+      contentsScrollFrame = requestAnimationFrame(() => {
+        contentsScrollFrame = 0;
+        updateContentsTop();
+      });
+    },
+    { passive: true },
+  );
 
   const links = new Map();
   document.querySelectorAll("a[data-section-link]").forEach((link) => {
@@ -149,6 +180,8 @@
   );
   if (!headings.length) return;
 
+  const readerContextTitle = document.querySelector(".reader-context-title");
+  const defaultReaderTitle = readerContextTitle?.textContent ?? "";
   const setActive = (heading) => {
     const activeId = heading?.id || "";
     links.forEach((matchingLinks, id) => {
@@ -159,6 +192,9 @@
         else link.removeAttribute("aria-current");
       });
     });
+    if (readerContextTitle) {
+      readerContextTitle.textContent = heading?.dataset.readerTitle || defaultReaderTitle;
+    }
   };
 
   let hashId = "";
