@@ -4,15 +4,29 @@ Keep changes focused. For corrections to reconstructed text, equations,
 references, or figures, include the source page or other evidence. Read
 `AGENTS.md` before changing reconstructed material.
 
+## Install system prerequisites
+
+On a clean Ubuntu/Debian machine, install the system tools before using the
+setup commands below:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends \
+  curl git make qpdf poppler-utils pandoc unzip xz-utils wget \
+  default-jre-headless nodejs
+```
+
+Chromium is separate and optional; install it only for HTML visual and browser
+regression QA.
+
 ## Set up Python
 
 Python development uses [uv](https://docs.astral.sh/uv/) only. Install uv with
-its official installer, then use Python 3.14 (the repository's
-`.python-version`):
+its official installer, then use the Python version in `.python-version`:
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
-uv python install 3.14
+uv python install "$(cat .python-version)"
 uv sync --frozen
 uv run --frozen prek install
 ```
@@ -20,14 +34,6 @@ uv run --frozen prek install
 `pyproject.toml` and `uv.lock` are the Python dependency sources.
 
 ## Install publication tools
-
-For a complete Ubuntu/Debian build and validation, install the non-TeX tools:
-
-```bash
-sudo apt-get update
-sudo apt-get install -y --no-install-recommends \
-  qpdf poppler-utils pandoc unzip xz-utils wget curl default-jre-headless nodejs
-```
 
 The PDF and EPUB builds use TinyTeX. The HTML JavaScript syntax check also
 needs Node.js; it is not needed for the normal build.
@@ -117,7 +123,7 @@ After installing EPUBCheck, run strict full validation:
 uv run --frozen python scripts/validate.py all --require-epubcheck
 ```
 
-## HTML visual QA
+## Optional HTML visual QA
 
 Chromium is needed only for optional HTML visual and browser regression QA. It
 is not needed for editing, unit tests, hooks, or the basic publication build.

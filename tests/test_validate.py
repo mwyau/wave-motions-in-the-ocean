@@ -110,18 +110,23 @@ def test_text_size_controls_are_numeric_actions() -> None:
     assert 'data-text-size-action="decrease" aria-pressed' not in template
 
 
-def test_mobile_anchor_fallback_clears_two_row_sticky_header() -> None:
+def test_reader_anchor_geometry_has_one_css_owned_gutter() -> None:
     stylesheet = (
         Path(__file__).resolve().parents[1] / "src" / "layout" / "wave-html.css"
     ).read_text()
+    script = (
+        Path(__file__).resolve().parents[1] / "src" / "layout" / "wave-html.js"
+    ).read_text()
 
+    assert "--wave-anchor-gutter: clamp(12px, .75rem, 24px);" in stylesheet
     assert (
-        "@media (max-width: 36rem) {\n"
-        "  :root {\n"
-        "    /* Two 2.75rem rows, their gap/padding, and a small fragment gutter. */\n"
-        "    --wave-anchor-offset: calc(6.75rem + env(safe-area-inset-top, 0px));\n"
-        "  }"
-    ) in stylesheet
+        "var(--wave-measured-header-height, var(--wave-nav-fallback-height))"
+        in stylesheet
+    )
+    assert "--wave-measured-header-height" in script
+    assert "--wave-anchor-offset" not in stylesheet + script
+    assert "6.75rem" not in stylesheet
+    assert "Math.max(12" not in script
 
 
 def test_facsimile_log_parser_reads_boundaries_and_shipouts() -> None:

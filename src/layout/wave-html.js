@@ -425,16 +425,11 @@
   installSettingsPopover(appearancePanel, themeToggle);
   installSettingsPopover(textSizePanel, textSizeToggle);
 
-  const updateAnchorOffset = () => {
+  const updateMeasuredHeaderHeight = () => {
     if (!readerHeader) return;
     const headerHeight = readerHeader.getBoundingClientRect().height;
     if (!Number.isFinite(headerHeight) || headerHeight <= 0) return;
-    const rootFontSize = Number.parseFloat(getComputedStyle(root).fontSize) || 16;
-    const gutter = Math.max(12, Math.min(24, Math.round(rootFontSize * 0.75)));
-    root.style.setProperty(
-      "--wave-anchor-offset",
-      `${Math.ceil(headerHeight + gutter)}px`,
-    );
+    root.style.setProperty("--wave-measured-header-height", `${headerHeight}px`);
   };
 
   const updateContentsTop = () => {
@@ -501,7 +496,7 @@
   }
 
   const updateContentsLayout = () => {
-    updateAnchorOffset();
+    updateMeasuredHeaderHeight();
     updateContentsTop();
     if (settingsIsOpen(appearancePanel)) positionSettings(appearancePanel, themeToggle);
     if (settingsIsOpen(textSizePanel)) positionSettings(textSizePanel, textSizeToggle);
