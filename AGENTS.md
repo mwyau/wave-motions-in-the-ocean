@@ -46,7 +46,7 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 - Agent edits go directly onto the latest `main` as small linear commits unless the owner explicitly requests a branch or PR.
 - For a bounded implementation or audit task, continue through the requested scope rather than stopping after the first item or coherent batch. Stop only at a required human-approval boundary, a genuine unresolved ambiguity, or an environment/tool limitation.
 - Before committing, re-read current `main`; if it moved, reconstruct the change on the new tip.
-- Before every agent commit, run `uv run --frozen prek run --all-files`. Review any hook edits and rerun until the command passes.
+- Before every agent commit, run `uv run --frozen pytest -q` and `uv run --frozen prek run --all-files`. Review any hook edits and rerun until the commands pass.
 - Never force-push, reset `main` backwards, create merge commits, or overwrite newer work.
 - Do not create agent coordination sessions, claims, handoff branches, or competing workstreams.
 - Never create temporary workflows, trigger files, bot commit paths, or other automation to mutate tracked repository files. Publication automation may build, validate, deploy, and publish artifacts, but it must never edit tracked source or create source commits.

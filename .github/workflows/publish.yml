@@ -105,15 +105,13 @@ jobs:
       - name: Check source quality
         shell: bash
         run: |
-          set +e
-          status=0
-          uv run --frozen prek run --all-files --skip pytest || status=1
+          set -euo pipefail
+          uv run --frozen prek run --all-files
           if ! git diff --quiet; then
             echo "::warning title=Source quality::Quality hooks changed tracked files; commit their fixes."
             git --no-pager diff
-            status=1
+            exit 1
           fi
-          exit "$status"
 
       - name: Cache TinyTeX
         id: tinytex-cache

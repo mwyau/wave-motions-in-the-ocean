@@ -110,6 +110,20 @@ def test_text_size_controls_are_numeric_actions() -> None:
     assert 'data-text-size-action="decrease" aria-pressed' not in template
 
 
+def test_mobile_anchor_fallback_clears_two_row_sticky_header() -> None:
+    stylesheet = (
+        Path(__file__).resolve().parents[1] / "src" / "layout" / "wave-html.css"
+    ).read_text()
+
+    assert (
+        "@media (max-width: 36rem) {\n"
+        "  :root {\n"
+        "    /* Two 2.75rem rows, their gap/padding, and a small fragment gutter. */\n"
+        "    --wave-anchor-offset: calc(6.75rem + env(safe-area-inset-top, 0px));\n"
+        "  }"
+    ) in stylesheet
+
+
 def test_facsimile_log_parser_reads_boundaries_and_shipouts() -> None:
     log = (
         "FACSIMILE_B n=1 p=1 s=12.50pt\n"

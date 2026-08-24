@@ -44,9 +44,3 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-      - id: pytest
-        name: Unit tests
-        entry: uv run --frozen python -m pytest -q
-        language: system
-        pass_filenames: false
-        always_run: true

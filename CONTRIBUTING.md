@@ -1,44 +1,128 @@
 # Contributing
 
-Pull requests are welcome. Keep changes focused and include the source page or other evidence when correcting text, equations, references, or figures.
+Keep changes focused. For corrections to reconstructed text, equations,
+references, or figures, include the source page or other evidence. Read
+`AGENTS.md` before changing reconstructed material.
 
-Read `AGENTS.md` before changing reconstructed material.
+## Set up Python
 
-## Set up the repository
-
-Python tools use [uv](https://docs.astral.sh/uv/).
-
-Install uv, clone the repository, and install the locked dependencies:
+Python development uses [uv](https://docs.astral.sh/uv/) only. Install uv with
+its official installer, then use Python 3.14 (the repository's
+`.python-version`):
 
 ```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv python install 3.14
 uv sync --frozen
-```
-
-Install the Git hooks:
-
-```bash
 uv run --frozen prek install
 ```
 
+`pyproject.toml` and `uv.lock` are the Python dependency sources.
+
 ## Install publication tools
 
-On Ubuntu:
+For a complete Ubuntu/Debian build and validation, install the non-TeX tools:
 
 ```bash
 sudo apt-get update
 sudo apt-get install -y --no-install-recommends \
-  qpdf poppler-utils pandoc xz-utils wget
+  qpdf poppler-utils pandoc unzip xz-utils wget curl default-jre-headless nodejs
 ```
 
-The PDF build uses TinyTeX 2026.08 and LuaLaTeX. See `tex-packages.txt` and the publication CI workflow for the TeX packages used by the project.
+The PDF and EPUB builds use TinyTeX. The HTML JavaScript syntax check also
+needs Node.js; it is not needed for the normal build.
 
-EPUB validation also uses EPUBCheck.
+### TinyTeX 2026.08
 
-## Install Chromium for HTML render checks
+TinyTeX is a compact TeX Live distribution. TinyTeX / TeX Live 2026.08 is the
+recommended and tested environment for this repository, using LuaLaTeX and
+LuaHBTeX. You do not need both TinyTeX and a separate full TeX Live install.
 
-Chromium is needed for visual testing of the HTML edition. It runs headlessly, so a graphical desktop is not required.
+Install TinyTeX, put its binaries first on `PATH`, and install the packages
+listed in `tex-packages.txt`:
 
-Ubuntu distributes Chromium through Snap:
+```bash
+export TINYTEX_VERSION=2026.08
+wget -qO- https://tinytex.yihui.org/install-bin-unix.sh | sh
+
+TEXBIN="$(find "$HOME/.TinyTeX/bin" \
+  -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+export PATH="$TEXBIN:$PATH"
+
+tlmgr update --self
+mapfile -t PACKAGES < <(grep -Ev '^\s*(#|$)' tex-packages.txt)
+tlmgr install "${PACKAGES[@]}"
+
+command -v lualatex
+lualatex --version
+command -v tlmgr
+```
+
+If an older distro TeX Live also provides `/usr/bin/lualatex`, keep the
+TinyTeX directory before it on `PATH`.
+
+A recent full TeX Live installation may also work if it provides the packages
+listed in `tex-packages.txt`, but TinyTeX 2026.08 is the environment used and
+tested by CI.
+
+### EPUBCheck
+
+EPUBCheck 5.3.0 and Java are required for strict EPUB validation. Unpack it in
+a user-owned directory:
+
+```bash
+EPUBCHECK_VERSION=5.3.0
+mkdir -p "$HOME/.local/share"
+curl -fL \
+  "https://github.com/w3c/epubcheck/releases/download/v${EPUBCHECK_VERSION}/epubcheck-${EPUBCHECK_VERSION}.zip" \
+  -o /tmp/epubcheck.zip
+unzip -q /tmp/epubcheck.zip -d "$HOME/.local/share"
+
+export EPUBCHECK_JAR="$HOME/.local/share/epubcheck-${EPUBCHECK_VERSION}/epubcheck.jar"
+java -jar "$EPUBCHECK_JAR" --version
+```
+
+## Run the checks
+
+For normal source or code work:
+
+```bash
+uv run --frozen pytest -q
+uv run --frozen prek run --all-files
+```
+
+For the HTML JavaScript syntax check, after installing Node.js:
+
+```bash
+node --check src/layout/wave-html.js
+```
+
+## Build and validate the book
+
+Build all editions with the repository's normal command:
+
+```bash
+make all
+```
+
+The direct equivalent is:
+
+```bash
+uv run --frozen ./scripts/build.sh all
+```
+
+After installing EPUBCheck, run strict full validation:
+
+```bash
+uv run --frozen python scripts/validate.py all --require-epubcheck
+```
+
+## HTML visual QA
+
+Chromium is needed only for optional HTML visual and browser regression QA. It
+is not needed for editing, unit tests, hooks, or the basic publication build.
+
+On Ubuntu:
 
 ```bash
 sudo snap install chromium
@@ -53,93 +137,38 @@ sudo apt-get install chromium
 chromium --headless --version
 ```
 
-If Chromium is installed somewhere else, set:
+If Chromium is installed elsewhere, set `WAVE_CHROMIUM` to its executable:
 
 ```bash
 export WAVE_CHROMIUM=/path/to/chromium
 ```
 
-Chromium is only needed for browser render checks. It is not needed to edit the book, run unit tests, or run the normal source hooks.
-
-## Run the checks
-
-Run the unit tests:
+After `make all`, run the render QA described in
+`skills/render-qa/SKILL.md`:
 
 ```bash
-uv run --frozen pytest -q
+uv run --frozen python scripts/render_qa.py release
 ```
 
-Run formatting, linting, and repository checks:
+The browser pass includes the narrow direct-fragment check when Chromium is
+available.
 
-```bash
-uv run --frozen prek run --all-files
-```
+## Source files
 
-If a hook changes a file, review the change and run the command again.
-
-## Build the book
-
-Build every edition:
-
-```bash
-make all
-```
-
-Individual targets are also available:
-
-```bash
-make pdf
-make html
-make epub
-```
-
-You can also use the build script directly:
-
-```bash
-uv run --frozen ./scripts/build.sh all
-```
-
-## Check HTML rendering
-
-After changing HTML, CSS, JavaScript, MathJax/MathML rendering, or responsive layout, run the render QA described in `skills/render-qa/SKILL.md`.
-
-It uses headless Chromium to check the reader at the supported viewport and text-size combinations.
-
-## Working with the reconstructed text
-
-The main source files are:
-
-- `src/chapter1.tex` through `chapter6.tex` — reconstructed text and equations
+- `src/chapter1.tex` through `src/chapter6.tex` — reconstructed chapters
 - `src/references.bib` — bibliography
-- `src/ERRATA.md` — proposed and reviewed corrections
-- `src/FIGURES.md` — figure sources and review status
-- `references/chapman-rizzoli-1989/` — original 1989 scans
+- `references/chapman-rizzoli-1989/` — original 1989 source scans
 
-Use the 1989 scans when checking the reconstruction. Later notes and other references can help check the science, but they do not replace the 1989 source.
-
-For figure changes, run the figure comparison tool for the affected figure.
+Generated files under `build/`, `release/`, and `audit/` are not committed.
 
 ## Before committing
 
-For most changes:
+Run:
 
 ```bash
 uv run --frozen pytest -q
 uv run --frozen prek run --all-files
 ```
 
-For publication changes, also build the affected formats.
-
-For HTML layout or rendering changes, also run the headless Chromium render QA.
-
-Generated files under `build/`, `release/`, `audit/`, and cache directories are not committed.
-
-## Commits
-
-Use a short, readable commit subject beginning with a capital letter, for example:
-
-```text
-Correct chapter 5 dispersion relation
-```
-
-The repository uses rebase merges for pull requests.
+For publication or HTML layout changes, also run the relevant build, strict
+validation, or render-QA command above.

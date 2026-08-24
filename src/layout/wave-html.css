@@ -731,6 +731,10 @@ a:visited { color: var(--wave-visited); }
   }
 }
 @media (max-width: 36rem) {
+  :root {
+    /* Two 2.75rem rows, their gap/padding, and a small fragment gutter. */
+    --wave-anchor-offset: calc(6.75rem + env(safe-area-inset-top, 0px));
+  }
   .book-contents-popover {
     inset: auto max(.75rem, env(safe-area-inset-right)) max(.75rem, env(safe-area-inset-bottom)) max(.75rem, env(safe-area-inset-left));
     width: auto;
