@@ -41,7 +41,7 @@ Preserve these cover invariants unless explicitly redesigned by the owner:
 6. A small centered `Editor: Albert M. W. Yau.` appears near the bottom edge.
 7. Years, license marks, museum credit, and badges do not belong on the front cover.
 
-The committed Hokusai source image is `src/figures/frontmatter/great-wave-met-dp130155.jpg`. Preserve its composition.
+The committed Hokusai source image is `src/images/great-wave-met-dp130155.jpg`. Preserve its composition.
 
 The paged modern PDF ends with a closing artwork page defined in `src/back-modern.tex`. Preserve these closing-page invariants unless explicitly redesigned by the owner:
 
@@ -73,7 +73,7 @@ Modern contents use Chapter → Section only (`tocdepth=1`).
 
 ## Facsimile PDF
 
-The facsimile is an internal QA edition, not a reader-facing publication. Build and validate it to compare source-page layout and catch reconstruction drift, but do not link it from README/HTML, deploy it to GitHub Pages, or include it in public release assets.
+The facsimile is a QA edition, not a reader-facing publication. Build and validate it to compare source-page layout and catch reconstruction drift. Keep it unlinked from README and HTML. It is included in the final `release/` publication root and is therefore publicly accessible on GitHub Pages. Stable tagged releases archive that complete publication root in `wave-motions-html.zip`, so the facsimile is included inside the ZIP, but it is not published as a standalone GitHub Release asset.
 
 Preserve the 184-physical-page structure and original printed page numbers.
 
@@ -90,7 +90,7 @@ The facsimile build logs machine-readable source-boundary headroom and physical/
 
 ## README and HTML synchronization
 
-`scripts/publication.py` derives shared titles, section headings, Contents, reader links, license presentation, flowing sources, figure assets, and build identity. `scripts/build_html.py` consumes that model while generating the final HTML edition; `scripts/sync_readme.py` owns README synchronization/checking only.
+`scripts/publication.py` derives shared titles, section headings, reader links, license presentation, flowing sources, figure assets, and build identity. `scripts/build_html.py` consumes that model while generating the final HTML edition; `scripts/sync_readme.py` owns README synchronization/checking only.
 
 README and HTML must remain substantively synchronized, with format-specific differences such as absolute/relative URLs, README badges, and HTML reader controls.
 
@@ -107,9 +107,9 @@ Keep public section anchors stable.
 
 Preserve the responsive reader, Auto/Light/Dark themes, GitHub Source navigation, Contents navigation, wide-math/table overflow behavior, and stable chapter/section navigation unless explicitly redesigned.
 
-The current reader also preserves these navigation behaviors: the sticky context reflects the current chapter/section; direct section permalinks initialize that context and the matching Contents entry immediately; scrolling updates the active section; wide layouts expose the Contents rail when space permits, while narrower layouts use the Contents popover/fallback; browser fragment/back-forward navigation must remain correct. The hidden `?dev=1` MathJax/MathML comparison mode is a developer QA feature and should remain available unless deliberately replaced.
+The current reader also preserves these navigation behaviors: the sticky context reflects the current chapter/section; direct section permalinks initialize that context and the matching Contents entry immediately; scrolling updates the active section; wide layouts expose the Contents rail when space permits, while narrower layouts use the Contents popover/fallback; browser fragment/back-forward navigation must remain correct. The visible Rendering control switches between MathJax and native MathML and should remain available unless deliberately replaced.
 
-The finished HTML reader is self-contained for runtime assets. It includes pinned MathJax, MathJax fonts, Source Serif, and Source Sans under local `assets/`; a clean build may fetch the pinned vendor archives into the build cache, but the generated HTML/HTML ZIP must not require third-party network resources to render text or mathematics.
+The finished HTML reader is self-contained for runtime assets. It includes pinned MathJax, MathJax fonts, Source Serif, and Source Sans under local `assets/`; a clean build may fetch the pinned vendor archives into the build cache, but the generated HTML and tagged release ZIP must not require third-party network resources to render text or mathematics.
 
 Do not dark-mode invert/filter the front-matter photograph. Generated black-on-white scientific diagrams may be theme-adjusted for legibility without changing their content.
 
@@ -144,11 +144,11 @@ Use:
 ./scripts/build.sh all
 ```
 
-`build/` and `dist/` are generated and untracked. `audit/` is the persistent-but-ignored workspace for temporary review artifacts and must survive publication builds. The flat `dist/` build root contains HTML, assets, the modern PDF, QA facsimile PDF, EPUB, and `SHA256SUMS`.
+`build/` and `release/` are generated and untracked. `audit/` is the persistent-but-ignored workspace for temporary review artifacts and must survive publication builds. The flat `release/` root is the complete validated publication tree: HTML, assets, the modern PDF, QA facsimile PDF, EPUB, and `SHA256SUMS`. Normal builds do not create `wave-motions-html.zip`.
 
 Generated reader artifacts carry the exact source build identity. Stable releases use semantic tags such as `v1.0.0`; short commit IDs are build info, not release tags.
 
-`SHA256SUMS` covers the public modern PDF and EPUB in `dist/`. Release packaging adds the HTML-only ZIP and verifies the public asset set. The QA facsimile is deliberately excluded from release packaging and from the HTML ZIP.
+`SHA256SUMS` covers the modern PDF and EPUB in the validated publication root. `wave-motions-html.zip` is created only by the stable-tag release job from the entire validated `release/` tree, including the facsimile and checksum manifest. A tagged GitHub Release publishes exactly the ZIP, the modern PDF, and the EPUB.
 
 After any reconstruction `.tex` change:
 
@@ -166,7 +166,7 @@ Include resulting README synchronization in the same commit. A coherent local va
 
 Do not add one-time migration, cleanup, source-editing, reconciliation, or bot-commit logic to `publish.yml`.
 
-Publication automation should remain reproducible from the triggering commit. Build and validate once, then promote the public subset of that exact output to Pages/releases rather than rebuilding downstream. The QA facsimile remains available in the short-lived Actions artifact but is removed from the Pages tree and public release package.
+Publication automation should remain reproducible from the triggering commit. Build, package, and validate once into `release/`, then upload that exact tree once as the `wave-motions-publication` Pages-format Actions artifact. GitHub Pages deploys the same artifact without rebuilding or copying it into another staging directory. Stable tag runs download that same validated artifact, verify the PDF/EPUB checksums, create `wave-motions-html.zip` from the complete extracted tree, and publish exactly the ZIP, modern PDF, and EPUB. The facsimile stays in the Pages tree and inside the tagged ZIP but remains unlinked and is not a standalone GitHub Release asset.
 
 Direct pushes to `main` should trigger on actual reader/build inputs. Tracking-only files such as `src/ERRATA.md`, `src/FIGURES.md`, and `src/RENDER_QA.md` need not by themselves trigger a full publication build. Pull-request validation remains unfiltered when needed for a required Build check. Source scans are immutable; including them defensively in trigger paths is acceptable so accidental changes cannot bypass CI.
 
@@ -174,4 +174,4 @@ Keep exact dependency/tool pins and TinyTeX cache semantics aligned with reposit
 
 Release publication is append-once. Published release assets must not be replaced or deleted by automation. A rerun may verify an existing published release but must fail rather than mutate it on mismatch. Use repository-level release immutability when available before stable public releases.
 
-GitHub Actions and GitHub Pages are enabled. The workflow's Pages path runs only for `refs/heads/main`: the build job stages the validated public reader files without the QA facsimile, uploads that Pages artifact, and the dedicated `pages` job deploys it to the `github-pages` environment. Do not rebuild for Pages deployment. Pull-request and tag runs do not deploy Pages; a workflow dispatch on `main` may redeploy the same build path. Stable release tags continue through the separate release job. Pages and release automation remain read-only with respect to tracked repository content.
+GitHub Actions and GitHub Pages are enabled. The workflow's Pages deployment runs only for `refs/heads/main`; pull-request and tag runs still produce the validated `wave-motions-publication` artifact but do not deploy Pages. A workflow dispatch on `main` may redeploy the same build path. Stable release tags continue through the separate release job. Pages and release automation remain read-only with respect to tracked repository content.

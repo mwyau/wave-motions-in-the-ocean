@@ -39,9 +39,14 @@ from build_epub import (
 )
 from publication import (
     AUTHORS,
+    DOWNLOADS,
     EDITOR,
     LANGUAGE,
+    REPOSITORY_URL,
+    SITE_URL,
+    book_structure,
     current_build,
+    section_slug,
 )
 from publication import (
     MATHJAX_URL as MATHJAX_PINNED,
@@ -52,11 +57,11 @@ from release import CHECKSUM_ASSETS, verify_manifest
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 BUILD = ROOT / "build"
-DIST = ROOT / "dist"
+PUBLICATION = ROOT / "release"
 README = ROOT / "README.md"
-EPUB = DIST / "wave-motions.epub"
-MODERN_PDF = DIST / "wave-motions.pdf"
-FACSIMILE_PDF = DIST / "wave-motions-facsimile.pdf"
+EPUB = PUBLICATION / "wave-motions.epub"
+MODERN_PDF = PUBLICATION / "wave-motions.pdf"
+FACSIMILE_PDF = PUBLICATION / "wave-motions-facsimile.pdf"
 LATEX_CACHE = (
     Path(os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motions")))
     / "latex"
@@ -107,6 +112,33 @@ MATH_TEXT_COMMAND_RE = re.compile(
 SMART_PUNCTUATION_RE = re.compile(r"[“”‘’–—…−]")
 PUNCTUATION_ENTITY_RE = re.compile(r"&(?:ldquo|rdquo|lsquo|rsquo|ndash|mdash|hellip);")
 SMART_ANCHOR_RE = re.compile(r'\bid=["\'][^"\']*[“”‘’–—…−]')
+LOCAL_MATHJAX_URL = "assets/mathjax/tex-chtml-full.js"
+HTML_DOWNLOADS = tuple(
+    item for item in DOWNLOADS if item[0] != "wave-motions-facsimile.pdf"
+)
+FRONTMATTER_SECTIONS = (
+    ("preface-david-c-chapman", "Preface — David C. Chapman"),
+    ("preface-paola-malanotte-rizzoli", "Preface — Paola Malanotte-Rizzoli"),
+    ("editors-note", "Editor's note"),
+)
+CHAPTERS = book_structure()
+CHAPTER_BY_NUMBER = {chapter.number: chapter for chapter in CHAPTERS}
+EXPECTED_HTML_PAGES = (
+    PUBLICATION / "index.html",
+    *(PUBLICATION / f"chapter{chapter.number}.html" for chapter in CHAPTERS),
+    PUBLICATION / "references.html",
+)
+REMOTE_SCHEMES = {"http", "https"}
+FETCHING_LINK_RELS = {
+    "dns-prefetch",
+    "icon",
+    "manifest",
+    "modulepreload",
+    "preconnect",
+    "prefetch",
+    "preload",
+    "stylesheet",
+}
 
 
 def fail(message: str) -> None:
@@ -200,7 +232,7 @@ def check_punctuation() -> None:
         if any("−" in region for region in tex_math_regions(text)):
             fail(f"{path.name}: Unicode mathematical minus found in TeX math")
 
-    html_pages = sorted(DIST.glob("*.html"))
+    html_pages = sorted(PUBLICATION.glob("*.html"))
     html_text = "\n".join(path.read_text(errors="replace") for path in html_pages)
     if PUNCTUATION_ENTITY_RE.search(html_text):
         fail("generated HTML contains a named typographic punctuation entity")
@@ -322,44 +354,334 @@ def check_readme() -> None:
     print("GitHub Markdown math preservation OK")
 
 
-def check_html() -> None:
-    pages = sorted(DIST.glob("*.html"))
+def html_page_index(path: Path) -> int | None:
+    if path.name == "index.html":
+        return None
+    if path.name == "references.html":
+        return 0
+    match = re.fullmatch(r"chapter(\d+)\.html", path.name)
+    if match is None or int(match.group(1)) not in CHAPTER_BY_NUMBER:
+        fail(f"unexpected HTML publication page: {path.name}")
+    return int(match.group(1))
+
+
+def html_source_url(path: Path, sha: str) -> str:
+    index = html_page_index(path)
+    if index is None:
+        source_path = "src/frontmatter-modern.tex"
+    elif index == 0:
+        source_path = "src/references.bib"
+    else:
+        source_path = f"src/chapter{index}.tex"
+    revision = sha if sha != "unknown" else "main"
+    return f"{REPOSITORY_URL}/blob/{revision}/{source_path}"
+
+
+def _is_remote_reference(value: str) -> bool:
+    value = html.unescape(value.strip())
+    if value.startswith("//"):
+        return True
+    parsed = urllib.parse.urlsplit(value)
+    return parsed.scheme.lower() in REMOTE_SCHEMES or bool(parsed.netloc)
+
+
+def _attribute(tag: str, name: str) -> str | None:
+    match = re.search(
+        rf"\b{re.escape(name)}\s*=\s*([\"'])(.*?)\1",
+        tag,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    return match.group(2) if match else None
+
+
+def validate_offline_runtime(root: Path) -> None:
+    root = root.resolve()
+    pages = sorted(root.glob("*.html"))
+    if not pages:
+        raise ValueError("offline HTML check found no HTML pages")
+
+    remote: list[str] = []
+    for page in pages:
+        text = page.read_text(errors="replace")
+        for tag in re.findall(r"<[^>]+>", text, flags=re.DOTALL):
+            for attr in ("src", "poster", "data"):
+                value = _attribute(tag, attr)
+                if value and _is_remote_reference(value):
+                    remote.append(f"{page.name}: {attr}={value}")
+            srcset = _attribute(tag, "srcset")
+            if srcset:
+                for candidate in srcset.split(","):
+                    value = candidate.strip().split(maxsplit=1)[0]
+                    if value and _is_remote_reference(value):
+                        remote.append(f"{page.name}: srcset={value}")
+            if tag.lower().startswith("<link"):
+                href = _attribute(tag, "href")
+                rel = (_attribute(tag, "rel") or "").lower().split()
+                if (
+                    href
+                    and FETCHING_LINK_RELS.intersection(rel)
+                    and _is_remote_reference(href)
+                ):
+                    remote.append(f"{page.name}: link href={href}")
+
+    stylesheets = sorted(root.rglob("*.css"))
+    for stylesheet in stylesheets:
+        text = stylesheet.read_text(errors="replace")
+        for match in re.finditer(
+            r"url\(\s*([\"']?)(.*?)\1\s*\)", text, flags=re.IGNORECASE
+        ):
+            value = match.group(2).strip()
+            if value and _is_remote_reference(value):
+                remote.append(f"{stylesheet.relative_to(root)}: url({value})")
+        for match in re.finditer(
+            r"@import\s+(?:url\()?\s*([\"'])(.*?)\1",
+            text,
+            flags=re.IGNORECASE,
+        ):
+            value = match.group(2).strip()
+            if value and _is_remote_reference(value):
+                remote.append(f"{stylesheet.relative_to(root)}: @import {value}")
+
+    if remote:
+        details = "\n".join(f"  {item}" for item in remote[:40])
+        raise ValueError(
+            "HTML reader has remote runtime dependencies:\n"
+            + details
+            + (f"\n  ... and {len(remote) - 40} more" if len(remote) > 40 else "")
+        )
+    print(
+        f"Offline HTML runtime OK: {len(pages)} page(s), "
+        f"{len(stylesheets)} stylesheet(s)"
+    )
+
+
+def validate_local_references(root: Path) -> None:
+    root = root.resolve()
+    pages = sorted(root.glob("*.html"))
     if not pages:
         fail("generated HTML pages are missing")
-    css = DIST / "assets" / "wave.css"
+    ids_by_page: dict[Path, set[str]] = {}
+    broken: list[tuple[str, str]] = []
+    optional_sibling_downloads = {name for name, _ in HTML_DOWNLOADS}
+
+    def ids_for(path: Path) -> set[str]:
+        if path not in ids_by_page:
+            ids_by_page[path] = {
+                html.unescape(value)
+                for value in re.findall(
+                    r'\bid=["\']([^"\']+)["\']',
+                    path.read_text(errors="replace"),
+                    flags=re.IGNORECASE,
+                )
+            }
+        return ids_by_page[path]
+
+    for page in pages:
+        text = page.read_text(errors="replace")
+        for attr in ("src", "href"):
+            for raw_ref in re.findall(
+                rf'{attr}=["\']([^"\']+)["\']', text, flags=re.IGNORECASE
+            ):
+                ref = html.unescape(raw_ref)
+                parsed = urllib.parse.urlsplit(ref)
+                if (
+                    parsed.scheme
+                    or parsed.netloc
+                    or ref.startswith(("mailto:", "javascript:", "data:"))
+                ):
+                    continue
+                target = (
+                    page
+                    if not parsed.path
+                    else page.parent / urllib.parse.unquote(parsed.path)
+                )
+                if parsed.path and not target.exists():
+                    if target.name in optional_sibling_downloads:
+                        continue
+                    broken.append((page.name, raw_ref))
+                    continue
+                if (
+                    parsed.fragment
+                    and target.suffix.lower() in {".html", ".htm"}
+                    and target.is_file()
+                    and urllib.parse.unquote(parsed.fragment) not in ids_for(target)
+                ):
+                    broken.append((page.name, raw_ref))
+    if broken:
+        for page, ref in broken[:40]:
+            print(f"broken local HTML reference: {page}: {ref}", file=sys.stderr)
+        fail(f"{len(broken)} broken local HTML reference(s)")
+
+
+def check_html() -> None:
+    for page in EXPECTED_HTML_PAGES:
+        require_file(page)
+    css = PUBLICATION / "assets" / "wave.css"
     require_file(css)
     css_text = css.read_text(errors="replace")
     selector = 'mjx-container[jax="CHTML"][display="true"]'
     if selector not in css_text or "overflow-x: auto" not in css_text:
         fail("HTML stylesheet is missing responsive display-math overflow handling")
 
-    joined = "\n".join(page.read_text(errors="replace") for page in pages)
-    if MATHJAX_PINNED not in joined:
+    combined = "\n".join(
+        path.read_text(errors="replace") for path in EXPECTED_HTML_PAGES
+    )
+    for sentinel in (
+        "David C. Chapman",
+        "Paola Malanotte-Rizzoli",
+        "CC BY-NC-SA 4.0",
+        "Apel",
+    ):
+        if sentinel not in combined:
+            fail(f"HTML sentinel missing: {sentinel}")
+    if re.search(r"<mo\b[^>]*>ℓ</mo>", combined):
+        fail("HTML native MathML represents ℓ as an operator instead of an identifier")
+    if not re.search(r"<mi\b[^>]*>ℓ</mi>", combined):
+        fail("HTML native MathML is missing identifier-form ℓ")
+    if MATHJAX_PINNED not in combined:
         fail("pinned MathJax 3.2.2 combined component is missing from HTML")
-    if "mathjax@3/es5/tex-mml-chtml.js" in joined:
+    if "mathjax@3/es5/tex-mml-chtml.js" in combined:
         fail("unversioned MathJax URL remains in generated HTML")
 
-    inline_count = len(re.findall(r'class="math inline"', joined))
-    display_count = len(re.findall(r'class="math display"', joined))
+    inline_count = len(re.findall(r'class="math inline"', combined))
+    display_count = len(re.findall(r'class="math display"', combined))
     if inline_count == 0 or display_count == 0:
         fail(
-            f"HTML lost inline or display math markup: inline={inline_count}, display={display_count}"
+            f"HTML lost inline or display math markup: inline={inline_count}, "
+            f"display={display_count}"
         )
-    if "assistiveMml: false" in joined or "enableAssistiveMml: false" in joined:
+    if "assistiveMml: false" in combined or "enableAssistiveMml: false" in combined:
         fail("HTML explicitly disables MathJax assistive MathML")
+    if 'data-math-renderer="mathml"' not in combined or "<math " not in combined:
+        fail("native MathML alternates are missing from generated HTML")
+    if LOCAL_MATHJAX_URL not in combined:
+        fail("local MathJax component is missing from generated HTML")
 
-    index = (DIST / "index.html").read_text(errors="replace")
+    index = PUBLICATION / "index.html"
+    index_text = index.read_text(errors="replace")
     for tex in (r"\ell", "x", "k", "y", "j,k,x,y,w"):
-        if tex not in index:
+        if tex not in index_text:
             fail(f"HTML Paola-preface math sentinel is missing: {tex!r}")
 
+    info = current_build()
+    label = html.escape(info.label)
+    build_url = html.escape(info.commit_url, quote=True)
+    for page in EXPECTED_HTML_PAGES:
+        text = page.read_text(errors="replace")
+        page_index = html_page_index(page)
+        if not re.search(
+            rf'<html[^>]+lang="{re.escape(LANGUAGE)}"', text, flags=re.IGNORECASE
+        ):
+            fail(f"HTML language metadata missing from {page.name}")
+        if text.count("<head>") != 1 or text.count("</head>") != 1:
+            fail(f"HTML head boundaries are not unique in {page.name}")
+        if (
+            len(re.findall(r"<body\b[^>]*>", text, flags=re.IGNORECASE)) != 1
+            or len(re.findall(r"</body\s*>", text, flags=re.IGNORECASE)) != 1
+        ):
+            fail(f"HTML body boundaries are not unique in {page.name}")
+        for required in (
+            "<!DOCTYPE html>",
+            '<meta charset="utf-8">',
+            'name="viewport"',
+            'rel="icon"',
+            "🌊",
+            '<main id="main-content">',
+            'class="skip-link"',
+            'class="reader-header page-shell"',
+            'class="book-nav"',
+            "data-theme-cycle",
+            "data-reader-context",
+            "data-book-toc-rail",
+            "data-toc-scope",
+            "data-toc-expand",
+            'class="book-contents-rail"',
+            'class="book-contents-popover"',
+            'class="build-info"',
+            ">Source</a>",
+            "Front matter",
+            "References",
+            "assets/wave.css",
+            "assets/wave.js",
+            'name="mathjax-upstream"',
+            'property="og:title"',
+            'property="og:url"',
+            'property="og:image"',
+            'property="og:image:width" content="1200"',
+            'property="og:image:height" content="630"',
+            'name="twitter:card" content="summary_large_image"',
+            f"{SITE_URL}/assets/social-preview.png",
+            label,
+            build_url,
+            html.escape(html_source_url(page, info.sha), quote=True),
+        ):
+            if required not in text:
+                fail(f"HTML requirement {required!r} is missing from {page.name}")
+        if text.count("data-toc-scope") != 2 or text.count("data-toc-expand") != 2:
+            fail(f"HTML Contents controls are duplicated or missing in {page.name}")
+        if text.count('class="build-info"') != 1:
+            fail(f"HTML build stamp count is not one in {page.name}")
+        if text.count('property="og:image"') != 1:
+            fail(f"HTML social preview image metadata count is not one in {page.name}")
+        if 'class="book-context"' in text or "data-theme-select" in text:
+            fail(f"obsolete HTML header controls remain in {page.name}")
+        if page_index is not None and page_index > 0:
+            chapter = CHAPTER_BY_NUMBER[page_index]
+            if text.count("data-section-link=") != 2 * len(chapter.sections):
+                fail(
+                    f"{page.name}: active chapter contents count does not match source sections"
+                )
+
+    for chapter in CHAPTERS:
+        text = (PUBLICATION / f"chapter{chapter.number}.html").read_text(
+            errors="replace"
+        )
+        if f'id="chapter-{chapter.number}"' not in text:
+            fail(f"chapter{chapter.number}.html: stable chapter anchor is missing")
+        if 'class="chapter-title-block"' not in text:
+            fail(f"chapter{chapter.number}.html: chapter title block is missing")
+        for section in chapter.sections:
+            if f'id="{section_slug(section)}"' not in text:
+                fail(f"chapter{chapter.number}.html: stable section anchor is missing")
+
+    first = CHAPTERS[0]
+    last = CHAPTERS[-1]
+    for anchor, _ in FRONTMATTER_SECTIONS:
+        if f'id="{anchor}"' not in index_text:
+            fail(f"HTML front matter anchor {anchor!r} is missing")
+    if "wave-motions.pdf" not in index_text or "wave-motions.epub" not in index_text:
+        fail("HTML download links are incomplete")
+    if "wave-motions-facsimile.pdf" in index_text:
+        fail("HTML front page must not link the facsimile PDF")
+    if "Original online source" in index_text:
+        fail("HTML front page must not link the original online source")
+    if 'id="contents"' in index_text:
+        fail("inline HTML Contents block must not be rendered")
+    if f'href="chapter{first.number}.html"' not in index_text:
+        fail(f"front matter must navigate forward to Chapter {first.number}")
+    first_page = (PUBLICATION / f"chapter{first.number}.html").read_text(
+        errors="replace"
+    )
+    if 'href="index.html"' not in first_page:
+        fail(f"Chapter {first.number} must navigate back to front matter")
+    references = (PUBLICATION / "references.html").read_text(errors="replace")
+    if f'href="chapter{last.number}.html"' not in references:
+        fail(f"References must navigate back to Chapter {last.number}")
+
+    validate_local_references(PUBLICATION)
+    try:
+        validate_offline_runtime(PUBLICATION)
+    except ValueError as exc:
+        fail(str(exc))
     for chapter_number, labels in canonical_equation_labels().items():
-        chapter = (DIST / f"chapter{chapter_number}.html").read_text(errors="replace")
+        chapter = (PUBLICATION / f"chapter{chapter_number}.html").read_text(
+            errors="replace"
+        )
         require_labels(chapter, labels, artifact=f"chapter{chapter_number}.html")
 
     print(
-        f"HTML MathJax markup/accessibility invariants OK: "
-        f"inline={inline_count}, display={display_count}"
+        f"HTML reader/publication invariants OK: inline={inline_count}, "
+        f"display={display_count}"
     )
 
 
@@ -1055,22 +1377,22 @@ def check_pdf_render() -> None:
 
 def check_publish_root() -> None:
     expected = (
-        DIST / "index.html",
-        DIST / "wave-motions.pdf",
-        DIST / "wave-motions-facsimile.pdf",
-        DIST / "wave-motions.epub",
-        DIST / "SHA256SUMS",
+        PUBLICATION / "index.html",
+        PUBLICATION / "wave-motions.pdf",
+        PUBLICATION / "wave-motions-facsimile.pdf",
+        PUBLICATION / "wave-motions.epub",
+        PUBLICATION / "SHA256SUMS",
     )
     for path in expected:
         require_file(path)
-    index = (DIST / "index.html").read_text(errors="replace")
+    index = (PUBLICATION / "index.html").read_text(errors="replace")
     for name in ("wave-motions.pdf", "wave-motions.epub"):
         if name not in index:
             fail(f"HTML download link is missing: {name}")
     if "wave-motions-facsimile.pdf" in index:
         fail("HTML front page must not link the facsimile PDF")
-    if (DIST / "html").exists():
-        fail("legacy nested dist/html output exists")
+    if (PUBLICATION / "html").exists():
+        fail("legacy nested HTML output exists")
     print("Publish root and download checks OK")
 
 
@@ -1080,7 +1402,7 @@ def check_build_identity() -> None:
     if info.short_sha == "unknown" or info.label == "unknown":
         fail("build identity is unknown")
     label = info.label
-    index = (DIST / "index.html").read_text(errors="replace")
+    index = (PUBLICATION / "index.html").read_text(errors="replace")
     if (
         'class="source-link"' not in index
         or info.commit_url not in index
@@ -1110,7 +1432,7 @@ def check_build_identity() -> None:
 
 def check_checksums() -> None:
     try:
-        count = verify_manifest(DIST, DEFAULT_FILES)
+        count = verify_manifest(PUBLICATION, CHECKSUM_ASSETS)
     except (FileNotFoundError, ValueError) as exc:
         fail(str(exc))
     print(f"Checksum manifest OK: {count} files")
@@ -1139,6 +1461,10 @@ def check_release_gate() -> None:
             f"expected exactly {FACSIMILE_EXPECTED_PAGES}"
         )
     facsimile_layout_diagnostics(strict=True)
+    try:
+        validate_offline_runtime(PUBLICATION)
+    except ValueError as exc:
+        fail(str(exc))
     check_checksums()
     print(f"Release gate OK: {info.label}, facsimile={fac_pages} pages")
 
@@ -1181,7 +1507,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Validate publication artifacts")
     parser.add_argument(
         "mode",
-        choices=("epub", "math", "pdf", "publication", "release", "all"),
+        choices=("html", "epub", "pdf", "release", "all"),
         nargs="?",
         default="all",
         help="validation scope (default: all non-release checks)",
@@ -1192,11 +1518,13 @@ def main(argv: list[str] | None = None) -> int:
         help="fail EPUB/math validation unless EPUBCheck is installed and passes",
     )
     args = parser.parse_args(argv)
-    if args.mode in {"math", "all"}:
+    if args.mode == "html":
+        check_html()
+    if args.mode == "all":
         check_math(args.require_epubcheck)
     if args.mode == "epub":
         check_epub(args.require_epubcheck)
-    if args.mode in {"publication", "all"}:
+    if args.mode == "all":
         check_publication()
     if args.mode == "pdf":
         check_pdf_artifacts()

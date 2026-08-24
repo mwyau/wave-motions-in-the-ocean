@@ -208,38 +208,16 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         run: uv run --frozen python scripts/validate.py release
 
-      - name: Package public edition
-        run: uv run --frozen python scripts/release.py package --dist dist --output release
-
-      - name: Upload publication artifact
-        uses: actions/upload-artifact@v7.0.1
-        with:
-          name: wave-motions-publication
-          path: |
-            release/
-            dist/wave-motions-facsimile.pdf
-          if-no-files-found: error
-          retention-days: 14
-          compression-level: 0
-
       - name: Configure GitHub Pages
         if: github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v6.0.0
 
-      - name: Prepare packaged edition for Pages
-        if: github.ref == 'refs/heads/main'
-        shell: bash
-        run: |
-          set -euo pipefail
-          rm -rf pages-dist
-          mkdir pages-dist
-          unzip -q release/wave-motions-html.zip -d pages-dist
-
-      - name: Upload Pages artifact
-        if: github.ref == 'refs/heads/main'
+      - name: Upload publication artifact
         uses: actions/upload-pages-artifact@v5.0.0
         with:
-          path: pages-dist/
+          name: wave-motions-publication
+          path: release/
+          retention-days: 14
 
   pages:
     if: github.ref == 'refs/heads/main'
@@ -259,6 +237,8 @@ jobs:
       - name: Deploy GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5.0.0
+        with:
+          artifact_name: wave-motions-publication
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -292,12 +272,26 @@ jobs:
           name: wave-motions-publication
           path: artifact
 
-      - name: Verify release assets
+      - name: Extract validated publication
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifact/publication
+          tar -xf artifact/artifact.tar -C artifact/publication
+
+      - name: Create tagged publication archive
         run: >-
-          uv run --frozen python scripts/release.py checksums --root artifact/release --check
-          wave-motions.pdf wave-motions.epub wave-motions-html.zip
+          uv run --frozen python scripts/release.py archive
+          --root artifact/publication --output artifact/wave-motions-html.zip
 
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" artifact/release/* --verify-tag --generate-notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release create "$GITHUB_REF_NAME" \
+            artifact/wave-motions-html.zip \
+            artifact/publication/wave-motions.pdf \
+            artifact/publication/wave-motions.epub \
+            --verify-tag --generate-notes

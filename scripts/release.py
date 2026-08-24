@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
-"""Canonical release assets, packaging, and SHA-256 verification."""
+"""Finalize and verify the publication root."""
 
 from __future__ import annotations
 
 import argparse
 import hashlib
 import hmac
-import html
 import re
-import shutil
-import urllib.parse
 import zipfile
 from collections.abc import Iterable
 from pathlib import Path
 
+DEFAULT_ROOT = Path("release")
 DEFAULT_FILES = (
     "wave-motions.pdf",
     "wave-motions.epub",
@@ -21,20 +19,8 @@ DEFAULT_FILES = (
 QA_ONLY_FILES = ("wave-motions-facsimile.pdf",)
 MANIFEST = "SHA256SUMS"
 HTML_ARCHIVE = "wave-motions-html.zip"
-CHECKSUM_ASSETS = (*DEFAULT_FILES, HTML_ARCHIVE)
-RELEASE_ASSETS = (*CHECKSUM_ASSETS, MANIFEST)
+CHECKSUM_ASSETS = DEFAULT_FILES
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
-REMOTE_SCHEMES = {"http", "https"}
-FETCHING_LINK_RELS = {
-    "dns-prefetch",
-    "icon",
-    "manifest",
-    "modulepreload",
-    "preconnect",
-    "prefetch",
-    "preload",
-    "stylesheet",
-}
 
 
 def sha256(path: Path) -> str:
@@ -114,160 +100,80 @@ def verify_manifest(root: Path, expected_names: Iterable[str] | None = None) -> 
     return len(seen)
 
 
-def _is_remote_reference(value: str) -> bool:
-    value = html.unescape(value.strip())
-    if value.startswith("//"):
-        return True
-    parsed = urllib.parse.urlsplit(value)
-    return parsed.scheme.lower() in REMOTE_SCHEMES or bool(parsed.netloc)
-
-
-def _attribute(tag: str, name: str) -> str | None:
-    match = re.search(
-        rf"\b{re.escape(name)}\s*=\s*([\"'])(.*?)\1",
-        tag,
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-    return match.group(2) if match else None
-
-
-def validate_offline_runtime(root: Path) -> None:
+def finalize_publication(root: Path) -> None:
     root = root.resolve()
-    pages = sorted(root.glob("*.html"))
-    if not pages:
-        raise ValueError("offline HTML check found no HTML pages")
+    required_files = (*DEFAULT_FILES, *QA_ONLY_FILES, "index.html")
+    missing = [name for name in required_files if not (root / name).is_file()]
+    if missing:
+        raise FileNotFoundError(f"publication root is missing: {', '.join(missing)}")
 
-    remote: list[str] = []
-    for page in pages:
-        text = page.read_text(errors="replace")
-        for tag in re.findall(r"<[^>]+>", text, flags=re.DOTALL):
-            for attr in ("src", "poster", "data"):
-                value = _attribute(tag, attr)
-                if value and _is_remote_reference(value):
-                    remote.append(f"{page.name}: {attr}={value}")
-            srcset = _attribute(tag, "srcset")
-            if srcset:
-                for candidate in srcset.split(","):
-                    value = candidate.strip().split(maxsplit=1)[0]
-                    if value and _is_remote_reference(value):
-                        remote.append(f"{page.name}: srcset={value}")
-            if tag.lower().startswith("<link"):
-                href = _attribute(tag, "href")
-                rel = (_attribute(tag, "rel") or "").lower().split()
-                if (
-                    href
-                    and FETCHING_LINK_RELS.intersection(rel)
-                    and _is_remote_reference(href)
-                ):
-                    remote.append(f"{page.name}: link href={href}")
-
-    stylesheets = sorted(root.rglob("*.css"))
-    for stylesheet in stylesheets:
-        text = stylesheet.read_text(errors="replace")
-        for match in re.finditer(
-            r"url\(\s*([\"']?)(.*?)\1\s*\)", text, flags=re.IGNORECASE
-        ):
-            value = match.group(2).strip()
-            if value and _is_remote_reference(value):
-                remote.append(f"{stylesheet.relative_to(root)}: url({value})")
-        for match in re.finditer(
-            r"@import\s+(?:url\()?\s*([\"'])(.*?)\1",
-            text,
-            flags=re.IGNORECASE,
-        ):
-            value = match.group(2).strip()
-            if value and _is_remote_reference(value):
-                remote.append(f"{stylesheet.relative_to(root)}: @import {value}")
-
-    if remote:
-        details = "\n".join(f"  {item}" for item in remote[:40])
-        raise ValueError(
-            "HTML reader has remote runtime dependencies:\n"
-            + details
-            + (f"\n  ... and {len(remote) - 40} more" if len(remote) > 40 else "")
-        )
-    print(
-        f"Offline HTML runtime OK: {len(pages)} page(s), "
-        f"{len(stylesheets)} stylesheet(s)"
-    )
+    (root / HTML_ARCHIVE).unlink(missing_ok=True)
+    (root / MANIFEST).unlink(missing_ok=True)
+    write_manifest(root, CHECKSUM_ASSETS)
+    verify_manifest(root, CHECKSUM_ASSETS)
+    print("Publication root ready")
 
 
-def package_release(dist: Path, output: Path) -> None:
-    dist = dist.resolve()
+def archive_publication(root: Path, output: Path) -> None:
+    root = root.resolve()
     output = output.resolve()
-    verify_manifest(dist, DEFAULT_FILES)
-    validate_offline_runtime(dist)
+    if output.is_relative_to(root):
+        raise ValueError("archive output must be outside the publication root")
+    if not (root / MANIFEST).is_file():
+        raise FileNotFoundError(f"publication root is not finalized: {root / MANIFEST}")
+    verify_manifest(root, CHECKSUM_ASSETS)
 
-    if output.exists():
-        shutil.rmtree(output)
-    output.mkdir(parents=True)
-
-    for name in DEFAULT_FILES:
-        shutil.copy2(dist / name, output / name)
-
-    excluded = {*QA_ONLY_FILES, MANIFEST}
-    archive_path = output / HTML_ARCHIVE
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.unlink(missing_ok=True)
     included: list[str] = []
     with zipfile.ZipFile(
-        archive_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9
+        output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9
     ) as archive:
-        for path in sorted(dist.rglob("*")):
+        for path in sorted(root.rglob("*")):
             if not path.is_file():
                 continue
-            relative = path.relative_to(dist)
-            if str(relative) in excluded:
-                continue
+            relative = path.relative_to(root)
             archive.write(path, relative)
             included.append(str(relative))
 
-    required = {"index.html", *DEFAULT_FILES}
+    required = {"index.html", *DEFAULT_FILES, *QA_ONLY_FILES, MANIFEST}
     missing = sorted(required - set(included))
     if missing:
-        raise ValueError("public HTML archive is missing: " + ", ".join(missing))
-    if any(name in included for name in QA_ONLY_FILES):
-        raise ValueError("public HTML archive contains a QA-only file")
-
-    write_manifest(output, CHECKSUM_ASSETS)
-    verify_manifest(output, CHECKSUM_ASSETS)
-    print(f"Release assets ready: {', '.join(RELEASE_ASSETS)}")
+        raise ValueError("tagged publication archive is missing: " + ", ".join(missing))
+    print(f"Tagged publication archive ready: {output}")
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Package and verify publication release artifacts"
+        description="Finalize and verify publication artifacts"
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    package = subparsers.add_parser(
-        "package", help="prepare the release asset directory"
-    )
-    package.add_argument("--dist", type=Path, default=Path("dist"))
-    package.add_argument("--output", type=Path, default=Path("release"))
+    finalize = subparsers.add_parser("finalize", help="finalize the publication root")
+    finalize.add_argument("--root", type=Path, default=DEFAULT_ROOT)
 
-    offline = subparsers.add_parser(
-        "offline", help="check that HTML runtime resources are local"
+    archive = subparsers.add_parser(
+        "archive", help="archive the complete publication root for a tagged release"
     )
-    offline.add_argument("--root", type=Path, default=Path("dist"))
+    archive.add_argument("--root", type=Path, default=DEFAULT_ROOT)
+    archive.add_argument("--output", type=Path, default=Path(HTML_ARCHIVE))
 
     checksums = subparsers.add_parser(
         "checksums", help="write or verify a SHA-256 manifest"
     )
-    checksums.add_argument("--root", type=Path, default=Path("dist"))
+    checksums.add_argument("--root", type=Path, default=DEFAULT_ROOT)
     action = checksums.add_mutually_exclusive_group(required=True)
     action.add_argument("--write", action="store_true")
     action.add_argument("--check", action="store_true")
     checksums.add_argument("files", nargs="*")
 
-    subparsers.add_parser("assets", help="print published asset names")
     args = parser.parse_args(argv)
-    if args.command == "package":
-        package_release(args.dist, args.output)
-    elif args.command == "offline":
-        validate_offline_runtime(args.root)
-    elif args.command == "assets":
-        print("\n".join(RELEASE_ASSETS))
+    if args.command == "finalize":
+        finalize_publication(args.root)
+    elif args.command == "archive":
+        archive_publication(args.root, args.output)
     else:
-        names = args.files or list(DEFAULT_FILES)
+        names = args.files or list(CHECKSUM_ASSETS)
         if args.write:
             manifest = write_manifest(args.root, names)
             print(f"Wrote {manifest}")

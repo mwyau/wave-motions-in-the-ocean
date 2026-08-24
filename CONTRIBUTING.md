@@ -73,7 +73,7 @@ uv export --frozen --format requirements.txt --all-groups --no-hashes --no-heade
 
 For figure changes, also run `scripts/compare_figures.py` for the affected figure.
 
-Do not commit `build/`, `dist/`, caches, or `audit/` review material.
+Do not commit `build/`, `release/`, caches, or `audit/` review material.
 
 ## Commits
 

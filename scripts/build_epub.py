@@ -33,7 +33,7 @@ from publication import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "dist"
+OUT = ROOT / "release"
 BUILD = ROOT / "build" / "epub"
 SRC = ROOT / "src"
 CSS = SRC / "layout" / "wave-epub.css"

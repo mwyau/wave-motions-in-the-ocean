@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Build the complete chapter-split modern HTML edition.
 
-Pandoc supplies document body markup after shared publication preparation.
-This script computes publication data and renders the maintained full-page
-reader template in src/layout/wave-html.html.
+Pandoc renders each final HTML page through the maintained reader template in
+``src/layout/wave-html.html`` after shared publication preparation.
 """
 
 from __future__ import annotations
@@ -16,10 +15,8 @@ import subprocess
 import sys
 import tarfile
 import unicodedata
-import urllib.parse
 import urllib.request
 from pathlib import Path
-from string import Template
 
 from PIL import Image
 
@@ -43,7 +40,7 @@ from publication import (
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 BUILD = ROOT / "build" / "html-pandoc"
-OUT = ROOT / "dist"
+OUT = ROOT / "release"
 ASSETS = OUT / "assets"
 VENDOR_CACHE = ROOT / "build" / "html-vendor"
 HTML_TEMPLATE = SRC / "layout" / "wave-html.html"
@@ -307,15 +304,25 @@ def pandoc_page(
         math_option = "--mathml"
     else:
         raise ValueError(f"unsupported HTML math method: {math_method}")
-    run(
+    command = [
+        "pandoc",
+        str(source_tex),
+        "-f",
+        "latex+smart",
+        "-t",
+        "html5",
+    ]
+    if math_method == "mathjax":
+        command.extend(
+            [
+                "-s",
+                "--template",
+                str(HTML_TEMPLATE),
+                *template_variable_args(template_variables(output)),
+            ]
+        )
+    command.extend(
         [
-            "pandoc",
-            str(source_tex),
-            "-f",
-            "latex+smart",
-            "-t",
-            "html5",
-            "-s",
             math_option,
             "--metadata",
             f"title={title}",
@@ -327,6 +334,7 @@ def pandoc_page(
             str(output),
         ]
     )
+    run(command)
 
 
 def install_mathml_alternates(page: Path, mathml_page: Path) -> None:
@@ -466,10 +474,8 @@ def navigation_state(index: int | None) -> dict[str, str]:
     return {
         "previous_url": html.escape(previous_url, quote=True),
         "previous_label": html.escape(previous_label),
-        "previous_hidden": "" if previous_url else " hidden",
         "next_url": html.escape(next_url, quote=True),
         "next_label": html.escape(next_label),
-        "next_hidden": "" if next_url else " hidden",
     }
 
 
@@ -478,13 +484,11 @@ def reader_state(index: int | None) -> dict[str, str]:
         return {
             "reader_chapter": "Front matter",
             "reader_title": "",
-            "reader_title_hidden": " hidden",
         }
     if index == 0:
         return {
             "reader_chapter": "References",
             "reader_title": "",
-            "reader_title_hidden": " hidden",
         }
 
     chapter = CHAPTER_BY_NUMBER.get(index)
@@ -493,7 +497,6 @@ def reader_state(index: int | None) -> dict[str, str]:
     return {
         "reader_chapter": f"Chapter {chapter.number}",
         "reader_title": html.escape(chapter.title),
-        "reader_title_hidden": "",
     }
 
 
@@ -550,20 +553,6 @@ def source_url(index: int | None, sha: str) -> str:
         source_path = f"src/chapter{index}.tex"
     revision = sha if sha != "unknown" else "main"
     return f"{REPOSITORY_URL}/blob/{revision}/{source_path}"
-
-
-def mark_chapter_title_block(page: Path) -> None:
-    text = page.read_text(errors="replace")
-    marker = '<header id="title-block-header">'
-    if marker not in text:
-        raise SystemExit(f"HTML chapter title block missing from {page.name}")
-    page.write_text(
-        text.replace(
-            marker,
-            '<header id="title-block-header" class="chapter-title-block">',
-            1,
-        )
-    )
 
 
 def cover_palette() -> tuple[str, str]:
@@ -653,6 +642,34 @@ def page_metadata(path: Path) -> dict[str, str]:
     }
 
 
+def template_variables(path: Path) -> dict[str, str]:
+    index = page_index(path)
+    info = current_build()
+    values = {
+        "asset_version": html.escape(info.short_sha, quote=True),
+        "source_url": html.escape(source_url(index, info.sha), quote=True),
+        "build_label": html.escape(info.label),
+        "build_url": html.escape(info.commit_url, quote=True),
+        "book_toc": book_toc(index),
+        **page_metadata(path),
+        **navigation_state(index),
+        **reader_state(index),
+    }
+    if chapter_for_page(path) is not None:
+        values["chapter_title_block"] = "true"
+    if index is None:
+        values["page_extra"] = html_frontmatter_footer() + "\n" + html_license()
+    return values
+
+
+def template_variable_args(values: dict[str, str]) -> list[str]:
+    args: list[str] = []
+    for name, value in values.items():
+        if value:
+            args.extend(["--variable", f"{name}:{value}"])
+    return args
+
+
 def heading_text(fragment: str) -> str:
     return " ".join(html.unescape(re.sub(r"<[^>]+>", "", fragment)).split())
 
@@ -664,8 +681,9 @@ def normalized_heading_text(text: str) -> str:
 
 def install_frontmatter_ids(page: Path) -> None:
     text = page.read_text(errors="replace")
-    title_end = text.find("</header>")
-    if title_end < 0:
+    title_start = text.find('<header id="title-block-header">')
+    title_end = text.find("</header>", title_start)
+    if title_start < 0 or title_end < 0:
         raise SystemExit("HTML front matter title block is missing")
     prefix = text[: title_end + len("</header>")]
     tail = text[title_end + len("</header>") :]
@@ -717,45 +735,6 @@ def install_chapter_id(page: Path, chapter_number: int) -> None:
     attrs = re.sub(r'\s+id="[^"]*"', "", heading.group("attrs"), flags=re.IGNORECASE)
     opening = f'<h1 id="chapter-{chapter_number}"{attrs}>'
     page.write_text(text[:absolute_start] + opening + text[absolute_end:])
-
-
-def build_shell(path: Path) -> None:
-    generated = path.read_text(errors="replace")
-    body_match = re.search(
-        r"<body>\s*(?P<body>.*?)\s*</body>", generated, flags=re.DOTALL
-    )
-    head_match = re.search(r"<head>(?P<head>.*?)</head>", generated, flags=re.DOTALL)
-    if (
-        body_match is None
-        or generated.count("<body>") != 1
-        or generated.count("</body>") != 1
-    ):
-        raise SystemExit(f"HTML body boundaries are not unique in {path.name}")
-    if (
-        head_match is None
-        or generated.count("<head>") != 1
-        or generated.count("</head>") != 1
-    ):
-        raise SystemExit(f"HTML head boundaries are not unique in {path.name}")
-    pandoc_styles = "\n".join(
-        re.findall(r"<style>.*?</style>", head_match.group("head"), flags=re.DOTALL)
-    )
-
-    index = page_index(path)
-    info = current_build()
-    values = {
-        "body": body_match.group("body"),
-        "pandoc_styles": pandoc_styles,
-        "asset_version": html.escape(info.short_sha, quote=True),
-        "source_url": html.escape(source_url(index, info.sha), quote=True),
-        "build_label": html.escape(info.label),
-        "build_url": html.escape(info.commit_url, quote=True),
-        "book_toc": book_toc(index),
-        **page_metadata(path),
-        **navigation_state(index),
-        **reader_state(index),
-    }
-    path.write_text(Template(HTML_TEMPLATE.read_text()).substitute(values))
 
 
 def install_stable_section_ids() -> None:
@@ -810,13 +789,6 @@ def html_frontmatter_footer() -> str:
 def build_index(source_dir: Path) -> None:
     page = OUT / "index.html"
     dual_math_page(source_dir / "frontmatter.tex", page, PUBLICATION_TITLE)
-    text = page.read_text(errors="replace")
-    text = text.replace(
-        "</body>",
-        html_frontmatter_footer() + "\n" + html_license() + "\n</body>",
-        1,
-    )
-    page.write_text(text)
     install_frontmatter_ids(page)
 
 
@@ -830,72 +802,26 @@ def build_references(source_dir: Path) -> None:
         [
             "pandoc",
             str(references),
+            "-f",
+            "markdown",
             "-s",
             "-t",
             "html5",
+            "--template",
+            str(HTML_TEMPLATE),
+            *template_variable_args(template_variables(OUT / "references.html")),
             "--citeproc",
             f"--bibliography={SRC / 'references.bib'}",
+            "--metadata",
+            "title=References",
+            "--metadata",
+            f"lang={LANGUAGE}",
             "--resource-path",
             resource_path,
             "-o",
             str(OUT / "references.html"),
         ]
     )
-
-
-def validate_local_references() -> None:
-    pages = sorted(OUT.glob("*.html"))
-    ids_by_page: dict[Path, set[str]] = {}
-    broken: list[tuple[str, str]] = []
-    optional_sibling_downloads = {name for name, _ in HTML_DOWNLOADS}
-
-    def ids_for(path: Path) -> set[str]:
-        if path not in ids_by_page:
-            ids_by_page[path] = {
-                html.unescape(value)
-                for value in re.findall(
-                    r'\bid=["\']([^"\']+)["\']',
-                    path.read_text(errors="replace"),
-                    flags=re.IGNORECASE,
-                )
-            }
-        return ids_by_page[path]
-
-    for page in pages:
-        text = page.read_text(errors="replace")
-        for attr in ("src", "href"):
-            for raw_ref in re.findall(
-                rf'{attr}=["\']([^"\']+)["\']', text, flags=re.IGNORECASE
-            ):
-                ref = html.unescape(raw_ref)
-                parsed = urllib.parse.urlsplit(ref)
-                if (
-                    parsed.scheme
-                    or parsed.netloc
-                    or ref.startswith(("mailto:", "javascript:", "data:"))
-                ):
-                    continue
-                target = (
-                    page
-                    if not parsed.path
-                    else page.parent / urllib.parse.unquote(parsed.path)
-                )
-                if parsed.path and not target.exists():
-                    if target.name in optional_sibling_downloads:
-                        continue
-                    broken.append((page.name, raw_ref))
-                    continue
-                if (
-                    parsed.fragment
-                    and target.suffix.lower() in {".html", ".htm"}
-                    and target.is_file()
-                    and urllib.parse.unquote(parsed.fragment) not in ids_for(target)
-                ):
-                    broken.append((page.name, raw_ref))
-    if broken:
-        for page, ref in broken[:40]:
-            print(f"broken local HTML reference: {page}: {ref}", file=sys.stderr)
-        raise SystemExit(f"{len(broken)} broken local HTML reference(s)")
 
 
 def validate() -> None:
@@ -942,77 +868,8 @@ def validate() -> None:
                 f"social preview is {image.size[0]}x{image.size[1]}, expected 1200x630"
             )
 
-    combined = "\n".join(path.read_text(errors="replace") for path in EXPECTED_PAGES)
-    for sentinel in (
-        "David C. Chapman",
-        "Paola Malanotte-Rizzoli",
-        "CC BY-NC-SA 4.0",
-        "Apel",
-    ):
-        if sentinel not in combined:
-            raise SystemExit(f"HTML sentinel missing: {sentinel}")
-    if re.search(r"<mo\b[^>]*>ℓ</mo>", combined):
-        raise SystemExit(
-            "HTML native MathML represents ℓ as an operator instead of an identifier"
-        )
-    if not re.search(r"<mi\b[^>]*>ℓ</mi>", combined):
-        raise SystemExit("HTML native MathML is missing identifier-form ℓ")
-    info = current_build()
-    label = html.escape(info.label)
-    build_url = html.escape(info.commit_url, quote=True)
     for page in EXPECTED_PAGES:
         text = page.read_text(errors="replace")
-        index = page_index(page)
-        if not re.search(
-            rf'<html[^>]+lang="{re.escape(LANGUAGE)}"', text, flags=re.IGNORECASE
-        ):
-            raise SystemExit(f"HTML language metadata missing from {page.name}")
-        if text.count("<head>") != 1 or text.count("</head>") != 1:
-            raise SystemExit(f"HTML head boundaries are not unique in {page.name}")
-        if text.count("<body>") != 1 or text.count("</body>") != 1:
-            raise SystemExit(f"HTML body boundaries are not unique in {page.name}")
-        for required in (
-            "<!DOCTYPE html>",
-            '<meta charset="utf-8">',
-            'name="viewport"',
-            'rel="icon"',
-            "🌊",
-            '<main id="main-content">',
-            'class="skip-link"',
-            'class="reader-header page-shell"',
-            'class="book-nav"',
-            "data-theme-cycle",
-            "data-dev-math-controls",
-            'data-math-mode="mathjax"',
-            'data-math-mode="mathml"',
-            "data-reader-context",
-            "data-book-toc-rail",
-            "data-toc-scope",
-            "data-toc-expand",
-            'class="book-contents-rail"',
-            'class="book-contents-popover"',
-            'class="build-info"',
-            ">Source</a>",
-            "Front matter",
-            "References",
-            "assets/wave.css",
-            "assets/wave.js",
-            'name="mathjax-upstream"',
-            'property="og:title"',
-            'property="og:url"',
-            'property="og:image"',
-            'property="og:image:width" content="1200"',
-            'property="og:image:height" content="630"',
-            'name="twitter:card" content="summary_large_image"',
-            f"{SITE_URL}/assets/social-preview.png",
-            label,
-            build_url,
-            html.escape(source_url(index, info.sha), quote=True),
-        ):
-            if required not in text:
-                raise SystemExit(
-                    f"HTML requirement {required!r} is missing from {page.name}"
-                )
         mathjax_count = text.count('data-math-renderer="mathjax"')
         mathml_count = text.count('data-math-renderer="mathml"')
         if mathjax_count != mathml_count:
@@ -1030,18 +887,6 @@ def validate() -> None:
             raise SystemExit(
                 f"{page.name}: native MathML TeX annotation count does not match alternates"
             )
-        if text.count("data-toc-scope") != 2 or text.count("data-toc-expand") != 2:
-            raise SystemExit(
-                f"HTML Contents controls are duplicated or missing in {page.name}"
-            )
-        if text.count('class="build-info"') != 1:
-            raise SystemExit(f"HTML build stamp count is not one in {page.name}")
-        if text.count('property="og:image"') != 1:
-            raise SystemExit(
-                f"HTML social preview image metadata count is not one in {page.name}"
-            )
-        if 'class="book-context"' in text or "data-theme-select" in text:
-            raise SystemExit(f"obsolete HTML header controls remain in {page.name}")
 
     for chapter in CHAPTERS:
         text = (OUT / f"chapter{chapter.number}.html").read_text(errors="replace")
@@ -1054,42 +899,16 @@ def validate() -> None:
             raise SystemExit(
                 f"chapter{chapter.number}.html: stable chapter anchor is missing"
             )
+        for section in chapter.sections:
+            anchor = section_slug(section)
+            if f'id="{anchor}"' not in text:
+                raise SystemExit(
+                    f"chapter{chapter.number}.html: stable section anchor is missing: {anchor}"
+                )
         if 'class="chapter-title-block"' not in text:
             raise SystemExit(
                 f"chapter{chapter.number}.html: chapter title block is missing"
             )
-
-    first = CHAPTERS[0]
-    last = CHAPTERS[-1]
-    index = (OUT / "index.html").read_text(errors="replace")
-    for anchor, _ in FRONTMATTER_SECTIONS:
-        if f'id="{anchor}"' not in index:
-            raise SystemExit(f"HTML front matter anchor {anchor!r} is missing")
-    if "wave-motions.pdf" not in index or "wave-motions.epub" not in index:
-        raise SystemExit("HTML download links are incomplete")
-    if "wave-motions-facsimile.pdf" in index:
-        raise SystemExit("HTML front page must not link the facsimile PDF")
-    if "Original online source" in index:
-        raise SystemExit("HTML front page must not link the original online source")
-    if 'id="contents"' in index:
-        raise SystemExit("inline HTML Contents block must not be rendered")
-    if f'href="chapter{first.number}.html"' not in index:
-        raise SystemExit(
-            f"front matter must navigate forward to Chapter {first.number}"
-        )
-    first_page = (OUT / f"chapter{first.number}.html").read_text(errors="replace")
-    if 'href="index.html"' not in first_page:
-        raise SystemExit(f"Chapter {first.number} must navigate back to front matter")
-    references = (OUT / "references.html").read_text(errors="replace")
-    if f'href="chapter{last.number}.html"' not in references:
-        raise SystemExit(f"References must navigate back to Chapter {last.number}")
-    if MATHJAX_URL not in combined:
-        raise SystemExit("pinned MathJax URL is missing from generated HTML")
-    if LOCAL_MATHJAX_URL not in combined:
-        raise SystemExit("local MathJax component is missing from generated HTML")
-    if 'data-math-renderer="mathml"' not in combined or "<math " not in combined:
-        raise SystemExit("native MathML alternates are missing from generated HTML")
-    validate_local_references()
 
 
 def main() -> int:
@@ -1128,11 +947,8 @@ def main() -> int:
             page,
             f"Chapter {chapter.number}",
         )
-        mark_chapter_title_block(page)
         install_chapter_id(page, chapter.number)
     build_references(source_dir)
-    for page in EXPECTED_PAGES:
-        build_shell(page)
     install_stable_section_ids()
     validate()
     print(

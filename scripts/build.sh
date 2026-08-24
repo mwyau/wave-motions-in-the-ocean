@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 PYTHON=${PYTHON:-python}
 BUILD="$ROOT/build"
-DIST="$ROOT/dist"
+PUBLICATION="$ROOT/release"
 CACHE=${WAVE_CACHE_DIR:-"$ROOT/.cache/wave-motions"}
 LATEX_CACHE="$CACHE/latex"
 TARGET=${1:-all}
@@ -94,18 +94,18 @@ build_pdf() {
   for command in latexmk lualatex pdfinfo; do need "$command"; done
   prepare_bibtex
   rm -rf "$BUILD/facsimile" "$BUILD/modern"
-  mkdir -p "$BUILD/facsimile" "$BUILD/modern" "$LATEX_CACHE/facsimile" "$LATEX_CACHE/modern" "$DIST"
+  mkdir -p "$BUILD/facsimile" "$BUILD/modern" "$LATEX_CACHE/facsimile" "$LATEX_CACHE/modern" "$PUBLICATION"
 
   prepare_build_info
   # Both paged editions use the shared LuaLaTeX/STIX Two stack.
   run_latexmk_cached main-facsimile.tex facsimile
   run_latexmk_cached main-modern.tex modern
-  cp "$LATEX_CACHE/facsimile/main-facsimile.pdf" "$DIST/wave-motions-facsimile.pdf"
-  cp "$LATEX_CACHE/modern/main-modern.pdf" "$DIST/wave-motions.pdf"
+  cp "$LATEX_CACHE/facsimile/main-facsimile.pdf" "$PUBLICATION/wave-motions-facsimile.pdf"
+  cp "$LATEX_CACHE/modern/main-modern.pdf" "$PUBLICATION/wave-motions.pdf"
 
   local fac_pages mod_pages
-  fac_pages=$(pdfinfo "$DIST/wave-motions-facsimile.pdf" | awk '/^Pages:/ {print $2}')
-  mod_pages=$(pdfinfo "$DIST/wave-motions.pdf" | awk '/^Pages:/ {print $2}')
+  fac_pages=$(pdfinfo "$PUBLICATION/wave-motions-facsimile.pdf" | awk '/^Pages:/ {print $2}')
+  mod_pages=$(pdfinfo "$PUBLICATION/wave-motions.pdf" | awk '/^Pages:/ {print $2}')
   # Pagination drift is advisory during ordinary/build-only development runs;
   # validate.py owns publication policy and keeps stable releases strict.
   if [[ "$fac_pages" != 184 ]] && ! validation_enabled; then
@@ -126,17 +126,17 @@ check_readme() {
   "$PYTHON" "$ROOT/scripts/sync_readme.py" --check
 }
 
-write_checksums() {
-  "$PYTHON" "$ROOT/scripts/release.py" checksums --root "$DIST" --write
+finalize_publication() {
+  "$PYTHON" "$ROOT/scripts/release.py" finalize --root "$PUBLICATION"
 }
 
 reset_generated() {
-  rm -rf "$BUILD" "$DIST"
-  mkdir -p "$BUILD" "$DIST"
+  rm -rf "$BUILD" "$PUBLICATION"
+  mkdir -p "$BUILD" "$PUBLICATION"
 }
 
 finish_all() {
-  write_checksums
+  finalize_publication
   if validation_enabled; then
     "$PYTHON" "$ROOT/scripts/validate.py" all
   else
@@ -161,6 +161,7 @@ case "$TARGET" in
   html)
     build_html
     if validation_enabled; then
+      "$PYTHON" "$ROOT/scripts/validate.py" html
       check_readme
     fi
     ;;

@@ -1,49 +1,64 @@
 <!DOCTYPE html>
-<html lang="$language">
+<html lang="$language$">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>$page_title</title>
-  <meta name="description" content="$description">
+  <title>$page_title$</title>
+  <meta name="description" content="$description$">
   <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E🌊%3C/text%3E%3C/svg%3E">
-  <meta name="mathjax-upstream" content="$mathjax_upstream">
-  <meta property="og:title" content="$social_title">
+  <meta name="mathjax-upstream" content="$mathjax_upstream$">
+  <meta property="og:title" content="$social_title$">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="$social_url">
-  <meta property="og:image" content="$social_image">
+  <meta property="og:url" content="$social_url$">
+  <meta property="og:image" content="$social_image$">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:type" content="image/png">
-  <meta property="og:image:alt" content="$social_image_alt">
+  <meta property="og:image:alt" content="$social_image_alt$">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="$social_title">
-  <meta name="twitter:description" content="$description">
-  <meta name="twitter:image" content="$social_image">
-  <meta name="twitter:image:alt" content="$social_image_alt">
-  $pandoc_styles
-  <link rel="stylesheet" href="assets/wave.css?v=$asset_version">
-  <script src="$mathjax_url" type="text/javascript"></script>
-  <script defer src="assets/wave.js?v=$asset_version"></script>
+  <meta name="twitter:title" content="$social_title$">
+  <meta name="twitter:description" content="$description$">
+  <meta name="twitter:image" content="$social_image$">
+  <meta name="twitter:image:alt" content="$social_image_alt$">
+  <link rel="preload" href="assets/fonts/SourceSerif4Variable-Roman.otf.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/SourceSans3VF-Upright.otf.woff2" as="font" type="font/woff2" crossorigin>
+  <script>
+    (() => {
+      try {
+        const savedTheme = localStorage.getItem("wave-theme");
+        if (savedTheme === "light" || savedTheme === "dark") {
+          document.documentElement.dataset.theme = savedTheme;
+        }
+      } catch (_) {}
+    })();
+  </script>
+  <style>
+    $styles.html()$
+  </style>
+  <link rel="stylesheet" href="assets/wave.css?v=$asset_version$">
+  <script src="$mathjax_url$" type="text/javascript"></script>
+  <script defer src="assets/wave.js?v=$asset_version$"></script>
 </head>
-<body>
+<body id="top">
 <a class="skip-link" href="#main-content">Skip to content</a>
 <header class="reader-header page-shell">
   <nav class="book-nav" aria-label="Book navigation">
     <span class="book-nav-links book-nav-start">
+      <a class="home-link" href="index.html">Home</a>
       <button class="toc-toggle" type="button" popovertarget="book-contents" data-toc-toggle>Contents</button>
-      <a href="$previous_url"$previous_hidden aria-label="Previous: $previous_label"><span class="nav-long">← $previous_label</span><span class="nav-short">← Previous</span></a>
+      <a class="previous-link" href="$previous_url$"$if(previous_url)$$else$ hidden$endif$ aria-label="Previous: $previous_label$"><span class="nav-long">← $previous_label$</span><span class="nav-short">← Previous</span></a>
     </span>
     <span class="reader-context" data-reader-context aria-label="Current reading position">
-      <span class="reader-context-chapter">$reader_chapter</span>
-      <span class="reader-context-separator"$reader_title_hidden aria-hidden="true"> · </span>
-      <span class="reader-context-title"$reader_title_hidden>$reader_title</span>
+      <span class="reader-context-chapter">$reader_chapter$</span>
+      <span class="reader-context-separator"$if(reader_title)$$else$ hidden$endif$ aria-hidden="true"> · </span>
+      <span class="reader-context-title"$if(reader_title)$$else$ hidden$endif$>$reader_title$</span>
     </span>
     <span class="book-controls book-nav-end">
       <a class="next-link" href="$next_url$"$if(next_url)$$else$ hidden$endif$ aria-label="Next: $next_label$"><span class="nav-long">$next_label$ →</span><span class="nav-short">Next →</span></a>
       <a class="source-link" href="$source_url$" aria-label="Source for this page at build revision">Source</a>
       <button class="math-renderer-cycle reader-cycle" type="button" data-math-cycle><span class="rendering-label">Rendering: </span><span data-math-label>MathJax</span></button>
       <span class="book-control-divider" aria-hidden="true"></span>
-      <button class="theme-cycle" type="button" data-theme-cycle><span class="appearance-label">Appearance: </span><span data-theme-label>Auto</span></button>
+      <button class="theme-cycle reader-cycle" type="button" data-theme-cycle><span class="appearance-label">Appearance: </span><span data-theme-label>Auto</span></button>
     </span>
   </nav>
 </header>
@@ -54,7 +69,7 @@
   </div>
   <nav class="book-contents-nav" aria-label="Book contents">
     $book_toc$
-    <div class="book-toc-group"><ol><li class="book-toc-page"><a href="references.html#artwork" data-section-link="artwork">Artwork</a></li></ol></div>
+    <div class="book-toc-group"><ol><li class="book-toc-page"><a href="references.html#artwork">Artwork</a></li></ol></div>
   </nav>
 </aside>
 <aside class="book-contents-popover" id="book-contents" popover hidden aria-labelledby="book-contents-heading">
@@ -68,7 +83,7 @@
     </div>
     <nav class="book-contents-nav" aria-label="Book contents">
       $book_toc$
-      <div class="book-toc-group"><ol><li class="book-toc-page"><a href="references.html#artwork" data-section-link="artwork">Artwork</a></li></ol></div>
+      <div class="book-toc-group"><ol><li class="book-toc-page"><a href="references.html#artwork">Artwork</a></li></ol></div>
     </nav>
   </div>
 </aside>
@@ -103,6 +118,6 @@ $if(bibliography)$
 </section>
 $endif$
 </main>
-<footer class="build-info">Digital edition build: <a href="$build_url"><code>$build_label</code></a></footer>
+<footer class="build-info"><a href="#top">Back to top</a><span aria-hidden="true"> · </span>Digital edition build: <a href="$build_url$"><code>$build_label$</code></a></footer>
 </body>
 </html>

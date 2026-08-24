@@ -2,13 +2,15 @@ import zipfile
 from pathlib import Path
 
 import pytest
+
 from release import (
     CHECKSUM_ASSETS,
     DEFAULT_FILES,
+    HTML_ARCHIVE,
     _checked_names,
     _safe_name,
-    package_release,
-    validate_offline_runtime,
+    archive_publication,
+    finalize_publication,
     verify_manifest,
     write_manifest,
 )
@@ -69,66 +71,49 @@ def test_malformed_checksum_line_is_rejected(tmp_path: Path) -> None:
         verify_manifest(tmp_path)
 
 
-def test_offline_runtime_accepts_local_html_and_css(tmp_path: Path) -> None:
-    (tmp_path / "assets").mkdir()
-    (tmp_path / "index.html").write_text(
-        '<link rel="stylesheet" href="assets/site.css">'
-        '<script src="assets/app.js"></script>'
-    )
-    (tmp_path / "assets/site.css").write_text(
-        '@import "local.css"; .page { background: url("../paper.png"); }'
-    )
-
-    validate_offline_runtime(tmp_path)
-
-
-@pytest.mark.parametrize(
-    ("html", "css"),
-    [
-        ('<script src="https://cdn.example/app.js"></script>', ""),
-        ("", '@import url("https://cdn.example/site.css");'),
-    ],
-)
-def test_offline_runtime_rejects_remote_dependencies(
-    tmp_path: Path, html: str, css: str
-) -> None:
-    (tmp_path / "index.html").write_text(html)
-    (tmp_path / "site.css").write_text(css)
-
-    with pytest.raises(ValueError, match="remote runtime dependencies"):
-        validate_offline_runtime(tmp_path)
-
-
-def test_package_release_excludes_qa_facsimile_and_requires_public_members(
-    tmp_path: Path,
-) -> None:
-    dist = tmp_path / "dist"
-    output = tmp_path / "release"
-    (dist / "assets").mkdir(parents=True)
+def make_publication_root(tmp_path: Path) -> Path:
+    root = tmp_path / "release"
+    (root / "assets").mkdir(parents=True)
     for name in DEFAULT_FILES + ("wave-motions-facsimile.pdf",):
-        (dist / name).write_bytes(name.encode())
-    write_manifest(dist, DEFAULT_FILES)
-    (dist / "index.html").write_text('<script src="assets/app.js"></script>')
-    (dist / "assets/app.js").write_text("console.log('local');")
+        (root / name).write_bytes(name.encode())
+    (root / "index.html").write_text('<script src="assets/app.js"></script>')
+    (root / "assets/app.js").write_text("console.log('local');")
+    return root
 
-    package_release(dist, output)
 
-    assert verify_manifest(output, CHECKSUM_ASSETS) == len(CHECKSUM_ASSETS)
-    with zipfile.ZipFile(output / "wave-motions-html.zip") as archive:
+def test_finalize_publication_does_not_create_html_archive(tmp_path: Path) -> None:
+    root = make_publication_root(tmp_path)
+
+    finalize_publication(root)
+
+    assert (root / "wave-motions-facsimile.pdf").is_file()
+    assert verify_manifest(root, CHECKSUM_ASSETS) == len(CHECKSUM_ASSETS)
+    assert not (root / HTML_ARCHIVE).exists()
+
+
+def test_archive_publication_contains_complete_root(tmp_path: Path) -> None:
+    root = make_publication_root(tmp_path)
+    finalize_publication(root)
+    output = tmp_path / HTML_ARCHIVE
+
+    archive_publication(root, output)
+
+    with zipfile.ZipFile(output) as archive:
         names = set(archive.namelist())
     assert "index.html" in names
+    assert "assets/app.js" in names
     assert "wave-motions.pdf" in names
     assert "wave-motions.epub" in names
-    assert "wave-motions-facsimile.pdf" not in names
+    assert "wave-motions-facsimile.pdf" in names
+    assert "SHA256SUMS" in names
+    assert HTML_ARCHIVE not in names
 
 
-def test_package_release_rejects_missing_index_member(tmp_path: Path) -> None:
-    dist = tmp_path / "dist"
-    (dist / "other.html").parent.mkdir(parents=True)
-    for name in DEFAULT_FILES:
-        (dist / name).write_bytes(name.encode())
-    (dist / "other.html").write_text("<p>not the index</p>")
-    write_manifest(dist, DEFAULT_FILES)
+def test_finalize_publication_rejects_missing_index_member(tmp_path: Path) -> None:
+    root = tmp_path / "release"
+    root.mkdir()
+    for name in DEFAULT_FILES + ("wave-motions-facsimile.pdf",):
+        (root / name).write_bytes(name.encode())
 
-    with pytest.raises(ValueError, match="missing: index.html"):
-        package_release(dist, tmp_path / "release")
+    with pytest.raises(FileNotFoundError, match="index.html"):
+        finalize_publication(root)

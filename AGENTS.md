@@ -37,7 +37,7 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 
 - The reconstruction `.tex` files and `src/references.bib` are the maintained reader sources.
 - `src/layout/` contains publication layout/templates, `src/images/` contains cover/front-matter artwork and photos, and `src/figures/` contains scientific body figures.
-- `README.md`, HTML, EPUB, `build/`, and `dist/` are derived/generated views or outputs; follow `skills/publication/SKILL.md` rather than maintaining parallel content.
+- `README.md`, HTML, EPUB, `build/`, and `release/` are derived/generated views or outputs; follow `skills/publication/SKILL.md` rather than maintaining parallel content.
 - `audit/` is the persistent-but-ignored workspace for temporary human/agent audit evidence; it must survive publication builds and must never be committed.
 - The authorized license is CC BY-NC-SA 4.0. Do not change it without explicit instruction.
 

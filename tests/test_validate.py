@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from validate import (
@@ -10,6 +12,7 @@ from validate import (
     require_labels,
     strip_tex_comments,
     tex_math_regions,
+    validate_offline_runtime,
 )
 
 
@@ -88,3 +91,33 @@ def test_facsimile_log_parser_reads_boundaries_and_shipouts() -> None:
 
     assert boundaries == [(1, 1, 12.5), (2, 2, -0.25)]
     assert shipouts == [(11, 1), (12, 2)]
+
+
+def test_offline_runtime_accepts_local_html_and_css(tmp_path: Path) -> None:
+    (tmp_path / "assets").mkdir()
+    (tmp_path / "index.html").write_text(
+        '<link rel="stylesheet" href="assets/site.css">'
+        '<script src="assets/app.js"></script>'
+    )
+    (tmp_path / "assets/site.css").write_text(
+        '@import "local.css"; .page { background: url("../paper.png"); }'
+    )
+
+    validate_offline_runtime(tmp_path)
+
+
+@pytest.mark.parametrize(
+    ("html", "css"),
+    [
+        ('<script src="https://cdn.example/app.js"></script>', ""),
+        ("", '@import url("https://cdn.example/site.css");'),
+    ],
+)
+def test_offline_runtime_rejects_remote_dependencies(
+    tmp_path: Path, html: str, css: str
+) -> None:
+    (tmp_path / "index.html").write_text(html)
+    (tmp_path / "site.css").write_text(css)
+
+    with pytest.raises(ValueError, match="remote runtime dependencies"):
+        validate_offline_runtime(tmp_path)

@@ -39,16 +39,21 @@
   applyTheme();
 
   const params = new URLSearchParams(location.search);
-  const devMode = params.get("dev") === "1";
+  const mathKey = "wave-math-renderer";
   const mathModes = ["mathjax", "mathml"];
-  let mathMode = devMode && params.get("math") === "mathml" ? "mathml" : "mathjax";
-  const devMathControls = document.querySelector("[data-dev-math-controls]");
-  const mathModeButtons = document.querySelectorAll("[data-math-mode]");
+  const mathNames = { mathjax: "MathJax", mathml: "MathML" };
+  let savedMathMode = "mathjax";
+  try {
+    const saved = localStorage.getItem(mathKey);
+    if (mathModes.includes(saved)) savedMathMode = saved;
+  } catch (_) {}
+  const requestedMathMode = params.get("math");
+  let mathMode = mathModes.includes(requestedMathMode) ? requestedMathMode : savedMathMode;
+  const mathCycle = document.querySelector("[data-math-cycle]");
   const mathRenderers = document.querySelectorAll("[data-math-renderer]");
   const readerPagePattern = /^(?:index|chapter\d+|references)\.html$/;
 
-  const updateDevLinks = () => {
-    if (!devMode) return;
+  const updateReaderLinks = () => {
     document.querySelectorAll("a[href]").forEach((link) => {
       const raw = link.getAttribute("href");
       if (!raw || raw.startsWith("#")) return;
@@ -61,60 +66,84 @@
       if (url.origin !== location.origin) return;
       const filename = url.pathname.split("/").pop();
       if (!readerPagePattern.test(filename)) return;
-      url.searchParams.set("dev", "1");
-      url.searchParams.set("math", mathMode);
-      link.setAttribute("href", `${filename}?${url.searchParams.toString()}${url.hash}`);
+      if (mathMode === "mathml") url.searchParams.set("math", "mathml");
+      else url.searchParams.delete("math");
+      const query = url.searchParams.toString();
+      link.setAttribute("href", `${filename}${query ? `?${query}` : ""}${url.hash}`);
     });
   };
 
-  const updateDevUrl = () => {
-    if (!devMode) return;
+  const updateReaderUrl = () => {
     const url = new URL(location.href);
-    url.searchParams.set("dev", "1");
-    url.searchParams.set("math", mathMode);
-    history.replaceState(null, "", `${url.pathname}?${url.searchParams.toString()}${url.hash}`);
+    if (mathMode === "mathml") url.searchParams.set("math", "mathml");
+    else url.searchParams.delete("math");
+    const query = url.searchParams.toString();
+    history.replaceState(null, "", `${url.pathname}${query ? `?${query}` : ""}${url.hash}`);
   };
 
   const typesetMathJaxIfNeeded = () => {
     const pending = Array.from(
       document.querySelectorAll('[data-math-renderer="mathjax"]'),
     ).filter((node) => !node.querySelector('mjx-container[jax="CHTML"]'));
-    if (!pending.length) return;
+    if (!pending.length) return Promise.resolve();
     const mathJax = window.MathJax;
-    if (!mathJax) return;
+    if (!mathJax) return Promise.resolve();
     const typeset = () => {
       if (typeof mathJax.typesetPromise === "function") {
-        mathJax.typesetPromise(pending).catch(() => {});
+        return mathJax.typesetPromise(pending).catch(() => {});
       }
+      return Promise.resolve();
     };
-    if (mathJax.startup?.promise) mathJax.startup.promise.then(typeset).catch(() => {});
-    else typeset();
+    if (mathJax.startup?.promise) return mathJax.startup.promise.then(typeset).catch(() => {});
+    return typeset();
+  };
+
+  const visibleContentAnchor = () => {
+    const headerBottom =
+      document.querySelector(".reader-header")?.getBoundingClientRect().bottom ?? 0;
+    const node = Array.from(document.querySelectorAll("#main-content > *")).find((element) => {
+      const rect = element.getBoundingClientRect();
+      return rect.bottom > headerBottom && rect.top < innerHeight;
+    });
+    return node ? { node, top: node.getBoundingClientRect().top } : null;
+  };
+
+  const restoreContentAnchor = (anchor) => {
+    if (!anchor?.node.isConnected) return;
+    scrollBy(0, anchor.node.getBoundingClientRect().top - anchor.top);
   };
 
   const applyMathMode = () => {
-    root.dataset.mathRenderer = mathMode;
     mathRenderers.forEach((node) => {
       node.hidden = node.dataset.mathRenderer !== mathMode;
     });
-    mathModeButtons.forEach((button) => {
-      const active = button.dataset.mathMode === mathMode;
-      button.setAttribute("aria-pressed", String(active));
-      button.style.fontWeight = active ? "700" : "";
-      button.style.textDecoration = active ? "none" : "";
-    });
-    if (mathMode === "mathjax") typesetMathJaxIfNeeded();
-    updateDevUrl();
-    updateDevLinks();
+    if (mathCycle) {
+      const label = mathCycle.querySelector("[data-math-label]");
+      const nextMode = mathModes[(mathModes.indexOf(mathMode) + 1) % mathModes.length];
+      if (label) label.textContent = mathNames[mathMode];
+      mathCycle.setAttribute(
+        "aria-label",
+        `Rendering: ${mathNames[mathMode]}; switch to ${mathNames[nextMode]}`,
+      );
+      mathCycle.title = `Rendering: ${mathNames[mathMode]}`;
+    }
+    const layoutReady =
+      mathMode === "mathjax" ? typesetMathJaxIfNeeded() : Promise.resolve();
+    try {
+      if (mathMode === "mathjax") localStorage.removeItem(mathKey);
+      else localStorage.setItem(mathKey, mathMode);
+    } catch (_) {}
+    updateReaderUrl();
+    updateReaderLinks();
+    return layoutReady;
   };
 
-  if (devMode && mathRenderers.length) {
-    if (devMathControls) devMathControls.hidden = false;
-    mathModeButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        const mode = button.dataset.mathMode;
-        if (!mathModes.includes(mode) || mode === mathMode) return;
-        mathMode = mode;
-        applyMathMode();
+  if (mathCycle) {
+    mathCycle.addEventListener("click", () => {
+      const anchor = visibleContentAnchor();
+      mathMode = mathModes[(mathModes.indexOf(mathMode) + 1) % mathModes.length];
+      applyMathMode().then(() => {
+        requestAnimationFrame(() => restoreContentAnchor(anchor));
       });
     });
   }
@@ -279,32 +308,42 @@
     }
   };
 
-  let hashId = "";
-  try {
-    hashId = decodeURIComponent(location.hash.slice(1));
-  } catch (_) {}
-  const hashHeading = headings.find((heading) => heading.id === hashId);
-  if (hashHeading) {
-    setActive(hashHeading);
-  } else {
-    const initial = headings
-      .filter((heading) => heading.getBoundingClientRect().top <= innerHeight * 0.25)
-      .at(-1);
-    setActive(initial || null);
-  }
+  const headingById = new Map(headings.map((heading) => [heading.id, heading]));
+  const activeHeadingFromHash = () => {
+    let hashId = "";
+    try {
+      hashId = decodeURIComponent(location.hash.slice(1));
+    } catch (_) {}
+    return headingById.get(hashId) || null;
+  };
+  const activeHeadingFromPosition = () => {
+    const threshold = Number.parseFloat(getComputedStyle(headings[0]).scrollMarginTop) || 0;
+    return (
+      headings
+        .filter((heading) => heading.getBoundingClientRect().top <= threshold)
+        .at(-1) || null
+    );
+  };
+  const syncActiveFromPosition = () => {
+    setActive(activeHeadingFromPosition());
+  };
+  const syncActiveFromLocation = () => {
+    setActive(activeHeadingFromHash() || activeHeadingFromPosition());
+  };
 
-  const titleBlock = document.querySelector("#title-block-header");
-  const observer = new IntersectionObserver(
-    (entries) => {
-      const entering = entries
-        .filter((entry) => entry.isIntersecting)
-        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-      if (!entering.length) return;
-      const target = entering[0].target;
-      setActive(target === titleBlock ? null : target);
+  syncActiveFromLocation();
+  addEventListener("hashchange", syncActiveFromLocation);
+
+  let activeScrollFrame = 0;
+  addEventListener(
+    "scroll",
+    () => {
+      if (activeScrollFrame) return;
+      activeScrollFrame = requestAnimationFrame(() => {
+        activeScrollFrame = 0;
+        syncActiveFromPosition();
+      });
     },
-    { rootMargin: "-10% 0px -75% 0px", threshold: 0 },
+    { passive: true },
   );
-  if (titleBlock) observer.observe(titleBlock);
-  headings.forEach((heading) => observer.observe(heading));
 })();

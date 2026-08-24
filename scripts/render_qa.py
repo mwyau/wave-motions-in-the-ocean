@@ -2,8 +2,8 @@
 """Generate local visual/render QA artifacts for the published book outputs.
 
 The script is intentionally a developer aid rather than a release gate. It can
-inspect a built ``dist/`` directory or an artifact ZIP, render both PDFs into
-contact sheets, perform static/optional-browser HTML checks, unpack and inspect
+inspect a built ``release/`` publication root or an artifact ZIP, render both PDFs
+into contact sheets, perform static/optional-browser HTML checks, unpack and inspect
 EPUB structure, and write a single Markdown report under ``audit/render-qa``.
 """
 
@@ -95,14 +95,14 @@ def prepare_input(source: Path, out: Path) -> Path:
     if source.is_dir():
         return source.resolve()
     if not source.is_file() or source.suffix.lower() != ".zip":
-        raise SystemExit(f"QA input must be a dist directory or ZIP artifact: {source}")
+        raise SystemExit(
+            f"QA input must be a publication directory or ZIP artifact: {source}"
+        )
     extracted = out / "input"
     shutil.rmtree(extracted, ignore_errors=True)
     extracted.mkdir(parents=True)
     with zipfile.ZipFile(source) as archive:
         archive.extractall(extracted)
-    if (extracted / "dist").is_dir():
-        return extracted / "dist"
     children = [p for p in extracted.iterdir() if p.is_dir()]
     if len(children) == 1 and all(
         (children[0] / name).exists() for name in ("wave-motions.pdf", "index.html")
@@ -110,7 +110,7 @@ def prepare_input(source: Path, out: Path) -> Path:
         return children[0]
     if all((extracted / name).exists() for name in ("wave-motions.pdf", "index.html")):
         return extracted
-    raise SystemExit("could not locate a dist-style publication root inside the ZIP")
+    raise SystemExit("could not locate a publication root inside the ZIP")
 
 
 def pdf_page_count(pdf: Path) -> int:
@@ -457,17 +457,6 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
             f"- CSS includes dark-theme rules: "
             f"{'yes' if 'prefers-color-scheme: dark' in css_text else 'no'}"
         )
-        has_context = ".book-context" in css_text
-        lines.append(
-            f"- CSS includes book-context navigation: {'yes' if has_context else 'no'}"
-        )
-        if not has_context:
-            report.add(
-                "WARNING",
-                "HTML",
-                "book/chapter orientation context is missing; this artifact predates "
-                "the current reader-navigation design",
-            )
         if re.search(r"url\(\s*['\"]?https?://", css_text, flags=re.IGNORECASE):
             external_runtime.append("external CSS url()")
     else:
@@ -835,7 +824,7 @@ def write_report(report: Report) -> Path:
             "- Review every PDF contact sheet for unexpected blank pages, large whitespace changes, clipping, undersized figures, and abrupt pagination changes.",
             "- Inspect modern PDF pages 1–12 at full size (cover, half-title, frontispiece, title/edition notice, Contents, prefaces/editor note) plus every chapter opener and figure-dense page.",
             "- For facsimile, verify the exact 184-page physical structure before release and compare any suspicious blank/sparse pages to the source-page edition.",
-            "- Open HTML in a real desktop browser and a phone/narrow viewport; test top/bottom navigation, theme cycling, direct section permalinks, scrolling active-section updates, back/forward fragment navigation, wide Contents rail, narrow Contents popover/fallback, the hidden MathJax/MathML comparison mode, wide math/tables, and image scaling.",
+            "- Open HTML in a real desktop browser and a phone/narrow viewport; test top/bottom navigation, theme cycling, direct section permalinks, scrolling active-section updates, back/forward fragment navigation, wide Contents rail, narrow Contents popover/fallback, the MathJax/MathML Rendering switch, wide math/tables, and image scaling.",
             "- Complete the EPUB reader matrix above in real reading systems; structural/browser inspection alone is insufficient.",
             "",
         ]
@@ -850,8 +839,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "source",
         nargs="?",
-        default="dist",
-        help="built dist directory or publication artifact ZIP (default: dist)",
+        default="release",
+        help="publication directory or publication artifact ZIP (default: release)",
     )
     parser.add_argument(
         "--out",

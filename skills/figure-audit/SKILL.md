@@ -92,7 +92,7 @@ python3 scripts/compare_figures.py <figure-name>
 ```
 
 09. Inspect the affected full PDF/HTML/EPUB output as appropriate.
-10. Update `FIGURES.md`; record any substantive source problem in `ERRATA.md` as `pending-human-approval` unless explicit human approval already exists.
+10. Update `FIGURES.md`; record any substantive source problem in `ERRATA.md` as `pending-human-approval` unless the owner directly approved the correction in the current chat.
 
 Use `python3 scripts/compare_figures.py --all` only for a deliberate whole-ledger pass. Keep generated comparisons under `audit/figures/comparisons/`; do not use `build/` for persistent audit evidence.
 

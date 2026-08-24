@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-import html
 import os
 import re
 import shutil
@@ -32,7 +31,6 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 REFERENCES = ROOT / "references"
 SOURCE_DIR = REFERENCES / "chapman-rizzoli-1989"
-DIST = ROOT / "dist"
 FIGURES = SRC / "figures"
 IMAGE_DIRS = (FIGURES, SRC / "images")
 CACHE = Path(os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motions")))
@@ -49,9 +47,6 @@ CONTACT_EMAIL = "albert@mwyau.com"
 LANGUAGE = "en-US"
 MATHJAX_URL = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"
 SITE_URL = "https://mwyau.github.io/wave-motions-in-the-ocean"
-ORIGINAL_SOURCE_URL = (
-    "https://oxbow.sr.unh.edu/ChapmanRizzoli/Wave_Motions_in_the_Ocean.html"
-)
 LICENSE_URL = "https://creativecommons.org/licenses/by-nc-sa/4.0/"
 REPOSITORY_URL = "https://github.com/mwyau/wave-motions-in-the-ocean"
 DOWNLOADS = (
@@ -682,58 +677,6 @@ def book_structure() -> tuple[Chapter, ...]:
             )
         )
     return tuple(chapters)
-
-
-def html_contents(*, downloads: tuple[tuple[str, str], ...] = DOWNLOADS) -> str:
-    items: list[str] = []
-    for chapter in book_structure():
-        sections = "".join(
-            f'<li><a href="chapter{chapter.number}.html#{section_slug(section)}">'
-            f"{html.escape(section)}</a></li>"
-            for section in chapter.sections
-        )
-        nested = f"<ul>{sections}</ul>" if sections else ""
-        items.append(
-            f'<li><a href="chapter{chapter.number}.html">'
-            f"{html.escape(chapter.title)}</a>{nested}</li>"
-        )
-    download_html = ""
-    if downloads:
-        links = "".join(
-            f'<li><a href="{filename}">{html.escape(label)}</a></li>'
-            for filename, label in downloads
-        )
-        download_html = f"<h2>Downloads</h2><ul>{links}</ul>"
-    return (
-        '<section class="book-toc" id="contents"><h2>Contents</h2><ol>'
-        + "".join(items)
-        + '</ol><p><a href="references.html">References</a> · '
-        + f'<a href="{ORIGINAL_SOURCE_URL}">Original online source</a></p>'
-        + download_html
-        + "</section>"
-    )
-
-
-def markdown_contents() -> str:
-    lines = ["## Contents", ""]
-    for chapter in book_structure():
-        chapter_url = f"{SITE_URL}/chapter{chapter.number}.html"
-        lines.append(f"{chapter.number}. [{chapter.title}]({chapter_url})")
-        for section in chapter.sections:
-            lines.append(f"   - [{section}]({chapter_url}#{section_slug(section)})")
-    lines.extend(
-        [
-            "",
-            f"[References]({SITE_URL}/references.html)",
-            f"[Original online source]({ORIGINAL_SOURCE_URL})",
-            "",
-            "## Downloads",
-            "",
-        ]
-    )
-    for filename, label in DOWNLOADS:
-        lines.append(f"- [{label}]({SITE_URL}/{filename})")
-    return "\n".join(lines)
 
 
 def html_license() -> str:

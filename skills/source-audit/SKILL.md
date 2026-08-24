@@ -25,7 +25,7 @@ For every difference or suspected error, use this order:
 1. **Reconstruction differs from the PDF unintentionally:** restore the PDF reading unless the difference is a minor mechanical correction allowed by item 2.
 2. **Small unambiguous mechanical correction:** spelling, grammar, transcription, punctuation, or TeX punctuation syntax may be corrected autonomously when there is no plausible change in scientific, mathematical, bibliographic, or substantive editorial meaning. If uncertain, do not use this exception.
 3. **Substantive or ambiguous source problem:** keep or restore the source reading in the reconstruction, record the proposed correction and evidence in `src/ERRATA.md` with `pending-human-approval`, and ask the human owner for approval.
-4. **Explicit human approval:** only then apply the substantive correction and record it as `human-approved`, with enough context to identify what was approved.
+4. **Explicit human approval in chat:** only when the owner directly instructs approval in the current chat may an agent apply the substantive correction and change the entry to `human-approved`.
 
 Agents can never approve an erratum. Do not infer approval from mathematical correctness, external literature, issue closure, another agent's judgment, an existing commit, or another status. An existing `human-approved` entry may be kept as maintained project state, but an agent must never create or promote that status without a direct approval instruction in the current chat.
 

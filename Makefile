@@ -26,4 +26,4 @@ all: readme
 	./scripts/build.sh all
 
 clean:
-	rm -rf build dist
+	rm -rf build release
