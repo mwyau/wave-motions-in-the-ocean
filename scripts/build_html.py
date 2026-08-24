@@ -33,6 +33,7 @@ from publication import (
     book_structure,
     current_build,
     html_license,
+    page_switchable_figure_stems,
     prepare_assets,
     prepare_flowing_sources,
     section_slug,
@@ -773,6 +774,8 @@ def template_variables(path: Path) -> dict[str, str]:
         **navigation_state(index),
         **reader_state(index),
     }
+    if page_switchable_figure_stems(path, OUT):
+        values["has_switchable_figures"] = "true"
     if chapter_for_page(path) is not None:
         values["chapter_title_block"] = "true"
     if index is None:
@@ -888,6 +891,201 @@ def install_stable_section_ids() -> None:
                 f"expected {len(chapter.sections)}"
             )
         page.write_text(updated)
+
+
+FIGURE_IMAGE_MARK_RE = re.compile(
+    r'<div class="center">\s*<p>(?P<img><img[^>]*>)</p>\s*'
+    r'<div class="center">\s*<p><span class="sans-serif">'
+    r"(?P<label>Figure [1-6][.][0-9]+)</span></p>\s*</div>\s*</div>",
+    re.DOTALL,
+)
+FIGURE_IMAGE_RE = re.compile(
+    r"<p>(?P<img><img[^>]*>)</p>\s*"
+    r'<div class="center">\s*<p><span class="sans-serif">'
+    r"(?P<label>Figure [1-6][.][0-9]+)</span></p>\s*</div>",
+    re.DOTALL,
+)
+FIGURE_LABEL_RE = re.compile(
+    r'<span class="sans-serif">Figure [1-6][.][0-9]+</span>',
+    re.DOTALL,
+)
+FIGURE_IMAGE_SRC_RE = re.compile(r'\bsrc="([^"]+)"', re.IGNORECASE)
+
+
+def _figure_image_src(image_tag: str) -> str:
+    match = FIGURE_IMAGE_SRC_RE.search(image_tag)
+    if match is None:
+        raise SystemExit("HTML figure image is missing src")
+    return html.unescape(match.group(1))
+
+
+def _switchable_image_tag(image_tag: str, stem: str) -> str:
+    src = _figure_image_src(image_tag)
+    if "data-vector-src=" in image_tag or "data-original-src=" in image_tag:
+        raise SystemExit(f"HTML figure image already contains switch metadata: {src}")
+    replacement = (
+        f'src="{html.escape(src, quote=True)}" '
+        f'data-vector-src="{html.escape(src, quote=True)}" '
+        f'data-original-src="assets/figures/{html.escape(stem, quote=True)}.png"'
+    )
+    updated, count = re.subn(
+        r'\bsrc="[^"]+"', replacement, image_tag, count=1, flags=re.IGNORECASE
+    )
+    if count != 1:
+        raise SystemExit(f"could not add switch metadata to HTML figure image: {src}")
+    return updated
+
+
+def _figure_markup(image_tag: str, label: str, switchable: set[str]) -> str:
+    src = _figure_image_src(image_tag)
+    match = re.fullmatch(r"assets/figures/(?P<stem>[^/]+)\.svg", src)
+    stem = match.group("stem") if match is not None else None
+    is_switchable = stem is not None and stem in switchable
+    if is_switchable:
+        image_tag = _switchable_image_tag(image_tag, stem)
+    class_name = (
+        "wave-figure wave-figure-switchable" if is_switchable else "wave-figure"
+    )
+    action = ""
+    if is_switchable:
+        action = (
+            '<button type="button" class="figure-view-toggle js-only" '
+            'data-figure-toggle aria-label="Show original source figure">Original</button>'
+        )
+    return (
+        f'<figure class="{class_name}"'
+        + (' data-figure-view="vector"' if is_switchable else "")
+        + ">\n"
+        + image_tag
+        + f'\n<figcaption><span class="figure-label">{html.escape(label)}</span>'
+        + action
+        + "</figcaption>\n</figure>"
+    )
+
+
+def install_figure_markup(page: Path, assets_root: Path = OUT) -> None:
+    """Wrap Pandoc's marked scientific figures in semantic HTML figures."""
+    text = page.read_text(errors="replace")
+    expected = len(FIGURE_LABEL_RE.findall(text))
+    switchable = set(page_switchable_figure_stems(page, assets_root))
+
+    text = FIGURE_IMAGE_MARK_RE.sub(
+        lambda match: _figure_markup(
+            match.group("img"), match.group("label"), switchable
+        ),
+        text,
+    )
+    text = FIGURE_IMAGE_RE.sub(
+        lambda match: _figure_markup(
+            match.group("img"), match.group("label"), switchable
+        ),
+        text,
+    )
+    installed = len(re.findall(r'<figure class="wave-figure(?: [^"]+)?"', text))
+    if installed != expected or FIGURE_LABEL_RE.search(text):
+        raise SystemExit(
+            f"{page.name}: wrapped {installed} of {expected} marked HTML figures"
+        )
+    page.write_text(text)
+
+
+FIGURE_BLOCK_RE = re.compile(
+    r'<figure class="wave-figure(?: [^"]+)?"[^>]*>.*?</figure>',
+    re.DOTALL,
+)
+FIGURE_IMAGE_TAG_RE = re.compile(r"<img\b[^>]*>", re.IGNORECASE)
+FIGURE_DATA_ATTR_RE = re.compile(
+    r'\b(?:src|data-vector-src|data-original-src)="([^"]+)"',
+    re.IGNORECASE,
+)
+
+
+def validate_figure_markup() -> None:
+    """Validate generated HTML figure pairs and progressive enhancement."""
+    source_pngs = {
+        path.stem
+        for path in (SRC / "figures").glob("*.png")
+        if (SRC / "figures" / f"{path.stem}.tikz").is_file()
+    }
+    if source_pngs:
+        raise SystemExit(
+            "same-stem source PNGs must not be maintained beside TikZ figures: "
+            + ", ".join(sorted(source_pngs))
+        )
+
+    for page in EXPECTED_PAGES:
+        text = page.read_text(errors="replace")
+        expected_switchable = set(page_switchable_figure_stems(page, OUT))
+        blocks = FIGURE_BLOCK_RE.findall(text)
+        controls = text.count("data-figure-cycle")
+        if controls != int(bool(expected_switchable)):
+            raise SystemExit(
+                f"{page.name}: Figures toolbar control does not match switchable assets"
+            )
+        for block in blocks:
+            images = FIGURE_IMAGE_TAG_RE.findall(block)
+            if len(images) != 1 or block.count("<figcaption>") != 1:
+                raise SystemExit(
+                    f"{page.name}: figure must contain exactly one image and caption"
+                )
+            image = images[0]
+            if not re.search(r'\balt="[^"]*"', image, re.IGNORECASE):
+                raise SystemExit(f"{page.name}: figure image is missing alt text")
+            values = FIGURE_DATA_ATTR_RE.findall(image)
+            for value in values:
+                target = (OUT / value).resolve()
+                if (
+                    value.startswith("/")
+                    or ".." in Path(value).parts
+                    or not target.is_relative_to(OUT.resolve())
+                ):
+                    raise SystemExit(
+                        f"{page.name}: figure asset escapes publication tree: {value}"
+                    )
+
+            switchable = "wave-figure-switchable" in block
+            if not switchable:
+                if "data-figure" in block or "figure-view-toggle" in block:
+                    raise SystemExit(
+                        f"{page.name}: unswitchable figure exposes a switch control"
+                    )
+                continue
+
+            vector = re.search(r'\bdata-vector-src="([^"]+)"', image)
+            original = re.search(r'\bdata-original-src="([^"]+)"', image)
+            src = re.search(r'\bsrc="([^"]+)"', image)
+            if not vector or not original or not src:
+                raise SystemExit(
+                    f"{page.name}: switchable figure is missing paired image URLs"
+                )
+            if src.group(1) != vector.group(1) or not vector.group(1).endswith(".svg"):
+                raise SystemExit(
+                    f"{page.name}: switchable figure must default to its SVG"
+                )
+            vector_stem = Path(vector.group(1)).stem
+            expected_original = f"assets/figures/{vector_stem}.png"
+            if original.group(1) != expected_original:
+                raise SystemExit(
+                    f"{page.name}: switchable figure does not preserve its asset stem"
+                )
+            if vector_stem not in expected_switchable:
+                raise SystemExit(
+                    f"{page.name}: switchable figure has no generated source pair"
+                )
+            if (
+                not (OUT / vector.group(1)).is_file()
+                or not (OUT / original.group(1)).is_file()
+            ):
+                raise SystemExit(
+                    f"{page.name}: switchable figure asset is missing on disk"
+                )
+            if (
+                block.count("data-figure-toggle") != 1
+                or ">Original</button>" not in block
+            ):
+                raise SystemExit(
+                    f"{page.name}: switchable figure is missing its local action"
+                )
 
 
 def html_frontmatter_footer() -> str:
@@ -1018,6 +1216,8 @@ def validate() -> None:
         if any(re.search(r"\bhidden\b", opening) for opening in mathml_openings):
             raise SystemExit(f"{page.name}: MathML alternates must start visible")
 
+    validate_figure_markup()
+
     for chapter in CHAPTERS:
         text = (OUT / f"chapter{chapter.number}.html").read_text(errors="replace")
         if text.count("data-section-link=") != 2 * len(chapter.sections):
@@ -1058,7 +1258,7 @@ def main() -> int:
         page.unlink(missing_ok=True)
     BUILD.mkdir(parents=True)
     ASSETS.mkdir(parents=True)
-    prepare_assets(OUT, BUILD)
+    prepare_assets(OUT, BUILD, include_originals=True)
     install_html_vendor_assets()
     source_dir = BUILD / "source"
     prepare_flowing_sources(source_dir, OUT)
@@ -1078,6 +1278,7 @@ def main() -> int:
             f"Chapter {chapter.number}",
         )
         install_chapter_id(page, chapter.number)
+        install_figure_markup(page)
     build_references(source_dir)
     install_stable_section_ids()
     validate()

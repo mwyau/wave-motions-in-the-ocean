@@ -110,6 +110,93 @@
     scrollBy(0, anchor.node.getBoundingClientRect().top - anchor.top);
   };
 
+  const figureModes = ["vector", "original"];
+  const figureControl = document.querySelector("[data-figure-cycle]");
+  const switchableFigures = Array.from(
+    document.querySelectorAll("figure.wave-figure-switchable"),
+  );
+  let figureBaseline = "vector";
+
+  const figureImage = (figure) => figure.querySelector("img[data-vector-src]");
+
+  const syncFigureAction = (figure) => {
+    const mode = figure.dataset.figureView;
+    const toggle = figure.querySelector("[data-figure-toggle]");
+    if (!toggle || !figureModes.includes(mode)) return;
+    const showingOriginal = mode === "original";
+    toggle.textContent = showingOriginal ? "Vector" : "Original";
+    toggle.setAttribute(
+      "aria-label",
+      showingOriginal
+        ? "Show reconstructed vector figure"
+        : "Show original source figure",
+    );
+  };
+
+  const syncFigureControl = () => {
+    if (!figureControl) return;
+    const showingOriginal = figureBaseline === "original";
+    const next = showingOriginal ? "vectors" : "originals";
+    figureControl.querySelector("[data-figure-label]").textContent = showingOriginal
+      ? "Original"
+      : "Vector";
+    figureControl.setAttribute(
+      "aria-label",
+      `Figures currently showing ${showingOriginal ? "originals" : "vectors"}; switch to ${next}`,
+    );
+    figureControl.title = `Figures: ${showingOriginal ? "Original" : "Vector"}`;
+  };
+
+  const setFigureMode = (figure, mode) => {
+    if (!figureModes.includes(mode)) return null;
+    const image = figureImage(figure);
+    if (!image) return null;
+    const source = mode === "original" ? image.dataset.originalSrc : image.dataset.vectorSrc;
+    if (!source) return null;
+    figure.dataset.figureView = mode;
+    image.setAttribute("src", source);
+    syncFigureAction(figure);
+    return image;
+  };
+
+  const restoreAfterFigureChange = (anchor, images) => {
+    const restore = () => requestAnimationFrame(() => restoreContentAnchor(anchor));
+    restore();
+    images.forEach((image) => {
+      if (image.complete) return;
+      image.addEventListener("load", restore, { once: true });
+      image.addEventListener("error", restore, { once: true });
+    });
+  };
+
+  const applyFigureBaseline = (mode) => {
+    if (!figureModes.includes(mode)) return;
+    const anchor = visibleContentAnchor();
+    const images = switchableFigures
+      .map((figure) => setFigureMode(figure, mode))
+      .filter(Boolean);
+    figureBaseline = mode;
+    syncFigureControl();
+    restoreAfterFigureChange(anchor, images);
+  };
+
+  switchableFigures.forEach((figure) => {
+    syncFigureAction(figure);
+    const toggle = figure.querySelector("[data-figure-toggle]");
+    toggle?.addEventListener("click", () => {
+      const current = figure.dataset.figureView;
+      const next = current === "original" ? "vector" : "original";
+      const anchor = visibleContentAnchor();
+      const image = setFigureMode(figure, next);
+      restoreAfterFigureChange(anchor, image ? [image] : []);
+    });
+  });
+
+  syncFigureControl();
+  figureControl?.addEventListener("click", () => {
+    applyFigureBaseline(figureBaseline === "original" ? "vector" : "original");
+  });
+
   textSizeButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const action = button.dataset.textSizeAction;

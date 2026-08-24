@@ -4,13 +4,13 @@ from pathlib import Path
 import pytest
 
 from release import (
-    CHECKSUM_ASSETS,
     DEFAULT_FILES,
     HTML_ARCHIVE,
     _checked_names,
     _safe_name,
     archive_publication,
     finalize_publication,
+    publication_files,
     verify_manifest,
     write_manifest,
 )
@@ -78,6 +78,7 @@ def make_publication_root(tmp_path: Path) -> Path:
         (root / name).write_bytes(name.encode())
     (root / "index.html").write_text('<script src="assets/app.js"></script>')
     (root / "assets/app.js").write_text("console.log('local');")
+    (root / "assets/figure.png").write_bytes(b"png")
     return root
 
 
@@ -87,7 +88,9 @@ def test_finalize_publication_does_not_create_html_archive(tmp_path: Path) -> No
     finalize_publication(root)
 
     assert (root / "wave-motions-facsimile.pdf").is_file()
-    assert verify_manifest(root, CHECKSUM_ASSETS) == len(CHECKSUM_ASSETS)
+    names = publication_files(root)
+    assert "assets/figure.png" in names
+    assert verify_manifest(root, names) == len(names)
     assert not (root / HTML_ARCHIVE).exists()
 
 
@@ -102,6 +105,7 @@ def test_archive_publication_contains_complete_root(tmp_path: Path) -> None:
         names = set(archive.namelist())
     assert "index.html" in names
     assert "assets/app.js" in names
+    assert "assets/figure.png" in names
     assert "wave-motions.pdf" in names
     assert "wave-motions.epub" in names
     assert "wave-motions-facsimile.pdf" in names

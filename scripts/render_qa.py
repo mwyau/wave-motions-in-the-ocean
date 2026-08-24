@@ -269,7 +269,7 @@ def pdf_qa(dist: Path, report: Report, dpi: int) -> None:
 def html_local_refs(page: Path) -> list[str]:
     text = page.read_text(errors="replace")
     broken: list[str] = []
-    for attr in ("src", "href"):
+    for attr in ("src", "href", "data-vector-src", "data-original-src"):
         for ref in re.findall(
             rf'{attr}=["\']([^"\']+)["\']', text, flags=re.IGNORECASE
         ):
@@ -281,6 +281,101 @@ def html_local_refs(page: Path) -> list[str]:
             if path and not (page.parent / path).exists():
                 broken.append(ref)
     return broken
+
+
+FIGURE_BLOCK_RE = re.compile(
+    r'<figure class="wave-figure(?: [^"]+)?"[^>]*>.*?</figure>',
+    re.DOTALL,
+)
+FIGURE_IMAGE_RE = re.compile(r"<img\b[^>]*>", re.IGNORECASE)
+
+
+def figure_html_qa(dist: Path, report: Report, lines: list[str]) -> None:
+    """Check generated vector/source figure structure for render QA."""
+    switchable = 0
+    for name in EXPECTED_HTML:
+        page = dist / name
+        text = page.read_text(errors="replace")
+        blocks = FIGURE_BLOCK_RE.findall(text)
+        page_switchable = 0
+        for block in blocks:
+            images = FIGURE_IMAGE_RE.findall(block)
+            if len(images) != 1 or block.count("<figcaption>") != 1:
+                report.add(
+                    "ERROR",
+                    "HTML",
+                    f"{name}: figure must contain one image and one caption",
+                )
+                continue
+            image = images[0]
+            if not re.search(r'\balt="[^"]*"', image, re.IGNORECASE):
+                report.add("ERROR", "HTML", f"{name}: figure image is missing alt text")
+            if "wave-figure-switchable" not in block:
+                if "data-figure" in block or "figure-view-toggle" in block:
+                    report.add(
+                        "ERROR",
+                        "HTML",
+                        f"{name}: unswitchable figure exposes a switch control",
+                    )
+                continue
+            page_switchable += 1
+            source = re.search(r'\bsrc="([^"]+)"', image)
+            vector = re.search(r'\bdata-vector-src="([^"]+)"', block)
+            original = re.search(r'\bdata-original-src="([^"]+)"', block)
+            if not source or not vector or not original:
+                report.add(
+                    "ERROR",
+                    "HTML",
+                    f"{name}: switchable figure is missing its single paired image",
+                )
+                continue
+            if source.group(1) != vector.group(1) or not vector.group(1).endswith(
+                ".svg"
+            ):
+                report.add(
+                    "ERROR",
+                    "HTML",
+                    f"{name}: switchable figure does not default to SVG",
+                )
+            if Path(vector.group(1)).stem != Path(original.group(1)).stem:
+                report.add(
+                    "ERROR", "HTML", f"{name}: switchable figure changes its asset stem"
+                )
+            vector_path = dist / vector.group(1)
+            original_path = dist / original.group(1)
+            if not vector_path.is_file() or not original_path.is_file():
+                report.add(
+                    "ERROR",
+                    "HTML",
+                    f"{name}: switchable figure asset is missing",
+                )
+            if block.count("data-figure-toggle") != 1:
+                report.add(
+                    "ERROR",
+                    "HTML",
+                    f"{name}: switchable figure local action count is not one",
+                )
+        expected_controls = int(page_switchable > 0)
+        if text.count("data-figure-cycle") != expected_controls:
+            report.add(
+                "ERROR",
+                "HTML",
+                f"{name}: Figures toolbar control does not match figure assets",
+            )
+        switchable += page_switchable
+
+    source_pngs = sorted(
+        path
+        for path in (dist / "assets" / "figures").glob("*.png")
+        if (dist / "assets" / "figures" / f"{path.stem}.svg").is_file()
+    )
+    total_size = sum(path.stat().st_size for path in source_pngs)
+    largest = max((path.stat().st_size for path in source_pngs), default=0)
+    lines.append(
+        f"- Switchable HTML figures: {switchable}; same-stem source PNGs: "
+        f"{len(source_pngs)}; total source-PNG size: {total_size:,} bytes; "
+        f"largest: {largest:,} bytes"
+    )
 
 
 def detect_browser(explicit: str | None) -> str | None:
@@ -761,6 +856,7 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
             "HTML",
             f"{len(broken_all)} broken local reference(s); first: {broken_all[0]}",
         )
+    figure_html_qa(dist, report, lines)
     lines.append("- Browser titles:")
     lines.extend(f"  - `{name}` → `{title}`" for name, title in titles.items())
     css = dist / "assets" / "wave.css"
@@ -846,6 +942,7 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
             for name in EXPECTED_HTML:
                 jobs.append((f"desktop-{Path(name).stem}.png", name, 1440, 1000, False))
                 jobs.append((f"mobile-{Path(name).stem}.png", name, 390, 844, False))
+            jobs.append(("toolbar-320-chapter2.png", "chapter2.html", 320, 844, False))
             jobs.append(("dark-chapter4.png", "chapter4.html", 390, 844, True))
             if fragment_case is not None:
                 for width, height in (
@@ -1201,7 +1298,7 @@ def write_report(report: Report) -> Path:
             "- Review every PDF contact sheet for unexpected blank pages, large whitespace changes, clipping, undersized figures, and abrupt pagination changes.",
             "- Inspect modern PDF pages 1–12 at full size (cover, half-title, frontispiece, title/edition notice, Contents, prefaces/editor note) plus every chapter opener and figure-dense page.",
             "- For facsimile, verify the exact 184-page physical structure before release and compare any suspicious blank/sparse pages to the source-page edition.",
-            "- Open HTML in a real desktop browser and a phone/narrow viewport; test top/bottom navigation, Appearance theme/text-size choices, direct section permalinks, scrolling active-section updates, back/forward fragment navigation, wide Contents rail, no-JS/native and scripted narrow Contents behavior, static MathML first paint, MathJax atomic swap/fallback, the non-persistent math URL override, wide math/tables, and image scaling.",
+            "- Open HTML in a real desktop browser and a phone/narrow viewport; test top/bottom navigation, Appearance theme/text-size choices, direct section permalinks, scrolling active-section updates, back/forward fragment navigation, wide Contents rail, no-JS/native and scripted narrow Contents behavior, static MathML first paint, MathJax atomic swap/fallback, the non-persistent math URL override, global and local vector/source figure switching, wide math/tables, image scaling, and the explicit 320px toolbar screenshot.",
             "- Complete the EPUB reader matrix above in real reading systems; structural/browser inspection alone is insufficient.",
             "",
         ]

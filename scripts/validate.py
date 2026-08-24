@@ -41,18 +41,20 @@ from publication import (
     AUTHORS,
     DOWNLOADS,
     EDITOR,
+    FIGURES,
     LANGUAGE,
     REPOSITORY_URL,
     SITE_URL,
     book_structure,
     current_build,
+    page_switchable_figure_stems,
     section_slug,
 )
 from publication import (
     MATHJAX_URL as MATHJAX_PINNED,
 )
 from publication import PUBLICATION_TITLE as TITLE
-from release import CHECKSUM_ASSETS, verify_manifest
+from release import publication_files, verify_manifest
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
@@ -565,7 +567,7 @@ def validate_local_references(root: Path) -> None:
 
     for page in pages:
         text = page.read_text(errors="replace")
-        for attr in ("src", "href"):
+        for attr in ("src", "href", "data-vector-src", "data-original-src"):
             for raw_ref in re.findall(
                 rf'{attr}=["\']([^"\']+)["\']', text, flags=re.IGNORECASE
             ):
@@ -600,9 +602,75 @@ def validate_local_references(root: Path) -> None:
         fail(f"{len(broken)} broken local HTML reference(s)")
 
 
+FIGURE_BLOCK_RE = re.compile(
+    r'<figure class="wave-figure(?: [^"]+)?"[^>]*>.*?</figure>',
+    re.DOTALL,
+)
+FIGURE_IMAGE_RE = re.compile(r"<img\b[^>]*>", re.IGNORECASE)
+
+
+def check_html_figures() -> None:
+    """Validate HTML vector/source pairs and their progressive enhancement."""
+    maintained_pairs = sorted(
+        path.stem
+        for path in FIGURES.glob("*.tikz")
+        if path.with_suffix(".png").is_file()
+    )
+    if maintained_pairs:
+        fail(
+            "same-stem source PNGs are maintained beside TikZ figures: "
+            + ", ".join(maintained_pairs)
+        )
+
+    for page in EXPECTED_HTML_PAGES:
+        text = page.read_text(errors="replace")
+        expected = set(page_switchable_figure_stems(page, PUBLICATION))
+        controls = text.count("data-figure-cycle")
+        if controls != int(bool(expected)):
+            fail(
+                f"{page.name}: Figures control presence does not match switchable figures"
+            )
+        blocks = FIGURE_BLOCK_RE.findall(text)
+        for block in blocks:
+            images = FIGURE_IMAGE_RE.findall(block)
+            if len(images) != 1 or block.count("<figcaption>") != 1:
+                fail(f"{page.name}: figure must contain one image and one caption")
+            image = images[0]
+            if not re.search(r'\balt="[^"]*"', image, re.IGNORECASE):
+                fail(f"{page.name}: figure image is missing alt text")
+            switchable = "wave-figure-switchable" in block
+            if not switchable:
+                if "data-figure" in block or "figure-view-toggle" in block:
+                    fail(f"{page.name}: unswitchable figure exposes a switch control")
+                continue
+            vector = re.search(r'\bdata-vector-src="([^"]+)"', image)
+            original = re.search(r'\bdata-original-src="([^"]+)"', image)
+            src = re.search(r'\bsrc="([^"]+)"', image)
+            if not vector or not original or not src:
+                fail(f"{page.name}: switchable figure is missing paired image URLs")
+            if src.group(1) != vector.group(1) or not vector.group(1).endswith(".svg"):
+                fail(f"{page.name}: switchable figure does not default to SVG")
+            stem = Path(vector.group(1)).stem
+            if original.group(1) != f"assets/figures/{stem}.png":
+                fail(f"{page.name}: switchable figure changes its asset stem")
+            if stem not in expected:
+                fail(f"{page.name}: switchable figure has no source provenance pair")
+            if (
+                not (PUBLICATION / vector.group(1)).is_file()
+                or not (PUBLICATION / original.group(1)).is_file()
+            ):
+                fail(f"{page.name}: switchable figure asset is missing")
+            if (
+                block.count("data-figure-toggle") != 1
+                or ">Original</button>" not in block
+            ):
+                fail(f"{page.name}: switchable figure is missing its local action")
+
+
 def check_html() -> None:
     for page in EXPECTED_HTML_PAGES:
         require_file(page)
+    check_html_figures()
     css = PUBLICATION / "assets" / "wave.css"
     require_file(css)
     css_text = css.read_text(errors="replace")
@@ -735,7 +803,7 @@ def check_html() -> None:
             '<main id="main-content">',
             'class="skip-link"',
             'class="reader-header page-shell"',
-            'class="book-nav"',
+            'class="book-nav',
             "data-theme-cycle",
             'id="appearance-settings"',
             'data-text-size-action="decrease"',
@@ -1606,7 +1674,8 @@ def check_build_identity() -> None:
 
 def check_checksums() -> None:
     try:
-        count = verify_manifest(PUBLICATION, CHECKSUM_ASSETS)
+        names = publication_files(PUBLICATION)
+        count = verify_manifest(PUBLICATION, names)
     except (FileNotFoundError, ValueError) as exc:
         fail(str(exc))
     print(f"Checksum manifest OK: {count} files")

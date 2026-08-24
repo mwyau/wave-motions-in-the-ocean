@@ -20,6 +20,7 @@ import subprocess
 import sys
 import tempfile
 import unicodedata
+from collections.abc import Iterable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from functools import cache
@@ -93,6 +94,11 @@ SOURCEART_RE = re.compile(
 )
 VECTOR_RE = re.compile(r"\\wavevectorart(?:\[(?P<width>[^]]+)\])?\{(?P<stem>[^}]+)\}")
 TIKZ_INPUT_RE = re.compile(r"\\input\{figures/(?P<stem>[^}]+)\.tikz\}")
+TIKZ_SOURCE_RE = re.compile(
+    r"^% wave-source:\s*pdf=(?P<pdf>[^;]+);\s*page=(?P<page>\d+);\s*"
+    r"trim=(?P<trim>[^\n]+)$",
+    re.MULTILINE,
+)
 SIGNATURE_RE = re.compile(
     r"\\wavesignature\{(?P<name>[^{}]+)\}\{(?P<place>[^{}]+)\}\{(?P<year>[^{}]+)\}"
 )
@@ -229,8 +235,11 @@ def source_crop(
     asset_prefix: str = FIGURE_ASSET_PREFIX,
     angle: float = 0.0,
     dpi: int = SOURCE_RENDER_DPI,
+    asset_name: str | None = None,
 ) -> str:
     """Render and crop a source-PDF page into a publication asset directory."""
+    if Path(pdf_name).name != pdf_name:
+        raise ValueError(f"source PDF must be a filename, got {pdf_name!r}")
     pdf = SOURCE_DIR / pdf_name
     if not pdf.exists():
         raise FileNotFoundError(pdf)
@@ -238,9 +247,19 @@ def source_crop(
     pdf_digest = file_sha256(str(pdf.resolve()))
     identity = f"{pdf_name}|{pdf_digest}|{page}|{trim}|{angle:g}|dpi={dpi}"
     digest = hashlib.sha1(identity.encode()).hexdigest()[:10]
-    name = f"source-{Path(pdf_name).stem}-p{page:03d}-{digest}.png"
+    if asset_name is None:
+        name = f"source-{Path(pdf_name).stem}-p{page:03d}-{digest}.png"
+    else:
+        if (
+            Path(asset_name).name != asset_name
+            or Path(asset_name).suffix.lower() != ".png"
+        ):
+            raise ValueError(
+                f"publication asset name must be a PNG filename, got {asset_name!r}"
+            )
+        name = asset_name
     destination = _asset_path(assets_root, asset_prefix, name)
-    if destination.exists():
+    if destination.exists() and asset_name is None:
         return f"{asset_prefix}/{name}"
 
     page_cache = SOURCE_PAGE_CACHE / (
@@ -260,6 +279,29 @@ def source_crop(
         optimize=True,
     )
     return f"{asset_prefix}/{name}"
+
+
+def tikz_source_metadata(stem: str) -> tuple[str, int, str] | None:
+    """Return source-PDF metadata embedded in a retained TikZ figure."""
+    tikz = FIGURES / f"{stem}.tikz"
+    if not tikz.is_file():
+        raise FileNotFoundError(tikz)
+    text = tikz.read_text()
+    markers = re.findall(r"^% wave-source:", text, re.MULTILINE)
+    matches = list(TIKZ_SOURCE_RE.finditer(text))
+    if not matches:
+        if markers:
+            raise ValueError(f"malformed wave-source comment in {tikz}")
+        return None
+    if len(markers) != 1 or len(matches) != 1:
+        raise ValueError(f"expected one wave-source comment in {tikz}")
+    match = matches[0]
+    pdf_name = match.group("pdf").strip()
+    if Path(pdf_name).name != pdf_name or Path(pdf_name).suffix.lower() != ".pdf":
+        raise ValueError(f"invalid wave-source PDF in {tikz}: {pdf_name!r}")
+    trim = match.group("trim").strip()
+    parse_trim(trim)
+    return pdf_name, int(match.group("page")), trim
 
 
 def render_source_crop(
@@ -372,13 +414,99 @@ def render_tikz_png(stem: str, destination: Path, dpi: int) -> None:
         shutil.copy2(prefix.with_suffix(".png"), destination)
 
 
+def render_tikz_source_png(
+    stem: str,
+    assets_root: Path,
+    *,
+    asset_prefix: str = FIGURE_ASSET_PREFIX,
+) -> str | None:
+    """Render the original source crop for one retained TikZ figure."""
+    metadata = tikz_source_metadata(stem)
+    if metadata is None:
+        return None
+    pdf_name, page, trim = metadata
+    return source_crop(
+        pdf_name,
+        page,
+        trim,
+        assets_root,
+        asset_prefix=asset_prefix,
+        asset_name=f"{stem}.png",
+    )
+
+
 def referenced_tikz() -> list[str]:
+    return referenced_tikz_in_texts(
+        (SRC / f"chapter{i}.tex").read_text() for i in range(1, 7)
+    )
+
+
+def referenced_tikz_in_texts(texts: Iterable[str]) -> list[str]:
     stems: set[str] = set()
-    for path in [SRC / f"chapter{i}.tex" for i in range(1, 7)]:
-        text = path.read_text()
+    for text in texts:
         stems.update(match.group("stem") for match in VECTOR_RE.finditer(text))
         stems.update(match.group("stem") for match in TIKZ_INPUT_RE.finditer(text))
     return sorted(stems)
+
+
+def prepare_original_assets(
+    assets_root: Path,
+    *,
+    asset_prefix: str = FIGURE_ASSET_PREFIX,
+) -> None:
+    """Generate same-stem source PNGs for HTML-used TikZ figures."""
+    stems = [
+        stem for stem in referenced_tikz() if tikz_source_metadata(stem) is not None
+    ]
+    if not stems:
+        return
+    print(f"Rendering {len(stems)} original TikZ source crops to PNG...")
+    failures: list[tuple[str, Exception]] = []
+    for stem in stems:
+        try:
+            render_tikz_source_png(stem, assets_root, asset_prefix=asset_prefix)
+        except Exception as exc:  # noqa: BLE001
+            failures.append((stem, exc))
+    if failures:
+        for stem, exc in failures:
+            print(f"Original source crop failed: {stem}: {exc}", file=sys.stderr)
+        raise SystemExit(f"{len(failures)} original source crop(s) failed")
+
+
+def switchable_figure_stems(
+    assets_root: Path,
+    stems: list[str] | tuple[str, ...] | None = None,
+    *,
+    asset_prefix: str = FIGURE_ASSET_PREFIX,
+) -> tuple[str, ...]:
+    """Return stems with both SVG and PNG assets in one publication directory."""
+    candidates = stems if stems is not None else referenced_tikz()
+    figure_dir = assets_root / Path(asset_prefix)
+    return tuple(
+        sorted(
+            stem
+            for stem in set(candidates)
+            if (figure_dir / f"{stem}.svg").is_file()
+            and (figure_dir / f"{stem}.png").is_file()
+        )
+    )
+
+
+def page_switchable_figure_stems(
+    page: Path,
+    assets_root: Path,
+    *,
+    asset_prefix: str = FIGURE_ASSET_PREFIX,
+) -> tuple[str, ...]:
+    """Return switchable figure stems referenced by one flowing HTML page."""
+    match = re.fullmatch(r"chapter(?P<number>\d+)\.html", page.name)
+    if match is None:
+        return ()
+    chapter = SRC / f"chapter{int(match.group('number'))}.tex"
+    if not chapter.is_file():
+        raise FileNotFoundError(chapter)
+    stems = referenced_tikz_in_texts((chapter.read_text(),))
+    return switchable_figure_stems(assets_root, stems, asset_prefix=asset_prefix)
 
 
 def prepare_vector_assets(assets_root: Path, work_root: Path) -> None:
@@ -433,9 +561,13 @@ def copy_cc_assets(assets_root: Path) -> None:
         shutil.copy2(source, destination / source.name)
 
 
-def prepare_assets(assets_root: Path, work_root: Path) -> None:
+def prepare_assets(
+    assets_root: Path, work_root: Path, *, include_originals: bool = False
+) -> None:
     """Prepare shared assets used by the flowing editions under one asset root."""
     prepare_vector_assets(assets_root, work_root)
+    if include_originals:
+        prepare_original_assets(assets_root)
     copy_raster_assets(assets_root)
     copy_cc_assets(assets_root)
 

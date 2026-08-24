@@ -2,15 +2,20 @@ from pathlib import Path
 
 import pytest
 
+import build_html
 import publication
 from publication import (
     BuildInfo,
     _balanced_command_args,
     parse_trim,
+    prepare_assets,
+    prepare_original_assets,
     reader_punctuation,
     section_slug,
     source_crop,
+    switchable_figure_stems,
     tex_plain,
+    tikz_source_metadata,
     transform_tex,
 )
 
@@ -71,6 +76,16 @@ def test_source_crop_identity_changes_with_source_and_render_inputs(
     assert source_crop("scan.pdf", 3, "2bp 2bp 3bp 4bp", assets) != base
     assert source_crop("scan.pdf", 3, "1bp 2bp 3bp 4bp", assets, dpi=171) != base
     assert source_crop("scan.pdf", 3, "1bp 2bp 3bp 4bp", assets, angle=1) != base
+
+    paired = source_crop(
+        "scan.pdf",
+        3,
+        "1bp 2bp 3bp 4bp",
+        assets,
+        asset_name="figure.png",
+    )
+    assert paired == "assets/figures/figure.png"
+    assert (assets / "assets" / "figures" / "figure.png").is_file()
 
     source.write_bytes(b"source-b")
     publication.file_sha256.cache_clear()
@@ -161,6 +176,130 @@ def test_transform_tex_rewrites_vector_source_and_local_figure_inputs(
     assert r"\includegraphics{assets/figures/photo.png}" in transformed
     assert r"\includegraphics{assets/figures/source.png}" in transformed
     assert transformed.count("Figure 1.") == 7
+
+
+def test_tikz_source_metadata_accepts_valid_and_rejects_malformed_comments(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(publication, "FIGURES", tmp_path)
+    (tmp_path / "valid.tikz").write_text(
+        "% wave-source: pdf=scan.pdf; page=3; trim=1bp 2bp 3bp 4bp\n"
+    )
+    (tmp_path / "missing.tikz").write_text("% a vector without a source crop\n")
+    (tmp_path / "malformed.tikz").write_text(
+        "% wave-source: pdf=scan.pdf; page=3; trim=1bp 2bp 3bp\n"
+    )
+    (tmp_path / "malformed-marker.tikz").write_text(
+        "% wave-source: pdf=scan.pdf; page=3\n"
+    )
+
+    assert tikz_source_metadata("valid") == ("scan.pdf", 3, "1bp 2bp 3bp 4bp")
+    assert tikz_source_metadata("missing") is None
+    with pytest.raises(ValueError, match="expected four bp trim values"):
+        tikz_source_metadata("malformed")
+    with pytest.raises(ValueError, match="malformed wave-source comment"):
+        tikz_source_metadata("malformed-marker")
+
+
+def test_prepare_original_assets_skips_figures_without_source_provenance(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(publication, "referenced_tikz", lambda: ["vector", "digital"])
+    metadata = {"vector": ("scan.pdf", 3, "1bp 2bp 3bp 4bp"), "digital": None}
+    monkeypatch.setattr(
+        publication,
+        "tikz_source_metadata",
+        lambda stem: metadata[stem],
+    )
+    calls: list[tuple[str, Path, str]] = []
+    monkeypatch.setattr(
+        publication,
+        "render_tikz_source_png",
+        lambda stem, assets_root, *, asset_prefix: (
+            calls.append((stem, assets_root, asset_prefix))
+            or "assets/figures/vector.png"
+        ),
+    )
+
+    prepare_original_assets(tmp_path)
+
+    assert calls == [("vector", tmp_path, "assets/figures")]
+
+
+def test_prepare_assets_only_generates_originals_when_requested(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls: list[Path] = []
+    monkeypatch.setattr(publication, "prepare_vector_assets", lambda *_: None)
+    monkeypatch.setattr(publication, "copy_raster_assets", lambda *_: None)
+    monkeypatch.setattr(publication, "copy_cc_assets", lambda *_: None)
+    monkeypatch.setattr(
+        publication,
+        "prepare_original_assets",
+        lambda assets_root: calls.append(assets_root),
+    )
+
+    prepare_assets(tmp_path, tmp_path)
+    prepare_assets(tmp_path, tmp_path, include_originals=True)
+
+    assert calls == [tmp_path]
+
+
+def test_switchable_stems_require_same_directory_svg_and_png(tmp_path: Path) -> None:
+    figure_dir = tmp_path / "assets" / "figures"
+    figure_dir.mkdir(parents=True)
+    (figure_dir / "paired.svg").write_text("svg")
+    (figure_dir / "paired.png").write_bytes(b"png")
+    (figure_dir / "svg-only.svg").write_text("svg")
+    (figure_dir / "png-only.png").write_bytes(b"png")
+
+    assert switchable_figure_stems(tmp_path, ["paired", "svg-only", "png-only"]) == (
+        "paired",
+    )
+
+
+def test_install_figure_markup_adds_one_switchable_image_and_local_action(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    page = tmp_path / "chapter1.html"
+    page.write_text(
+        '<div class="center"><p><img src="assets/figures/paired.svg" '
+        'alt="existing alternative" /></p><div class="center"><p>'
+        '<span class="sans-serif">Figure 1.1</span></p></div></div>'
+    )
+    monkeypatch.setattr(
+        build_html, "page_switchable_figure_stems", lambda *_: ("paired",)
+    )
+
+    build_html.install_figure_markup(page, tmp_path)
+    output = page.read_text()
+
+    assert output.count('<figure class="wave-figure wave-figure-switchable"') == 1
+    assert output.count("<img") == 1
+    assert 'src="assets/figures/paired.svg"' in output
+    assert 'data-vector-src="assets/figures/paired.svg"' in output
+    assert 'data-original-src="assets/figures/paired.png"' in output
+    assert 'aria-label="Show original source figure"' in output
+    assert ">Original</button>" in output
+
+
+def test_install_figure_markup_leaves_source_art_without_switch_action(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    page = tmp_path / "chapter1.html"
+    page.write_text(
+        '<p><img src="assets/figures/source-art.png" alt="source art" /></p>'
+        '<div class="center"><p><span class="sans-serif">Figure 1.1</span>'
+        "</p></div>"
+    )
+    monkeypatch.setattr(build_html, "page_switchable_figure_stems", lambda *_: ())
+
+    build_html.install_figure_markup(page, tmp_path)
+    output = page.read_text()
+
+    assert '<figure class="wave-figure">' in output
+    assert "figure-view-toggle" not in output
+    assert 'src="assets/figures/source-art.png"' in output
 
 
 def test_balanced_command_args_handles_nested_braces() -> None:

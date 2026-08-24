@@ -165,6 +165,11 @@ available.
 - `src/references.bib` — bibliography
 - `references/chapman-rizzoli-1989/` — original 1989 source scans
 
+For HTML, a TikZ figure with `wave-source` metadata can show either its
+reconstructed SVG or an original source-crop PNG. The build generates those
+same-stem PNGs under `release/assets/figures/`; they are derived assets, not
+maintained source files.
+
 Generated files under `build/`, `release/`, and `audit/` are not committed.
 
 ## Before committing

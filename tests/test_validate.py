@@ -95,6 +95,29 @@ def test_toolbar_labels_use_deterministic_spacing() -> None:
     )
 
 
+def test_figure_controls_are_conditional_and_progressive() -> None:
+    root = Path(__file__).resolve().parents[1]
+    template = (root / "src" / "layout" / "wave-html.html").read_text()
+    stylesheet = (root / "src" / "layout" / "wave-html.css").read_text()
+    script = (root / "src" / "layout" / "wave-html.js").read_text()
+    builder = (root / "scripts" / "build_html.py").read_text()
+
+    assert "$if(has_switchable_figures)$" in template
+    assert 'data-figure-cycle aria-label="Figures currently showing vectors' in template
+    assert (
+        '<span class="control-wide">Figures:&nbsp;<span data-figure-label>Vector'
+        in template
+    )
+    assert '<span class="control-compact" aria-hidden="true">Fig</span>' in template
+    assert 'class="figure-view-toggle js-only"' in builder
+    assert ":root.no-js .js-only" in stylesheet
+    assert 'const figureModes = ["vector", "original"]' in script
+    assert "data-vector-src" in script
+    assert "originalSrc" in script
+    assert "wave-figure-view" not in script
+    assert 'localStorage.setItem("wave-figure' not in script
+
+
 def test_text_size_controls_are_numeric_actions() -> None:
     template = (
         Path(__file__).resolve().parents[1] / "src" / "layout" / "wave-html.html"

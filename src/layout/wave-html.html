@@ -85,7 +85,7 @@
 <body id="top">
 <a class="skip-link" href="#main-content">Skip to content</a>
 <header class="reader-header page-shell">
-  <nav class="book-nav" aria-label="Book navigation">
+  <nav class="book-nav$if(has_switchable_figures)$ has-switchable-figures$endif$" aria-label="Book navigation">
     <span class="book-nav-links book-nav-start">
       <a class="home-link" href="index.html">Home</a>
       <button class="toc-toggle" type="button" popovertarget="book-contents" data-toc-toggle>Contents</button>
@@ -102,6 +102,12 @@
         <span class="control-wide"><span class="rendering-label">Rendering:&nbsp;</span><span class="math-label-bootstrap math-label-static">MathML</span><span class="math-label-bootstrap math-label-mathjax">MathJax</span><span class="math-label-bootstrap math-label-mathml">MathML</span><span class="math-label-runtime" data-math-label>MathML</span></span>
         <span class="control-compact"><span class="math-label-bootstrap math-label-static">MathML</span><span class="math-label-bootstrap math-label-mathjax">MathJax</span><span class="math-label-bootstrap math-label-mathml">MathML</span><span class="math-label-runtime" data-math-label>MathML</span></span>
       </button>
+      $if(has_switchable_figures)$
+      <button class="figure-view-cycle reader-cycle js-only" type="button" data-figure-cycle aria-label="Figures currently showing vectors; switch to originals">
+        <span class="control-wide">Figures:&nbsp;<span data-figure-label>Vector</span></span>
+        <span class="control-compact" aria-hidden="true">Fig</span>
+      </button>
+      $endif$
       <button class="text-size-toggle reader-cycle js-only" type="button" popovertarget="text-size-settings" aria-controls="text-size-settings" aria-haspopup="dialog" aria-expanded="false" data-text-size-toggle aria-label="Text size"><span class="control-wide">Text size:&nbsp;<span class="toolbar-text-size"></span></span><span class="text-size-icon control-compact" aria-hidden="true"><span class="text-size-icon-large">A</span><span class="text-size-icon-small">A</span></span></button>
       <button class="theme-cycle reader-cycle js-only" type="button" popovertarget="appearance-settings" aria-controls="appearance-settings" aria-haspopup="dialog" aria-expanded="false" data-theme-cycle><span class="control-wide">Theme:&nbsp;<span class="toolbar-theme-value"></span></span><span class="control-compact">Theme</span></button>
     </span>

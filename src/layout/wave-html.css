@@ -272,6 +272,28 @@ div.flushright { text-align: right; margin-top: -0.85em; }
   cursor: default;
   opacity: .45;
 }
+.figure-view-toggle {
+  flex: 0 0 auto;
+  margin: 0;
+  border: 0;
+  padding: .2rem .3rem;
+  background: transparent;
+  color: var(--wave-muted);
+  cursor: pointer;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: .82em;
+  line-height: 1.2;
+  min-height: var(--wave-touch-target);
+  text-decoration: none;
+}
+.figure-view-toggle:hover,
+.figure-view-toggle:focus-visible {
+  color: var(--wave-link);
+}
+.figure-view-toggle:focus-visible {
+  outline: 2px solid var(--wave-link);
+  outline-offset: 2px;
+}
 .rendering-label {
   color: var(--wave-muted);
   font-weight: 500;
@@ -583,7 +605,15 @@ h2:hover > .heading-copy-link,
   border-top: 1px solid var(--wave-rule);
 }
 figure { max-width: 100%; margin: 1.5rem 0; }
-figcaption { color: var(--wave-muted); font-size: .9em; }
+figcaption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .75rem;
+  color: var(--wave-muted);
+  font-size: .9em;
+}
+.figure-label { min-width: 0; }
 img, svg { display: block; max-width: 100%; height: auto; margin: 1.1rem auto; }
 img[src$="salmon-hendershott-como-1980.jpg"] {
   width: min(100%, 28rem);
@@ -733,6 +763,21 @@ a:visited { color: var(--wave-visited); }
     grid-column: 13 / 16;
     grid-row: 2;
   }
+  :root.js .book-nav.has-switchable-figures .home-link {
+    grid-column: 1 / 3;
+  }
+  :root.js .book-nav.has-switchable-figures .book-nav-start > .toc-toggle {
+    grid-column: 3 / 6;
+  }
+  :root.js .book-nav.has-switchable-figures .math-renderer-cycle {
+    grid-column: 6 / 9;
+  }
+  :root.js .book-nav.has-switchable-figures .figure-view-cycle {
+    grid-column: 9 / 11;
+  }
+  :root.js .book-nav.has-switchable-figures .text-size-toggle {
+    grid-column: 11 / 13;
+  }
   .book-nav a,
   .toc-toggle,
   .reader-cycle {
@@ -820,6 +865,8 @@ a:visited { color: var(--wave-visited); }
   figure { margin: 1rem 0; }
   img, svg { margin: .8rem auto; }
   .math.display { padding-bottom: calc(1em + 1.1rem); }
+  .wave-figure figcaption { flex-wrap: wrap; }
+  .wave-figure .figure-view-toggle { margin-left: auto; }
 }
 @page { margin: 18mm 16mm 20mm; }
 @media print {

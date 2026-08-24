@@ -45,6 +45,19 @@ def _checked_names(names: Iterable[str]) -> list[str]:
     return checked
 
 
+def publication_files(root: Path) -> tuple[str, ...]:
+    """Return every generated publication file except manifest/archive outputs."""
+    root = root.resolve()
+    excluded = {MANIFEST, HTML_ARCHIVE}
+    return tuple(
+        sorted(
+            str(path.relative_to(root))
+            for path in root.rglob("*")
+            if path.is_file() and str(path.relative_to(root)) not in excluded
+        )
+    )
+
+
 def write_manifest(root: Path, names: tuple[str, ...] | list[str]) -> Path:
     root = root.resolve()
     checked = _checked_names(names)
@@ -109,8 +122,9 @@ def finalize_publication(root: Path) -> None:
 
     (root / HTML_ARCHIVE).unlink(missing_ok=True)
     (root / MANIFEST).unlink(missing_ok=True)
-    write_manifest(root, CHECKSUM_ASSETS)
-    verify_manifest(root, CHECKSUM_ASSETS)
+    names = publication_files(root)
+    write_manifest(root, names)
+    verify_manifest(root, names)
     print("Publication root ready")
 
 
@@ -121,7 +135,7 @@ def archive_publication(root: Path, output: Path) -> None:
         raise ValueError("archive output must be outside the publication root")
     if not (root / MANIFEST).is_file():
         raise FileNotFoundError(f"publication root is not finalized: {root / MANIFEST}")
-    verify_manifest(root, CHECKSUM_ASSETS)
+    verify_manifest(root, publication_files(root))
 
     output.parent.mkdir(parents=True, exist_ok=True)
     output.unlink(missing_ok=True)
@@ -173,7 +187,7 @@ def main(argv: list[str] | None = None) -> int:
     elif args.command == "archive":
         archive_publication(args.root, args.output)
     else:
-        names = args.files or list(CHECKSUM_ASSETS)
+        names = args.files or list(publication_files(args.root))
         if args.write:
             manifest = write_manifest(args.root, names)
             print(f"Wrote {manifest}")
