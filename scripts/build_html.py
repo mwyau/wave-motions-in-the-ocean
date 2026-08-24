@@ -385,13 +385,13 @@ def install_mathml_alternates(page: Path, mathml_page: Path) -> None:
         chunks.append(
             mathjax.group(0).replace(
                 "<span",
-                '<span data-math-renderer="mathjax"',
+                '<span data-math-renderer="mathjax" hidden',
                 1,
             )
         )
         chunks.append(
             f'<span data-math-renderer="mathml" '
-            f'class="math {kind} mathml-alternate" hidden>{mathml.group(0)}</span>'
+            f'class="math {kind} mathml-alternate">{mathml.group(0)}</span>'
         )
         cursor = mathjax.end()
     chunks.append(text[cursor:])
@@ -536,10 +536,19 @@ def book_toc(index: int | None) -> str:
             + f"<ol>{sections}</ol></details></li>"
         )
 
+    references_active = index == 0
+    artwork = (
+        '<li><a href="references.html#artwork"'
+        + (' data-section-link="artwork"' if references_active else "")
+        + ">Artwork</a></li>"
+    )
     items.append(
-        '<li class="book-toc-page"><a href="references.html"'
-        + current_page(index == 0)
-        + ">References</a></li>"
+        '<li class="book-toc-page">'
+        + f'<details class="book-toc-group"{" open" if references_active else ""}>'
+        + '<summary><a href="references.html"'
+        + current_page(references_active)
+        + ">References</a></summary>"
+        + f"<ol>{artwork}</ol></details></li>"
     )
     return '<ol class="book-toc-list">' + "".join(items) + "</ol>"
 
@@ -645,9 +654,11 @@ def page_metadata(path: Path) -> dict[str, str]:
 def template_variables(path: Path) -> dict[str, str]:
     index = page_index(path)
     info = current_build()
+    revision = info.sha if info.sha != "unknown" else "main"
     values = {
         "asset_version": html.escape(info.short_sha, quote=True),
         "source_url": html.escape(source_url(index, info.sha), quote=True),
+        "repository_url": html.escape(f"{REPOSITORY_URL}/tree/{revision}", quote=True),
         "build_label": html.escape(info.label),
         "build_url": html.escape(info.commit_url, quote=True),
         "book_toc": book_toc(index),
@@ -887,6 +898,16 @@ def validate() -> None:
             raise SystemExit(
                 f"{page.name}: native MathML TeX annotation count does not match alternates"
             )
+        mathjax_openings = re.findall(
+            r'<span\b[^>]*data-math-renderer="mathjax"[^>]*>', text
+        )
+        mathml_openings = re.findall(
+            r'<span\b[^>]*data-math-renderer="mathml"[^>]*>', text
+        )
+        if not all(re.search(r"\bhidden\b", opening) for opening in mathjax_openings):
+            raise SystemExit(f"{page.name}: MathJax alternates must start hidden")
+        if any(re.search(r"\bhidden\b", opening) for opening in mathml_openings):
+            raise SystemExit(f"{page.name}: MathML alternates must start visible")
 
     for chapter in CHAPTERS:
         text = (OUT / f"chapter{chapter.number}.html").read_text(errors="replace")

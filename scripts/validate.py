@@ -116,6 +116,7 @@ LOCAL_MATHJAX_URL = "assets/mathjax/tex-chtml-full.js"
 HTML_DOWNLOADS = tuple(
     item for item in DOWNLOADS if item[0] != "wave-motions-facsimile.pdf"
 )
+TEXT_SIZE_MODES = ("small", "default", "large")
 FRONTMATTER_SECTIONS = (
     ("preface-david-c-chapman", "Preface — David C. Chapman"),
     ("preface-paola-malanotte-rizzoli", "Preface — Paola Malanotte-Rizzoli"),
@@ -519,6 +520,42 @@ def check_html() -> None:
     css = PUBLICATION / "assets" / "wave.css"
     require_file(css)
     css_text = css.read_text(errors="replace")
+    template_text = (SRC / "layout" / "wave-html.html").read_text(errors="replace")
+    script_text = (SRC / "layout" / "wave-html.js").read_text(errors="replace")
+    html_opening = re.search(r"<html\b[^>]*>", template_text, flags=re.IGNORECASE)
+    if html_opening is None or re.search(r"\bdata-theme=", html_opening.group(0)):
+        fail("HTML template must leave the no-JS root theme unset")
+    if re.search(r'class="book-contents-popover"[^>]*\bhidden\b', template_text):
+        fail(
+            "HTML Contents popover must remain declaratively usable without JavaScript"
+        )
+    template_modes = tuple(
+        re.findall(r'data-text-size-option="([^"]+)"', template_text)
+    )
+    if template_modes != TEXT_SIZE_MODES:
+        fail(
+            "HTML template text-size choices are not exactly "
+            f"{TEXT_SIZE_MODES!r}: {template_modes!r}"
+        )
+    mode_match = re.search(
+        r"const textSizeModes = \[(?P<modes>.*?)\];", script_text, flags=re.DOTALL
+    )
+    if mode_match is None:
+        fail("HTML reader JavaScript does not declare text-size modes")
+    script_modes = tuple(re.findall(r'"([^"]+)"', mode_match.group("modes")))
+    if script_modes != TEXT_SIZE_MODES:
+        fail(
+            "HTML reader JavaScript text-size choices are not exactly "
+            f"{TEXT_SIZE_MODES!r}: {script_modes!r}"
+        )
+    for state in TEXT_SIZE_MODES:
+        if f'[data-text-size="{state}"]' not in css_text:
+            fail(f"HTML stylesheet is missing text-size state: {state}")
+    if (
+        "--wave-text-scale: .94" not in css_text
+        or "--wave-text-scale: 1.12" not in css_text
+    ):
+        fail("HTML stylesheet is missing Small/Large text-size scales")
     selector = 'mjx-container[jax="CHTML"][display="true"]'
     if selector not in css_text or "overflow-x: auto" not in css_text:
         fail("HTML stylesheet is missing responsive display-math overflow handling")
@@ -556,6 +593,16 @@ def check_html() -> None:
         fail("native MathML alternates are missing from generated HTML")
     if LOCAL_MATHJAX_URL not in combined:
         fail("local MathJax component is missing from generated HTML")
+    mathjax_openings = re.findall(
+        r'<span\b[^>]*data-math-renderer="mathjax"[^>]*>', combined
+    )
+    mathml_openings = re.findall(
+        r'<span\b[^>]*data-math-renderer="mathml"[^>]*>', combined
+    )
+    if not all(re.search(r"\bhidden\b", opening) for opening in mathjax_openings):
+        fail("HTML MathJax alternates must start hidden behind static MathML")
+    if any(re.search(r"\bhidden\b", opening) for opening in mathml_openings):
+        fail("HTML MathML alternates must remain visible for the static first paint")
 
     index = PUBLICATION / "index.html"
     index_text = index.read_text(errors="replace")
@@ -591,6 +638,10 @@ def check_html() -> None:
             'class="reader-header page-shell"',
             'class="book-nav"',
             "data-theme-cycle",
+            'id="appearance-settings"',
+            'data-text-size-option="small"',
+            'data-text-size-option="default"',
+            'data-text-size-option="large"',
             "data-reader-context",
             "data-book-toc-rail",
             "data-toc-scope",
@@ -617,6 +668,25 @@ def check_html() -> None:
         ):
             if required not in text:
                 fail(f"HTML requirement {required!r} is missing from {page.name}")
+        if text.count("data-theme-cycle") != 1:
+            fail(f"HTML Appearance control count is not one in {page.name}")
+        if text.count('id="appearance-settings"') != 1:
+            fail(f"HTML Appearance panel count is not one in {page.name}")
+        for mode in ("auto", "light", "dark"):
+            if text.count(f'data-theme-option="{mode}"') != 1:
+                fail(
+                    f"HTML theme choice {mode!r} is not present exactly once in {page.name}"
+                )
+        for mode in TEXT_SIZE_MODES:
+            if text.count(f'data-text-size-option="{mode}"') != 1:
+                fail(
+                    f"HTML text-size choice {mode!r} is not present exactly once in {page.name}"
+                )
+        for label in ("Smaller text", "Default text size", "Larger text"):
+            if text.count(f'aria-label="{label}"') != 1:
+                fail(
+                    f"HTML text-size accessibility label {label!r} is missing from {page.name}"
+                )
         if text.count("data-toc-scope") != 2 or text.count("data-toc-expand") != 2:
             fail(f"HTML Contents controls are duplicated or missing in {page.name}")
         if text.count('class="build-info"') != 1:

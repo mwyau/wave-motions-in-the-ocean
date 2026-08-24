@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="$language$">
+<html class="no-js" lang="$language$">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -24,12 +24,39 @@
   <link rel="preload" href="assets/fonts/SourceSans3VF-Upright.otf.woff2" as="font" type="font/woff2" crossorigin>
   <script>
     (() => {
+      const root = document.documentElement;
+      root.classList.remove("no-js");
+      root.classList.add("js");
+      let initialMathMode = "mathjax";
       try {
         const savedTheme = localStorage.getItem("wave-theme");
         if (savedTheme === "light" || savedTheme === "dark") {
-          document.documentElement.dataset.theme = savedTheme;
+          root.dataset.theme = savedTheme;
+        }
+        const rawTextSize = localStorage.getItem("wave-text-size");
+        const legacyTextSizes = { small: 90, default: 100, large: 110 };
+        const savedTextSize = legacyTextSizes[rawTextSize] ?? Number(rawTextSize);
+        const validTextSize =
+          Number.isInteger(savedTextSize) &&
+          savedTextSize >= 50 &&
+          savedTextSize <= 200 &&
+          savedTextSize % 10 === 0
+            ? savedTextSize
+            : 100;
+        if (validTextSize !== 100) {
+          root.style.setProperty("--wave-text-scale", String(validTextSize / 100));
+        }
+        root.style.setProperty("--wave-toolbar-text-size", `"${validTextSize}%"`);
+
+        const requestedMathMode = new URLSearchParams(location.search).get("math");
+        const savedMathMode = localStorage.getItem("wave-math-renderer");
+        if (requestedMathMode === "mathjax" || requestedMathMode === "mathml") {
+          initialMathMode = requestedMathMode;
+        } else if (savedMathMode === "mathml") {
+          initialMathMode = "mathml";
         }
       } catch (_) {}
+      root.dataset.initialMath = initialMathMode;
     })();
   </script>
   <style>
@@ -55,13 +82,36 @@
     </span>
     <span class="book-controls book-nav-end">
       <a class="next-link" href="$next_url$"$if(next_url)$$else$ hidden$endif$ aria-label="Next: $next_label$"><span class="nav-long">$next_label$ →</span><span class="nav-short">Next →</span></a>
-      <a class="source-link" href="$source_url$" aria-label="Source for this page at build revision">Source</a>
-      <button class="math-renderer-cycle reader-cycle" type="button" data-math-cycle><span class="rendering-label">Rendering: </span><span data-math-label>MathJax</span></button>
-      <span class="book-control-divider" aria-hidden="true"></span>
-      <button class="theme-cycle reader-cycle" type="button" data-theme-cycle><span class="appearance-label">Appearance: </span><span data-theme-label>Auto</span></button>
+      <button class="math-renderer-cycle reader-cycle" type="button" data-math-cycle>
+        <span class="control-wide"><span class="rendering-label">Rendering: </span><span class="math-label-bootstrap math-label-static">MathML</span><span class="math-label-bootstrap math-label-mathjax">MathJax</span><span class="math-label-bootstrap math-label-mathml">MathML</span><span class="math-label-runtime" data-math-label>MathML</span></span>
+        <span class="control-compact"><span class="math-label-bootstrap math-label-static">MathML</span><span class="math-label-bootstrap math-label-mathjax">MathJax</span><span class="math-label-bootstrap math-label-mathml">MathML</span><span class="math-label-runtime" data-math-label>MathML</span></span>
+      </button>
+      <button class="text-size-toggle reader-cycle" type="button" popovertarget="text-size-settings" aria-controls="text-size-settings" aria-haspopup="dialog" aria-expanded="false" data-text-size-toggle aria-label="Text size"><span class="control-wide">Text size: <span class="toolbar-text-size"></span></span><span class="text-size-icon control-compact" aria-hidden="true"><span class="text-size-icon-large">A</span><span class="text-size-icon-small">A</span></span></button>
+      <button class="theme-cycle reader-cycle" type="button" popovertarget="appearance-settings" aria-controls="appearance-settings" aria-haspopup="dialog" aria-expanded="false" data-theme-cycle><span class="control-wide">Theme: <span class="toolbar-theme-value"></span></span><span class="control-compact">Theme</span></button>
     </span>
   </nav>
 </header>
+<aside class="appearance-popover" id="appearance-settings" popover hidden aria-labelledby="appearance-heading">
+  <div class="appearance-inner">
+    <strong class="appearance-title" id="appearance-heading">Theme</strong>
+    <div class="appearance-options">
+      <button class="appearance-option" type="button" data-theme-option="auto" aria-label="Follow device appearance" aria-pressed="true">Device</button>
+      <button class="appearance-option" type="button" data-theme-option="light" aria-pressed="false">Light</button>
+      <button class="appearance-option" type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+    </div>
+  </div>
+</aside>
+<aside class="appearance-popover text-size-popover" id="text-size-settings" popover hidden aria-labelledby="text-size-heading">
+  <div class="appearance-inner">
+    <strong class="appearance-title" id="text-size-heading">Text size</strong>
+    <div class="appearance-options text-size-options">
+      <button class="appearance-option" type="button" data-text-size-option="small" aria-label="Smaller text" aria-pressed="false">A−</button>
+      <button class="appearance-option" type="button" data-text-size-option="default" aria-label="Default text size" aria-pressed="true">A</button>
+      <button class="appearance-option" type="button" data-text-size-option="large" aria-label="Larger text" aria-pressed="false">A+</button>
+    </div>
+    <output class="text-size-value" data-text-size-value aria-live="polite">100%</output>
+  </div>
+</aside>
 <aside class="book-contents-rail" aria-label="Contents" data-book-toc-rail data-toc-scope hidden>
   <div class="book-contents-toolbar">
     <strong class="book-contents-title">Contents</strong>
@@ -69,10 +119,9 @@
   </div>
   <nav class="book-contents-nav" aria-label="Book contents">
     $book_toc$
-    <div class="book-toc-group"><ol><li class="book-toc-page"><a href="references.html#artwork">Artwork</a></li></ol></div>
   </nav>
 </aside>
-<aside class="book-contents-popover" id="book-contents" popover hidden aria-labelledby="book-contents-heading">
+<aside class="book-contents-popover" id="book-contents" popover aria-labelledby="book-contents-heading">
   <div class="book-contents-inner" data-toc-scope>
     <div class="book-contents-toolbar">
       <strong class="book-contents-title" id="book-contents-heading">Contents</strong>
@@ -83,7 +132,6 @@
     </div>
     <nav class="book-contents-nav" aria-label="Book contents">
       $book_toc$
-      <div class="book-toc-group"><ol><li class="book-toc-page"><a href="references.html#artwork">Artwork</a></li></ol></div>
     </nav>
   </div>
 </aside>
@@ -105,19 +153,19 @@ $if(bibliography)$
 <section class="artwork-section" aria-labelledby="artwork">
 <h2 id="artwork">Artwork</h2>
 <figure>
-  <img src="assets/figures/great-wave-met-dp130155.jpg" alt="Katsushika Hokusai, Under the Wave off Kanagawa (The Great Wave)" loading="lazy" decoding="async" style="max-height:72vh;width:auto">
+  <img class="artwork-cover-image" src="assets/figures/great-wave-met-dp130155.jpg" alt="Katsushika Hokusai, Under the Wave off Kanagawa (The Great Wave)" loading="lazy" decoding="async">
   <figcaption><strong>Front cover.</strong> Katsushika Hokusai, <cite>Under the Wave off Kanagawa (The Great Wave)</cite>, from <cite>Thirty-six Views of Mount Fuji</cite>, ca. 1830–32. The Metropolitan Museum of Art, JP1847. Public Domain; image from The Met Open Access (CC0).</figcaption>
 </figure>
 <figure>
   <!-- Match the PDF back-cover scale, shift, and clip from back-modern.tex. -->
-  <div style="position:relative;overflow:hidden;width:min(100%,47.608vh);aspect-ratio:5.149168 / 7.787338;margin:1.1rem auto">
-    <img src="assets/figures/naruto-whirlpool-met-jp1198.jpg" alt="Utagawa Hiroshige, Naruto Whirlpool, Awa Province" loading="lazy" decoding="async" style="position:absolute;left:49.417382%;top:48.497856%;width:113.804793%;max-width:none;height:auto;margin:0;transform:translate(-50%,-50%)">
+  <div class="artwork-closing-frame">
+    <img class="artwork-closing-image" src="assets/figures/naruto-whirlpool-met-jp1198.jpg" alt="Utagawa Hiroshige, Naruto Whirlpool, Awa Province" loading="lazy" decoding="async">
   </div>
   <figcaption><strong>Closing page.</strong> Utagawa Hiroshige, <cite>Naruto Whirlpool, Awa Province</cite>, from <cite>Views of Famous Places in the Sixty-Odd Provinces</cite>, ca. 1853. The Metropolitan Museum of Art, JP1198. Public Domain; image from The Met Open Access (CC0).</figcaption>
 </figure>
 </section>
 $endif$
 </main>
-<footer class="build-info"><a href="#top">Back to top</a><span aria-hidden="true"> · </span>Digital edition build: <a href="$build_url$"><code>$build_label$</code></a></footer>
+<footer class="build-info"><a href="#top">Back to top</a><span aria-hidden="true"> · </span><a href="$repository_url$">Repository</a><span aria-hidden="true"> · </span><a class="source-link" href="$source_url$" aria-label="Source for this page at build revision">Source</a><span aria-hidden="true"> · </span>Build: <a href="$build_url$"><code>$build_label$</code></a></footer>
 </body>
 </html>

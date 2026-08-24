@@ -2,8 +2,9 @@
   const root = document.documentElement;
   const themeKey = "wave-theme";
   const themeModes = ["auto", "light", "dark"];
-  const themeNames = { auto: "Auto", light: "Light", dark: "Dark" };
-  const themeButtons = document.querySelectorAll("[data-theme-cycle]");
+  const themeNames = { auto: "Device", light: "Light", dark: "Dark" };
+  const themeToggle = document.querySelector("[data-theme-cycle]");
+  const themeButtons = document.querySelectorAll("[data-theme-option]");
   let themeMode = "auto";
 
   try {
@@ -14,21 +15,26 @@
   const applyTheme = () => {
     if (themeMode === "auto") delete root.dataset.theme;
     else root.dataset.theme = themeMode;
-    const nextMode = themeModes[(themeModes.indexOf(themeMode) + 1) % themeModes.length];
     themeButtons.forEach((button) => {
-      const label = button.querySelector("[data-theme-label]");
-      if (label) label.textContent = themeNames[themeMode];
       button.setAttribute(
-        "aria-label",
-        `Appearance: ${themeNames[themeMode]}; switch to ${themeNames[nextMode]}`,
+        "aria-pressed",
+        String(button.dataset.themeOption === themeMode),
       );
-      button.title = `Appearance: ${themeNames[themeMode]}`;
     });
+    if (themeToggle) {
+      themeToggle.setAttribute(
+        "aria-label",
+        `Theme; current ${themeNames[themeMode]}`,
+      );
+      themeToggle.title = `Theme: ${themeNames[themeMode]}`;
+    }
   };
 
   themeButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      themeMode = themeModes[(themeModes.indexOf(themeMode) + 1) % themeModes.length];
+      const nextMode = button.dataset.themeOption;
+      if (!themeModes.includes(nextMode)) return;
+      themeMode = nextMode;
       try {
         if (themeMode === "auto") localStorage.removeItem(themeKey);
         else localStorage.setItem(themeKey, themeMode);
@@ -36,7 +42,100 @@
       applyTheme();
     });
   });
+
+  const textSizeKey = "wave-text-size";
+  const textSizeModes = ["small", "default", "large"];
+  const textSizeMin = 50;
+  const textSizeMax = 200;
+  const textSizeStep = 10;
+  const textSizeDefault = 100;
+  const legacyTextSizes = { small: 90, default: 100, large: 110 };
+  const textSizeButtons = document.querySelectorAll("[data-text-size-option]");
+  const textSizeToggle = document.querySelector("[data-text-size-toggle]");
+  const textSizeValue = document.querySelector("[data-text-size-value]");
+
+  const normalizeTextSize = (value) => {
+    const candidate = legacyTextSizes[value] ?? Number(value);
+    if (
+      Number.isInteger(candidate) &&
+      candidate >= textSizeMin &&
+      candidate <= textSizeMax &&
+      candidate % textSizeStep === 0
+    ) {
+      return candidate;
+    }
+    return textSizeDefault;
+  };
+
+  let textSizePercent = textSizeDefault;
+  try {
+    textSizePercent = normalizeTextSize(localStorage.getItem(textSizeKey));
+  } catch (_) {}
+
+  const applyTextSize = () => {
+    if (textSizePercent === textSizeDefault) {
+      root.style.removeProperty("--wave-text-scale");
+    } else {
+      root.style.setProperty("--wave-text-scale", String(textSizePercent / 100));
+    }
+    root.style.setProperty("--wave-toolbar-text-size", `"${textSizePercent}%"`);
+    textSizeButtons.forEach((button) => {
+      const mode = button.dataset.textSizeOption;
+      button.setAttribute(
+        "aria-pressed",
+        String(mode === "default" && textSizePercent === textSizeDefault),
+      );
+      if (mode === "small") button.disabled = textSizePercent <= textSizeMin;
+      if (mode === "large") button.disabled = textSizePercent >= textSizeMax;
+    });
+    if (textSizeValue) textSizeValue.textContent = `${textSizePercent}%`;
+    if (textSizeToggle) {
+      textSizeToggle.setAttribute(
+        "aria-label",
+        `Text size; current ${textSizePercent} percent`,
+      );
+      textSizeToggle.title = `Text size: ${textSizePercent}%`;
+    }
+  };
+
+  const visibleContentAnchor = () => {
+    const headerBottom =
+      document.querySelector(".reader-header")?.getBoundingClientRect().bottom ?? 0;
+    const node = Array.from(document.querySelectorAll("#main-content > *")).find((element) => {
+      const rect = element.getBoundingClientRect();
+      return rect.bottom > headerBottom && rect.top < innerHeight;
+    });
+    return node ? { node, top: node.getBoundingClientRect().top } : null;
+  };
+
+  const restoreContentAnchor = (anchor) => {
+    if (!anchor?.node.isConnected) return;
+    scrollBy(0, anchor.node.getBoundingClientRect().top - anchor.top);
+  };
+
+  textSizeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const mode = button.dataset.textSizeOption;
+      if (!textSizeModes.includes(mode)) return;
+      const anchor = visibleContentAnchor();
+      if (mode === "small") {
+        textSizePercent = Math.max(textSizeMin, textSizePercent - textSizeStep);
+      } else if (mode === "large") {
+        textSizePercent = Math.min(textSizeMax, textSizePercent + textSizeStep);
+      } else {
+        textSizePercent = textSizeDefault;
+      }
+      try {
+        if (textSizePercent === textSizeDefault) localStorage.removeItem(textSizeKey);
+        else localStorage.setItem(textSizeKey, String(textSizePercent));
+      } catch (_) {}
+      applyTextSize();
+      requestAnimationFrame(() => restoreContentAnchor(anchor));
+    });
+  });
+
   applyTheme();
+  applyTextSize();
 
   const params = new URLSearchParams(location.search);
   const mathKey = "wave-math-renderer";
@@ -48,12 +147,37 @@
     if (mathModes.includes(saved)) savedMathMode = saved;
   } catch (_) {}
   const requestedMathMode = params.get("math");
-  let mathMode = mathModes.includes(requestedMathMode) ? requestedMathMode : savedMathMode;
+  let mathUrlOverride = mathModes.includes(requestedMathMode) ? requestedMathMode : null;
+  const initialMathMode = mathUrlOverride || savedMathMode;
+  let mathMode = initialMathMode;
   const mathCycle = document.querySelector("[data-math-cycle]");
+  const mathLabels = document.querySelectorAll("[data-math-label]");
   const mathRenderers = document.querySelectorAll("[data-math-renderer]");
   const readerPagePattern = /^(?:index|chapter\d+|references)\.html$/;
 
+  const showMathMode = (mode) => {
+    mathRenderers.forEach((node) => {
+      node.hidden = node.dataset.mathRenderer !== mode;
+    });
+  };
+
+  const syncMathControl = () => {
+    if (!mathCycle) return;
+    const nextMode = mathModes[(mathModes.indexOf(mathMode) + 1) % mathModes.length];
+    mathLabels.forEach((label) => {
+      label.textContent = mathNames[mathMode];
+    });
+    mathCycle.setAttribute(
+      "aria-label",
+      `Rendering: ${mathNames[mathMode]}; switch to ${mathNames[nextMode]}`,
+    );
+    mathCycle.title = `Rendering: ${mathNames[mathMode]}`;
+    root.dataset.mathReady = "";
+  };
+
   const updateReaderLinks = () => {
+    const linkMathMode =
+      mathUrlOverride || (savedMathMode === "mathml" ? "mathml" : null);
     document.querySelectorAll("a[href]").forEach((link) => {
       const raw = link.getAttribute("href");
       if (!raw || raw.startsWith("#")) return;
@@ -66,7 +190,7 @@
       if (url.origin !== location.origin) return;
       const filename = url.pathname.split("/").pop();
       if (!readerPagePattern.test(filename)) return;
-      if (mathMode === "mathml") url.searchParams.set("math", "mathml");
+      if (linkMathMode) url.searchParams.set("math", linkMathMode);
       else url.searchParams.delete("math");
       const query = url.searchParams.toString();
       link.setAttribute("href", `${filename}${query ? `?${query}` : ""}${url.hash}`);
@@ -85,72 +209,93 @@
     const pending = Array.from(
       document.querySelectorAll('[data-math-renderer="mathjax"]'),
     ).filter((node) => !node.querySelector('mjx-container[jax="CHTML"]'));
-    if (!pending.length) return Promise.resolve();
+    if (!pending.length) return Promise.resolve(true);
     const mathJax = window.MathJax;
-    if (!mathJax) return Promise.resolve();
+    if (!mathJax || typeof mathJax.typesetPromise !== "function") {
+      return Promise.resolve(false);
+    }
     const typeset = () => {
-      if (typeof mathJax.typesetPromise === "function") {
-        return mathJax.typesetPromise(pending).catch(() => {});
+      try {
+        return Promise.resolve(mathJax.typesetPromise(pending)).then(
+          () => pending.every((node) => node.querySelector('mjx-container[jax="CHTML"]')),
+          () => false,
+        );
+      } catch (_) {
+        return Promise.resolve(false);
       }
-      return Promise.resolve();
     };
-    if (mathJax.startup?.promise) return mathJax.startup.promise.then(typeset).catch(() => {});
+    if (mathJax.startup?.promise) {
+      return Promise.resolve(mathJax.startup.promise).then(typeset, () => false);
+    }
     return typeset();
   };
 
-  const visibleContentAnchor = () => {
-    const headerBottom =
-      document.querySelector(".reader-header")?.getBoundingClientRect().bottom ?? 0;
-    const node = Array.from(document.querySelectorAll("#main-content > *")).find((element) => {
-      const rect = element.getBoundingClientRect();
-      return rect.bottom > headerBottom && rect.top < innerHeight;
-    });
-    return node ? { node, top: node.getBoundingClientRect().top } : null;
-  };
-
-  const restoreContentAnchor = (anchor) => {
-    if (!anchor?.node.isConnected) return;
-    scrollBy(0, anchor.node.getBoundingClientRect().top - anchor.top);
-  };
-
-  const applyMathMode = () => {
-    mathRenderers.forEach((node) => {
-      node.hidden = node.dataset.mathRenderer !== mathMode;
-    });
-    if (mathCycle) {
-      const label = mathCycle.querySelector("[data-math-label]");
-      const nextMode = mathModes[(mathModes.indexOf(mathMode) + 1) % mathModes.length];
-      if (label) label.textContent = mathNames[mathMode];
-      mathCycle.setAttribute(
-        "aria-label",
-        `Rendering: ${mathNames[mathMode]}; switch to ${mathNames[nextMode]}`,
-      );
-      mathCycle.title = `Rendering: ${mathNames[mathMode]}`;
-    }
-    const layoutReady =
-      mathMode === "mathjax" ? typesetMathJaxIfNeeded() : Promise.resolve();
+  const persistMathMode = (mode) => {
     try {
-      if (mathMode === "mathjax") localStorage.removeItem(mathKey);
-      else localStorage.setItem(mathKey, mathMode);
+      if (mode === "mathml") localStorage.setItem(mathKey, mode);
+      else localStorage.removeItem(mathKey);
+      savedMathMode = mode;
     } catch (_) {}
-    updateReaderUrl();
-    updateReaderLinks();
-    return layoutReady;
   };
 
+  const applyMathMode = (target, { persist = false, updateUrl = false } = {}) => {
+    if (target === "mathml") {
+      mathMode = target;
+      showMathMode(mathMode);
+      syncMathControl();
+      if (persist) persistMathMode(mathMode);
+      if (updateUrl) updateReaderUrl();
+      updateReaderLinks();
+      return Promise.resolve(true);
+    }
+    return typesetMathJaxIfNeeded().then((ready) => {
+      mathMode = ready ? "mathjax" : "mathml";
+      showMathMode(mathMode);
+      syncMathControl();
+      if (ready && persist) persistMathMode(mathMode);
+      if (updateUrl) updateReaderUrl();
+      updateReaderLinks();
+      return ready;
+    });
+  };
+
+  syncMathControl();
+  if (initialMathMode === "mathml") showMathMode("mathml");
   if (mathCycle) {
     mathCycle.addEventListener("click", () => {
       const anchor = visibleContentAnchor();
-      mathMode = mathModes[(mathModes.indexOf(mathMode) + 1) % mathModes.length];
-      applyMathMode().then(() => {
+      const nextMode = mathModes[(mathModes.indexOf(mathMode) + 1) % mathModes.length];
+      mathUrlOverride = null;
+      applyMathMode(nextMode, { persist: true, updateUrl: true }).then(() => {
         requestAnimationFrame(() => restoreContentAnchor(anchor));
       });
     });
   }
-  applyMathMode();
+  applyMathMode(initialMathMode);
+
+  const copyText = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (_) {
+      const field = document.createElement("textarea");
+      field.value = text;
+      field.setAttribute("readonly", "");
+      field.style.position = "fixed";
+      field.style.opacity = "0";
+      document.body.append(field);
+      field.select();
+      let copied = false;
+      try {
+        copied = document.execCommand("copy");
+      } catch (_) {}
+      field.remove();
+      return copied;
+    }
+  };
 
   const installPermalinks = () => {
-    document.querySelectorAll("main > h1[id], main h2[id]").forEach((heading) => {
+    document.querySelectorAll("main h1[id], main h2[id]").forEach((heading) => {
       if (heading.querySelector(":scope > .heading-permalink")) return;
       heading.dataset.readerTitle = heading.textContent.trim();
       const link = document.createElement("a");
@@ -159,7 +304,23 @@
       link.textContent = "#";
       link.setAttribute("aria-label", `Permalink to ${heading.dataset.readerTitle}`);
       link.title = "Permalink";
-      heading.append(link);
+
+      const copy = document.createElement("button");
+      copy.type = "button";
+      copy.className = "heading-copy-link";
+      copy.textContent = "Copy link";
+      copy.setAttribute("aria-label", `Copy link to ${heading.dataset.readerTitle}`);
+      copy.addEventListener("click", async () => {
+        const url = new URL(location.href);
+        url.hash = heading.id;
+        if (!(await copyText(url.href))) return;
+        copy.textContent = "Copied";
+        window.setTimeout(() => {
+          copy.textContent = "Copy link";
+        }, 1200);
+      });
+
+      heading.append(link, copy);
     });
   };
   installPermalinks();
@@ -195,6 +356,55 @@
   const readerHeader = document.querySelector(".reader-header");
   const mainContent = document.querySelector("#main-content");
   const supportsPopover = "showPopover" in HTMLElement.prototype;
+  const appearancePanel = document.querySelector("#appearance-settings");
+  const textSizePanel = document.querySelector("#text-size-settings");
+
+  const settingsIsOpen = (panel) => {
+    if (!panel) return false;
+    return supportsPopover ? panel.matches(":popover-open") : !panel.hidden;
+  };
+
+  const syncSettingsExpanded = (panel, toggle) => {
+    if (toggle) toggle.setAttribute("aria-expanded", String(settingsIsOpen(panel)));
+  };
+
+  const positionSettings = (panel, toggle) => {
+    if (!panel || !toggle) return;
+    const gutter = 16;
+    const toggleRect = toggle.getBoundingClientRect();
+    const panelWidth = Number.parseFloat(getComputedStyle(panel).width) || 288;
+    const maxLeft = Math.max(gutter, innerWidth - panelWidth - gutter);
+    const left = Math.min(
+      Math.max(toggleRect.right - panelWidth, gutter),
+      maxLeft,
+    );
+    const top = Math.max(gutter, toggleRect.bottom + 8);
+    panel.style.setProperty("--appearance-left", `${left}px`);
+    panel.style.setProperty("--appearance-top", `${top}px`);
+  };
+
+  const installSettingsPopover = (panel, toggle) => {
+    if (!panel || !toggle) return;
+    if (supportsPopover) {
+      panel.hidden = false;
+      panel.addEventListener("beforetoggle", (event) => {
+        if (event.newState === "open") positionSettings(panel, toggle);
+        requestAnimationFrame(() => syncSettingsExpanded(panel, toggle));
+      });
+      panel.addEventListener("toggle", () => syncSettingsExpanded(panel, toggle));
+    } else {
+      toggle.addEventListener("click", () => {
+        const open = panel.hidden;
+        panel.hidden = !open;
+        if (open) positionSettings(panel, toggle);
+        syncSettingsExpanded(panel, toggle);
+      });
+    }
+    syncSettingsExpanded(panel, toggle);
+  };
+
+  installSettingsPopover(appearancePanel, themeToggle);
+  installSettingsPopover(textSizePanel, textSizeToggle);
 
   const updateContentsTop = () => {
     const gutter = 16;
@@ -224,6 +434,7 @@
     tocRail.style.removeProperty("visibility");
     tocRail.style.removeProperty("pointer-events");
     tocToggle.hidden = showRail;
+    root.dataset.tocReady = "";
 
     if (showRail && tocPanel?.matches(":popover-open")) tocPanel.hidePopover();
   };
@@ -251,6 +462,7 @@
         }
       });
     } else {
+      tocPanel.hidden = true;
       tocToggle.addEventListener("click", () => {
         location.href = "index.html";
       });
@@ -259,6 +471,8 @@
 
   const updateContentsLayout = () => {
     updateContentsTop();
+    if (settingsIsOpen(appearancePanel)) positionSettings(appearancePanel, themeToggle);
+    if (settingsIsOpen(textSizePanel)) positionSettings(textSizePanel, textSizeToggle);
     updateContentsMode();
     if (tocPanel?.matches(":popover-open")) positionContents();
   };
@@ -286,12 +500,13 @@
   });
   if (!links.size) return;
 
-  const headings = Array.from(document.querySelectorAll("main > h1[id], main h2[id]")).filter(
+  const headings = Array.from(document.querySelectorAll("main h1[id], main h2[id]")).filter(
     (heading) => links.has(heading.id),
   );
   if (!headings.length) return;
 
   const readerContextTitle = document.querySelector(".reader-context-title");
+  const readerContextSeparator = document.querySelector(".reader-context-separator");
   const defaultReaderTitle = readerContextTitle?.textContent ?? "";
   const setActive = (heading) => {
     const activeId = heading?.id || "";
@@ -304,7 +519,10 @@
       });
     });
     if (readerContextTitle) {
-      readerContextTitle.textContent = heading?.dataset.readerTitle || defaultReaderTitle;
+      const title = heading?.dataset.readerTitle || defaultReaderTitle;
+      readerContextTitle.textContent = title;
+      readerContextTitle.hidden = !title;
+      if (readerContextSeparator) readerContextSeparator.hidden = !title;
     }
   };
 
