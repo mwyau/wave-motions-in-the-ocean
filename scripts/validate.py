@@ -106,6 +106,7 @@ MATH_ENV_RE = re.compile(
     r"(?P<body>.*?)\\end\{(?P=env)\}",
     re.DOTALL,
 )
+MATHML_ELEMENT_RE = re.compile(r"<math\b[^>]*>.*?</math>", re.DOTALL | re.IGNORECASE)
 MATH_TEXT_COMMAND_RE = re.compile(
     r"\\(?:text|textrm|textsf|texttt|textit|textbf|mathrm|operatorname)\{[^{}]*\}"
 )
@@ -456,6 +457,59 @@ def validate_offline_runtime(root: Path) -> None:
     )
 
 
+def validate_mathml_alignment(text: str) -> tuple[int, int]:
+    """Check that generated trailing-condition alignments use two columns."""
+    ns = f"{{{MATHML_NS}}}"
+    boundary_tables = 0
+    normalized_tables = 0
+    for markup in MATHML_ELEMENT_RE.findall(text):
+        try:
+            root = ET.fromstring(markup)
+        except ET.ParseError as exc:
+            raise ValueError(f"generated MathML is not XML: {exc}") from exc
+        for table in root.findall(f".//{ns}mtable"):
+            rows = table.findall(f"{ns}mtr")
+            boundary_rows = []
+            for row in rows:
+                cells = row.findall(f"{ns}mtd")
+                for index, cell in enumerate(cells):
+                    condition_text = [
+                        " ".join("".join(node.itertext()).split())
+                        for node in cell.iter(f"{ns}mtext")
+                    ]
+                    if any(
+                        re.match(r"^(?:at|as)\b", value, re.IGNORECASE)
+                        for value in condition_text
+                    ):
+                        boundary_rows.append((index, len(cells)))
+            if not boundary_rows:
+                continue
+            boundary_tables += 1
+            width = max((row_width for _, row_width in boundary_rows), default=0)
+            if width > 2:
+                raise ValueError(
+                    "generated MathML trailing-condition alignment retains an "
+                    f"unintended {width}-column table"
+                )
+            if width == 2:
+                normalized_tables += 1
+                if any(index != 1 for index, _ in boundary_rows):
+                    raise ValueError(
+                        "generated MathML boundary condition is not attached to "
+                        "the aligned equation RHS cell"
+                    )
+
+    if boundary_tables == 0:
+        raise ValueError(
+            "generated HTML contains no representative MathML boundary alignment"
+        )
+    if normalized_tables == 0:
+        raise ValueError(
+            "generated HTML contains no normalized MathML boundary alignment"
+        )
+    return boundary_tables, normalized_tables
+
+
 def validate_local_references(root: Path) -> None:
     root = root.resolve()
     pages = sorted(root.glob("*.html"))
@@ -591,6 +645,10 @@ def check_html() -> None:
         fail("HTML explicitly disables MathJax assistive MathML")
     if 'data-math-renderer="mathml"' not in combined or "<math " not in combined:
         fail("native MathML alternates are missing from generated HTML")
+    try:
+        boundary_tables, normalized_tables = validate_mathml_alignment(combined)
+    except ValueError as exc:
+        fail(str(exc))
     if LOCAL_MATHJAX_URL not in combined:
         fail("local MathJax component is missing from generated HTML")
     mathjax_openings = re.findall(
@@ -751,7 +809,8 @@ def check_html() -> None:
 
     print(
         f"HTML reader/publication invariants OK: inline={inline_count}, "
-        f"display={display_count}"
+        f"display={display_count}, MathML boundary tables={boundary_tables} "
+        f"({normalized_tables} aligned tables normalized)"
     )
 
 

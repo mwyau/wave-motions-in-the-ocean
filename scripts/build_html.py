@@ -16,6 +16,7 @@ import sys
 import tarfile
 import unicodedata
 import urllib.request
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from PIL import Image
@@ -118,6 +119,10 @@ MATHML_TEX_ANNOTATION_RE = re.compile(
     r"(?P<tex>.*?)</annotation>",
     re.DOTALL | re.IGNORECASE,
 )
+MATHML_NS = "http://www.w3.org/1998/Math/MathML"
+MATHML_TAG = f"{{{MATHML_NS}}}"
+BOUNDARY_TEXT_RE = re.compile(r"^(?:at|as)\b", re.IGNORECASE)
+ET.register_namespace("", MATHML_NS)
 
 
 def require(command: str) -> None:
@@ -269,6 +274,76 @@ def normalize_mathml_tex(text: str) -> str:
     return re.sub(r"\\ell(?![A-Za-z])", "{ℓ}", text)
 
 
+def _empty_mathml_cell(cell: ET.Element) -> bool:
+    return not "".join(cell.itertext()).strip()
+
+
+def _boundary_mathml_cell(cell: ET.Element) -> bool:
+    for node in cell.iter(f"{MATHML_TAG}mtext"):
+        text = " ".join("".join(node.itertext()).split())
+        if BOUNDARY_TEXT_RE.match(text):
+            return True
+    return False
+
+
+def normalize_mathml_alignment(markup: str) -> str:
+    """Fold generated trailing condition columns into the aligned RHS cell.
+
+    Pandoc/texmath serializes ``lhs &= rhs && \\text{at } condition`` as four
+    MathML table cells, including an empty spacer cell.  That extra table
+    column changes how browser MathML centers the whole alignment.  Only the
+    exact trailing-condition shape is normalized; side-by-side alignments,
+    arrays, cases, and ordinary two-column alignments remain unchanged.
+    """
+    try:
+        root = ET.fromstring(markup)
+    except ET.ParseError as exc:
+        raise SystemExit(f"invalid generated MathML: {exc}") from exc
+
+    changed = False
+    for table in root.findall(f".//{MATHML_TAG}mtable"):
+        rows = table.findall(MATHML_TAG + "mtr")
+        candidates: list[tuple[ET.Element, list[ET.Element]]] = []
+        supported = True
+        for row in rows:
+            cells = row.findall(MATHML_TAG + "mtd")
+            if len(cells) == 2:
+                continue
+            if (
+                len(cells) != 4
+                or not _empty_mathml_cell(cells[2])
+                or not _boundary_mathml_cell(cells[3])
+            ):
+                supported = False
+                break
+            candidates.append((row, cells))
+
+        if not supported or not candidates:
+            continue
+
+        for row, cells in candidates:
+            rhs, condition = cells[1], cells[3]
+            combined = ET.Element(MATHML_TAG + "mrow")
+            combined.extend(list(rhs))
+            combined.append(ET.Element(MATHML_TAG + "mspace", {"width": "1em"}))
+            combined.extend(list(condition))
+            rhs[:] = [combined]
+            row.remove(cells[2])
+            row.remove(cells[3])
+            changed = True
+
+    if not changed:
+        return markup
+    return ET.tostring(root, encoding="unicode")
+
+
+def normalize_mathml_page(text: str) -> str:
+    """Normalize recognized alignment tables in generated MathML HTML."""
+    return MATHML_MATH_RE.sub(
+        lambda match: normalize_mathml_alignment(match.group(0)), text
+    )
+
+
 def normalized_math_tex(text: str) -> str:
     """Normalize serialization-only whitespace for renderer-source comparisons."""
     return " ".join(html.unescape(text).split())
@@ -339,7 +414,7 @@ def pandoc_page(
 
 def install_mathml_alternates(page: Path, mathml_page: Path) -> None:
     text = page.read_text(errors="replace")
-    mathml_text = mathml_page.read_text(errors="replace")
+    mathml_text = normalize_mathml_page(mathml_page.read_text(errors="replace"))
     mathjax_matches = list(MATHJAX_MATH_RE.finditer(text))
     mathml_matches = list(MATHML_MATH_RE.finditer(mathml_text))
     if len(mathjax_matches) != len(mathml_matches):

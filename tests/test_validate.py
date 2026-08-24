@@ -12,6 +12,7 @@ from validate import (
     require_labels,
     strip_tex_comments,
     tex_math_regions,
+    validate_mathml_alignment,
     validate_offline_runtime,
 )
 
@@ -121,3 +122,22 @@ def test_offline_runtime_rejects_remote_dependencies(
 
     with pytest.raises(ValueError, match="remote runtime dependencies"):
         validate_offline_runtime(tmp_path)
+
+
+def test_mathml_alignment_requires_normalized_boundary_columns() -> None:
+    valid = (
+        '<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">'
+        "<semantics><mtable>"
+        "<mtr><mtd><mi>p</mi></mtd><mtd><mtext>at </mtext><mi>z</mi></mtd></mtr>"
+        "</mtable></semantics></math>"
+    )
+    invalid = valid.replace(
+        "<mtd><mtext>at </mtext><mi>z</mi></mtd>",
+        "<mtd><mo>=</mo><mn>0</mn></mtd><mtd></mtd>"
+        "<mtd><mtext>at </mtext><mi>z</mi></mtd>",
+        1,
+    )
+
+    assert validate_mathml_alignment(valid) == (1, 1)
+    with pytest.raises(ValueError, match="unintended 4-column table"):
+        validate_mathml_alignment(invalid)

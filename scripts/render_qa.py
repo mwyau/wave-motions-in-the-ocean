@@ -37,6 +37,19 @@ EXPECTED_HTML = [
     "references.html",
 ]
 FACSIMILE_EXPECTED_PAGES = 184
+MATHJAX_RENDERER_RE = re.compile(
+    r'<span\b(?=[^>]*\bdata-math-renderer="mathjax")[^>]*>.*?</span>',
+    re.DOTALL | re.IGNORECASE,
+)
+MATHML_RENDERER_RE = re.compile(
+    r'<span\b(?=[^>]*\bdata-math-renderer="mathml")[^>]*>.*?</span>',
+    re.DOTALL | re.IGNORECASE,
+)
+MATHML_ANNOTATION_RE = re.compile(
+    r'<annotation\b[^>]*\bencoding="application/x-tex"[^>]*>(.*?)</annotation>',
+    re.DOTALL | re.IGNORECASE,
+)
+MATHML_NS = "http://www.w3.org/1998/Math/MathML"
 
 
 @dataclass
@@ -408,6 +421,222 @@ def fragment_reader_context_ok(dom: str, section_id: str, title: str) -> bool:
     return " ".join(context_text.split()) == title
 
 
+def mathml_table_width(markup: str) -> int:
+    try:
+        root = ET.fromstring(markup)
+    except ET.ParseError:
+        return 0
+    table = root.find(f".//{{{MATHML_NS}}}mtable")
+    if table is None:
+        return 0
+    return max(
+        (
+            len(row.findall(f"{{{MATHML_NS}}}mtd"))
+            for row in table.findall(f"{{{MATHML_NS}}}mtr")
+        ),
+        default=0,
+    )
+
+
+def mathml_comparison_specimen(
+    dist: Path, report: Report
+) -> tuple[Path | None, list[str]]:
+    """Write a side-by-side page from actual paired book math fragments."""
+    pairs: list[dict[str, object]] = []
+    for name in EXPECTED_HTML:
+        text = (dist / name).read_text(errors="replace")
+        mathjax = list(MATHJAX_RENDERER_RE.finditer(text))
+        mathml = list(MATHML_RENDERER_RE.finditer(text))
+        if len(mathjax) != len(mathml):
+            report.add(
+                "ERROR",
+                "HTML",
+                f"{name}: MathJax/MathML pair count differs in render-QA specimen "
+                f"({len(mathjax)} != {len(mathml)})",
+            )
+            continue
+        for index, (mathjax_match, mathml_match) in enumerate(
+            zip(mathjax, mathml, strict=True), start=1
+        ):
+            annotation = MATHML_ANNOTATION_RE.search(mathml_match.group(0))
+            if annotation is None:
+                continue
+            class_match = re.search(
+                r'class="math\s+(inline|display)', mathjax_match.group(0)
+            )
+            if class_match is None:
+                continue
+            tail = text[mathml_match.end() : mathml_match.end() + 500]
+            pairs.append(
+                {
+                    "page": name,
+                    "index": index,
+                    "kind": class_match.group(1),
+                    "source": html.unescape(annotation.group(1)),
+                    "mathjax": re.sub(
+                        r"\s+hidden(?=[\s>])", "", mathjax_match.group(0), count=1
+                    ),
+                    "mathml": mathml_match.group(0),
+                    "width": mathml_table_width(mathml_match.group(0)),
+                    "numbered": bool(
+                        re.search(
+                            r"<div class=\"flushright\">.*?\(\d+\.\d+\)",
+                            tail,
+                            re.DOTALL,
+                        )
+                    ),
+                }
+            )
+
+    if not pairs:
+        report.add(
+            "ERROR", "HTML", "no paired mathematics available for render-QA specimen"
+        )
+        return None, []
+
+    selected: list[tuple[str, dict[str, object]]] = []
+    selected_ids: set[tuple[str, int]] = set()
+
+    def choose(label: str, predicate) -> None:
+        for pair in pairs:
+            identity = (str(pair["page"]), int(pair["index"]))
+            if identity in selected_ids or not predicate(pair):
+                continue
+            selected.append((label, pair))
+            selected_ids.add(identity)
+            return
+
+    choose("Simple inline", lambda pair: pair["kind"] == "inline")
+    choose(
+        "Simple display",
+        lambda pair: (
+            pair["kind"] == "display"
+            and not str(pair["source"]).lstrip().startswith(r"\begin")
+            and pair["width"] == 0
+        ),
+    )
+    choose(
+        "Fraction",
+        lambda pair: (
+            pair["kind"] == "display"
+            and (r"\frac" in str(pair["source"]) or "<mfrac" in str(pair["mathml"]))
+        ),
+    )
+    root_pair = next(
+        (
+            pair
+            for pair in pairs
+            if pair["kind"] == "display"
+            and (r"\sqrt" in str(pair["source"]) or "<msqrt" in str(pair["mathml"]))
+        ),
+        None,
+    )
+    if root_pair is not None:
+        choose("Root", lambda pair, root_pair=root_pair: pair is root_pair)
+    choose(
+        "Ordinary align",
+        lambda pair: (
+            pair["kind"] == "display"
+            and r"\begin{aligned}" in str(pair["source"])
+            and r"&&" not in str(pair["source"])
+            and pair["width"] == 2
+        ),
+    )
+    choose(
+        "Chapter 5 boundary align",
+        lambda pair: (
+            pair["page"] == "chapter5.html"
+            and pair["kind"] == "display"
+            and r"&&\text{at" in str(pair["source"]).replace(" ", "")
+        ),
+    )
+    choose(
+        "Cases/array",
+        lambda pair: (
+            r"\begin{cases}" in str(pair["source"])
+            or r"\begin{array}" in str(pair["source"])
+        ),
+    )
+    choose(
+        "Numbered wavealign",
+        lambda pair: (
+            bool(pair["numbered"]) and r"\begin{aligned}" in str(pair["source"])
+        ),
+    )
+    longest_display = max(
+        (pair for pair in pairs if pair["kind"] == "display"),
+        key=lambda pair: len(str(pair["source"])),
+        default=None,
+    )
+    if longest_display is not None:
+        choose(
+            "Longest display",
+            lambda pair, longest_display=longest_display: pair is longest_display,
+        )
+
+    if root_pair is None:
+        report.add(
+            "INFO",
+            "HTML",
+            "MathML/MathJax specimen: no square-root/root construct occurs in the book source",
+        )
+
+    comparison_rows = []
+    for label, pair in selected:
+        source = html.escape(str(pair["source"]))
+        page = html.escape(str(pair["page"]))
+        index = html.escape(str(pair["index"]))
+        mathjax = str(pair["mathjax"])
+        mathml = str(pair["mathml"])
+        comparison_rows.append(
+            '<section class="comparison-case">'
+            f"<h2>{html.escape(label)}</h2>"
+            f'<p class="case-meta">{page}, expression {index}</p>'
+            '<div class="comparison-grid">'
+            f'<div class="renderer-cell"><h3>MathJax</h3>{mathjax}</div>'
+            f'<div class="renderer-cell"><h3>Native MathML</h3>{mathml}</div>'
+            "</div>"
+            f"<details><summary>TeX annotation</summary><code>{source}</code></details>"
+            "</section>"
+        )
+
+    page = dist / "mathml-mathjax-comparison.html"
+    page.write_text(
+        "<!doctype html>\n"
+        '<html lang="en"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        "<title>MathJax and native MathML comparison</title>"
+        '<link rel="stylesheet" href="assets/wave.css">'
+        "<style>"
+        "body{max-width:90rem;margin:0 auto;padding:2rem 1rem;}"
+        ".comparison-case{border-top:1px solid #999;padding:1rem 0 1.5rem;}"
+        ".case-meta{color:#666;margin:.2rem 0 .8rem;}"
+        ".comparison-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;}"
+        ".renderer-cell{border:1px solid #bbb;padding:.8rem;min-width:0;overflow-x:auto;}"
+        ".renderer-cell h3{font:600 1rem/1.2 sans-serif;margin:0 0 .8rem;}"
+        ".renderer-cell .math.display{padding:1rem 0;}"
+        ".renderer-cell code{white-space:pre-wrap;}"
+        "@media(max-width:700px){.comparison-grid{grid-template-columns:1fr;}}"
+        "</style>"
+        '<script src="assets/mathjax/tex-chtml-full.js"></script>'
+        "</head><body><h1>MathJax and native MathML comparison</h1>"
+        "<p>Each case is taken from the generated book HTML. MathJax is on the left; native MathML is on the right.</p>"
+        + "".join(comparison_rows)
+        + "</body></html>\n"
+    )
+    report_page = report.out / "html" / page.name
+    report_page.parent.mkdir(parents=True, exist_ok=True)
+    report_page.write_text(
+        page.read_text()
+        .replace('href="assets/wave.css"', 'href="../../../release/assets/wave.css"')
+        .replace(
+            'src="assets/mathjax/tex-chtml-full.js"',
+            'src="../../../release/assets/mathjax/tex-chtml-full.js"',
+        )
+    )
+    return page, [label for label, _ in selected]
+
+
 def html_qa(dist: Path, report: Report, browser: str | None) -> None:
     lines: list[str] = []
     missing = [name for name in EXPECTED_HTML if not (dist / name).is_file()]
@@ -490,6 +719,13 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
     else:
         lines.append("- Required script/style network dependencies: none detected")
 
+    specimen_page, specimen_labels = mathml_comparison_specimen(dist, report)
+    if specimen_page is not None:
+        lines.append(
+            "- MathJax/native MathML comparison specimen: "
+            f"`html/{specimen_page.name}` ({', '.join(specimen_labels)})"
+        )
+
     if browser:
         lines.append(f"- Headless browser detected: `{browser}`")
         screenshots = report.out / "html" / "screenshots"
@@ -499,6 +735,25 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
                 jobs.append((f"desktop-{Path(name).stem}.png", name, 1440, 1000, False))
                 jobs.append((f"mobile-{Path(name).stem}.png", name, 390, 844, False))
             jobs.append(("dark-chapter4.png", "chapter4.html", 390, 844, True))
+            if specimen_page is not None:
+                jobs.extend(
+                    [
+                        (
+                            "mathml-mathjax-comparison.png",
+                            specimen_page.name,
+                            1440,
+                            1200,
+                            False,
+                        ),
+                        (
+                            "mathml-mathjax-comparison-mobile.png",
+                            specimen_page.name,
+                            390,
+                            844,
+                            False,
+                        ),
+                    ]
+                )
             failures = 0
             completed = 0
             for output_name, page_name, width, height, dark in jobs:
@@ -565,6 +820,9 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
             "HTML",
             "no Chrome/Chromium executable found; browser screenshot and fragment-regression QA skipped",
         )
+
+    if specimen_page is not None:
+        specimen_page.unlink(missing_ok=True)
 
     report.section("HTML render audit", lines)
 

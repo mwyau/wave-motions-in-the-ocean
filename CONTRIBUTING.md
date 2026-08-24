@@ -14,6 +14,11 @@ sudo apt-get install -y --no-install-recommends \
   qpdf poppler-utils pandoc xz-utils wget
 ```
 
+Pandoc follows the Ubuntu system package used by publication CI rather than a
+second repository-managed installer. Generated HTML tests compare MathJax and
+native MathML structure and protect against supported texmath serialization
+changes.
+
 Set up Python (uv is recommended, but standard venv works):
 
 ```bash
