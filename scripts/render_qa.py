@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import hashlib
+import html
 import http.server
 import os
 import re
@@ -341,6 +342,72 @@ def browser_screenshot(
     return ok, proc.stdout[-2000:]
 
 
+def browser_dump_dom(
+    browser: str,
+    url: str,
+    width: int = 1440,
+    height: int = 1000,
+) -> tuple[bool, str]:
+    cmd = [
+        browser,
+        "--headless=new",
+        "--disable-gpu",
+        "--disable-component-update",
+        "--run-all-compositor-stages-before-draw",
+        "--virtual-time-budget=3500",
+        f"--window-size={width},{height}",
+        "--dump-dom",
+    ]
+    if os.name != "nt" and hasattr(os, "geteuid") and os.geteuid() == 0:
+        cmd.append("--no-sandbox")
+    cmd.append(url)
+    try:
+        proc = run(cmd, timeout=25, check=False)
+    except (subprocess.TimeoutExpired, OSError) as exc:
+        return False, str(exc)
+    ok = proc.returncode == 0 and "<html" in proc.stdout.lower()
+    return ok, proc.stdout
+
+
+def first_section_case(page: Path) -> tuple[str, str] | None:
+    text = page.read_text(errors="replace")
+    links = re.findall(
+        r'<a\b[^>]*\bdata-section-link=["\']([^"\']+)["\'][^>]*>',
+        text,
+        flags=re.IGNORECASE,
+    )
+    for section_id in links:
+        match = re.search(
+            rf'<h2\b[^>]*\bid=["\']{re.escape(section_id)}["\'][^>]*>(.*?)</h2>',
+            text,
+            flags=re.DOTALL | re.IGNORECASE,
+        )
+        if not match:
+            continue
+        title = html.unescape(re.sub(r"<[^>]+>", "", match.group(1)))
+        return section_id, " ".join(title.split())
+    return None
+
+
+def fragment_reader_context_ok(dom: str, section_id: str, title: str) -> bool:
+    active = re.search(
+        rf'<a\b(?=[^>]*\bdata-section-link=["\']{re.escape(section_id)}["\'])'
+        rf'(?=[^>]*\baria-current=["\']location["\'])[^>]*>',
+        dom,
+        flags=re.IGNORECASE,
+    )
+    context = re.search(
+        r'<[^>]*\bclass=["\'][^"\']*\breader-context-title\b[^"\']*["\'][^>]*>'
+        r"(.*?)</[^>]+>",
+        dom,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
+    if not active or not context:
+        return False
+    context_text = html.unescape(re.sub(r"<[^>]+>", "", context.group(1)))
+    return " ".join(context_text.split()) == title
+
+
 def html_qa(dist: Path, report: Report, browser: str | None) -> None:
     lines: list[str] = []
     missing = [name for name in EXPECTED_HTML if not (dist / name).is_file()]
@@ -349,6 +416,7 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
         return
     broken_all: list[str] = []
     titles: dict[str, str] = {}
+    external_runtime: list[str] = []
     for name in EXPECTED_HTML:
         page = dist / name
         text = page.read_text(errors="replace")
@@ -362,6 +430,13 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
         broken_all.extend(f"{name}: {ref}" for ref in broken)
         if 'name="viewport"' not in text and "name='viewport'" not in text:
             report.add("WARNING", "HTML", f"{name} has no viewport meta tag")
+        external_runtime.extend(
+            re.findall(
+                r'<(?:script|link)\b[^>]*(?:src|href)=["\'](https?://[^"\']+)["\'][^>]*>',
+                text,
+                flags=re.IGNORECASE,
+            )
+        )
     if broken_all:
         report.add(
             "ERROR",
@@ -393,25 +468,38 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
                 "book/chapter orientation context is missing; this artifact predates "
                 "the current reader-navigation design",
             )
+        if re.search(r"url\(\s*['\"]?https?://", css_text, flags=re.IGNORECASE):
+            external_runtime.append("external CSS url()")
     else:
         report.add("ERROR", "HTML", "missing assets/wave.css")
     if not js.is_file():
         report.add("ERROR", "HTML", "missing assets/wave.js")
 
-    mathjax_external: list[str] = []
-    for name in EXPECTED_HTML:
-        text = (dist / name).read_text(errors="replace")
-        mathjax_external.extend(
-            re.findall(r'https://[^"\']*mathjax[^"\']*', text, flags=re.IGNORECASE)
-        )
-    if mathjax_external:
+    required_runtime_assets = [
+        dist / "assets" / "mathjax" / "tex-chtml-full.js",
+        dist / "assets" / "mathjax" / "output" / "chtml" / "fonts" / "woff-v2",
+        dist / "assets" / "fonts" / "SourceSerif4Variable-Roman.otf.woff2",
+        dist / "assets" / "fonts" / "SourceSans3VF-Upright.otf.woff2",
+    ]
+    missing_runtime = [path for path in required_runtime_assets if not path.exists()]
+    if missing_runtime:
         report.add(
-            "INFO",
+            "ERROR",
             "HTML",
-            "HTML mathematics depends on an external MathJax runtime; offline ZIP "
-            "reading will not typeset math unless MathJax is vendored.",
+            "missing local runtime asset(s): "
+            + ", ".join(str(path.relative_to(dist)) for path in missing_runtime),
         )
-        lines.append(f"- External MathJax reference detected: `{mathjax_external[0]}`")
+    else:
+        lines.append("- Runtime MathJax and web-font assets are local: yes")
+    if external_runtime:
+        report.add(
+            "ERROR",
+            "HTML",
+            "required script/style runtime references an external network resource: "
+            f"{external_runtime[0]}",
+        )
+    else:
+        lines.append("- Required script/style network dependencies: none detected")
 
     if browser:
         lines.append(f"- Headless browser detected: `{browser}`")
@@ -452,11 +540,41 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
                     f"- Browser screenshots: `{screenshots.relative_to(report.out)}/` "
                     f"({len(jobs)} cases)"
                 )
+
+            fragment_case = first_section_case(dist / "chapter4.html")
+            if fragment_case is None:
+                report.add(
+                    "ERROR",
+                    "HTML",
+                    "could not identify a Chapter 4 section for fragment-navigation QA",
+                )
+            else:
+                section_id, section_title = fragment_case
+                ok, dom = browser_dump_dom(
+                    browser,
+                    f"{base}/chapter4.html#{urllib.parse.quote(section_id)}",
+                )
+                if not ok:
+                    report.add(
+                        "WARNING",
+                        "HTML",
+                        "headless DOM dump failed; direct-fragment reader-context regression check skipped",
+                    )
+                elif not fragment_reader_context_ok(dom, section_id, section_title):
+                    report.add(
+                        "ERROR",
+                        "HTML",
+                        "direct section permalink did not initialize both reader context and active Contents state",
+                    )
+                else:
+                    lines.append(
+                        f"- Direct-fragment reader context: PASS (`chapter4.html#{section_id}`)"
+                    )
     else:
         report.add(
             "INFO",
             "HTML",
-            "no Chrome/Chromium executable found; browser screenshot QA skipped",
+            "no Chrome/Chromium executable found; browser screenshot and fragment-regression QA skipped",
         )
 
     report.section("HTML render audit", lines)
@@ -717,7 +835,7 @@ def write_report(report: Report) -> Path:
             "- Review every PDF contact sheet for unexpected blank pages, large whitespace changes, clipping, undersized figures, and abrupt pagination changes.",
             "- Inspect modern PDF pages 1–12 at full size (cover, half-title, frontispiece, title/edition notice, Contents, prefaces/editor note) plus every chapter opener and figure-dense page.",
             "- For facsimile, verify the exact 184-page physical structure before release and compare any suspicious blank/sparse pages to the source-page edition.",
-            "- Open HTML in a real desktop browser and a phone/narrow responsive viewport; exercise both top and bottom navigation, theme cycling, wide math/tables, and image scaling.",
+            "- Open HTML in a real desktop browser and a phone/narrow viewport; test top/bottom navigation, theme cycling, direct section permalinks, scrolling active-section updates, back/forward fragment navigation, wide Contents rail, narrow Contents popover/fallback, the hidden MathJax/MathML comparison mode, wide math/tables, and image scaling.",
             "- Complete the EPUB reader matrix above in real reading systems; structural/browser inspection alone is insufficient.",
             "",
         ]
@@ -753,7 +871,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--no-browser",
         action="store_true",
-        help="skip optional headless HTML screenshots",
+        help="skip optional headless HTML screenshots and browser regressions",
     )
     parser.add_argument(
         "--strict",

@@ -16,20 +16,20 @@ Use this order when a source reading or scientific result is in question:
 1. Independently check the science or math when needed.
 1. Use the 2008 MIT OpenCourseWare notes and other references to help understand or check a possible error.
 
-The 1989 PDFs control transcription and source-fidelity questions. The 2008 notes can support a proposed correction, but a difference in those notes does not by itself justify silently changing the reconstruction. The current errata and human-approval rules still apply.
+The 1989 PDFs control transcription and source-fidelity questions. The 2008 notes can support a proposed correction, but a difference in those notes does not by itself justify silently changing the reconstruction. Agreement between the 1989 notes and a later source is also not an independent scientific check: later notes can repeat the same error. When scientific correctness matters, independently derive, calculate, or otherwise test the result.
 
 ## Correction decision order
 
 For every difference or suspected error, use this order:
 
 1. **Reconstruction differs from the PDF unintentionally:** restore the PDF reading unless the difference is a minor mechanical correction allowed by item 2.
-1. **Small unambiguous mechanical correction:** spelling, grammar, transcription, punctuation, or TeX punctuation syntax may be corrected autonomously when there is no plausible change in scientific, mathematical, bibliographic, or substantive editorial meaning. If uncertain, do not use this exception.
-1. **Substantive or ambiguous source problem:** keep or restore the source reading in the reconstruction, record the proposed correction and evidence in `src/ERRATA.md` with `pending-human-approval`, and ask the human owner for approval.
-1. **Explicit human approval:** only then apply the substantive correction and record it as `human-approved`, with enough context to identify what was approved.
+2. **Small unambiguous mechanical correction:** spelling, grammar, transcription, punctuation, or TeX punctuation syntax may be corrected autonomously when there is no plausible change in scientific, mathematical, bibliographic, or substantive editorial meaning. If uncertain, do not use this exception.
+3. **Substantive or ambiguous source problem:** keep or restore the source reading in the reconstruction, record the proposed correction and evidence in `src/ERRATA.md` with `pending-human-approval`, and ask the human owner for approval.
+4. **Explicit human approval in chat:** only when the owner directly instructs approval in the current chat may an agent apply the substantive correction and change the entry to `human-approved`.
 
-Agents can never approve an erratum. Do not infer approval from mathematical correctness, external literature, issue closure, another agent's judgment, an existing commit, or an existing status. If an older substantive entry lacks traceable explicit human approval, do not treat it as precedent or permission; flag it for human review when encountered.
+Agents can never approve an erratum. Do not infer approval from mathematical correctness, external literature, issue closure, another agent's judgment, an existing commit, or another status. An existing `human-approved` entry may be kept as maintained project state, but an agent must never create or promote that status without a direct approval instruction in the current chat.
 
-A minor autonomous correction need not be added to `ERRATA.md`. If it is useful to keep one there, use the existing `minor-typo-correction` status.
+A minor autonomous correction need not be added to `ERRATA.md`. If it is useful to keep one there, use `minor-correction`.
 
 ## Text fidelity
 
@@ -76,17 +76,26 @@ Never let a scientific audit silently rewrite chapter prose or equations.
 
 ## Errata entries
 
-Substantive entries should state:
+Keep entries ordered by chapter, then printed page, then item on the same page.
 
-- **Category:** `transcription`, `typographical`, `equation`, `figure`, `reference`, or `editorial`
-- **Status:** `pending-human-approval` for a substantive proposal; `human-approved` only after explicit human approval; `minor-typo-correction` only for a kept record of an autonomous minor correction
-- **Location:** source PDF/physical page and/or printed page/chapter
-- **Original**
-- **Proposed/approved reconstruction**
-- **Reason/evidence**
-- **Human approval evidence** when status is `human-approved`
+Use these statuses consistently:
 
-Simple confirmed-no-change checks do not belong in `ERRATA.md`. Do not create a second audit ledger.
+- `pending-human-approval` — substantive source issue or proposed correction; reconstruction follows the source until direct human approval.
+- `minor-correction` — kept record of a small autonomous correction with no plausible substantive effect.
+- `human-approved` — substantive departure explicitly approved by the owner; agents may assign this only when directly instructed in the current chat.
+
+Pending substantive entries should use this field order:
+
+1. **Category:** `transcription`, `typographical`, `equation`, `figure`, `reference`, or `editorial`
+2. **Status**
+3. **Location**
+4. **Source**
+5. **Proposed correction**
+6. **Reason/evidence**
+
+Do not add a per-entry field saying that the reconstruction was restored to or still follows the source; `pending-human-approval` already implies that state. For `human-approved`, use **Approved correction** instead of **Proposed correction**. For a recorded `minor-correction`, use **Correction** to show the applied text. Do not add a separate approval-evidence field.
+
+Simple confirmed-no-change checks do not belong in `ERRATA.md`. Do not create a second audit ledger. If an erratum concerns a figure, `ERRATA.md` owns the source discrepancy, proposed correction, evidence, and approval state; `FIGURES.md` should only cross-reference the erratum while recording the figure asset and its checks.
 
 ## References
 

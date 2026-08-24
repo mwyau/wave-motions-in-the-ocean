@@ -107,6 +107,10 @@ Keep public section anchors stable.
 
 Preserve the responsive reader, Auto/Light/Dark themes, GitHub Source navigation, Contents navigation, wide-math/table overflow behavior, and stable chapter/section navigation unless explicitly redesigned.
 
+The current reader also preserves these navigation behaviors: the sticky context reflects the current chapter/section; direct section permalinks initialize that context and the matching Contents entry immediately; scrolling updates the active section; wide layouts expose the Contents rail when space permits, while narrower layouts use the Contents popover/fallback; browser fragment/back-forward navigation must remain correct. The hidden `?dev=1` MathJax/MathML comparison mode is a developer QA feature and should remain available unless deliberately replaced.
+
+The finished HTML reader is self-contained for runtime assets. It includes pinned MathJax, MathJax fonts, Source Serif, and Source Sans under local `assets/`; a clean build may fetch the pinned vendor archives into the build cache, but the generated HTML/HTML ZIP must not require third-party network resources to render text or mathematics.
+
 Do not dark-mode invert/filter the front-matter photograph. Generated black-on-white scientific diagrams may be theme-adjusted for legibility without changing their content.
 
 ## EPUB

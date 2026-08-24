@@ -17,7 +17,7 @@ A downloaded publication artifact ZIP may be inspected instead:
 python3 scripts/render_qa.py path/to/artifact.zip
 ```
 
-Output goes under `audit/render-qa/` and is intentionally ignored. The report includes artifact/build identity, PDF page counts and contact sheets, static HTML checks plus optional Chrome/Chromium desktop/mobile screenshots, an unpacked EPUB and metadata/MathML summary, optional EPUBCheck output, and the manual EPUB reader acceptance matrix. This audit material survives publication builds; `build/` remains disposable build intermediates.
+Output goes under `audit/render-qa/` and is intentionally ignored. The report includes artifact/build identity, PDF page counts and contact sheets, static HTML checks plus optional Chrome/Chromium desktop/mobile screenshots and browser regressions, an unpacked EPUB and metadata/MathML summary, optional EPUBCheck output, and the manual EPUB reader acceptance matrix. This audit material survives publication builds; `build/` remains disposable build intermediates.
 
 Useful options:
 
@@ -48,11 +48,22 @@ For the facsimile, source-page structure is part of correctness. A stable releas
 
 ## HTML review
 
-The automated pass checks local references, viewport/theme/mobile CSS, book/chapter orientation, external MathJax dependence, and—when Chrome or Chromium is available—captures representative desktop and phone screenshots.
+The automated pass checks local references, viewport/theme/mobile CSS, book/chapter orientation, local runtime assets, and—when Chrome or Chromium is available—captures representative desktop/mobile screenshots and exercises direct-fragment reader-context behavior.
 
-A real-browser pass should exercise both navigation bars, Auto/Light/Dark cycling, narrow viewports, wide equations/tables, and figure scaling.
+The finished HTML reader is expected to be self-contained at runtime. MathJax JavaScript/fonts and the Source Serif/Source Sans web fonts must resolve from local `assets/`; required third-party network dependencies are a defect.
 
-The HTML reader currently loads MathJax from jsDelivr. A packaged HTML ZIP is therefore network-dependent for mathematical typesetting unless MathJax is later vendored; render QA should report this explicitly.
+A real-browser pass should exercise:
+
+- top and bottom navigation;
+- Auto/Light/Dark cycling;
+- direct section permalinks, including correct current-section context and active Contents state immediately after load;
+- scrolling between sections and active-section/context updates;
+- browser back/forward and fragment navigation;
+- the wide-layout Contents rail and narrow-layout Contents popover/fallback;
+- the hidden `?dev=1` MathJax/MathML comparison mode on representative inline and display math;
+- narrow viewports, wide equations/tables, and figure scaling.
+
+The direct-fragment check belongs at the browser-integration layer rather than in a separate DOM unit-test framework: the regression depends on fragment navigation, executed page JavaScript, and browser layout/timing. Do not add jsdom/Playwright solely for this reader check unless the project later adopts a broader browser-test suite.
 
 ## EPUB review
 
