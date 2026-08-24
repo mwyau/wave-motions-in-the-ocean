@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0" page-range-format="expanded" default-locale="en-US">
+  <info>
+    <title>Wave Motions — American Meteorological Society</title>
+    <id>https://mwyau.github.io/wave-motions-in-the-ocean/styles/wave-ams</id>
+    <link href="https://www.ametsoc.org/ams/publications/author-information/formatting-and-manuscript-components/references/" rel="documentation"/>
+    <category citation-format="author-date"/>
+    <summary>AMS-style references for the Wave Motions digital edition.</summary>
+    <updated>2026-08-24T00:00:00+00:00</updated>
+  </info>
+  <locale xml:lang="en">
+    <terms><term name="and others">and Coauthors</term></terms>
+  </locale>
+  <macro name="contributors">
+    <choose>
+      <if variable="author">
+        <names variable="author"><name and="text" name-as-sort-order="first" sort-separator=", " delimiter=", " delimiter-precedes-last="always" initialize-with=". "/><et-al term="and others"/></names>
+      </if>
+      <else>
+        <names variable="editor"><name and="text" name-as-sort-order="first" sort-separator=", " delimiter=", " delimiter-precedes-last="always" initialize-with=". "/><label form="short" text-case="capitalize-first" prefix=", "/></names>
+      </else>
+    </choose>
+  </macro>
+  <macro name="contributors-short">
+    <names variable="author"><name form="short" and="text" delimiter=", "/><substitute><names variable="editor"/></substitute></names>
+  </macro>
+  <macro name="year"><date variable="issued"><date-part name="year"/></date></macro>
+  <macro name="edition"><choose><if is-numeric="edition"><group delimiter=" "><number variable="edition" form="ordinal"/><text term="edition" form="short"/></group></if><else><text variable="edition"/></else></choose></macro>
+  <macro name="book-pages">
+    <group delimiter=" ">
+      <choose><if variable="number-of-pages"><text variable="number-of-pages"/></if><else><text variable="page"/></else></choose>
+      <text value="pp."/>
+    </group>
+  </macro>
+  <citation et-al-min="3" et-al-use-first="1" disambiguate-add-year-suffix="true">
+    <layout prefix="(" suffix=")" delimiter="; "><group delimiter=" "><text macro="contributors-short"/><text macro="year"/></group></layout>
+  </citation>
+  <bibliography hanging-indent="true" et-al-min="9" et-al-use-first="1">
+    <sort><key macro="contributors"/><key macro="year"/></sort>
+    <layout suffix=".">
+      <group delimiter=". ">
+        <group delimiter=": "><group delimiter=", "><text macro="contributors"/><text macro="year"/></group><choose><if type="book"><text variable="title" font-style="italic"/></if><else><text variable="title"/></else></choose></group>
+        <choose>
+          <if type="book">
+            <group delimiter=", "><text macro="edition"/><text variable="publisher"/><text macro="book-pages"/></group>
+          </if>
+          <else>
+            <group delimiter=", "><text variable="container-title" form="short" font-style="italic"/><text variable="volume" font-weight="bold"/><text variable="page"/></group>
+          </else>
+        </choose>
+      </group>
+    </layout>
+  </bibliography>
+</style>

@@ -37,6 +37,7 @@ OUT = ROOT / "release"
 BUILD = ROOT / "build" / "epub"
 SRC = ROOT / "src"
 CSS = SRC / "layout" / "wave-epub.css"
+AMS_CSL = SRC / "layout" / "wave-ams.csl"
 EPUB = OUT / "wave-motions.epub"
 COVER_DIR = BUILD / "cover"
 COVER_PDF = COVER_DIR / "cover.pdf"
@@ -202,6 +203,8 @@ def build_epub(inputs: list[Path], metadata: Path) -> None:
             "--split-level=1",
             "--mathml",
             "--citeproc",
+            "--csl",
+            str(AMS_CSL),
             f"--bibliography={SRC / 'references.bib'}",
             "--metadata-file",
             str(metadata),

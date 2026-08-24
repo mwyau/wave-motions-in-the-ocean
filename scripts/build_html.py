@@ -45,6 +45,7 @@ OUT = ROOT / "release"
 ASSETS = OUT / "assets"
 VENDOR_CACHE = ROOT / "build" / "html-vendor"
 HTML_TEMPLATE = SRC / "layout" / "wave-html.html"
+AMS_CSL = SRC / "layout" / "wave-ams.csl"
 SOCIAL_PREVIEW_TEMPLATE = SRC / "layout" / "social-preview.tex"
 COVER_SOURCE = SRC / "cover-modern.tex"
 SOCIAL_PREVIEW = ASSETS / "social-preview.png"
@@ -897,6 +898,8 @@ def build_references(source_dir: Path) -> None:
             str(HTML_TEMPLATE),
             *template_variable_args(template_variables(OUT / "references.html")),
             "--citeproc",
+            "--csl",
+            str(AMS_CSL),
             f"--bibliography={SRC / 'references.bib'}",
             "--metadata",
             "title=References",
