@@ -24,15 +24,16 @@
   \draw[line width=0.82pt,samples=460,smooth,domain=4.55:8.55,variable=\x]
     plot (\x,{5.15+0.70*exp(-0.72*(\x-6.55)*(\x-6.55))*cos(360*(\x-6.55)/\lamtwo)});
 
-  % Wavelength markers use the same exact display wavelengths as the carriers.
-  \draw[line width=0.48pt] ({2.02-\lamone/2},5.78) -- ({2.02-\lamone/2},5.38);
-  \draw[line width=0.48pt] ({2.02+\lamone/2},5.78) -- ({2.02+\lamone/2},5.38);
-  \draw[<->,line width=0.52pt] ({2.02-\lamone/2},5.67) -- ({2.02+\lamone/2},5.67);
+  % Wavelength markers measure from the center crest to its immediately adjacent
+  % crest on the left, using the same exact display wavelengths as the carriers.
+  \draw[line width=0.48pt] ({2.02-\lamone},5.78) -- ({2.02-\lamone},5.38);
+  \draw[line width=0.48pt] (2.02,5.78) -- (2.02,5.38);
+  \draw[<->,line width=0.52pt] ({2.02-\lamone},5.67) -- (2.02,5.67);
   \node[above] at (2.02,5.66) {$\lambda_1$};
-  \draw[line width=0.48pt] ({6.55-\lamtwo/2},5.96) -- ({6.55-\lamtwo/2},5.52);
-  \draw[line width=0.48pt] ({6.55+\lamtwo/2},5.96) -- ({6.55+\lamtwo/2},5.52);
-  \draw[<->,line width=0.52pt] ({6.55-\lamtwo/2},5.83) -- ({6.55+\lamtwo/2},5.83);
-  \node[above] at (6.55,5.82) {$\lambda_2$};
+  \draw[line width=0.48pt] ({6.55-\lamtwo},6.23) -- ({6.55-\lamtwo},5.72);
+  \draw[line width=0.48pt] (6.55,6.23) -- (6.55,5.72);
+  \draw[<->,line width=0.52pt] ({6.55-\lamtwo},6.08) -- (6.55,6.08);
+  \node[above] at (6.55,6.07) {$\lambda_2$};
   \node at (8.05,5.72) {$\lambda_1>\lambda_2$};
 
   \draw[line width=0.78pt,samples=100,smooth,domain=0.02:4.05,variable=\x]
