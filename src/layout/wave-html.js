@@ -1,5 +1,6 @@
 (() => {
   const root = document.documentElement;
+  root.dataset.mathSetup = "";
   const themeKey = "wave-theme";
   const themeModes = ["auto", "light", "dark"];
   const themeNames = { auto: "Device", light: "Light", dark: "Dark" };
@@ -44,13 +45,13 @@
   });
 
   const textSizeKey = "wave-text-size";
-  const textSizeModes = ["small", "default", "large"];
+  const textSizeActions = ["decrease", "reset", "increase"];
   const textSizeMin = 50;
   const textSizeMax = 200;
   const textSizeStep = 10;
   const textSizeDefault = 100;
   const legacyTextSizes = { small: 90, default: 100, large: 110 };
-  const textSizeButtons = document.querySelectorAll("[data-text-size-option]");
+  const textSizeButtons = document.querySelectorAll("[data-text-size-action]");
   const textSizeToggle = document.querySelector("[data-text-size-toggle]");
   const textSizeValue = document.querySelector("[data-text-size-value]");
 
@@ -80,13 +81,9 @@
     }
     root.style.setProperty("--wave-toolbar-text-size", `"${textSizePercent}%"`);
     textSizeButtons.forEach((button) => {
-      const mode = button.dataset.textSizeOption;
-      button.setAttribute(
-        "aria-pressed",
-        String(mode === "default" && textSizePercent === textSizeDefault),
-      );
-      if (mode === "small") button.disabled = textSizePercent <= textSizeMin;
-      if (mode === "large") button.disabled = textSizePercent >= textSizeMax;
+      const action = button.dataset.textSizeAction;
+      if (action === "decrease") button.disabled = textSizePercent <= textSizeMin;
+      if (action === "increase") button.disabled = textSizePercent >= textSizeMax;
     });
     if (textSizeValue) textSizeValue.textContent = `${textSizePercent}%`;
     if (textSizeToggle) {
@@ -115,12 +112,12 @@
 
   textSizeButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      const mode = button.dataset.textSizeOption;
-      if (!textSizeModes.includes(mode)) return;
+      const action = button.dataset.textSizeAction;
+      if (!textSizeActions.includes(action)) return;
       const anchor = visibleContentAnchor();
-      if (mode === "small") {
+      if (action === "decrease") {
         textSizePercent = Math.max(textSizeMin, textSizePercent - textSizeStep);
-      } else if (mode === "large") {
+      } else if (action === "increase") {
         textSizePercent = Math.min(textSizeMax, textSizePercent + textSizeStep);
       } else {
         textSizePercent = textSizeDefault;
@@ -148,7 +145,10 @@
   } catch (_) {}
   const requestedMathMode = params.get("math");
   let mathUrlOverride = mathModes.includes(requestedMathMode) ? requestedMathMode : null;
-  const initialMathMode = mathUrlOverride || savedMathMode;
+  const bootstrapMathMode = mathModes.includes(root.dataset.initialMath)
+    ? root.dataset.initialMath
+    : savedMathMode;
+  const initialMathMode = mathUrlOverride || bootstrapMathMode;
   let mathMode = initialMathMode;
   const mathCycle = document.querySelector("[data-math-cycle]");
   const mathLabels = document.querySelectorAll("[data-math-label]");
@@ -172,7 +172,13 @@
       `Rendering: ${mathNames[mathMode]}; switch to ${mathNames[nextMode]}`,
     );
     mathCycle.title = `Rendering: ${mathNames[mathMode]}`;
+  };
+
+  const markMathReady = (mode) => {
+    root.dataset.mathRenderer = mode;
+    root.removeAttribute("data-math-pending");
     root.dataset.mathReady = "";
+    root.dispatchEvent(new Event("wave-math-ready"));
   };
 
   const updateReaderLinks = () => {
@@ -238,20 +244,33 @@
     } catch (_) {}
   };
 
-  const applyMathMode = (target, { persist = false, updateUrl = false } = {}) => {
+  const applyMathMode = (
+    target,
+    { persist = false, updateUrl = false, initial = false } = {},
+  ) => {
     if (target === "mathml") {
       mathMode = target;
       showMathMode(mathMode);
       syncMathControl();
+      markMathReady(mathMode);
       if (persist) persistMathMode(mathMode);
       if (updateUrl) updateReaderUrl();
       updateReaderLinks();
       return Promise.resolve(true);
     }
+    if (initial && root.hasAttribute("data-math-fallback")) {
+      mathMode = "mathml";
+      showMathMode(mathMode);
+      syncMathControl();
+      markMathReady(mathMode);
+      updateReaderLinks();
+      return Promise.resolve(false);
+    }
     return typesetMathJaxIfNeeded().then((ready) => {
       mathMode = ready ? "mathjax" : "mathml";
       showMathMode(mathMode);
       syncMathControl();
+      markMathReady(mathMode);
       if (ready && persist) persistMathMode(mathMode);
       if (updateUrl) updateReaderUrl();
       updateReaderLinks();
@@ -271,7 +290,7 @@
       });
     });
   }
-  applyMathMode(initialMathMode);
+  const initialMathReady = applyMathMode(initialMathMode, { initial: true });
 
   const copyText = async (text) => {
     try {
@@ -406,6 +425,18 @@
   installSettingsPopover(appearancePanel, themeToggle);
   installSettingsPopover(textSizePanel, textSizeToggle);
 
+  const updateAnchorOffset = () => {
+    if (!readerHeader) return;
+    const headerHeight = readerHeader.getBoundingClientRect().height;
+    if (!Number.isFinite(headerHeight) || headerHeight <= 0) return;
+    const rootFontSize = Number.parseFloat(getComputedStyle(root).fontSize) || 16;
+    const gutter = Math.max(12, Math.min(24, Math.round(rootFontSize * 0.75)));
+    root.style.setProperty(
+      "--wave-anchor-offset",
+      `${Math.ceil(headerHeight + gutter)}px`,
+    );
+  };
+
   const updateContentsTop = () => {
     const gutter = 16;
     const headerBottom = readerHeader?.getBoundingClientRect().bottom ?? 0;
@@ -470,6 +501,7 @@
   }
 
   const updateContentsLayout = () => {
+    updateAnchorOffset();
     updateContentsTop();
     if (settingsIsOpen(appearancePanel)) positionSettings(appearancePanel, themeToggle);
     if (settingsIsOpen(textSizePanel)) positionSettings(textSizePanel, textSizeToggle);
@@ -478,6 +510,9 @@
   };
   updateContentsLayout();
   addEventListener("resize", updateContentsLayout, { passive: true });
+  if (readerHeader && "ResizeObserver" in window) {
+    new ResizeObserver(() => updateContentsLayout()).observe(readerHeader);
+  }
 
   let contentsScrollFrame = 0;
   addEventListener(
@@ -491,6 +526,32 @@
     },
     { passive: true },
   );
+
+  const fragmentTarget = () => {
+    let id = "";
+    try {
+      id = decodeURIComponent(location.hash.slice(1));
+    } catch (_) {}
+    return id ? document.getElementById(id) : null;
+  };
+
+  const alignFragmentTarget = () => {
+    const target = fragmentTarget();
+    if (!target || !/^H[1-3]$/.test(target.tagName)) return;
+    const offset = Number.parseFloat(getComputedStyle(target).scrollMarginTop);
+    if (!Number.isFinite(offset)) return;
+    const delta = target.getBoundingClientRect().top - offset;
+    if (Math.abs(delta) > 1) scrollBy(0, delta);
+  };
+
+  const alignFragmentAfterLayout = () => {
+    requestAnimationFrame(() => {
+      updateContentsLayout();
+      requestAnimationFrame(alignFragmentTarget);
+    });
+  };
+
+  initialMathReady.then(alignFragmentAfterLayout);
 
   const links = new Map();
   document.querySelectorAll("a[data-section-link]").forEach((link) => {
@@ -535,7 +596,8 @@
     return headingById.get(hashId) || null;
   };
   const activeHeadingFromPosition = () => {
-    const threshold = Number.parseFloat(getComputedStyle(headings[0]).scrollMarginTop) || 0;
+    const threshold =
+      (Number.parseFloat(getComputedStyle(headings[0]).scrollMarginTop) || 0) + 2;
     return (
       headings
         .filter((heading) => heading.getBoundingClientRect().top <= threshold)
@@ -550,7 +612,10 @@
   };
 
   syncActiveFromLocation();
-  addEventListener("hashchange", syncActiveFromLocation);
+  addEventListener("hashchange", () => {
+    syncActiveFromLocation();
+    alignFragmentAfterLayout();
+  });
 
   let activeScrollFrame = 0;
   addEventListener(

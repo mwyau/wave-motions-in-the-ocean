@@ -95,6 +95,21 @@ def test_toolbar_labels_use_deterministic_spacing() -> None:
     )
 
 
+def test_text_size_controls_are_numeric_actions() -> None:
+    template = (
+        Path(__file__).resolve().parents[1] / "src" / "layout" / "wave-html.html"
+    ).read_text()
+
+    assert 'data-text-size-action="decrease"' in template
+    assert 'data-text-size-action="reset"' in template
+    assert 'data-text-size-action="increase"' in template
+    assert 'aria-label="Decrease text size"' in template
+    assert 'aria-label="Reset text size to 100%"' in template
+    assert 'aria-label="Increase text size"' in template
+    assert "data-text-size-option" not in template
+    assert 'data-text-size-action="decrease" aria-pressed' not in template
+
+
 def test_facsimile_log_parser_reads_boundaries_and_shipouts() -> None:
     log = (
         "FACSIMILE_B n=1 p=1 s=12.50pt\n"
@@ -156,4 +171,18 @@ def test_mathml_alignment_requires_normalized_boundary_columns() -> None:
 
     assert validate_mathml_alignment(valid) == (1, 1)
     with pytest.raises(ValueError, match="unintended 4-column table"):
+        validate_mathml_alignment(invalid)
+
+
+def test_mathml_alignment_requires_explicit_columns_for_aligned() -> None:
+    invalid = (
+        '<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">'
+        "<semantics><mtable>"
+        "<mtr><mtd><mi>a</mi></mtd><mtd><mo>=</mo><mn>1</mn></mtd></mtr>"
+        '</mtable><annotation encoding="application/x-tex">'
+        r"\begin{aligned}a&amp;=1\end{aligned}"
+        "</annotation></semantics></math>"
+    )
+
+    with pytest.raises(ValueError, match="incorrect column alignment"):
         validate_mathml_alignment(invalid)

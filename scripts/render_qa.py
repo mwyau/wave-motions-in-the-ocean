@@ -50,7 +50,7 @@ MATHML_ANNOTATION_RE = re.compile(
     re.DOTALL | re.IGNORECASE,
 )
 MATHML_NS = "http://www.w3.org/1998/Math/MathML"
-MATH_PARITY_TEXT_SIZES = ("small", "default", "large")
+MATH_PARITY_TEXT_SIZES = ("50%", "100%", "200%")
 MATH_PARITY_VIEWPORTS = ((390, 844), (768, 1000), (1440, 1200))
 MATHML_COMPARISON_ROUTE = "/__render-qa__/mathml-mathjax-comparison.html"
 CHAPTER5_BOUNDARY_RE = re.compile(r"&&\\text\{(?:at|as)\}z=", re.IGNORECASE)
@@ -284,6 +284,7 @@ def html_local_refs(page: Path) -> list[str]:
 
 
 def detect_browser(explicit: str | None) -> str | None:
+    explicit = explicit or os.environ.get("WAVE_CHROMIUM")
     if explicit:
         return explicit if Path(explicit).exists() else shutil.which(explicit)
     for command in (
@@ -455,7 +456,7 @@ def math_parity_jobs(
 ) -> list[tuple[str, str, int, int, bool]]:
     return [
         (
-            f"math-parity-{width}-{text_size}.png",
+            f"math-parity-{width}-{text_size.replace('%', '')}.png",
             f"{route}?{urllib.parse.urlencode({'text-size': text_size})}",
             width,
             height,
@@ -552,14 +553,20 @@ def mathml_comparison_specimen(
     selected: list[tuple[str, dict[str, object]]] = []
     selected_ids: set[tuple[str, int]] = set()
 
-    def choose(label: str, predicate) -> None:
+    def choose(label: str, predicate) -> bool:
         for pair in pairs:
             identity = (str(pair["page"]), int(pair["index"]))
             if identity in selected_ids or not predicate(pair):
                 continue
             selected.append((label, pair))
             selected_ids.add(identity)
-            return
+            return True
+        return False
+
+    def choose_if_present(label: str, predicate, requirement: str) -> None:
+        available = any(predicate(pair) for pair in pairs)
+        if available and not choose(label, predicate):
+            report.add("ERROR", "HTML", requirement)
 
     choose("Simple inline", lambda pair: pair["kind"] == "inline")
     chapter5_boundary = next(
@@ -608,7 +615,7 @@ def mathml_comparison_specimen(
     )
     if root_pair is not None:
         choose("Root", lambda pair, root_pair=root_pair: pair is root_pair)
-    choose(
+    choose_if_present(
         "Ordinary align",
         lambda pair: (
             pair["kind"] == "display"
@@ -616,19 +623,35 @@ def mathml_comparison_specimen(
             and r"&&" not in str(pair["source"])
             and pair["width"] == 2
         ),
+        "ordinary multi-line aligned math could not be selected for the required "
+        "MathML/MathJax render-QA specimen",
     )
-    choose(
+    choose_if_present(
+        "Multi-pair aligned",
+        lambda pair: (
+            pair["kind"] == "display"
+            and r"\begin{aligned}" in str(pair["source"])
+            and pair["width"] >= 4
+        ),
+        "multi-pair aligned math could not be selected for the required "
+        "MathML/MathJax render-QA specimen",
+    )
+    choose_if_present(
         "Cases/array",
         lambda pair: (
             r"\begin{cases}" in str(pair["source"])
             or r"\begin{array}" in str(pair["source"])
         ),
+        "cases/array math could not be selected for the MathML/MathJax "
+        "render-QA specimen",
     )
-    choose(
+    choose_if_present(
         "Numbered wavealign",
         lambda pair: (
             bool(pair["numbered"]) and r"\begin{aligned}" in str(pair["source"])
         ),
+        "numbered aligned math could not be selected for the required "
+        "MathML/MathJax render-QA specimen",
     )
     longest_display = max(
         (pair for pair in pairs if pair["kind"] == "display"),
@@ -671,12 +694,16 @@ def mathml_comparison_specimen(
     page.parent.mkdir(parents=True, exist_ok=True)
     page.write_text(
         "<!doctype html>\n"
-        '<html lang="en-US" data-text-size="default"><head><meta charset="utf-8">'
+        '<html lang="en-US"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width, initial-scale=1">'
         "<script>"
-        "const textSizes = new Set(['small', 'default', 'large']);"
+        "const textSizePercentages = new Set(['50%', '100%', '200%']);"
         "const requestedTextSize = new URLSearchParams(location.search).get('text-size');"
-        "if (textSizes.has(requestedTextSize)) document.documentElement.dataset.textSize = requestedTextSize;"
+        "if (textSizePercentages.has(requestedTextSize)) {"
+        "const numericTextSize = Number.parseInt(requestedTextSize, 10);"
+        "document.documentElement.style.setProperty('--wave-text-scale', String(numericTextSize / 100));"
+        "document.documentElement.style.setProperty('--wave-toolbar-text-size', `\"${requestedTextSize}\"`);"
+        "}"
         "</script>"
         "<title>MathJax and native MathML comparison</title>"
         '<link rel="stylesheet" href="/assets/wave.css">'
@@ -790,7 +817,7 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
         )
         lines.append(
             "- Math parity screenshot matrix: 390px, 768px, and 1440px at "
-            "small/default/large text size (9 jobs)"
+            "50%/100%/200% text size (9 jobs)"
         )
 
     if browser:
@@ -799,14 +826,55 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
         qa_pages = (
             {MATHML_COMPARISON_ROUTE: specimen_page}
             if specimen_page is not None
-            else None
+            else {}
         )
+        fragment_case = first_section_case(dist / "chapter4.html")
+        if fragment_case is not None:
+            section_id, _section_title = fragment_case
+            fragment_wrapper = report.out / "html" / "fragment-chapter4.html"
+            fragment_wrapper.write_text(
+                "<!doctype html><html><head>"
+                '<meta name="viewport" content="width=device-width, initial-scale=1">'
+                "<style>html,body,iframe{width:100%;height:100%;margin:0;border:0;display:block;overflow:hidden}</style>"
+                "</head><body>"
+                f'<iframe src="/chapter4.html#{urllib.parse.quote(section_id)}" title="Fragment QA"></iframe>'
+                "</body></html>"
+            )
+            qa_pages["/__render-qa__/fragment-chapter4.html"] = fragment_wrapper
         with local_server(dist, qa_pages=qa_pages) as base:
             jobs = []
             for name in EXPECTED_HTML:
                 jobs.append((f"desktop-{Path(name).stem}.png", name, 1440, 1000, False))
                 jobs.append((f"mobile-{Path(name).stem}.png", name, 390, 844, False))
             jobs.append(("dark-chapter4.png", "chapter4.html", 390, 844, True))
+            if fragment_case is not None:
+                for width, height in (
+                    (360, 844),
+                    (390, 844),
+                    (430, 900),
+                    (768, 1000),
+                    (1440, 1000),
+                ):
+                    jobs.append(
+                        (
+                            f"fragment-chapter4-{width}.png",
+                            "__render-qa__/fragment-chapter4.html",
+                            width,
+                            height,
+                            False,
+                        )
+                    )
+                for width, height in ((360, 844), (390, 844), (430, 900)):
+                    for mode in ("mathml", "mathjax"):
+                        jobs.append(
+                            (
+                                f"renderer-{mode}-{width}.png",
+                                f"chapter4.html?math={mode}",
+                                width,
+                                height,
+                                False,
+                            )
+                        )
             if specimen_page is not None:
                 jobs.extend(math_parity_jobs())
             failures = 0
@@ -840,7 +908,6 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
                     f"({len(jobs)} cases)"
                 )
 
-            fragment_case = first_section_case(dist / "chapter4.html")
             if fragment_case is None:
                 report.add(
                     "ERROR",
@@ -1031,7 +1098,7 @@ def epub_qa(dist: Path, report: Report) -> None:
         "- representative aligned/display equations and chapter-based equation numbers;",
         "- long-equation behavior at narrow portrait width and at large font size;",
         "- SVG/raster figures, captions, tables, links, selection/search around math;",
-        "- small/default/large font sizes and light/dark/sepia themes where supported.",
+        "- 50%/100%/200% font sizes and light/dark/sepia themes where supported.",
         "The unpacked XHTML/CSS above is for DOM diagnosis only; browser rendering is not an EPUB-reader acceptance test.",
     ]
     report.section("EPUB structural/render audit", lines)

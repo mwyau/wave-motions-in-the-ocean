@@ -77,7 +77,7 @@ def test_math_specimen_uses_audit_page_and_virtual_arbitrary_root(
     assert 'href="/assets/wave.css"' in specimen
     assert 'src="/assets/mathjax/tex-chtml-full.js"' in specimen
     assert '<main id="main-content">' in specimen
-    assert 'data-text-size="default"' in specimen
+    assert "--wave-text-scale" in specimen
     for text_size in render_qa.MATH_PARITY_TEXT_SIZES:
         assert f"'{text_size}'" in specimen
     assert "../../../release/" not in specimen
@@ -87,7 +87,7 @@ def test_math_specimen_uses_audit_page_and_virtual_arbitrary_root(
         dist, qa_pages={render_qa.MATHML_COMPARISON_ROUTE: page}
     ) as base:
         with urllib.request.urlopen(
-            f"{base}{render_qa.MATHML_COMPARISON_ROUTE}?text-size=large"
+            f"{base}{render_qa.MATHML_COMPARISON_ROUTE}?text-size=200%25"
         ) as response:
             served_specimen = response.read().decode()
         with urllib.request.urlopen(f"{base}/assets/wave.css") as response:
@@ -102,7 +102,7 @@ def test_math_parity_jobs_cover_widths_and_reader_text_sizes() -> None:
 
     assert len(jobs) == 9
     assert [job[0] for job in jobs] == [
-        f"math-parity-{width}-{text_size}.png"
+        f"math-parity-{width}-{text_size.replace('%', '')}.png"
         for width, _height in render_qa.MATH_PARITY_VIEWPORTS
         for text_size in render_qa.MATH_PARITY_TEXT_SIZES
     ]
@@ -111,6 +111,14 @@ def test_math_parity_jobs_cover_widths_and_reader_text_sizes() -> None:
         urllib.parse.parse_qs(urllib.parse.urlsplit(job[1]).query)["text-size"][0]
         for job in jobs
     } == set(render_qa.MATH_PARITY_TEXT_SIZES)
+
+
+def test_detect_browser_honors_wave_chromium(monkeypatch, tmp_path: Path) -> None:
+    browser = tmp_path / "chromium"
+    browser.write_text("")
+    monkeypatch.setenv("WAVE_CHROMIUM", str(browser))
+
+    assert render_qa.detect_browser(None) == str(browser)
 
 
 def test_math_specimen_requires_chapter5_boundary_alignment(tmp_path: Path) -> None:

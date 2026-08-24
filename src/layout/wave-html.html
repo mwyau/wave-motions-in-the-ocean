@@ -27,7 +27,13 @@
       const root = document.documentElement;
       root.classList.remove("no-js");
       root.classList.add("js");
-      let initialMathMode = "mathjax";
+      const requestedMathMode = new URLSearchParams(location.search).get("math");
+      const hasValidMathOverride =
+        requestedMathMode === "mathjax" || requestedMathMode === "mathml";
+      let initialMathMode =
+        hasValidMathOverride
+          ? requestedMathMode
+          : "mathjax";
       try {
         const savedTheme = localStorage.getItem("wave-theme");
         if (savedTheme === "light" || savedTheme === "dark") {
@@ -48,15 +54,25 @@
         }
         root.style.setProperty("--wave-toolbar-text-size", `"${validTextSize}%"`);
 
-        const requestedMathMode = new URLSearchParams(location.search).get("math");
         const savedMathMode = localStorage.getItem("wave-math-renderer");
-        if (requestedMathMode === "mathjax" || requestedMathMode === "mathml") {
-          initialMathMode = requestedMathMode;
-        } else if (savedMathMode === "mathml") {
+        if (!hasValidMathOverride && savedMathMode === "mathml") {
           initialMathMode = "mathml";
         }
       } catch (_) {}
       root.dataset.initialMath = initialMathMode;
+      if (initialMathMode !== "mathjax") return;
+
+      root.dataset.mathPending = "";
+      window.setTimeout(() => {
+        if (root.hasAttribute("data-math-ready")) return;
+        root.dataset.mathFallback = "";
+        root.removeAttribute("data-math-pending");
+        root.dataset.mathReady = "";
+        root.dataset.tocReady = "";
+        document.querySelectorAll("[data-math-renderer]").forEach((node) => {
+          node.hidden = node.dataset.mathRenderer === "mathjax";
+        });
+      }, 10000);
     })();
   </script>
   <style>
@@ -82,12 +98,12 @@
     </span>
     <span class="book-controls book-nav-end">
       <a class="next-link" href="$next_url$"$if(next_url)$$else$ hidden$endif$ aria-label="Next: $next_label$"><span class="nav-long">$next_label$ →</span><span class="nav-short">Next →</span></a>
-      <button class="math-renderer-cycle reader-cycle" type="button" data-math-cycle>
+      <button class="math-renderer-cycle reader-cycle js-only" type="button" data-math-cycle>
         <span class="control-wide"><span class="rendering-label">Rendering:&nbsp;</span><span class="math-label-bootstrap math-label-static">MathML</span><span class="math-label-bootstrap math-label-mathjax">MathJax</span><span class="math-label-bootstrap math-label-mathml">MathML</span><span class="math-label-runtime" data-math-label>MathML</span></span>
         <span class="control-compact"><span class="math-label-bootstrap math-label-static">MathML</span><span class="math-label-bootstrap math-label-mathjax">MathJax</span><span class="math-label-bootstrap math-label-mathml">MathML</span><span class="math-label-runtime" data-math-label>MathML</span></span>
       </button>
-      <button class="text-size-toggle reader-cycle" type="button" popovertarget="text-size-settings" aria-controls="text-size-settings" aria-haspopup="dialog" aria-expanded="false" data-text-size-toggle aria-label="Text size"><span class="control-wide">Text size:&nbsp;<span class="toolbar-text-size"></span></span><span class="text-size-icon control-compact" aria-hidden="true"><span class="text-size-icon-large">A</span><span class="text-size-icon-small">A</span></span></button>
-      <button class="theme-cycle reader-cycle" type="button" popovertarget="appearance-settings" aria-controls="appearance-settings" aria-haspopup="dialog" aria-expanded="false" data-theme-cycle><span class="control-wide">Theme:&nbsp;<span class="toolbar-theme-value"></span></span><span class="control-compact">Theme</span></button>
+      <button class="text-size-toggle reader-cycle js-only" type="button" popovertarget="text-size-settings" aria-controls="text-size-settings" aria-haspopup="dialog" aria-expanded="false" data-text-size-toggle aria-label="Text size"><span class="control-wide">Text size:&nbsp;<span class="toolbar-text-size"></span></span><span class="text-size-icon control-compact" aria-hidden="true"><span class="text-size-icon-large">A</span><span class="text-size-icon-small">A</span></span></button>
+      <button class="theme-cycle reader-cycle js-only" type="button" popovertarget="appearance-settings" aria-controls="appearance-settings" aria-haspopup="dialog" aria-expanded="false" data-theme-cycle><span class="control-wide">Theme:&nbsp;<span class="toolbar-theme-value"></span></span><span class="control-compact">Theme</span></button>
     </span>
   </nav>
 </header>
@@ -105,9 +121,9 @@
   <div class="appearance-inner">
     <strong class="appearance-title" id="text-size-heading">Text size</strong>
     <div class="appearance-options text-size-options">
-      <button class="appearance-option" type="button" data-text-size-option="small" aria-label="Smaller text" aria-pressed="false">A−</button>
-      <button class="appearance-option" type="button" data-text-size-option="default" aria-label="Default text size" aria-pressed="true">A</button>
-      <button class="appearance-option" type="button" data-text-size-option="large" aria-label="Larger text" aria-pressed="false">A+</button>
+      <button class="appearance-option js-only" type="button" data-text-size-action="decrease" aria-label="Decrease text size">A−</button>
+      <button class="appearance-option js-only" type="button" data-text-size-action="reset" aria-label="Reset text size to 100%">A</button>
+      <button class="appearance-option js-only" type="button" data-text-size-action="increase" aria-label="Increase text size">A+</button>
     </div>
     <output class="text-size-value" data-text-size-value aria-live="polite">100%</output>
   </div>
@@ -115,7 +131,7 @@
 <aside class="book-contents-rail" aria-label="Contents" data-book-toc-rail data-toc-scope hidden>
   <div class="book-contents-toolbar">
     <strong class="book-contents-title">Contents</strong>
-    <button class="toc-expand" type="button" data-toc-expand>Expand all</button>
+    <button class="toc-expand js-only" type="button" data-toc-expand>Expand all</button>
   </div>
   <nav class="book-contents-nav" aria-label="Book contents">
     $book_toc$
@@ -126,7 +142,7 @@
     <div class="book-contents-toolbar">
       <strong class="book-contents-title" id="book-contents-heading">Contents</strong>
       <span class="book-contents-actions">
-        <button class="toc-expand" type="button" data-toc-expand>Expand all</button>
+        <button class="toc-expand js-only" type="button" data-toc-expand>Expand all</button>
         <button class="toc-close" type="button" popovertarget="book-contents" popovertargetaction="hide" aria-label="Close contents">Close</button>
       </span>
     </div>

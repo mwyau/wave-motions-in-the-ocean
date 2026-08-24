@@ -117,7 +117,8 @@ LOCAL_MATHJAX_URL = "assets/mathjax/tex-chtml-full.js"
 HTML_DOWNLOADS = tuple(
     item for item in DOWNLOADS if item[0] != "wave-motions-facsimile.pdf"
 )
-TEXT_SIZE_MODES = ("small", "default", "large")
+TEXT_SIZE_ACTIONS = ("decrease", "reset", "increase")
+TEXT_SIZE_PERCENTAGES = ("50%", "100%", "200%")
 FRONTMATTER_SECTIONS = (
     ("preface-david-c-chapman", "Preface — David C. Chapman"),
     ("preface-paola-malanotte-rizzoli", "Preface — Paola Malanotte-Rizzoli"),
@@ -457,18 +458,45 @@ def validate_offline_runtime(root: Path) -> None:
     )
 
 
-def validate_mathml_alignment(text: str) -> tuple[int, int]:
-    """Check that generated trailing-condition alignments use two columns."""
+def validate_mathml_alignment(
+    text: str, *, require_aligned: bool = False
+) -> tuple[int, int]:
+    """Check generated ``aligned`` columns and trailing conditions."""
     ns = f"{{{MATHML_NS}}}"
     boundary_tables = 0
     normalized_tables = 0
+    aligned_tables = 0
     for markup in MATHML_ELEMENT_RE.findall(text):
         try:
             root = ET.fromstring(markup)
         except ET.ParseError as exc:
             raise ValueError(f"generated MathML is not XML: {exc}") from exc
+        annotation_text = " ".join(
+            " ".join("".join(node.itertext()).split())
+            for node in root.findall(f".//{ns}annotation")
+        )
+        aligned_semantics = r"\begin{aligned}" in annotation_text
+        aligned_tables_in_math = (
+            root.findall(f"./{ns}semantics/{ns}mtable") if aligned_semantics else []
+        )
         for table in root.findall(f".//{ns}mtable"):
             rows = table.findall(f"{ns}mtr")
+            if table in aligned_tables_in_math:
+                width = max(
+                    (len(row.findall(f"{ns}mtd")) for row in rows),
+                    default=0,
+                )
+                expected = " ".join(
+                    "right" if index % 2 == 0 else "left" for index in range(width)
+                )
+                if width and table.get("columnalign") != expected:
+                    raise ValueError(
+                        "generated MathML aligned table has incorrect column alignment: "
+                        f"expected {expected!r}, got {table.get('columnalign')!r}"
+                    )
+                aligned_tables += 1
+            if annotation_text and not aligned_semantics:
+                continue
             boundary_rows = []
             for row in rows:
                 cells = row.findall(f"{ns}mtd")
@@ -506,6 +534,10 @@ def validate_mathml_alignment(text: str) -> tuple[int, int]:
     if normalized_tables == 0:
         raise ValueError(
             "generated HTML contains no normalized MathML boundary alignment"
+        )
+    if require_aligned and aligned_tables == 0:
+        raise ValueError(
+            "generated HTML contains no representative aligned MathML table"
         )
     return boundary_tables, normalized_tables
 
@@ -584,32 +616,39 @@ def check_html() -> None:
             "HTML Contents popover must remain declaratively usable without JavaScript"
         )
     template_modes = tuple(
-        re.findall(r'data-text-size-option="([^"]+)"', template_text)
+        re.findall(r'data-text-size-action="([^"]+)"', template_text)
     )
-    if template_modes != TEXT_SIZE_MODES:
+    if template_modes != TEXT_SIZE_ACTIONS:
         fail(
-            "HTML template text-size choices are not exactly "
-            f"{TEXT_SIZE_MODES!r}: {template_modes!r}"
+            "HTML template text-size actions are not exactly "
+            f"{TEXT_SIZE_ACTIONS!r}: {template_modes!r}"
         )
     mode_match = re.search(
-        r"const textSizeModes = \[(?P<modes>.*?)\];", script_text, flags=re.DOTALL
+        r"const textSizeActions = \[(?P<modes>.*?)\];", script_text, flags=re.DOTALL
     )
     if mode_match is None:
-        fail("HTML reader JavaScript does not declare text-size modes")
+        fail("HTML reader JavaScript does not declare text-size actions")
     script_modes = tuple(re.findall(r'"([^"]+)"', mode_match.group("modes")))
-    if script_modes != TEXT_SIZE_MODES:
+    if script_modes != TEXT_SIZE_ACTIONS:
         fail(
-            "HTML reader JavaScript text-size choices are not exactly "
-            f"{TEXT_SIZE_MODES!r}: {script_modes!r}"
+            "HTML reader JavaScript text-size actions are not exactly "
+            f"{TEXT_SIZE_ACTIONS!r}: {script_modes!r}"
         )
-    for state in TEXT_SIZE_MODES:
-        if f'[data-text-size="{state}"]' not in css_text:
-            fail(f"HTML stylesheet is missing text-size state: {state}")
-    if (
-        "--wave-text-scale: .94" not in css_text
-        or "--wave-text-scale: 1.12" not in css_text
+    if re.search(r'data-text-size="(?:small|default|large)"', css_text):
+        fail("HTML stylesheet retains legacy named text-size states")
+    if any(
+        marker in css_text
+        for marker in ("--wave-text-scale: .94", "--wave-text-scale: 1.12")
     ):
-        fail("HTML stylesheet is missing Small/Large text-size scales")
+        fail("HTML stylesheet retains legacy text-size scales")
+    if ":root.no-js .js-only" not in css_text:
+        fail("HTML stylesheet does not hide JS-only controls for no-JS readers")
+    if (
+        ':root.js[data-initial-math="mathjax"]:not([data-math-ready]) #main-content'
+        not in css_text
+        or "visibility: hidden" not in css_text
+    ):
+        fail("HTML stylesheet does not gate first-paint MathJax content")
     selector = 'mjx-container[jax="CHTML"][display="true"]'
     if selector not in css_text or "overflow-x: auto" not in css_text:
         fail("HTML stylesheet is missing responsive display-math overflow handling")
@@ -646,7 +685,9 @@ def check_html() -> None:
     if 'data-math-renderer="mathml"' not in combined or "<math " not in combined:
         fail("native MathML alternates are missing from generated HTML")
     try:
-        boundary_tables, normalized_tables = validate_mathml_alignment(combined)
+        boundary_tables, normalized_tables = validate_mathml_alignment(
+            combined, require_aligned=True
+        )
     except ValueError as exc:
         fail(str(exc))
     if LOCAL_MATHJAX_URL not in combined:
@@ -697,9 +738,9 @@ def check_html() -> None:
             'class="book-nav"',
             "data-theme-cycle",
             'id="appearance-settings"',
-            'data-text-size-option="small"',
-            'data-text-size-option="default"',
-            'data-text-size-option="large"',
+            'data-text-size-action="decrease"',
+            'data-text-size-action="reset"',
+            'data-text-size-action="increase"',
             "data-reader-context",
             "data-book-toc-rail",
             "data-toc-scope",
@@ -735,12 +776,16 @@ def check_html() -> None:
                 fail(
                     f"HTML theme choice {mode!r} is not present exactly once in {page.name}"
                 )
-        for mode in TEXT_SIZE_MODES:
-            if text.count(f'data-text-size-option="{mode}"') != 1:
+        for action in TEXT_SIZE_ACTIONS:
+            if text.count(f'data-text-size-action="{action}"') != 1:
                 fail(
-                    f"HTML text-size choice {mode!r} is not present exactly once in {page.name}"
+                    f"HTML text-size action {action!r} is not present exactly once in {page.name}"
                 )
-        for label in ("Smaller text", "Default text size", "Larger text"):
+        for label in (
+            "Decrease text size",
+            "Reset text size to 100%",
+            "Increase text size",
+        ):
             if text.count(f'aria-label="{label}"') != 1:
                 fail(
                     f"HTML text-size accessibility label {label!r} is missing from {page.name}"

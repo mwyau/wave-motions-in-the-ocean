@@ -123,6 +123,7 @@ MATHML_TEX_ANNOTATION_RE = re.compile(
 MATHML_NS = "http://www.w3.org/1998/Math/MathML"
 MATHML_TAG = f"{{{MATHML_NS}}}"
 BOUNDARY_TEXT_RE = re.compile(r"^(?:at|as)\b", re.IGNORECASE)
+ALIGNED_ANNOTATION_RE = re.compile(r"\\begin\{aligned\}")
 ET.register_namespace("", MATHML_NS)
 
 
@@ -287,14 +288,34 @@ def _boundary_mathml_cell(cell: ET.Element) -> bool:
     return False
 
 
+def _mathml_annotation_text(root: ET.Element) -> str:
+    return " ".join(
+        " ".join("".join(node.itertext()).split())
+        for node in root.findall(f".//{MATHML_TAG}annotation")
+    )
+
+
+def _aligned_mathml_tables(root: ET.Element) -> list[ET.Element]:
+    if not ALIGNED_ANNOTATION_RE.search(_mathml_annotation_text(root)):
+        return []
+    semantics = root.find(f"./{MATHML_TAG}semantics")
+    if semantics is not None:
+        tables = semantics.findall(MATHML_TAG + "mtable")
+        if tables:
+            return tables
+    return root.findall(f".//{MATHML_TAG}mtable")[:1]
+
+
 def normalize_mathml_alignment(markup: str) -> str:
-    """Fold generated trailing condition columns into the aligned RHS cell.
+    """Normalize native MathML alignment for generated ``aligned`` tables.
 
     Pandoc/texmath serializes ``lhs &= rhs && \\text{at } condition`` as four
     MathML table cells, including an empty spacer cell.  That extra table
-    column changes how browser MathML centers the whole alignment.  Only the
-    exact trailing-condition shape is normalized; side-by-side alignments,
-    arrays, cases, and ordinary two-column alignments remain unchanged.
+    column changes how browser MathML centers the whole alignment.  Ordinary
+    ``aligned`` tables also need explicit alternating right/left column
+    alignment so native MathML uses the same alignment points as MathJax.
+    The TeX annotation gates both changes; arrays, cases, and unrelated
+    MathML tables remain untouched.
     """
     try:
         root = ET.fromstring(markup)
@@ -302,7 +323,7 @@ def normalize_mathml_alignment(markup: str) -> str:
         raise SystemExit(f"invalid generated MathML: {exc}") from exc
 
     changed = False
-    for table in root.findall(f".//{MATHML_TAG}mtable"):
+    for table in _aligned_mathml_tables(root):
         rows = table.findall(MATHML_TAG + "mtr")
         candidates: list[tuple[ET.Element, list[ET.Element]]] = []
         supported = True
@@ -319,19 +340,29 @@ def normalize_mathml_alignment(markup: str) -> str:
                 break
             candidates.append((row, cells))
 
-        if not supported or not candidates:
-            continue
+        if supported and candidates:
+            for row, cells in candidates:
+                rhs, condition = cells[1], cells[3]
+                combined = ET.Element(MATHML_TAG + "mrow")
+                combined.extend(list(rhs))
+                combined.append(ET.Element(MATHML_TAG + "mspace", {"width": "1em"}))
+                combined.extend(list(condition))
+                rhs[:] = [combined]
+                row.remove(cells[2])
+                row.remove(cells[3])
+                changed = True
 
-        for row, cells in candidates:
-            rhs, condition = cells[1], cells[3]
-            combined = ET.Element(MATHML_TAG + "mrow")
-            combined.extend(list(rhs))
-            combined.append(ET.Element(MATHML_TAG + "mspace", {"width": "1em"}))
-            combined.extend(list(condition))
-            rhs[:] = [combined]
-            row.remove(cells[2])
-            row.remove(cells[3])
-            changed = True
+        width = max(
+            (len(row.findall(MATHML_TAG + "mtd")) for row in rows),
+            default=0,
+        )
+        if width:
+            columnalign = " ".join(
+                "right" if index % 2 == 0 else "left" for index in range(width)
+            )
+            if table.get("columnalign") != columnalign:
+                table.set("columnalign", columnalign)
+                changed = True
 
     if not changed:
         return markup

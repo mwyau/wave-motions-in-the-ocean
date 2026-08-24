@@ -16,6 +16,7 @@
   --wave-reader-base-size: clamp(1.0625rem, 1.02rem + .16vw, 1.125rem);
   --wave-text-scale: 1;
   --wave-toolbar-text-size: "100%";
+  --wave-anchor-offset: calc(5.5rem + env(safe-area-inset-top, 0px));
 }
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] {
@@ -31,10 +32,6 @@
   --wave-control-border: #62686d;
   --wave-selection: #284b62;
 }
-/* Legacy states remain readable for existing saved preferences. */
-:root[data-text-size="small"] { --wave-text-scale: .94; }
-:root[data-text-size="default"] { --wave-text-scale: 1; }
-:root[data-text-size="large"] { --wave-text-scale: 1.12; }
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html {
@@ -64,7 +61,7 @@ h1, h2, h3 {
   line-height: 1.2;
   overflow-wrap: anywhere;
   text-wrap: balance;
-  scroll-margin-top: 5.5rem;
+  scroll-margin-top: var(--wave-anchor-offset, 5.5rem);
 }
 h1 {
   font-size: clamp(
@@ -270,6 +267,10 @@ div.flushright { text-align: right; margin-top: -0.85em; }
 .toolbar-text-size::after { content: var(--wave-toolbar-text-size); }
 .math-label-bootstrap,
 .math-label-runtime { display: none; }
+:root.no-js .js-only { display: none !important; }
+:root.js[data-initial-math="mathjax"]:not([data-math-ready]) #main-content {
+  visibility: hidden;
+}
 :root.no-js .math-label-static { display: inline; }
 :root.js[data-initial-math="mathjax"]:not([data-math-ready]) .math-label-mathjax,
 :root.js[data-initial-math="mathml"]:not([data-math-ready]) .math-label-mathml,
@@ -800,11 +801,6 @@ a:visited { color: var(--wave-visited); }
 }
 @page { margin: 18mm 16mm 20mm; }
 @media print {
-  :root[data-text-size="small"],
-  :root[data-text-size="default"],
-  :root[data-text-size="large"] {
-    --wave-text-scale: 1 !important;
-  }
   :root,
   :root:not([data-theme]),
   :root[data-theme="light"],
