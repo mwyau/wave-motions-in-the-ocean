@@ -1,0 +1,54 @@
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=45; trim=150bp 480bp 140bp 55bp
+% Source: Wave Motions in the Ocean, printed p.35 (physical p.45).
+% Source-traced vector of the three empirical sound-speed profiles.  The source
+% supplies no profile data or unique equation from which these curves can be
+% independently regenerated, so the vector preserves the visible source traces.
+\begin{tikzpicture}[x=1cm,y=1cm,line cap=round,line join=round,font=\small]
+  \path[use as bounding box] (0,0) rectangle (8,6.6);
+
+  % Source axes, ticks, and labels; depth increases downward as in the source.
+  \draw[line width=0.55pt] (1.18,0.68) -- (1.18,5.72);
+  \draw[line width=0.55pt] (1.18,5.72) -- (7.42,5.72);
+  \draw[line width=0.55pt] (2.54,5.72) -- +(0,-0.18);
+  \draw[line width=0.55pt] (4.86,5.72) -- +(0,-0.18);
+  \draw[line width=0.55pt] (1.18,4.48) -- +(0.18,0);
+  \draw[line width=0.55pt] (1.18,0.68) -- +(0.18,0);
+  \node[font=\sffamily\bfseries\itshape] at (4.08,6.27) {$c$ (m/s)};
+  \node[font=\sffamily\bfseries] at (2.54,6.05) {1460};
+  \node[font=\sffamily\bfseries] at (4.86,6.05) {1500};
+  \node[font=\sffamily\bfseries] at (0.83,4.48) {1000};
+  \node[font=\sffamily\bfseries] at (0.83,0.68) {5000};
+  \node[rotate=90,font=\sffamily\bfseries\itshape] at (0.50,3.20) {Depth (m)};
+
+  % Three source-specific profiles, including their shallow-water wiggles.
+  \draw[line width=1.02pt]
+    (3.28,5.72)
+      .. controls (3.13,5.63) and (3.09,5.53) .. (3.18,5.45)
+      .. controls (3.28,5.37) and (3.42,5.44) .. (3.47,5.34)
+      .. controls (3.49,5.25) and (3.34,5.19) .. (3.42,5.08)
+      .. controls (3.63,4.91) and (3.84,4.62) .. (4.04,4.23)
+      .. controls (4.33,3.64) and (4.63,2.94) .. (4.98,2.25)
+      .. controls (5.26,1.69) and (5.51,1.10) .. (5.70,0.68);
+  \draw[line width=1.02pt]
+    (3.47,5.72)
+      .. controls (3.36,5.62) and (3.34,5.52) .. (3.43,5.44)
+      .. controls (3.55,5.34) and (3.65,5.42) .. (3.69,5.31)
+      .. controls (3.72,5.21) and (3.58,5.13) .. (3.67,5.02)
+      .. controls (3.87,4.84) and (4.05,4.58) .. (4.25,4.19)
+      .. controls (4.55,3.61) and (4.86,2.92) .. (5.22,2.21)
+      .. controls (5.51,1.65) and (5.77,1.08) .. (5.97,0.68);
+  \draw[line width=1.02pt]
+    (4.92,5.72)
+      .. controls (4.77,5.62) and (4.68,5.52) .. (4.80,5.42)
+      .. controls (4.94,5.31) and (5.05,5.38) .. (5.10,5.26)
+      .. controls (5.13,5.12) and (4.92,5.04) .. (4.82,4.88)
+      .. controls (4.62,4.55) and (4.65,4.17) .. (4.88,3.78)
+      .. controls (5.18,3.24) and (5.53,2.49) .. (5.92,1.66)
+      .. controls (6.18,1.12) and (6.37,0.82) .. (6.47,0.68);
+
+  % The source arrows identify the profile groups without obscuring the curves.
+  \node[font=\sffamily\bfseries] at (2.32,3.70) {59$^\circ$S};
+  \draw[->,line width=0.55pt] (3.02,3.66) -- (4.20,3.91);
+  \node[font=\sffamily\bfseries] at (6.22,4.20) {44$^\circ$S};
+  \draw[->,line width=0.55pt] (5.78,4.10) -- (4.84,4.18);
+\end{tikzpicture}

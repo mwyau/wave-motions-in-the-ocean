@@ -1,0 +1,36 @@
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=44; trim=170bp 195bp 170bp 397bp
+% Source: Wave Motions in the Ocean, printed p.34 (physical p.44).
+% Source-traced vector of the empirical deep-sound-channel profile.  The chapter
+% gives c(s,T,z), but not the temperature/salinity profile needed to regenerate
+% this exact curve; axes, ticks, curve shape, and labels therefore preserve the
+% source drawing rather than asserting a newly calculated ocean profile.
+\begin{tikzpicture}[x=1cm,y=1cm,line cap=round,line join=round,font=\small]
+  \path[use as bounding box] (0,0) rectangle (8,6);
+
+  % Source axes and displayed tick marks.
+  \draw[line width=0.55pt] (1.25,0.62) -- (1.25,5.15);
+  \draw[line width=0.55pt] (1.25,5.15) -- (6.85,5.15);
+  \draw[line width=0.55pt] (2.65,5.15) -- +(0,-0.18);
+  \draw[line width=0.55pt] (5.05,5.15) -- +(0,-0.18);
+  \draw[line width=0.55pt] (1.25,3.35) -- +(0.18,0);
+  \draw[line width=0.55pt] (1.25,0.62) -- +(0.18,0);
+  \node[font=\sffamily\bfseries\itshape] at (4.02,5.72) {$c$ (m/s)};
+  \node[font=\sffamily\bfseries] at (2.65,5.49) {1490};
+  \node[font=\sffamily\bfseries] at (5.05,5.49) {1500};
+  \node[font=\sffamily\bfseries] at (0.82,3.35) {1200};
+  \node[font=\sffamily\bfseries] at (0.82,0.62) {4000};
+  \node[rotate=90,font=\sffamily\bfseries\itshape] at (0.52,2.88) {Depth (m)};
+
+  % The source-specific sound-speed minimum and deep return are traced with
+  % smooth Bézier segments; no unprovided T(z) or s(z) data are invented.
+  \draw[line width=1.05pt]
+    (5.05,5.15)
+      .. controls (5.04,4.91) and (4.73,4.68) .. (4.26,4.47)
+      .. controls (3.72,4.23) and (2.94,4.08) .. (2.66,3.67)
+      .. controls (2.42,3.31) and (2.48,2.96) .. (2.77,2.56)
+      .. controls (3.08,2.10) and (3.54,1.62) .. (4.03,1.23)
+      .. controls (4.51,0.85) and (4.87,0.67) .. (5.03,0.62);
+
+  \node[align=left,font=\sffamily\bfseries] at (3.72,2.98)
+    {Deep Sound\\Channel};
+\end{tikzpicture}
