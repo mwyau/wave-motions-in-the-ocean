@@ -1,12 +1,28 @@
 # Contributing
 
-Pull requests are welcome. Keep changes focused and include the source page or other evidence when correcting text, equations, references, or figures. Pull requests are merged with rebase merge only.
+Pull requests are welcome. Keep changes focused and include the source page or other evidence when correcting text, equations, references, or figures.
 
-## Setup
+Read `AGENTS.md` before changing reconstructed material.
 
-The reference environment matches publication CI: Ubuntu 26.04, Python from `.python-version`, uv, TinyTeX 2026.08, and the dependencies in `pyproject.toml`/`uv.lock`. Python tooling also works in a compatible ordinary virtual environment.
+## Set up the repository
 
-Install system tools:
+Python tools use [uv](https://docs.astral.sh/uv/).
+
+Install uv, clone the repository, and install the locked dependencies:
+
+```bash
+uv sync --frozen
+```
+
+Install the Git hooks:
+
+```bash
+uv run --frozen prek install
+```
+
+## Install publication tools
+
+On Ubuntu:
 
 ```bash
 sudo apt-get update
@@ -14,84 +30,116 @@ sudo apt-get install -y --no-install-recommends \
   qpdf poppler-utils pandoc xz-utils wget
 ```
 
-Pandoc follows the Ubuntu system package used by publication CI rather than a
-second repository-managed installer. Generated HTML tests compare MathJax and
-native MathML structure and protect against supported texmath serialization
-changes.
+The PDF build uses TinyTeX 2026.08 and LuaLaTeX. See `tex-packages.txt` and the publication CI workflow for the TeX packages used by the project.
 
-Set up Python (uv is recommended, but standard venv works):
+EPUB validation also uses EPUBCheck.
+
+## Install Chromium for HTML render checks
+
+Chromium is needed for visual testing of the HTML edition. It runs headlessly, so a graphical desktop is not required.
+
+Ubuntu distributes Chromium through Snap:
 
 ```bash
-# Using uv (recommended)
-uv sync
-
-# Or standard venv
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
+sudo snap install chromium
+chromium --headless --version
 ```
 
-Install the hooks:
+On Debian:
 
 ```bash
-# Using uv
-uv run prek install
-
-# Or, from an activated pip/venv environment
-prek install
+sudo apt-get update
+sudo apt-get install chromium
+chromium --headless --version
 ```
 
-## Files
-
-- `references/chapman-rizzoli-1989/*.pdf` — original scans; do not modify them.
-- `src/chapter1.tex` through `chapter6.tex` — book text and equations.
-- `src/references.bib` — bibliography.
-- `src/ERRATA.md` — corrections and supporting evidence.
-- `src/FIGURES.md` — figure sources and review status.
-
-## Build and check
-
-Use the caller-selected environment to build editions and run checks:
+If Chromium is installed somewhere else, set:
 
 ```bash
-# Recommended uv path
-uv run make all
-uv run pytest -q
-uv run prek run --all-files
+export WAVE_CHROMIUM=/path/to/chromium
+```
 
-# Or, from an activated pip/venv environment
+Chromium is only needed for browser render checks. It is not needed to edit the book, run unit tests, or run the normal source hooks.
+
+## Run the checks
+
+Run the unit tests:
+
+```bash
+uv run --frozen pytest -q
+```
+
+Run formatting, linting, and repository checks:
+
+```bash
+uv run --frozen prek run --all-files
+```
+
+If a hook changes a file, review the change and run the command again.
+
+## Build the book
+
+Build every edition:
+
+```bash
 make all
-python -m pytest -q
-prek run --all-files
 ```
 
-Alternatively, run `./scripts/build.sh [pdf|html|epub|all]`. The script uses the Python already selected by the caller and does not manage dependencies.
-For the direct all-editions command, use `uv run ./scripts/build.sh all` in the reference environment or `./scripts/build.sh all` from the activated fallback environment.
-
-The individual Make targets remain available for PDF, HTML, EPUB, README, and clean operations.
-
-CI checks that the generated `requirements.txt` still matches the frozen uv export. Regenerate it after dependency changes with:
+Individual targets are also available:
 
 ```bash
-uv export --frozen --format requirements.txt --all-groups --no-hashes --no-header --no-emit-project --output-file requirements.txt
+make pdf
+make html
+make epub
 ```
 
-For figure changes, also run `scripts/compare_figures.py` for the affected figure.
+You can also use the build script directly:
 
-Do not commit `build/`, `release/`, caches, or `audit/` review material.
+```bash
+uv run --frozen ./scripts/build.sh all
+```
+
+## Check HTML rendering
+
+After changing HTML, CSS, JavaScript, MathJax/MathML rendering, or responsive layout, run the render QA described in `skills/render-qa/SKILL.md`.
+
+It uses headless Chromium to check the reader at the supported viewport and text-size combinations.
+
+## Working with the reconstructed text
+
+The main source files are:
+
+- `src/chapter1.tex` through `chapter6.tex` — reconstructed text and equations
+- `src/references.bib` — bibliography
+- `src/ERRATA.md` — proposed and reviewed corrections
+- `src/FIGURES.md` — figure sources and review status
+- `references/chapman-rizzoli-1989/` — original 1989 scans
+
+Use the 1989 scans when checking the reconstruction. Later notes and other references can help check the science, but they do not replace the 1989 source.
+
+For figure changes, run the figure comparison tool for the affected figure.
+
+## Before committing
+
+For most changes:
+
+```bash
+uv run --frozen pytest -q
+uv run --frozen prek run --all-files
+```
+
+For publication changes, also build the affected formats.
+
+For HTML layout or rendering changes, also run the headless Chromium render QA.
+
+Generated files under `build/`, `release/`, `audit/`, and cache directories are not committed.
 
 ## Commits
 
-Before committing, run all hooks:
+Use a short, readable commit subject beginning with a capital letter, for example:
 
-```bash
-# Using uv
-uv run prek run --all-files
-
-# Or, from an activated pip/venv environment
-prek run --all-files
+```text
+Correct chapter 5 dispersion relation
 ```
 
-If a hook changes files, review those changes and rerun the command until all hooks pass. GitHub Actions runs the same checks on pushes and pull requests.
-
-Use a short, readable subject beginning with a capital letter, for example `Correct chapter 5 dispersion relation`. Do not use prefixes such as `ci:`, `docs:`, `feat:`, `fix:`, or `chore:`.
+The repository uses rebase merges for pull requests.

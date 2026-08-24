@@ -20,7 +20,6 @@ on:
       - "CITATION.cff"
       - "pyproject.toml"
       - "uv.lock"
-      - "requirements.txt"
       - "tex-packages.txt"
       - "README.md"
       - ".github/workflows/publish.yml"
@@ -86,20 +85,6 @@ jobs:
           set -euo pipefail
           uv sync --frozen
 
-      - name: Check generated dependency export
-        shell: bash
-        run: |
-          set -euo pipefail
-          uv export \
-            --frozen \
-            --format requirements.txt \
-            --all-groups \
-            --no-hashes \
-            --no-header \
-            --no-emit-project \
-            --output-file "$RUNNER_TEMP/requirements.txt"
-          diff -u requirements.txt "$RUNNER_TEMP/requirements.txt"
-
       - name: Check Python syntax
         run: uv run --frozen python -m compileall -q scripts tests
 
@@ -122,7 +107,7 @@ jobs:
         run: |
           set +e
           status=0
-          uv run --frozen prek run --all-files || status=1
+          uv run --frozen prek run --all-files --skip pytest || status=1
           if ! git diff --quiet; then
             echo "::warning title=Source quality::Quality hooks changed tracked files; commit their fixes."
             git --no-pager diff

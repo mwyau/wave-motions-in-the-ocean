@@ -133,16 +133,18 @@ Do not use numbering changes as an opportunity to alter source equations.
 
 ## Build interface and outputs
 
-Python tooling uses uv as the reference development and CI environment. `pyproject.toml` owns the dependency declarations, `uv.lock` is the exact reference lock, and `requirements.txt` is the generated pip/venv export. The publication scripts and `scripts/build.sh` use the Python selected by the caller, so both `uv run ./scripts/build.sh all` and an activated compatible virtual environment are supported.
+Python tooling uses uv as the only supported development and CI environment. `pyproject.toml` owns the dependency declarations and `uv.lock` is the exact reference lock. Set up with `uv sync --frozen`; run Python tools with `uv run --frozen`. Make targets enter the uv environment themselves, and the direct all-editions command is `uv run --frozen ./scripts/build.sh all`.
 
 Use:
 
 ```bash
-./scripts/build.sh pdf
-./scripts/build.sh html
-./scripts/build.sh epub
-./scripts/build.sh all
+make pdf
+make html
+make epub
+make all
 ```
+
+For a direct script invocation, use `uv run --frozen ./scripts/build.sh all`.
 
 `build/` and `release/` are generated and untracked. `audit/` is the persistent-but-ignored workspace for temporary review artifacts and must survive publication builds. The flat `release/` root is the complete validated publication tree: HTML, assets, the modern PDF, QA facsimile PDF, EPUB, and `SHA256SUMS`. Normal builds do not create `wave-motions-html.zip`.
 
@@ -153,7 +155,7 @@ Generated reader artifacts carry the exact source build identity. Stable release
 After any reconstruction `.tex` change:
 
 ```bash
-python3 scripts/sync_readme.py
+uv run --frozen python scripts/sync_readme.py
 ```
 
 Include resulting README synchronization in the same commit. A coherent local validation is `./scripts/build.sh all`.

@@ -108,7 +108,7 @@ A change that alters a source author name, title, year, citation, quotation, or 
 After source changes, run the relevant build. For a coherent repository batch use:
 
 ```bash
-python3 scripts/sync_readme.py
+uv run --frozen python scripts/sync_readme.py
 ./scripts/build.sh all
 ```
 

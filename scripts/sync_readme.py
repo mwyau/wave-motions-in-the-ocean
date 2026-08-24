@@ -227,7 +227,7 @@ def write_readme(*, check: bool) -> None:
             )
             sys.stderr.write(diff[:16000])
             raise SystemExit(
-                "README.md is out of sync; run: python3 scripts/sync_readme.py"
+                "README.md is out of sync; run: uv run --frozen python scripts/sync_readme.py"
             )
         print("README sync OK")
         return

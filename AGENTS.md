@@ -22,8 +22,8 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 
 - Use the local setup in `CONTRIBUTING.md`; it is kept aligned with the publication CI environment.
 - Before diagnosing build, render, or figure failures, make sure the repository Python environment and pinned TinyTeX/`tex-packages.txt` environment are active. Do not change source content to work around missing local dependencies.
-- uv is the reference development and CI environment; `pyproject.toml` owns Python dependencies, `uv.lock` pins them, and `requirements.txt` is the generated pip/venv export.
-- Python tooling is environment-neutral. Use `uv run` or an activated compatible virtual environment; do not add uv invocation inside repository scripts.
+- uv is the only supported Python development and CI environment; `pyproject.toml` owns Python dependencies and `uv.lock` pins them.
+- Use `uv sync --frozen` for setup and `uv run --frozen` for Python tools. Do not add another dependency manager or ordinary-venv fallback.
 
 ## Global source rule
 
@@ -46,7 +46,7 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 - Agent edits go directly onto the latest `main` as small linear commits unless the owner explicitly requests a branch or PR.
 - For a bounded implementation or audit task, continue through the requested scope rather than stopping after the first item or coherent batch. Stop only at a required human-approval boundary, a genuine unresolved ambiguity, or an environment/tool limitation.
 - Before committing, re-read current `main`; if it moved, reconstruct the change on the new tip.
-- Before every agent commit, run `prek run --all-files` (or `pre-commit run --all-files` if `prek` is unavailable). Review any hook edits and rerun until the command passes.
+- Before every agent commit, run `uv run --frozen prek run --all-files`. Review any hook edits and rerun until the command passes.
 - Never force-push, reset `main` backwards, create merge commits, or overwrite newer work.
 - Do not create agent coordination sessions, claims, handoff branches, or competing workstreams.
 - Never create temporary workflows, trigger files, bot commit paths, or other automation to mutate tracked repository files. Publication automation may build, validate, deploy, and publish artifacts, but it must never edit tracked source or create source commits.

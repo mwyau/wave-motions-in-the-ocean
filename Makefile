@@ -1,5 +1,6 @@
 .DEFAULT_GOAL := all
-PYTHON ?= $(if $(shell command -v uv 2>/dev/null),uv run --frozen python,python3)
+UV ?= uv
+UV_RUN = $(UV) run --frozen
 .PHONY: help readme pdf html epub all clean
 
 help:
@@ -11,19 +12,19 @@ help:
 	  'all            Build all editions' \
 	  'clean          Remove generated artifacts'
 readme:
-	$(PYTHON) scripts/sync_readme.py
+	$(UV_RUN) python scripts/sync_readme.py
 
 pdf:
-	./scripts/build.sh pdf
+	$(UV_RUN) ./scripts/build.sh pdf
 
 html:
-	./scripts/build.sh html
+	$(UV_RUN) ./scripts/build.sh html
 
 epub:
-	./scripts/build.sh epub
+	$(UV_RUN) ./scripts/build.sh epub
 
 all: readme
-	./scripts/build.sh all
+	$(UV_RUN) ./scripts/build.sh all
 
 clean:
 	rm -rf build release
