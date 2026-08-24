@@ -40,13 +40,13 @@ repos:
     hooks:
       - id: sync-readme
         name: Synchronize README
-        entry: uv run --frozen python scripts/sync_readme.py
+        entry: python3 scripts/sync_readme.py
         language: system
         pass_filenames: false
         always_run: true
       - id: pytest
         name: Unit tests
-        entry: uv run --frozen python -m pytest -q
+        entry: python3 -m pytest -q
         language: system
         pass_filenames: false
         always_run: true

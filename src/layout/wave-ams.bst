@@ -4,7 +4,7 @@
 %% author(s), year: title. Publication data.
 
 ENTRY
-  { author editor title year journal volume pages publisher edition }
+  { author editor title year journal shortjournal volume pages publisher edition }
   {}
   { label sort.label }
 
@@ -129,6 +129,14 @@ FUNCTION {ordinal.edition}
   if$
 }
 
+FUNCTION {format.journal}
+{
+  shortjournal empty$
+    { journal }
+    { shortjournal }
+  if$
+}
+
 FUNCTION {article}
 {
   output.bibitem
@@ -138,7 +146,7 @@ FUNCTION {article}
   ": " write$
   title write$
   ". " write$
-  "\textit{" write$ journal write$ "}" write$
+  "\textit{" write$ format.journal write$ "}" write$
   volume empty$
     'skip$
     { ", \textbf{" write$ volume write$ "}" write$ }

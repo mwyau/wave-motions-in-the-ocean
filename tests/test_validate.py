@@ -79,6 +79,22 @@ def test_punctuation_patterns_distinguish_reader_text_from_tex_syntax() -> None:
     assert SMART_ANCHOR_RE.search('id="bad—anchor"')
 
 
+def test_toolbar_labels_use_deterministic_spacing() -> None:
+    template = (
+        Path(__file__).resolve().parents[1] / "src" / "layout" / "wave-html.html"
+    ).read_text()
+
+    assert '<span class="rendering-label">Rendering:&nbsp;</span>' in template
+    assert (
+        '<span class="control-wide">Text size:&nbsp;'
+        '<span class="toolbar-text-size">' in template
+    )
+    assert (
+        '<span class="control-wide">Theme:&nbsp;'
+        '<span class="toolbar-theme-value">' in template
+    )
+
+
 def test_facsimile_log_parser_reads_boundaries_and_shipouts() -> None:
     log = (
         "FACSIMILE_B n=1 p=1 s=12.50pt\n"

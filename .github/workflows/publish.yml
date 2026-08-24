@@ -118,7 +118,6 @@ jobs:
         run: node --check src/layout/wave-html.js
 
       - name: Check source quality
-        continue-on-error: true
         shell: bash
         run: |
           set +e
@@ -180,6 +179,11 @@ jobs:
           tlmgr update --self
           mapfile -t PACKAGES < <(grep -Ev '^\s*(#|$)' tex-packages.txt)
           tlmgr install "${PACKAGES[@]}"
+
+      - name: Run reference-style integration tests
+        env:
+          WAVE_REQUIRE_REFERENCE_TOOLS: "1"
+        run: uv run --frozen python -m pytest -q tests/test_reference_style.py
 
       - name: Build publication
         env:
