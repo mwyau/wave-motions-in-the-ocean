@@ -188,23 +188,23 @@ Chapter 5 p.97 is a particularly important example: the sphere drawing was revie
 5. Wave crests/wavelength markers must be generated from the same wavelength parameter when a quantitative relation is implied.
 6. On spherical/curvilinear figures, verify whether vectors/curves actually touch or are tangent to the intended latitude/longitude/meridian construction. Do not infer contact from a low-resolution scan.
 7. For free-mode joins, enforce the stated matching conditions (for example both field and flux/transport continuity), not only positional continuity.
-8. `complete` asset review does not waive later typography/page-fill review after global style changes. If a style change alters final figure scale or clipping, re-open the relevant records.
-9. Representation, asset review, and equation check are independent. A `vector` + `complete` figure may remain `pending` for equation checking, and a kept `source-pdf` may be `ai-checked` even when it intentionally preserves a documented source error.
+8. `vector-complete` does not waive later typography/page-fill review after global style changes. If a style change alters final figure scale or clipping, re-open the relevant records.
+9. Representation status and equation-validation status are independent. A `vector-complete` figure may remain `Pending` for equation validation, and a kept source `source-pdf` may be `AI-checked` even when it intentionally preserves a documented source error.
 
 ## Batch verification checklist
 
 For every changed vector:
 
-01. Inspect the full source page at high resolution.
-02. Read the nearby equations/prose and list the geometric constraints.
-03. Identify which equation-defined quantities materially control the figure, if any.
-04. Encode those constraints in coordinates/equations where practical.
-05. For equation-defined charts or curves, independently evaluate or plot the stated equation when practical and compare it to the vector reconstruction.
-06. For equation-constrained geometry, independently calculate the relevant angles, ratios, intersections, boundary values, continuity conditions, or vector directions rather than checking only by eye.
-07. Compile the TikZ independently.
-08. Inspect arrowheads, labels, tangencies, crossings, wavelength, amplitude ratios, and final scale.
-09. Compile both PDF editions and generated HTML/EPUB at the batch checkpoint.
-10. Compare affected pages/assets with the source.
-11. Record intentional schematic simplifications and the explicit `Equation check` state here.
+01. inspect the full source page at high resolution;
+02. read the nearby equations/prose and list the geometric constraints;
+03. identify which equation-defined quantities materially control the figure, if any;
+04. encode those constraints in coordinates/equations where practical;
+05. for equation-defined charts or curves, independently evaluate or plot the stated equation when practical and compare it to the vector reconstruction;
+06. for equation-constrained geometry, independently calculate the relevant angles, ratios, intersections, boundary values, continuity conditions, or vector directions rather than checking only by eye;
+07. compile the TikZ independently;
+08. inspect arrowheads, labels, tangencies, crossings, wavelength, amplitude ratios, and final scale;
+09. compile both PDF editions and generated HTML/EPUB at the batch checkpoint;
+10. compare affected pages/assets with the source;
+11. record intentional schematic simplifications and the explicit `Equation validation` state here.
 
 Direct source crops use the committed PDF page through `\includegraphics[page=...,trim=...,clip]`; no permanent raster intermediary is committed.

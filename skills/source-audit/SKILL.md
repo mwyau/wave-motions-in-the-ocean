@@ -13,8 +13,8 @@ Scientific review is diagnostic. It can identify a likely error and support a pr
 Use this order when a source reading or scientific result is in question:
 
 1. Check the 1989 PDF for what the source actually says.
-1. Independently check the science or math when needed.
-1. Use the 2008 MIT OpenCourseWare notes and other references to help understand or check a possible error.
+2. Independently check the science or math when needed.
+3. Use the 2008 MIT OpenCourseWare notes and other references to help understand or check a possible error.
 
 The 1989 PDFs control transcription and source-fidelity questions. The 2008 notes can support a proposed correction, but a difference in those notes does not by itself justify silently changing the reconstruction. Agreement between the 1989 notes and a later source is also not an independent scientific check: later notes can repeat the same error. When scientific correctness matters, independently derive, calculate, or otherwise test the result.
 
@@ -25,7 +25,7 @@ For every difference or suspected error, use this order:
 1. **Reconstruction differs from the PDF unintentionally:** restore the PDF reading unless the difference is a minor mechanical correction allowed by item 2.
 2. **Small unambiguous mechanical correction:** spelling, grammar, transcription, punctuation, or TeX punctuation syntax may be corrected autonomously when there is no plausible change in scientific, mathematical, bibliographic, or substantive editorial meaning. If uncertain, do not use this exception.
 3. **Substantive or ambiguous source problem:** keep or restore the source reading in the reconstruction, record the proposed correction and evidence in `src/ERRATA.md` with `pending-human-approval`, and ask the human owner for approval.
-4. **Explicit human approval in chat:** only when the owner directly instructs approval in the current chat may an agent apply the substantive correction and change the entry to `human-approved`.
+4. **Explicit human approval:** only then apply the substantive correction and record it as `human-approved`, with enough context to identify what was approved.
 
 Agents can never approve an erratum. Do not infer approval from mathematical correctness, external literature, issue closure, another agent's judgment, an existing commit, or another status. An existing `human-approved` entry may be kept as maintained project state, but an agent must never create or promote that status without a direct approval instruction in the current chat.
 

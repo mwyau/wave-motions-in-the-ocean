@@ -1,0 +1,90 @@
+import pytest
+
+from validate import (
+    PUNCTUATION_ENTITY_RE,
+    SMART_ANCHOR_RE,
+    SMART_PUNCTUATION_RE,
+    bare_named_functions,
+    github_math_patterns,
+    parse_facsimile_log,
+    require_labels,
+    strip_tex_comments,
+    tex_math_regions,
+)
+
+
+def test_strip_tex_comments_keeps_escaped_percent_signs() -> None:
+    source = "keep % remove\nescaped \\% stays % remove too"
+
+    assert strip_tex_comments(source) == "keep \nescaped \\% stays "
+
+
+def test_tex_math_regions_extracts_only_math_delimiters() -> None:
+    source = r"prose \[x+y\] \begin{waveequation}z=1\end{waveequation} and $q$"
+
+    assert tex_math_regions(source) == ["x+y", "z=1", "q"]
+
+
+@pytest.mark.parametrize(
+    ("source", "expected"),
+    [
+        (r"\[sin x + tan y\]", ("sin", "tan")),
+        (r"\[\sin x + \operatorname{cos}(x) + \text{tanh}\]", ()),
+        ("sin and cos in prose", ()),
+    ],
+)
+def test_bare_named_function_detection_uses_math_only(
+    source: str, expected: tuple[str, ...]
+) -> None:
+    assert bare_named_functions(source) == expected
+
+
+def test_numbered_equation_labels_accept_one_ordered_occurrence() -> None:
+    require_labels(
+        "prefix (1.1) middle (1.2) suffix", ("(1.1)", "(1.2)"), artifact="sample"
+    )
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "prefix (1.2) middle (1.1)",
+        "prefix (1.1) middle (1.1) suffix (1.2)",
+        "prefix (1.1) suffix",
+    ],
+)
+def test_numbered_equation_labels_reject_order_duplicates_and_missing(
+    text: str,
+) -> None:
+    with pytest.raises(SystemExit):
+        require_labels(text, ("(1.1)", "(1.2)"), artifact="sample")
+
+
+def test_github_math_patterns_recognize_inline_and_code_math() -> None:
+    inline, code = github_math_patterns(r"\ell")
+
+    assert inline.search(r"$\ell$")
+    assert code.search(r"$`\ell`$")
+    assert not inline.search(r"\$\ell$")
+
+
+def test_punctuation_patterns_distinguish_reader_text_from_tex_syntax() -> None:
+    assert SMART_PUNCTUATION_RE.search("reader — text")
+    assert not SMART_PUNCTUATION_RE.search("source -- text")
+    assert PUNCTUATION_ENTITY_RE.search("&mdash;")
+    assert SMART_ANCHOR_RE.search('id="bad—anchor"')
+
+
+def test_facsimile_log_parser_reads_boundaries_and_shipouts() -> None:
+    log = (
+        "FACSIMILE_B n=1 p=1 s=12.50pt\n"
+        "unrelated diagnostic\n"
+        "FACSIMILE_P n=11 p=1\n"
+        "FACSIMILE_B n=2 p=2 s=-0.25pt\n"
+        "FACSIMILE_P n=12 p=2"
+    )
+
+    boundaries, shipouts = parse_facsimile_log(log)
+
+    assert boundaries == [(1, 1, 12.5), (2, 2, -0.25)]
+    assert shipouts == [(11, 1), (12, 2)]

@@ -769,7 +769,7 @@ def _git(*args: str) -> str | None:
             ).strip()
             or None
         )
-    except (OSError, subprocess.CalledProcessError):
+    except OSError, subprocess.CalledProcessError:
         return None
 
 

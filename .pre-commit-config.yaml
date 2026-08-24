@@ -2,8 +2,8 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
+    - id: check-case-conflict
     - id: check-merge-conflict
-    - id: check-toml
     - id: check-yaml
     - id: end-of-file-fixer
     - id: fix-byte-order-marker
@@ -23,6 +23,7 @@ repos:
     rev: 1.0.0
     hooks:
       - id: mdformat
+        args: [--number]
         exclude: ^README\.md$
         additional_dependencies:
         - mdformat-gfm
@@ -39,9 +40,13 @@ repos:
     hooks:
       - id: sync-readme
         name: Synchronize README
-        entry: python scripts/sync_readme.py
-        language: python
-        additional_dependencies:
-          - pillow==12.3.0
+        entry: uv run --frozen python scripts/sync_readme.py
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: pytest
+        name: Unit tests
+        entry: uv run --frozen python -m pytest -q
+        language: system
         pass_filenames: false
         always_run: true

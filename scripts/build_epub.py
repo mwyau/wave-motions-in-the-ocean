@@ -280,9 +280,7 @@ def package_document(archive: zipfile.ZipFile) -> tuple[str, ET.Element]:
         raise SystemExit(f"EPUB package structure is invalid: {exc}") from exc
 
 
-def validate_structure(
-    epub: Path = EPUB, *, require_legacy_cover: bool = True
-) -> None:
+def validate_structure(epub: Path = EPUB, *, require_legacy_cover: bool = True) -> None:
     """Keep the generated package usable before and after the final rewrite."""
     verify_integrity(epub)
     with zipfile.ZipFile(epub) as archive:
@@ -434,11 +432,7 @@ def cover_image_item(
         for item in manifest.findall("{*}item")
         if "cover-image" in (item.get("properties") or "").split()
     ]
-    if (
-        len(items) != 1
-        or not items[0].get("href")
-        or not items[0].get("id")
-    ):
+    if len(items) != 1 or not items[0].get("href") or not items[0].get("id"):
         if required:
             raise SystemExit(f"expected one EPUB cover image, found {len(items)}")
         return None

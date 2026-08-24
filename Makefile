@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := all
+PYTHON ?= $(if $(shell command -v uv 2>/dev/null),uv run --frozen python,python3)
 .PHONY: help readme pdf html epub all clean
-PYTHON := uv run --with-requirements requirements.txt python
 
 help:
 	@printf '%s\n' \

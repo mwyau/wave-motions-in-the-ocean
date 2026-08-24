@@ -10,11 +10,16 @@ on:
       - "src/*.bib"
       - "src/layout/**"
       - "src/figures/**"
+      - "src/images/**"
       - "references/chapman-rizzoli-1989/**"
       - "references/mit-ocw-2008/**"
       - "scripts/**"
+      - "tests/**"
       - ".python-version"
       - ".pre-commit-config.yaml"
+      - "CITATION.cff"
+      - "pyproject.toml"
+      - "uv.lock"
       - "requirements.txt"
       - "tex-packages.txt"
       - "README.md"
@@ -71,16 +76,35 @@ jobs:
         with:
           version: "0.12.1"
           enable-cache: true
-          cache-dependency-glob: requirements.txt
+          cache-dependency-glob: |
+            pyproject.toml
+            uv.lock
 
       - name: Set up Python environment
         shell: bash
         run: |
           set -euo pipefail
-          uv python install "$(cat .python-version)"
-          uv venv --python "$(cat .python-version)"
-          uv pip sync requirements.txt
-          echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
+          uv sync --frozen
+
+      - name: Check generated dependency export
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv export \
+            --frozen \
+            --format requirements.txt \
+            --all-groups \
+            --no-hashes \
+            --no-header \
+            --no-emit-project \
+            --output-file "$RUNNER_TEMP/requirements.txt"
+          diff -u requirements.txt "$RUNNER_TEMP/requirements.txt"
+
+      - name: Check Python syntax
+        run: uv run --frozen python -m compileall -q scripts tests
+
+      - name: Run unit tests
+        run: uv run --frozen python -m pytest -q
 
       - name: Install system tools
         env:
@@ -89,6 +113,23 @@ jobs:
           sudo apt-get update
           sudo -E apt-get install -y --no-install-recommends \
             qpdf poppler-utils pandoc unzip xz-utils
+
+      - name: Check HTML JavaScript
+        run: node --check src/layout/wave-html.js
+
+      - name: Check source quality
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          status=0
+          uv run --frozen prek run --all-files || status=1
+          if ! git diff --quiet; then
+            echo "::warning title=Source quality::Quality hooks changed tracked files; commit their fixes."
+            git --no-pager diff
+            status=1
+          fi
+          exit "$status"
 
       - name: Cache TinyTeX
         id: tinytex-cache
@@ -143,10 +184,9 @@ jobs:
       - name: Build publication
         env:
           WAVE_SKIP_VALIDATION: "1"
-        run: ./scripts/build.sh all
+        run: uv run --frozen ./scripts/build.sh all
 
       - name: Install EPUBCheck
-        continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         shell: bash
         run: |
           set -euo pipefail
@@ -162,30 +202,14 @@ jobs:
           java -jar "$EPUBCHECK_JAR" --version
 
       - name: Validate publication
-        continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        run: python3 scripts/validate.py all --require-epubcheck
+        run: uv run --frozen python scripts/validate.py all --require-epubcheck
 
       - name: Check release gate
         if: startsWith(github.ref, 'refs/tags/v')
-        run: python3 scripts/validate.py release
+        run: uv run --frozen python scripts/validate.py release
 
       - name: Package public edition
-        run: python3 scripts/release.py package --dist dist --output release
-
-      - name: Check source quality
-        continue-on-error: true
-        shell: bash
-        run: |
-          set +e
-          status=0
-          prek run --all-files || status=1
-          node --check src/layout/wave-html.js || status=1
-          if ! git diff --quiet; then
-            echo "::warning title=Source quality::Quality hooks changed tracked files; commit their fixes."
-            git diff --check || true
-            status=1
-          fi
-          exit "$status"
+        run: uv run --frozen python scripts/release.py package --dist dist --output release
 
       - name: Upload publication artifact
         uses: actions/upload-artifact@v7.0.1
@@ -250,6 +274,18 @@ jobs:
       - name: Check out release source
         uses: actions/checkout@v7.0.1
 
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v10.0.1
+        with:
+          version: "0.12.1"
+          enable-cache: true
+          cache-dependency-glob: |
+            pyproject.toml
+            uv.lock
+
+      - name: Set up Python environment
+        run: uv sync --frozen
+
       - name: Download validated publication
         uses: actions/download-artifact@v8.0.1
         with:
@@ -258,7 +294,7 @@ jobs:
 
       - name: Verify release assets
         run: >-
-          python3 scripts/release.py checksums --root artifact/release --check
+          uv run --frozen python scripts/release.py checksums --root artifact/release --check
           wave-motions.pdf wave-motions.epub wave-motions-html.zip
 
       - name: Publish GitHub release

@@ -46,10 +46,8 @@ from publication import (
 from publication import (
     MATHJAX_URL as MATHJAX_PINNED,
 )
-from publication import (
-    PUBLICATION_TITLE as TITLE,
-)
-from release import DEFAULT_FILES, verify_manifest
+from publication import PUBLICATION_TITLE as TITLE
+from release import CHECKSUM_ASSETS, verify_manifest
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
@@ -147,6 +145,18 @@ def tex_math_regions(text: str) -> list[str]:
     return regions
 
 
+def bare_named_functions(text: str) -> tuple[str, ...]:
+    """Return named math functions that are not written as TeX operators."""
+    math_text = "\n".join(
+        MATH_TEXT_COMMAND_RE.sub("", region) for region in tex_math_regions(text)
+    )
+    return tuple(
+        function
+        for function in NAMED_FUNCTIONS
+        if re.search(rf"(?<![\\A-Za-z]){function}(?![A-Za-z])", math_text)
+    )
+
+
 def check_canonical_source() -> None:
     frontmatter = (SRC / "frontmatter-modern.tex").read_text()
     for sentinel in PAOLA_SOURCE_SENTINELS:
@@ -162,15 +172,10 @@ def check_canonical_source() -> None:
                 "replace with semantic math commands"
             )
 
-        math_text = "\n".join(
-            MATH_TEXT_COMMAND_RE.sub("", region) for region in tex_math_regions(text)
-        )
-        for function in NAMED_FUNCTIONS:
-            bare = re.search(rf"(?<![\\A-Za-z]){function}(?![A-Za-z])", math_text)
-            if bare:
-                fail(
-                    f"{chapter.name}: named math function {function!r} appears without a TeX operator command"
-                )
+        for function in bare_named_functions(text):
+            fail(
+                f"{chapter.name}: named math function {function!r} appears without a TeX operator command"
+            )
 
     print("TeX math audit OK")
 
@@ -879,24 +884,28 @@ def facsimile_log_path() -> Path:
     return LATEX_CACHE / "facsimile" / "main-facsimile.log"
 
 
-def facsimile_layout_diagnostics(*, strict: bool) -> None:
-    log_path = facsimile_log_path()
-    require_file(log_path)
-    text = log_path.read_text(errors="replace")
-
+def parse_facsimile_log(
+    text: str,
+) -> tuple[list[tuple[int, int, float]], list[tuple[int, int]]]:
+    """Parse machine-readable source-boundary and shipout diagnostics."""
     boundaries: list[tuple[int, int, float]] = []
     shipouts: list[tuple[int, int]] = []
     for line in text.splitlines():
         if match := FACSIMILE_BOUNDARY_RE.fullmatch(line.strip()):
             boundaries.append(
-                (
-                    int(match.group(1)),
-                    int(match.group(2)),
-                    float(match.group(3)),
-                )
+                (int(match.group(1)), int(match.group(2)), float(match.group(3)))
             )
         elif match := FACSIMILE_SHIPOUT_RE.fullmatch(line.strip()):
             shipouts.append((int(match.group(1)), int(match.group(2))))
+    return boundaries, shipouts
+
+
+def facsimile_layout_diagnostics(*, strict: bool) -> None:
+    log_path = facsimile_log_path()
+    require_file(log_path)
+    text = log_path.read_text(errors="replace")
+
+    boundaries, shipouts = parse_facsimile_log(text)
 
     problems: list[str] = []
     if len(boundaries) != FACSIMILE_BODY_BOUNDARIES:

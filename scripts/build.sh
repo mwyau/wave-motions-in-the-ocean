@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-PYTHON=(uv run --with-requirements "$ROOT/requirements.txt" python)
+PYTHON=${PYTHON:-python}
 BUILD="$ROOT/build"
 DIST="$ROOT/dist"
 CACHE=${WAVE_CACHE_DIR:-"$ROOT/.cache/wave-motions"}
@@ -46,8 +46,7 @@ prepare_bibtex() {
 }
 
 prepare_build_info() {
-  need uv
-  "${PYTHON[@]}" "$ROOT/scripts/publication.py" build-info --tex "$BUILD/build-info.tex"
+  "$PYTHON" "$ROOT/scripts/publication.py" build-info --tex "$BUILD/build-info.tex"
 
   # CITATION.cff is the single maintained DOI source.
   local doi
@@ -116,23 +115,19 @@ build_pdf() {
 }
 
 build_html() {
-  need uv
-  "${PYTHON[@]}" "$ROOT/scripts/build_html.py"
+  "$PYTHON" "$ROOT/scripts/build_html.py"
 }
 
 build_epub() {
-  need uv
-  "${PYTHON[@]}" "$ROOT/scripts/build_epub.py"
+  "$PYTHON" "$ROOT/scripts/build_epub.py"
 }
 
 check_readme() {
-  need uv
-  "${PYTHON[@]}" "$ROOT/scripts/sync_readme.py" --check
+  "$PYTHON" "$ROOT/scripts/sync_readme.py" --check
 }
 
 write_checksums() {
-  need uv
-  "${PYTHON[@]}" "$ROOT/scripts/release.py" checksums --root "$DIST" --write
+  "$PYTHON" "$ROOT/scripts/release.py" checksums --root "$DIST" --write
 }
 
 reset_generated() {
@@ -141,10 +136,9 @@ reset_generated() {
 }
 
 finish_all() {
-  need uv
   write_checksums
   if validation_enabled; then
-    "${PYTHON[@]}" "$ROOT/scripts/validate.py" all
+    "$PYTHON" "$ROOT/scripts/validate.py" all
   else
     echo "Dedicated validation skipped (WAVE_SKIP_VALIDATION=1; builders retained structural checks)."
   fi
@@ -159,10 +153,9 @@ case "$TARGET" in
     finish_all
     ;;
   pdf)
-    need uv
     build_pdf
     if validation_enabled; then
-      "${PYTHON[@]}" "$ROOT/scripts/validate.py" pdf
+      "$PYTHON" "$ROOT/scripts/validate.py" pdf
     fi
     ;;
   html)
@@ -172,10 +165,9 @@ case "$TARGET" in
     fi
     ;;
   epub)
-    need uv
     build_epub
     if validation_enabled; then
-      "${PYTHON[@]}" "$ROOT/scripts/validate.py" epub
+      "$PYTHON" "$ROOT/scripts/validate.py" epub
     fi
     ;;
 esac

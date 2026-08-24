@@ -1,0 +1,19 @@
+[project]
+name = "wave-motions-builder"
+version = "0"
+requires-python = ">=3.14"
+dependencies = [
+  "Pillow==12.3.0",
+]
+
+[dependency-groups]
+dev = [
+  "prek==0.4.14",
+  "pytest==9.1.1",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+src = ["scripts"]

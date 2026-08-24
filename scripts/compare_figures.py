@@ -19,6 +19,7 @@ import tempfile
 from pathlib import Path
 
 from PIL import Image, ImageDraw
+
 from publication import render_source_crop, render_tikz_png
 
 ROOT = Path(__file__).resolve().parents[1]

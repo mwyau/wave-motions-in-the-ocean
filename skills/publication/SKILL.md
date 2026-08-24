@@ -34,34 +34,34 @@ The modern PDF and EPUB use the same cover generated from `cover-modern.tex`; EP
 Preserve these cover invariants unless explicitly redesigned by the owner:
 
 1. `WAVE MOTIONS IN THE OCEAN` is the dominant dark-ocean-blue title.
-1. `Myrl's View` is the prominent italic subtitle.
-1. The full rectangular Met image of Hokusai's *Under the Wave off Kanagawa* is reproduced without speculative color correction or generative reconstruction.
-1. `Presented to Myrl C. Hendershott` appears below the image and above the authors.
-1. David C. Chapman and Paola Malanotte-Rizzoli are the authors, shown on separate lines without an intervening `and` and at a visibly larger size than the presentation line.
-1. A small centered `Editor: Albert M. W. Yau.` appears near the bottom edge.
-1. Years, license marks, museum credit, and badges do not belong on the front cover.
+2. `Myrl's View` is the prominent italic subtitle.
+3. The full rectangular Met image of Hokusai's *Under the Wave off Kanagawa* is reproduced without speculative color correction or generative reconstruction.
+4. `Presented to Myrl C. Hendershott` appears below the image and above the authors.
+5. David C. Chapman and Paola Malanotte-Rizzoli are the authors, shown on separate lines without an intervening `and` and at a visibly larger size than the presentation line.
+6. A small centered `Editor: Albert M. W. Yau.` appears near the bottom edge.
+7. Years, license marks, museum credit, and badges do not belong on the front cover.
 
 The committed Hokusai source image is `src/figures/frontmatter/great-wave-met-dp130155.jpg`. Preserve its composition.
 
 The paged modern PDF ends with a closing artwork page defined in `src/back-modern.tex`. Preserve these closing-page invariants unless explicitly redesigned by the owner:
 
 1. Use Utagawa Hiroshige's *Naruto Whirlpool, Awa Province*, The Met JP1198.
-1. The committed artwork is a lightly deskewed crop to the print's black border; do not generatively reconstruct or recolor it.
-1. Use the same left/right margins and restrained dark-ocean-blue frame treatment as the front cover.
-1. Keep the closing page otherwise uncaptioned, with only small `DOI: Pending` text at bottom right until a DOI is assigned.
-1. Keep the museum/public-domain credit in the interior edition notice rather than on the artwork page.
+2. The committed artwork is a lightly deskewed crop to the print's black border; do not generatively reconstruct or recolor it.
+3. Use the same left/right margins and restrained dark-ocean-blue frame treatment as the front cover.
+4. Keep the closing page otherwise uncaptioned, with only small `DOI: Pending` text at bottom right until a DOI is assigned.
+5. Keep the museum/public-domain credit in the interior edition notice rather than on the artwork page.
 
 The paged modern PDF preliminaries are:
 
 1. half-title,
-1. Lake Como frontispiece,
-1. full title page,
-1. copyright / edition-notice verso,
-1. Contents,
-1. Preface — David C. Chapman,
-1. Preface — Paola Malanotte-Rizzoli,
-1. Editor's note,
-1. Chapter 1.
+2. Lake Como frontispiece,
+3. full title page,
+4. copyright / edition-notice verso,
+5. Contents,
+6. Preface — David C. Chapman,
+7. Preface — Paola Malanotte-Rizzoli,
+8. Editor's note,
+9. Chapter 1.
 
 `frontmatter-modern-book.tex` owns that PDF-only sequence. Preliminary leaves count in Roman pagination; Contents begins visibly at v; Chapter 1 resets to Arabic page 1.
 
@@ -132,6 +132,8 @@ Number every scientific body figure. Number displayed equations selectively when
 Do not use numbering changes as an opportunity to alter source equations.
 
 ## Build interface and outputs
+
+Python tooling uses uv as the reference development and CI environment. `pyproject.toml` owns the dependency declarations, `uv.lock` is the exact reference lock, and `requirements.txt` is the generated pip/venv export. The publication scripts and `scripts/build.sh` use the Python selected by the caller, so both `uv run ./scripts/build.sh all` and an activated compatible virtual environment are supported.
 
 Use:
 

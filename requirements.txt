@@ -1,2 +1,14 @@
-Pillow==12.3.0
+colorama==0.4.6 ; sys_platform == 'win32'
+    # via pytest
+iniconfig==2.3.0
+    # via pytest
+packaging==26.3
+    # via pytest
+pillow==12.3.0
+    # via wave-motions-builder
+pluggy==1.6.0
+    # via pytest
 prek==0.4.14
+pygments==2.21.0
+    # via pytest
+pytest==9.1.1

@@ -22,6 +22,7 @@ from pathlib import Path
 from string import Template
 
 from PIL import Image
+
 from publication import (
     BOOK_TITLE,
     CONTACT_EMAIL,

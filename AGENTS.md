@@ -22,6 +22,8 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 
 - Use the local setup in `CONTRIBUTING.md`; it is kept aligned with the publication CI environment.
 - Before diagnosing build, render, or figure failures, make sure the repository Python environment and pinned TinyTeX/`tex-packages.txt` environment are active. Do not change source content to work around missing local dependencies.
+- uv is the reference development and CI environment; `pyproject.toml` owns Python dependencies, `uv.lock` pins them, and `requirements.txt` is the generated pip/venv export.
+- Python tooling is environment-neutral. Use `uv run` or an activated compatible virtual environment; do not add uv invocation inside repository scripts.
 
 ## Global source rule
 
