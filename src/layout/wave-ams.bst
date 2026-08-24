@@ -14,7 +14,7 @@ STRINGS { s t u }
 FUNCTION {output.bibitem}
 {
   newline$
-  "\\bibitem[" write$
+  "\bibitem[" write$
   label write$
   "]{" write$
   cite$ write$
@@ -138,10 +138,10 @@ FUNCTION {article}
   ": " write$
   title write$
   ". " write$
-  "\\textit{" write$ journal write$ "}" write$
+  "\textit{" write$ journal write$ "}" write$
   volume empty$
     'skip$
-    { ", \\textbf{" write$ volume write$ "}" write$ }
+    { ", \textbf{" write$ volume write$ "}" write$ }
   if$
   pages empty$
     'skip$
@@ -158,7 +158,7 @@ FUNCTION {book}
   ", " write$
   year write$
   ": " write$
-  "\\textit{" write$ title write$ "}. " write$
+  "\textit{" write$ title write$ "}. " write$
   edition empty$
     'skip$
     { ordinal.edition write$ ", " write$ }
@@ -207,12 +207,12 @@ FUNCTION {presort}
 
 FUNCTION {begin.bib}
 {
-  "\\begin{thebibliography}{99}" write$ newline$
-  "\\providecommand{\\natexlab}[1]{#1}" write$ newline$
+  "\begin{thebibliography}{99}" write$ newline$
+  "\providecommand{\natexlab}[1]{#1}" write$ newline$
 }
 
 FUNCTION {end.bib}
-{ newline$ "\\end{thebibliography}" write$ newline$ }
+{ newline$ "\end{thebibliography}" write$ newline$ }
 
 READ
 ITERATE {calc.label}

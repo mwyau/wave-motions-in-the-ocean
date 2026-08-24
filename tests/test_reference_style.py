@@ -69,7 +69,11 @@ def test_ams_bst_renders_book_page_totals_once(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
     )
-    rendered = " ".join((tmp_path / "references.bbl").read_text().split())
+    bbl = (tmp_path / "references.bbl").read_text()
+    assert bbl.startswith("\\begin{thebibliography}{99}\n")
+    assert "\\\\begin{thebibliography}" not in bbl
+    assert "\\\\bibitem" not in bbl
+    rendered = " ".join(bbl.split())
     for total in book_page_totals():
         assert rendered.count(f"{total} pp.") == 1
     assert "McGraw-Hill Book Company, New York" not in rendered

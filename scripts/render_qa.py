@@ -23,7 +23,7 @@ import threading
 import urllib.parse
 import xml.etree.ElementTree as ET
 import zipfile
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -50,6 +50,10 @@ MATHML_ANNOTATION_RE = re.compile(
     re.DOTALL | re.IGNORECASE,
 )
 MATHML_NS = "http://www.w3.org/1998/Math/MathML"
+MATH_PARITY_TEXT_SIZES = ("small", "default", "large")
+MATH_PARITY_VIEWPORTS = ((390, 844), (768, 1000), (1440, 1200))
+MATHML_COMPARISON_ROUTE = "/__render-qa__/mathml-mathjax-comparison.html"
+CHAPTER5_BOUNDARY_RE = re.compile(r"&&\\text\{(?:at|as)\}z=", re.IGNORECASE)
 
 
 @dataclass
@@ -301,6 +305,26 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
         pass
 
 
+class RenderQAHandler(QuietHandler):
+    """Serve audit-only pages alongside the inspected publication root."""
+
+    def __init__(
+        self,
+        *args,
+        qa_pages: Mapping[str, Path] | None = None,
+        **kwargs,
+    ) -> None:
+        self.qa_pages = dict(qa_pages or {})
+        super().__init__(*args, **kwargs)
+
+    def translate_path(self, path: str) -> str:
+        route = urllib.parse.urlsplit(path).path
+        audit_page = self.qa_pages.get(route)
+        if audit_page is not None:
+            return str(audit_page)
+        return super().translate_path(path)
+
+
 def free_port() -> int:
     with socket.socket() as sock:
         sock.bind(("127.0.0.1", 0))
@@ -308,9 +332,14 @@ def free_port() -> int:
 
 
 @contextlib.contextmanager
-def local_server(root: Path):
+def local_server(root: Path, *, qa_pages: Mapping[str, Path] | None = None):
     port = free_port()
-    handler = lambda *args, **kwargs: QuietHandler(*args, directory=str(root), **kwargs)
+    handler = lambda *args, **kwargs: RenderQAHandler(
+        *args,
+        directory=str(root),
+        qa_pages=qa_pages,
+        **kwargs,
+    )
     server = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -421,6 +450,22 @@ def fragment_reader_context_ok(dom: str, section_id: str, title: str) -> bool:
     return " ".join(context_text.split()) == title
 
 
+def math_parity_jobs(
+    route: str = MATHML_COMPARISON_ROUTE,
+) -> list[tuple[str, str, int, int, bool]]:
+    return [
+        (
+            f"math-parity-{width}-{text_size}.png",
+            f"{route}?{urllib.parse.urlencode({'text-size': text_size})}",
+            width,
+            height,
+            False,
+        )
+        for width, height in MATH_PARITY_VIEWPORTS
+        for text_size in MATH_PARITY_TEXT_SIZES
+    ]
+
+
 def mathml_table_width(markup: str) -> int:
     try:
         root = ET.fromstring(markup)
@@ -435,6 +480,16 @@ def mathml_table_width(markup: str) -> int:
             for row in table.findall(f"{{{MATHML_NS}}}mtr")
         ),
         default=0,
+    )
+
+
+def is_chapter5_boundary_alignment(pair: dict[str, object]) -> bool:
+    source = re.sub(r"\s+", "", str(pair["source"]))
+    return (
+        pair["page"] == "chapter5.html"
+        and pair["kind"] == "display"
+        and r"\begin{aligned}" in source
+        and len(CHAPTER5_BOUNDARY_RE.findall(source)) >= 2
     )
 
 
@@ -507,6 +562,26 @@ def mathml_comparison_specimen(
             return
 
     choose("Simple inline", lambda pair: pair["kind"] == "inline")
+    chapter5_boundary = next(
+        (pair for pair in pairs if is_chapter5_boundary_alignment(pair)), None
+    )
+    if chapter5_boundary is None:
+        report.add(
+            "ERROR",
+            "HTML",
+            "required Chapter 5 trailing-boundary alignment is missing from the "
+            "MathML/MathJax render-QA specimen",
+        )
+    else:
+        choose("Chapter 5 boundary align", is_chapter5_boundary_alignment)
+        identity = (str(chapter5_boundary["page"]), int(chapter5_boundary["index"]))
+        if identity not in selected_ids:
+            report.add(
+                "ERROR",
+                "HTML",
+                "required Chapter 5 trailing-boundary alignment could not be "
+                "selected for the MathML/MathJax render-QA specimen",
+            )
     choose(
         "Simple display",
         lambda pair: (
@@ -540,14 +615,6 @@ def mathml_comparison_specimen(
             and r"\begin{aligned}" in str(pair["source"])
             and r"&&" not in str(pair["source"])
             and pair["width"] == 2
-        ),
-    )
-    choose(
-        "Chapter 5 boundary align",
-        lambda pair: (
-            pair["page"] == "chapter5.html"
-            and pair["kind"] == "display"
-            and r"&&\text{at" in str(pair["source"]).replace(" ", "")
         ),
     )
     choose(
@@ -600,15 +667,20 @@ def mathml_comparison_specimen(
             "</section>"
         )
 
-    page = dist / "mathml-mathjax-comparison.html"
+    page = report.out / "html" / "mathml-mathjax-comparison.html"
+    page.parent.mkdir(parents=True, exist_ok=True)
     page.write_text(
         "<!doctype html>\n"
-        '<html lang="en"><head><meta charset="utf-8">'
+        '<html lang="en-US" data-text-size="default"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        "<script>"
+        "const textSizes = new Set(['small', 'default', 'large']);"
+        "const requestedTextSize = new URLSearchParams(location.search).get('text-size');"
+        "if (textSizes.has(requestedTextSize)) document.documentElement.dataset.textSize = requestedTextSize;"
+        "</script>"
         "<title>MathJax and native MathML comparison</title>"
-        '<link rel="stylesheet" href="assets/wave.css">'
+        '<link rel="stylesheet" href="/assets/wave.css">'
         "<style>"
-        "body{max-width:90rem;margin:0 auto;padding:2rem 1rem;}"
         ".comparison-case{border-top:1px solid #999;padding:1rem 0 1.5rem;}"
         ".case-meta{color:#666;margin:.2rem 0 .8rem;}"
         ".comparison-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;}"
@@ -618,21 +690,11 @@ def mathml_comparison_specimen(
         ".renderer-cell code{white-space:pre-wrap;}"
         "@media(max-width:700px){.comparison-grid{grid-template-columns:1fr;}}"
         "</style>"
-        '<script src="assets/mathjax/tex-chtml-full.js"></script>'
-        "</head><body><h1>MathJax and native MathML comparison</h1>"
+        '<script src="/assets/mathjax/tex-chtml-full.js"></script>'
+        '</head><body><main id="main-content"><h1>MathJax and native MathML comparison</h1>'
         "<p>Each case is taken from the generated book HTML. MathJax is on the left; native MathML is on the right.</p>"
         + "".join(comparison_rows)
-        + "</body></html>\n"
-    )
-    report_page = report.out / "html" / page.name
-    report_page.parent.mkdir(parents=True, exist_ok=True)
-    report_page.write_text(
-        page.read_text()
-        .replace('href="assets/wave.css"', 'href="../../../release/assets/wave.css"')
-        .replace(
-            'src="assets/mathjax/tex-chtml-full.js"',
-            'src="../../../release/assets/mathjax/tex-chtml-full.js"',
-        )
+        + "</main></body></html>\n"
     )
     return page, [label for label, _ in selected]
 
@@ -721,45 +783,38 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
 
     specimen_page, specimen_labels = mathml_comparison_specimen(dist, report)
     if specimen_page is not None:
+        specimen_rel = specimen_page.relative_to(report.out)
         lines.append(
             "- MathJax/native MathML comparison specimen: "
-            f"`html/{specimen_page.name}` ({', '.join(specimen_labels)})"
+            f"`{specimen_rel}` ({', '.join(specimen_labels)})"
+        )
+        lines.append(
+            "- Math parity screenshot matrix: 390px, 768px, and 1440px at "
+            "small/default/large text size (9 jobs)"
         )
 
     if browser:
         lines.append(f"- Headless browser detected: `{browser}`")
         screenshots = report.out / "html" / "screenshots"
-        with local_server(dist) as base:
+        qa_pages = (
+            {MATHML_COMPARISON_ROUTE: specimen_page}
+            if specimen_page is not None
+            else None
+        )
+        with local_server(dist, qa_pages=qa_pages) as base:
             jobs = []
             for name in EXPECTED_HTML:
                 jobs.append((f"desktop-{Path(name).stem}.png", name, 1440, 1000, False))
                 jobs.append((f"mobile-{Path(name).stem}.png", name, 390, 844, False))
             jobs.append(("dark-chapter4.png", "chapter4.html", 390, 844, True))
             if specimen_page is not None:
-                jobs.extend(
-                    [
-                        (
-                            "mathml-mathjax-comparison.png",
-                            specimen_page.name,
-                            1440,
-                            1200,
-                            False,
-                        ),
-                        (
-                            "mathml-mathjax-comparison-mobile.png",
-                            specimen_page.name,
-                            390,
-                            844,
-                            False,
-                        ),
-                    ]
-                )
+                jobs.extend(math_parity_jobs())
             failures = 0
             completed = 0
             for output_name, page_name, width, height, dark in jobs:
                 ok, detail = browser_screenshot(
                     browser,
-                    f"{base}/{page_name}",
+                    f"{base}/{page_name.lstrip('/')}",
                     screenshots / output_name,
                     width,
                     height,
@@ -820,9 +875,6 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
             "HTML",
             "no Chrome/Chromium executable found; browser screenshot and fragment-regression QA skipped",
         )
-
-    if specimen_page is not None:
-        specimen_page.unlink(missing_ok=True)
 
     report.section("HTML render audit", lines)
 
