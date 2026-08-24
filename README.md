@@ -89,7 +89,7 @@ have had a lasting influence on me. I hope this edition, available in PDF, EPUB,
 online, will help future Physical Oceanography students for years to come.
 
 The original notes have been passed from hand to hand, xeroxed many times, and eventually
-preserved in scanned form on James Pringle’s website. This edition reconstructs the 1989
+preserved in scanned form on [James Pringle’s website](https://oxbow.sr.unh.edu/ChapmanRizzoli/Wave_Motions_in_the_Ocean.html). This edition reconstructs the 1989
 notes in modern LaTeX, with figures redrawn in vector format where possible. OpenAI’s
 GPT-5.6 Sol and Luna were used to assist with reconstruction, source comparison, figure
 work, and publication checks.
