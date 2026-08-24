@@ -1,6 +1,6 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{styles/wave-modern}[2026/08/22 LuaLaTeX/STIX Two modern reading layout]
-\RequirePackage{styles/wave-common}
+\ProvidesPackage{layout/wave-modern}[2026/08/22 LuaLaTeX/STIX Two modern reading layout]
+\RequirePackage{layout/wave-common}
 % The modern paged edition uses a 7 x 10 in book trim; the facsimile stays Letter.
 \RequirePackage[paperwidth=7in,paperheight=10in,top=0.70in,bottom=0.72in,left=0.75in,right=0.75in,headsep=0.22in]{geometry}
 \RequirePackage{titlesec}
@@ -42,6 +42,19 @@
 \fancyfoot[C]{\small\sffamily\thepage}
 \renewcommand{\headrulewidth}{0.35pt}
 \renewcommand{\headrule}{\hbox to\headwidth{\color{WaveAccent}\leaders\hrule height \headrulewidth\hfill}}
+
+% A verso inserted solely to move the next chapter to recto is completely blank.
+\RenewDocumentCommand{\cleardoublepage}{}{%
+	\clearpage
+	\ifodd\value{page}\else
+		\begingroup
+		\pagestyle{empty}%
+		\thispagestyle{empty}%
+		\null
+		\newpage
+		\endgroup
+	\fi
+}
 
 \AtBeginDocument{%
 	% Chapter/section commands invoke \normalsize, so the reading size must be

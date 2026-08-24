@@ -83,18 +83,20 @@ not least, dear friend. I hope I absorbed from him some of the positive qualitie
 ## Editor’s note
 
 I created this digital edition of *Wave Motions in the Ocean: Myrl’s View* as a
-tribute to my dear advisor and mentor, Myrl C. Hendershott. Myrl’s guidance and
+tribute to my dear advisor and mentor, Professor Myrl C. Hendershott. Myrl’s guidance and
 encouragement during my time working with him at Scripps and Coastal Environments
 have had a lasting influence on me. I hope this edition, available in PDF, EPUB, and
 online, will help future Physical Oceanography students for years to come.
 
 The original notes have been passed from hand to hand, xeroxed many times, and eventually
 preserved in scanned form on James Pringle’s website. This edition reconstructs the 1989
-notes in modern LaTeX, with figures redrawn in vector format where possible.
+notes in modern LaTeX, with figures redrawn in vector format where possible. OpenAI’s
+GPT-5.6 Sol and Luna were used to assist with reconstruction, source comparison, figure
+work, and publication checks.
 
-Paola Malanotte-Rizzoli has authorized this digital edition for release under the
-Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
-license (CC BY-NC-SA 4.0).
+David C. Chapman passed away in 2004. Paola Malanotte-Rizzoli has authorized this digital
+edition for release under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0
+International license (CC BY-NC-SA 4.0).
 
 This edition is set in STIX Two for text and mathematics, with Source Sans 3 for headings
 and other structural text. Both typefaces are used under the SIL Open Font License 1.1.
@@ -105,13 +107,10 @@ The front cover features Katsushika Hokusai’s *Under the Wave off Kanagawa
 of Art’s Open Access collection. Both artworks are in the public domain; the images are
 provided under CC0.
 
-The reconstruction is a work in progress, with assistance from OpenAI’s GPT-5.6 Sol
-and Luna.
-
 *Stony Brook — Albert M. W. Yau, 2026*
 
 <figure>
-<img src="src/figures/frontmatter/salmon-hendershott-como-1980.jpg" width="420" />
+<img src="src/images/salmon-hendershott-como-1980.jpg" width="420" />
 <p>Rick Salmon (left) and Myrl Hendershott at Villa Carlotta, Lake Como,
 during the International School of Physics “Enrico Fermi,” Course LXXX,
 <em>Topics in Ocean Physics</em>, July 1980.</p>

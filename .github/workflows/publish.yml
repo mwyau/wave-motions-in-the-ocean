@@ -8,7 +8,7 @@ on:
     paths:
       - "src/*.tex"
       - "src/*.bib"
-      - "src/styles/**"
+      - "src/layout/**"
       - "src/figures/**"
       - "references/chapman-rizzoli-1989/**"
       - "references/mit-ocw-2008/**"
@@ -179,7 +179,7 @@ jobs:
           set +e
           status=0
           prek run --all-files || status=1
-          node --check src/styles/wave-html.js || status=1
+          node --check src/layout/wave-html.js || status=1
           if ! git diff --quiet; then
             echo "::warning title=Source quality::Quality hooks changed tracked files; commit their fixes."
             git diff --check || true

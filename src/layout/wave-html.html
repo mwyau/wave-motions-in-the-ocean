@@ -39,13 +39,9 @@
       <span class="reader-context-title"$reader_title_hidden>$reader_title</span>
     </span>
     <span class="book-controls book-nav-end">
-      <a href="$next_url"$next_hidden aria-label="Next: $next_label"><span class="nav-long">$next_label →</span><span class="nav-short">Next →</span></a>
-      <a class="source-link" href="$source_url" aria-label="Source for this page at build revision">Source</a>
-      <span class="dev-math-controls" data-dev-math-controls hidden role="group" aria-label="Development math renderer">
-        <button class="math-mode-button toc-toggle" type="button" data-math-mode="mathjax" aria-pressed="true">MathJax</button>
-        <span aria-hidden="true">|</span>
-        <button class="math-mode-button toc-toggle" type="button" data-math-mode="mathml" aria-pressed="false">MathML</button>
-      </span>
+      <a class="next-link" href="$next_url$"$if(next_url)$$else$ hidden$endif$ aria-label="Next: $next_label$"><span class="nav-long">$next_label$ →</span><span class="nav-short">Next →</span></a>
+      <a class="source-link" href="$source_url$" aria-label="Source for this page at build revision">Source</a>
+      <button class="math-renderer-cycle reader-cycle" type="button" data-math-cycle><span class="rendering-label">Rendering: </span><span data-math-label>MathJax</span></button>
       <span class="book-control-divider" aria-hidden="true"></span>
       <button class="theme-cycle" type="button" data-theme-cycle><span class="appearance-label">Appearance: </span><span data-theme-label>Auto</span></button>
     </span>
@@ -56,7 +52,10 @@
     <strong class="book-contents-title">Contents</strong>
     <button class="toc-expand" type="button" data-toc-expand>Expand all</button>
   </div>
-  <nav class="book-contents-nav" aria-label="Book contents">$book_toc</nav>
+  <nav class="book-contents-nav" aria-label="Book contents">
+    $book_toc$
+    <div class="book-toc-group"><ol><li class="book-toc-page"><a href="references.html#artwork" data-section-link="artwork">Artwork</a></li></ol></div>
+  </nav>
 </aside>
 <aside class="book-contents-popover" id="book-contents" popover hidden aria-labelledby="book-contents-heading">
   <div class="book-contents-inner" data-toc-scope>
@@ -67,11 +66,42 @@
         <button class="toc-close" type="button" popovertarget="book-contents" popovertargetaction="hide" aria-label="Close contents">Close</button>
       </span>
     </div>
-    <nav class="book-contents-nav" aria-label="Book contents">$book_toc</nav>
+    <nav class="book-contents-nav" aria-label="Book contents">
+      $book_toc$
+      <div class="book-toc-group"><ol><li class="book-toc-page"><a href="references.html#artwork" data-section-link="artwork">Artwork</a></li></ol></div>
+    </nav>
   </div>
 </aside>
 <main id="main-content">
-$body
+$if(title)$
+$if(bibliography)$
+<h1 id="references">$title$</h1>
+$else$
+<header id="title-block-header"$if(chapter_title_block)$ class="chapter-title-block"$endif$>
+<h1 class="title">$title$</h1>
+</header>
+$endif$
+$endif$
+$body$
+$if(page_extra)$
+$page_extra$
+$endif$
+$if(bibliography)$
+<section class="artwork-section" aria-labelledby="artwork">
+<h2 id="artwork">Artwork</h2>
+<figure>
+  <img src="assets/figures/great-wave-met-dp130155.jpg" alt="Katsushika Hokusai, Under the Wave off Kanagawa (The Great Wave)" loading="lazy" decoding="async" style="max-height:72vh;width:auto">
+  <figcaption><strong>Front cover.</strong> Katsushika Hokusai, <cite>Under the Wave off Kanagawa (The Great Wave)</cite>, from <cite>Thirty-six Views of Mount Fuji</cite>, ca. 1830–32. The Metropolitan Museum of Art, JP1847. Public Domain; image from The Met Open Access (CC0).</figcaption>
+</figure>
+<figure>
+  <!-- Match the PDF back-cover scale, shift, and clip from back-modern.tex. -->
+  <div style="position:relative;overflow:hidden;width:min(100%,47.608vh);aspect-ratio:5.149168 / 7.787338;margin:1.1rem auto">
+    <img src="assets/figures/naruto-whirlpool-met-jp1198.jpg" alt="Utagawa Hiroshige, Naruto Whirlpool, Awa Province" loading="lazy" decoding="async" style="position:absolute;left:49.417382%;top:48.497856%;width:113.804793%;max-width:none;height:auto;margin:0;transform:translate(-50%,-50%)">
+  </div>
+  <figcaption><strong>Closing page.</strong> Utagawa Hiroshige, <cite>Naruto Whirlpool, Awa Province</cite>, from <cite>Views of Famous Places in the Sixty-Odd Provinces</cite>, ca. 1853. The Metropolitan Museum of Art, JP1198. Public Domain; image from The Met Open Access (CC0).</figcaption>
+</figure>
+</section>
+$endif$
 </main>
 <footer class="build-info">Digital edition build: <a href="$build_url"><code>$build_label</code></a></footer>
 </body>

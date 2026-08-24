@@ -36,7 +36,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "dist"
 BUILD = ROOT / "build" / "epub"
 SRC = ROOT / "src"
-CSS = SRC / "styles" / "wave-epub.css"
+CSS = SRC / "layout" / "wave-epub.css"
 EPUB = OUT / "wave-motions.epub"
 COVER_DIR = BUILD / "cover"
 COVER_PDF = COVER_DIR / "cover.pdf"
@@ -88,6 +88,10 @@ def normalize_epub_math_tex(text: str) -> str:
     return re.sub(r"\\ell(?![A-Za-z])", "{ℓ}", text)
 
 
+def bibliography_entry_count() -> int:
+    return len(re.findall(r"(?m)^@\w+\s*\{", (SRC / "references.bib").read_text()))
+
+
 def epub_inputs() -> list[Path]:
     source_dir = BUILD / "source"
     paths = prepare_flowing_sources(source_dir, BUILD)
@@ -106,9 +110,7 @@ def epub_inputs() -> list[Path]:
     for path in paths:
         path.write_text(normalize_epub_math_tex(path.read_text()))
 
-    references = source_dir / "references.tex"
-    references.write_text("\\chapter{References}\n")
-    return [*paths, references]
+    return paths
 
 
 def render_cover() -> None:
@@ -116,7 +118,7 @@ def render_cover() -> None:
     wrapper = COVER_DIR / "cover.tex"
     wrapper.write_text(
         r"""\documentclass[11pt,oneside]{report}
-\usepackage{styles/wave-modern}
+\usepackage{layout/wave-modern}
 \begin{document}
 \input{cover-modern}
 \WaveModernCover
@@ -174,6 +176,8 @@ def write_metadata() -> Path:
         'rights: "CC BY-NC-SA 4.0"\n'
         f'identifier: "{SITE_URL}/"\n'
         f'contributor: "{EDITOR}"\n'
+        "nocite: '@*'\n"
+        'reference-section-title: "References"\n'
         "---\n"
     )
     return path
@@ -199,8 +203,6 @@ def build_epub(inputs: list[Path], metadata: Path) -> None:
             "--mathml",
             "--citeproc",
             f"--bibliography={SRC / 'references.bib'}",
-            "--metadata",
-            "nocite=@*",
             "--metadata-file",
             str(metadata),
             "--metadata",
@@ -278,7 +280,9 @@ def package_document(archive: zipfile.ZipFile) -> tuple[str, ET.Element]:
         raise SystemExit(f"EPUB package structure is invalid: {exc}") from exc
 
 
-def validate_structure(epub: Path = EPUB) -> None:
+def validate_structure(
+    epub: Path = EPUB, *, require_legacy_cover: bool = True
+) -> None:
     """Keep the generated package usable before and after the final rewrite."""
     verify_integrity(epub)
     with zipfile.ZipFile(epub) as archive:
@@ -314,6 +318,39 @@ def validate_structure(epub: Path = EPUB) -> None:
         if not xhtml_names:
             raise SystemExit("EPUB XHTML manifest is empty")
         validate_internal_refs(archive, xhtml_names)
+
+        reference_entries = 0
+        for name in xhtml_names:
+            root = ET.fromstring(archive.read(name))
+            reference_entries += sum(
+                1
+                for element in root.iter()
+                if "csl-entry" in (element.get("class") or "").split()
+            )
+        expected_references = bibliography_entry_count()
+        if reference_entries != expected_references:
+            raise SystemExit(
+                "EPUB bibliography is incomplete: "
+                f"found {reference_entries} entries; expected {expected_references}"
+            )
+
+        if require_legacy_cover:
+            cover_item = cover_image_item(opf_root)
+            assert cover_item is not None
+            cover_id = cover_item.get("id")
+            legacy_cover = [
+                element
+                for element in metadata.findall("{*}meta")
+                if element.get("name") == "cover"
+            ]
+            if (
+                len(legacy_cover) != 1
+                or not cover_id
+                or legacy_cover[0].get("content") != cover_id
+            ):
+                raise SystemExit(
+                    "EPUB legacy cover metadata does not identify the EPUB3 cover image"
+                )
 
 
 def manifest_member(opf_name: str, item: ET.Element) -> str:
@@ -386,7 +423,9 @@ def first_bodymatter_member(
     return None
 
 
-def cover_image_basename(opf_root: ET.Element, *, required: bool = True) -> str | None:
+def cover_image_item(
+    opf_root: ET.Element, *, required: bool = True
+) -> ET.Element | None:
     manifest = opf_root.find("{*}manifest")
     if manifest is None:
         raise SystemExit("EPUB manifest is missing")
@@ -395,11 +434,22 @@ def cover_image_basename(opf_root: ET.Element, *, required: bool = True) -> str 
         for item in manifest.findall("{*}item")
         if "cover-image" in (item.get("properties") or "").split()
     ]
-    if len(items) != 1 or not items[0].get("href"):
+    if (
+        len(items) != 1
+        or not items[0].get("href")
+        or not items[0].get("id")
+    ):
         if required:
             raise SystemExit(f"expected one EPUB cover image, found {len(items)}")
         return None
-    href = urllib.parse.unquote(items[0].get("href") or "")
+    return items[0]
+
+
+def cover_image_basename(opf_root: ET.Element, *, required: bool = True) -> str | None:
+    item = cover_image_item(opf_root, required=required)
+    if item is None:
+        return None
+    href = urllib.parse.unquote(item.get("href") or "")
     return posixpath.basename(urllib.parse.urlsplit(href).path)
 
 
@@ -600,6 +650,20 @@ def update_package_metadata(opf_root: ET.Element) -> bytes:
     else:
         ET.SubElement(metadata, f"{{{DC_NS}}}language").text = LANGUAGE
     _set_contributor_refinements(metadata)
+
+    cover_item = cover_image_item(opf_root)
+    assert cover_item is not None
+    cover_id = cover_item.get("id")
+    assert cover_id is not None
+    for element in list(metadata.findall("{*}meta")):
+        if element.get("name") == "cover":
+            metadata.remove(element)
+    ET.SubElement(
+        metadata,
+        f"{{{OPF_NS}}}meta",
+        {"name": "cover", "content": cover_id},
+    )
+
     for element in list(metadata):
         if (
             element.tag.endswith("}meta")
@@ -733,7 +797,7 @@ def main() -> int:
     render_cover()
     metadata = write_metadata()
     build_epub(inputs, metadata)
-    validate_structure()
+    validate_structure(require_legacy_cover=False)
     finalize(EPUB)
     return 0
 

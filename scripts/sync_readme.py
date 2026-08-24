@@ -48,7 +48,7 @@ SIGNATURE_RE = re.compile(
     r"\\wavesignature\{(?P<name>[^{}]+)\}\{(?P<place>[^{}]+)\}\{(?P<year>[^{}]+)\}"
 )
 LOCAL_RASTER_RE = re.compile(
-    r"\\includegraphics(?P<opts>\[[^]]*\])?\s*\{figures/(?P<name>[^}]+\.(?:png|jpe?g))\}",
+    r"\\includegraphics(?P<opts>\[[^]]*\])?\s*\{(?P<directory>figures|images)/(?P<name>[^}]+\.(?:png|jpe?g))\}",
     re.IGNORECASE,
 )
 
@@ -146,7 +146,7 @@ def frontmatter_markdown(text: str) -> str:
     body = LOCAL_RASTER_RE.sub(
         lambda match: (
             rf"\includegraphics{match.group('opts') or ''}"
-            rf"{{src/figures/{match.group('name')}}}"
+            rf"{{src/{match.group('directory')}/{match.group('name')}}}"
         ),
         body,
     )
@@ -170,8 +170,8 @@ def frontmatter_markdown(text: str) -> str:
     rendered = process.stdout.strip()
     rendered = re.sub(r"(?m)^# ", "## ", rendered)
     rendered = re.sub(
-        r'<img src="src/figures/frontmatter/salmon-hendershott-como-1980\.jpg"[^>]*>',
-        '<img src="src/figures/frontmatter/salmon-hendershott-como-1980.jpg" width="420" />',
+        r'<img src="src/images/salmon-hendershott-como-1980\.jpg"[^>]*>',
+        '<img src="src/images/salmon-hendershott-como-1980.jpg" width="420" />',
         rendered,
     )
     return rendered

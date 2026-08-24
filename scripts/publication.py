@@ -34,6 +34,7 @@ REFERENCES = ROOT / "references"
 SOURCE_DIR = REFERENCES / "chapman-rizzoli-1989"
 DIST = ROOT / "dist"
 FIGURES = SRC / "figures"
+IMAGE_DIRS = (FIGURES, SRC / "images")
 CACHE = Path(os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motions")))
 SOURCE_PAGE_CACHE = CACHE / "source-pages"
 TIKZ_CACHE = CACHE / "tikz"
@@ -106,7 +107,7 @@ DIRECT_PDF_RE = re.compile(
     re.DOTALL,
 )
 LOCAL_RASTER_RE = re.compile(
-    r"\\includegraphics(?:\[[^]]*\])?\s*\{figures/(?P<name>[^}]+\.(?:png|jpe?g))\}",
+    r"\\includegraphics(?:\[[^]]*\])?\s*\{(?:figures|images)/(?P<name>[^}]+\.(?:png|jpe?g))\}",
     re.IGNORECASE,
 )
 PDF_ONLY_RE = re.compile(
@@ -412,18 +413,19 @@ def prepare_vector_assets(assets_root: Path, work_root: Path) -> None:
 def copy_raster_assets(
     assets_root: Path, *, asset_prefix: str = FIGURE_ASSET_PREFIX
 ) -> None:
-    for raster in FIGURES.rglob("*"):
-        if not raster.is_file() or raster.suffix.lower() not in {
-            ".png",
-            ".jpg",
-            ".jpeg",
-        }:
-            continue
-        destination = _asset_path(
-            assets_root, asset_prefix, str(raster.relative_to(FIGURES))
-        )
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(raster, destination)
+    for raster_dir in IMAGE_DIRS:
+        for raster in raster_dir.rglob("*"):
+            if not raster.is_file() or raster.suffix.lower() not in {
+                ".png",
+                ".jpg",
+                ".jpeg",
+            }:
+                continue
+            destination = _asset_path(
+                assets_root, asset_prefix, str(raster.relative_to(raster_dir))
+            )
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(raster, destination)
 
 
 def copy_cc_assets(assets_root: Path) -> None:

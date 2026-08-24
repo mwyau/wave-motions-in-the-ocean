@@ -3,7 +3,7 @@
 
 Pandoc supplies document body markup after shared publication preparation.
 This script computes publication data and renders the maintained full-page
-reader template in src/templates/wave-html.html.
+reader template in src/layout/wave-html.html.
 """
 
 from __future__ import annotations
@@ -45,8 +45,8 @@ BUILD = ROOT / "build" / "html-pandoc"
 OUT = ROOT / "dist"
 ASSETS = OUT / "assets"
 VENDOR_CACHE = ROOT / "build" / "html-vendor"
-HTML_TEMPLATE = SRC / "templates" / "wave-html.html"
-SOCIAL_PREVIEW_TEMPLATE = SRC / "templates" / "social-preview.tex"
+HTML_TEMPLATE = SRC / "layout" / "wave-html.html"
+SOCIAL_PREVIEW_TEMPLATE = SRC / "layout" / "social-preview.tex"
 COVER_SOURCE = SRC / "cover-modern.tex"
 SOCIAL_PREVIEW = ASSETS / "social-preview.png"
 LOCAL_MATHJAX_URL = "assets/mathjax/tex-chtml-full.js"
@@ -629,7 +629,9 @@ def build_social_preview() -> None:
 
 def page_metadata(path: Path) -> dict[str, str]:
     context = page_context(path)
-    page_title = BOOK_TITLE if path.name == "index.html" else f"{context} — {BOOK_TITLE}"
+    page_title = (
+        BOOK_TITLE if path.name == "index.html" else f"{context} — {BOOK_TITLE}"
+    )
     if path.name == "index.html":
         social_title = PUBLICATION_TITLE.replace("'", "’")
         page_url = f"{SITE_URL}/"
@@ -683,9 +685,7 @@ def install_frontmatter_ids(page: Path) -> None:
                 f"expected {expected!r}"
             )
         index += 1
-        attrs = re.sub(
-            r'\s+id="[^"]*"', "", match.group("attrs"), flags=re.IGNORECASE
-        )
+        attrs = re.sub(r'\s+id="[^"]*"', "", match.group("attrs"), flags=re.IGNORECASE)
         return f'<h1 id="{anchor}"{attrs}>{match.group("body")}</h1>'
 
     tail = heading_re.sub(replace_heading, tail)
@@ -713,9 +713,7 @@ def install_chapter_id(page: Path, chapter_number: int) -> None:
         raise SystemExit(f"HTML chapter heading missing from {page.name}")
     absolute_start = title_end + len("</header>") + heading.start()
     absolute_end = title_end + len("</header>") + heading.end()
-    attrs = re.sub(
-        r'\s+id="[^"]*"', "", heading.group("attrs"), flags=re.IGNORECASE
-    )
+    attrs = re.sub(r'\s+id="[^"]*"', "", heading.group("attrs"), flags=re.IGNORECASE)
     opening = f'<h1 id="chapter-{chapter_number}"{attrs}>'
     page.write_text(text[:absolute_start] + opening + text[absolute_end:])
 
@@ -725,9 +723,7 @@ def build_shell(path: Path) -> None:
     body_match = re.search(
         r"<body>\s*(?P<body>.*?)\s*</body>", generated, flags=re.DOTALL
     )
-    head_match = re.search(
-        r"<head>(?P<head>.*?)</head>", generated, flags=re.DOTALL
-    )
+    head_match = re.search(r"<head>(?P<head>.*?)</head>", generated, flags=re.DOTALL)
     if (
         body_match is None
         or generated.count("<body>") != 1
@@ -955,7 +951,9 @@ def validate() -> None:
         if sentinel not in combined:
             raise SystemExit(f"HTML sentinel missing: {sentinel}")
     if re.search(r"<mo\b[^>]*>ℓ</mo>", combined):
-        raise SystemExit("HTML native MathML represents ℓ as an operator instead of an identifier")
+        raise SystemExit(
+            "HTML native MathML represents ℓ as an operator instead of an identifier"
+        )
     if not re.search(r"<mi\b[^>]*>ℓ</mi>", combined):
         raise SystemExit("HTML native MathML is missing identifier-form ℓ")
     info = current_build()
@@ -1114,11 +1112,11 @@ def main() -> int:
     install_html_vendor_assets()
     source_dir = BUILD / "source"
     prepare_flowing_sources(source_dir, OUT)
-    shutil.copy2(SRC / "styles" / "wave-html.css", ASSETS / "wave.css")
+    shutil.copy2(SRC / "layout" / "wave-html.css", ASSETS / "wave.css")
     with (ASSETS / "wave.css").open("a", encoding="utf-8") as stylesheet:
         stylesheet.write("\n")
-        stylesheet.write((SRC / "styles" / "wave-fonts.css").read_text())
-    shutil.copy2(SRC / "styles" / "wave-html.js", ASSETS / "wave.js")
+        stylesheet.write((SRC / "layout" / "wave-fonts.css").read_text())
+    shutil.copy2(SRC / "layout" / "wave-html.js", ASSETS / "wave.js")
     build_social_preview()
 
     build_index(source_dir)
