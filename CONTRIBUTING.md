@@ -128,18 +128,11 @@ uv run --frozen python scripts/validate.py all --require-epubcheck
 Chromium is needed only for optional HTML visual and browser regression QA. It
 is not needed for editing, unit tests, hooks, or the basic publication build.
 
-On Ubuntu:
-
-```bash
-sudo snap install chromium
-chromium --headless --version
-```
-
-On Debian:
+On Ubuntu/Debian:
 
 ```bash
 sudo apt-get update
-sudo apt-get install chromium
+sudo apt-get install -y chromium
 chromium --headless --version
 ```
 
