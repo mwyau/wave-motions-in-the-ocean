@@ -79,6 +79,155 @@
     $styles.html()$
   </style>
   <link rel="stylesheet" href="assets/wave.css?v=$asset_version$">
+  <style>
+    /* Keep persistent navigation limited to structure, location, and settings. */
+    .book-nav {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: center;
+      gap: 1rem;
+      min-height: var(--wave-nav-fallback-height);
+      padding: .55rem 0;
+    }
+    .book-nav-start,
+    .book-nav-end {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+    }
+    .book-nav-start { justify-self: start; }
+    .book-nav-end { justify-self: end; }
+    .book-nav-start > .toc-toggle {
+      grid-column: auto;
+      grid-row: auto;
+      width: auto;
+      justify-content: flex-start;
+    }
+    .reader-navigation {
+      display: grid;
+      grid-template-columns: var(--wave-control-min-height) minmax(0, 1fr) var(--wave-control-min-height);
+      align-items: center;
+      justify-self: center;
+      width: min(48rem, 46vw);
+      min-width: 0;
+    }
+    .reader-nav-slot {
+      display: grid;
+      place-items: center;
+      width: var(--wave-control-min-height);
+      min-height: var(--wave-control-min-height);
+    }
+    .reader-nav-slot .previous-link,
+    .reader-nav-slot .next-link {
+      display: grid;
+      grid-column: auto;
+      grid-row: auto;
+      place-items: center;
+      justify-self: stretch;
+      width: 100%;
+      min-height: var(--wave-control-min-height);
+      color: var(--wave-link);
+      font-size: 1.35rem;
+      line-height: 1;
+      text-decoration: none;
+    }
+    .reader-navigation .reader-context {
+      grid-column: auto;
+      grid-row: auto;
+      min-width: 0;
+      padding: 0 .5rem;
+    }
+    .reader-settings-toggle {
+      display: inline-flex;
+      align-items: center;
+      min-height: var(--wave-control-min-height);
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--wave-link);
+      cursor: pointer;
+      font: inherit;
+      text-decoration: underline;
+      text-underline-offset: .13em;
+      white-space: nowrap;
+    }
+    .reader-settings-toggle:focus-visible {
+      outline: 2px solid var(--wave-link);
+      outline-offset: 3px;
+    }
+    .reader-settings-popover {
+      top: 4.25rem;
+      right: max(1rem, env(safe-area-inset-right));
+      left: auto;
+      width: min(20rem, calc(100vw - 2rem));
+    }
+    .reader-settings-controls {
+      display: grid;
+      margin-top: .25rem;
+    }
+    .reader-settings-controls .reader-cycle {
+      width: 100%;
+      justify-content: flex-start;
+      border: 0;
+      border-radius: 0;
+      border-bottom: 1px solid var(--wave-rule);
+      padding: .65rem .1rem;
+      background: transparent;
+      text-align: left;
+    }
+    .reader-settings-controls .reader-cycle:last-child { border-bottom: 0; }
+    .reader-settings-controls .control-wide { display: inline-flex; }
+    .reader-settings-controls .control-compact { display: none; }
+    @supports not selector(:popover-open) {
+      .reader-settings-popover { display: none; }
+    }
+    @container (max-width: 36rem) {
+      .book-nav {
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        gap: .5rem;
+        min-height: var(--wave-nav-fallback-height);
+        padding: .55rem 0;
+        font-size: .9rem;
+      }
+      .book-nav-start,
+      .book-nav-end { display: flex; }
+      .reader-navigation { width: min(20rem, 42vw); }
+      .reader-nav-slot {
+        width: var(--wave-control-min-height);
+        min-height: var(--wave-control-min-height);
+      }
+      .reader-nav-slot .previous-link,
+      .reader-nav-slot .next-link,
+      .book-nav-start > .toc-toggle,
+      .reader-settings-toggle {
+        min-height: var(--wave-touch-target);
+      }
+      .reader-navigation .reader-context {
+        grid-column: auto;
+        grid-row: auto;
+        padding: 0 .1rem;
+        font-size: 1rem;
+      }
+      .book-nav-start > .toc-toggle {
+        grid-column: auto;
+        grid-row: auto;
+        width: auto;
+        justify-content: flex-start;
+      }
+      #main-content h1,
+      #main-content h2,
+      #main-content h3 {
+        --wave-nav-fallback-height: var(--wave-nav-fallback-height);
+      }
+    }
+    @media (max-width: 36rem) {
+      .reader-settings-popover {
+        inset: auto max(.75rem, env(safe-area-inset-right)) max(.75rem, env(safe-area-inset-bottom)) auto;
+        width: min(20rem, calc(100vw - 1.5rem));
+        max-height: min(78dvh, 40rem);
+      }
+    }
+  </style>
   <script src="$mathjax_url$" type="text/javascript"></script>
   <script defer src="assets/wave.js?v=$asset_version$"></script>
 </head>
@@ -87,17 +236,30 @@
 <header class="reader-header page-shell">
   <nav class="book-nav$if(has_switchable_figures)$ has-switchable-figures$endif$" aria-label="Book navigation">
     <span class="book-nav-links book-nav-start">
-      <a class="home-link" href="index.html">Home</a>
       <button class="toc-toggle" type="button" popovertarget="book-contents" data-toc-toggle>Contents</button>
-      <a class="previous-link" href="$previous_url$"$if(previous_url)$$else$ hidden$endif$ aria-label="Previous: $previous_label$"><span class="nav-long">← $previous_label$</span><span class="nav-short">← Previous</span></a>
     </span>
-    <span class="reader-context" data-reader-context aria-label="Current reading position">
-      <span class="reader-context-chapter">$reader_chapter$</span>
-      <span class="reader-context-separator"$if(reader_title)$$else$ hidden$endif$ aria-hidden="true"> · </span>
-      <span class="reader-context-title"$if(reader_title)$$else$ hidden$endif$>$reader_title$</span>
+    <span class="reader-navigation">
+      <span class="reader-nav-slot">
+        <a class="previous-link" href="$previous_url$"$if(previous_url)$$else$ hidden$endif$ aria-label="Previous: $previous_label$" title="$previous_label$"><span aria-hidden="true">‹</span></a>
+      </span>
+      <span class="reader-context" data-reader-context aria-label="Current reading position">
+        <span class="reader-context-chapter">$reader_chapter$</span>
+        <span class="reader-context-separator"$if(reader_title)$$else$ hidden$endif$ aria-hidden="true"> · </span>
+        <span class="reader-context-title"$if(reader_title)$$else$ hidden$endif$>$reader_title$</span>
+      </span>
+      <span class="reader-nav-slot">
+        <a class="next-link" href="$next_url$"$if(next_url)$$else$ hidden$endif$ aria-label="Next: $next_label$" title="$next_label$"><span aria-hidden="true">›</span></a>
+      </span>
     </span>
-    <span class="book-controls book-nav-end">
-      <a class="next-link" href="$next_url$"$if(next_url)$$else$ hidden$endif$ aria-label="Next: $next_label$"><span class="nav-long">$next_label$ →</span><span class="nav-short">Next →</span></a>
+    <span class="book-nav-end">
+      <button class="reader-settings-toggle js-only" type="button" popovertarget="reader-settings" aria-controls="reader-settings">Settings</button>
+    </span>
+  </nav>
+</header>
+<aside class="appearance-popover reader-settings-popover" id="reader-settings" popover aria-labelledby="reader-settings-heading">
+  <div class="appearance-inner">
+    <strong class="appearance-title" id="reader-settings-heading">Settings</strong>
+    <div class="reader-settings-controls">
       <button class="math-renderer-cycle reader-cycle js-only" type="button" data-math-cycle>
         <span class="control-wide"><span class="rendering-label">Rendering:&nbsp;</span><span class="math-label-bootstrap math-label-static">MathML</span><span class="math-label-bootstrap math-label-mathjax">MathJax</span><span class="math-label-bootstrap math-label-mathml">MathML</span><span class="math-label-runtime" data-math-label>MathML</span></span>
         <span class="control-compact"><span class="math-label-bootstrap math-label-static">MathML</span><span class="math-label-bootstrap math-label-mathjax">MathJax</span><span class="math-label-bootstrap math-label-mathml">MathML</span><span class="math-label-runtime" data-math-label>MathML</span></span>
@@ -110,9 +272,9 @@
       $endif$
       <button class="text-size-toggle reader-cycle js-only" type="button" popovertarget="text-size-settings" aria-controls="text-size-settings" aria-haspopup="dialog" aria-expanded="false" data-text-size-toggle aria-label="Text size"><span class="control-wide">Text size:&nbsp;<span class="toolbar-text-size"></span></span><span class="text-size-icon control-compact" aria-hidden="true"><span class="text-size-icon-large">A</span><span class="text-size-icon-small">A</span></span></button>
       <button class="theme-cycle reader-cycle js-only" type="button" popovertarget="appearance-settings" aria-controls="appearance-settings" aria-haspopup="dialog" aria-expanded="false" data-theme-cycle><span class="control-wide">Theme:&nbsp;<span class="toolbar-theme-value"></span></span><span class="control-compact">Theme</span></button>
-    </span>
-  </nav>
-</header>
+    </div>
+  </div>
+</aside>
 <aside class="appearance-popover" id="appearance-settings" popover hidden aria-labelledby="appearance-heading">
   <div class="appearance-inner">
     <strong class="appearance-title" id="appearance-heading">Theme</strong>
