@@ -407,8 +407,14 @@
 
   const installPermalinks = () => {
     document.querySelectorAll("main h1[id], main h2[id]").forEach((heading) => {
-      if (heading.querySelector(":scope > .heading-permalink")) return;
+      if (heading.querySelector(":scope > .heading-actions")) return;
       heading.dataset.readerTitle = heading.textContent.trim();
+      const headingText = document.createElement("span");
+      headingText.className = "heading-text";
+      while (heading.firstChild) headingText.append(heading.firstChild);
+
+      const actions = document.createElement("span");
+      actions.className = "heading-actions";
       const link = document.createElement("a");
       link.className = "heading-permalink";
       link.href = `#${encodeURIComponent(heading.id)}`;
@@ -431,12 +437,14 @@
         }, 1200);
       });
 
-      heading.append(link, copy);
+      actions.append(link, copy);
+      heading.append(headingText, actions);
     });
   };
   installPermalinks();
 
-  document.querySelectorAll("[data-toc-scope]").forEach((scope) => {
+  const tocScopes = Array.from(document.querySelectorAll("[data-toc-scope]"));
+  tocScopes.forEach((scope) => {
     const button = scope.querySelector("[data-toc-expand]");
     const groups = Array.from(scope.querySelectorAll("details.book-toc-group"));
     if (!button || !groups.length) return;
@@ -457,7 +465,14 @@
       });
       syncLabel();
     });
-    groups.forEach((group) => group.addEventListener("toggle", syncLabel));
+    groups.forEach((group) =>
+      group.addEventListener("toggle", () => {
+        if (!group.open && group.querySelector(":scope > summary.is-current-chapter")) {
+          group.open = true;
+        }
+        syncLabel();
+      }),
+    );
     syncLabel();
   });
 
@@ -498,6 +513,7 @@
   const updateContentsMode = () => {
     if (!tocRail || !tocToggle || !mainContent) return;
 
+    const wasVisible = !tocRail.hidden;
     tocRail.hidden = false;
     tocRail.style.visibility = "hidden";
     tocRail.style.pointerEvents = "none";
@@ -519,6 +535,7 @@
     root.dataset.tocReady = "";
 
     if (showRail && tocPanel?.matches(":popover-open")) tocPanel.hidePopover();
+    if (showRail && !wasVisible) requestAnimationFrame(() => orientContents({ reset: true }));
   };
 
   const positionContents = () => {
@@ -537,6 +554,11 @@
       tocPanel.hidden = false;
       tocPanel.addEventListener("beforetoggle", (event) => {
         if (event.newState === "open") positionContents();
+      });
+      tocPanel.addEventListener("toggle", (event) => {
+        if (event.newState === "open") {
+          requestAnimationFrame(() => orientContents({ reset: true }));
+        }
       });
       tocPanel.addEventListener("click", (event) => {
         if (event.target.closest("a[href]") && tocPanel.matches(":popover-open")) {
@@ -628,8 +650,83 @@
   const readerContextTitle = document.querySelector(".reader-context-title");
   const readerContextSeparator = document.querySelector(".reader-context-separator");
   const defaultReaderTitle = readerContextTitle?.textContent ?? "";
+  let activeSectionId = "";
+
+  const currentChapterFor = (scope, activeId) => {
+    const groups = Array.from(scope.querySelectorAll("details.book-toc-group"));
+    const activeLink = activeId
+      ? Array.from(scope.querySelectorAll("a[data-section-link]")).find(
+          (link) => link.dataset.sectionLink === activeId,
+        )
+      : null;
+    return (
+      activeLink?.closest("details.book-toc-group") ||
+      groups.find((group) =>
+        group.querySelector(":scope > summary.is-current-chapter"),
+      ) ||
+      groups.find((group) =>
+        group.querySelector(':scope > summary a[aria-current="page"]'),
+      ) ||
+      null
+    );
+  };
+
+  const syncCurrentChapter = (activeId) => {
+    tocScopes.forEach((scope) => {
+      const current = currentChapterFor(scope, activeId);
+      scope.querySelectorAll("details.book-toc-group").forEach((group) => {
+        const summary = group.querySelector(":scope > summary");
+        const isCurrent = group === current;
+        summary?.classList.toggle("is-current-chapter", isCurrent);
+        if (isCurrent) group.open = true;
+      });
+    });
+  };
+
+  const contentsViews = () => {
+    const views = [];
+    if (tocRail && !tocRail.hidden) views.push(tocRail);
+    if (tocPanel?.matches(":popover-open")) views.push(tocPanel);
+    return views;
+  };
+
+  const contentsTarget = (view) => {
+    const activeLink = activeSectionId
+      ? Array.from(view.querySelectorAll("a[data-section-link]")).find(
+          (link) => link.dataset.sectionLink === activeSectionId,
+        )
+      : null;
+    return (
+      activeLink ||
+      view.querySelector("summary.is-current-chapter") ||
+      view.querySelector('summary a[aria-current="page"]')
+    );
+  };
+
+  const orientContents = ({ reset = false } = {}) => {
+    syncCurrentChapter(activeSectionId);
+    contentsViews().forEach((view) => {
+      if (reset) view.scrollTop = 0;
+      const target = contentsTarget(view);
+      if (!target) return;
+      target.closest("details.book-toc-group")?.setAttribute("open", "");
+      requestAnimationFrame(() => {
+        const viewRect = view.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        const padding = 12;
+        if (targetRect.top < viewRect.top + padding) {
+          view.scrollTop += targetRect.top - (viewRect.top + padding);
+        } else if (targetRect.bottom > viewRect.bottom - padding) {
+          view.scrollTop += targetRect.bottom - (viewRect.bottom - padding);
+        }
+      });
+    });
+  };
+
   const setActive = (heading) => {
     const activeId = heading?.id || "";
+    const changed = activeSectionId !== activeId;
+    activeSectionId = activeId;
     links.forEach((matchingLinks, id) => {
       const active = id === activeId;
       matchingLinks.forEach((link) => {
@@ -644,6 +741,8 @@
       readerContextTitle.hidden = !title;
       if (readerContextSeparator) readerContextSeparator.hidden = !title;
     }
+    syncCurrentChapter(activeId);
+    if (changed) orientContents();
   };
 
   const headingById = new Map(headings.map((heading) => [heading.id, heading]));

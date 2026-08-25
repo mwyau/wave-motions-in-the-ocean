@@ -96,6 +96,12 @@ FRONTMATTER_SECTIONS = (
     ("preface-paola-malanotte-rizzoli", "Preface — Paola Malanotte-Rizzoli"),
     ("editors-note", "Editor's note"),
 )
+FRONTMATTER_TITLE_BLOCK_RE = re.compile(
+    r'(?P<open><div class="center">\s*)'
+    r"<p>\s*<strong>.*?</strong>\s*</p>\s*"
+    r"<p>\s*<em>.*?</em>\s*</p>\s*",
+    re.DOTALL | re.IGNORECASE,
+)
 HEADING_TRANSLATION = str.maketrans(
     {
         "‘": "'",
@@ -621,7 +627,7 @@ def book_toc(index: int | None) -> str:
     items = [
         '<li class="book-toc-page">'
         + f'<details class="book-toc-group"{" open" if index is None else ""}>'
-        + '<summary><a href="index.html"'
+        + f'<summary{' class="is-current-chapter"' if index is None else ""}><a href="index.html"'
         + current_page(index is None)
         + ">Front matter</a></summary>"
         + f"<ol>{front_sections}</ol></details></li>"
@@ -638,7 +644,7 @@ def book_toc(index: int | None) -> str:
         items.append(
             '<li class="book-toc-page">'
             + f'<details class="book-toc-group"{" open" if active else ""}>'
-            + f'<summary><a href="chapter{chapter.number}.html#chapter-{chapter.number}"'
+            + f'<summary{' class="is-current-chapter"' if active else ""}><a href="chapter{chapter.number}.html#chapter-{chapter.number}"'
             + current_page(active)
             + f">{chapter.number} · {html.escape(chapter.title)}</a></summary>"
             + f"<ol>{sections}</ol></details></li>"
@@ -653,7 +659,7 @@ def book_toc(index: int | None) -> str:
     items.append(
         '<li class="book-toc-page">'
         + f'<details class="book-toc-group"{" open" if references_active else ""}>'
-        + '<summary><a href="references.html"'
+        + f'<summary{' class="is-current-chapter"' if references_active else ""}><a href="references.html"'
         + current_page(references_active)
         + ">References</a></summary>"
         + f"<ol>{artwork}</ol></details></li>"
@@ -798,6 +804,27 @@ def heading_text(fragment: str) -> str:
 def normalized_heading_text(text: str) -> str:
     normalized = unicodedata.normalize("NFKC", text).translate(HEADING_TRANSLATION)
     return " ".join(normalized.split())
+
+
+def remove_html_frontmatter_duplicate_title(page: Path) -> None:
+    """Remove the semantic title block duplicated by the HTML page title."""
+    text = page.read_text(errors="replace")
+    title_start = text.find('<header id="title-block-header">')
+    title_end = text.find("</header>", title_start)
+    if title_start < 0 or title_end < 0:
+        raise SystemExit("HTML front matter title block is missing")
+
+    tail_start = title_end + len("</header>")
+    tail = text[tail_start:]
+    stripped_tail = tail.lstrip()
+    match = FRONTMATTER_TITLE_BLOCK_RE.match(stripped_tail)
+    if match is None:
+        raise SystemExit(
+            "index.html: semantic front matter title block is missing or changed"
+        )
+    leading = tail[: len(tail) - len(stripped_tail)]
+    replacement = match.group("open") + stripped_tail[match.end() :]
+    page.write_text(text[:tail_start] + leading + replacement)
 
 
 def install_frontmatter_ids(page: Path) -> None:
@@ -1095,6 +1122,7 @@ def html_frontmatter_footer() -> str:
 def build_index(source_dir: Path) -> None:
     page = OUT / "index.html"
     dual_math_page(source_dir / "frontmatter.tex", page, PUBLICATION_TITLE)
+    remove_html_frontmatter_duplicate_title(page)
     install_frontmatter_ids(page)
 
 

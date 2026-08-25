@@ -83,54 +83,40 @@
     /* Keep persistent navigation limited to structure, location, and settings. */
     .book-nav {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      grid-template-columns:
+        max-content
+        var(--wave-touch-target)
+        minmax(0, 1fr)
+        var(--wave-touch-target)
+        max-content;
       align-items: center;
-      gap: 1rem;
+      column-gap: 0;
+      min-width: 0;
       min-height: var(--wave-nav-fallback-height);
       padding: var(--wave-nav-padding-block) 0;
     }
-    .book-nav-start,
-    .book-nav-end {
+    .book-nav > .toc-toggle { justify-self: start; }
+    .book-nav > .reader-settings-toggle { justify-self: end; }
+    .reader-nav-slot {
       display: flex;
       align-items: center;
-      min-width: 0;
-    }
-    .book-nav-start { justify-self: start; }
-    .book-nav-end { justify-self: end; }
-    .book-nav-start > .toc-toggle {
-      grid-column: auto;
-      grid-row: auto;
-      width: auto;
-      justify-content: flex-start;
-    }
-    .reader-navigation {
-      display: grid;
-      grid-template-columns: var(--wave-touch-target) minmax(0, 1fr) var(--wave-touch-target);
-      align-items: center;
-      justify-self: center;
-      width: min(48rem, 46vw);
-      min-width: 0;
-    }
-    .reader-nav-slot {
-      display: grid;
-      place-items: center;
+      justify-content: center;
       width: var(--wave-touch-target);
       min-height: var(--wave-touch-target);
+      overflow: visible;
     }
     .reader-nav-slot .previous-link,
     .reader-nav-slot .next-link {
-      display: grid;
-      grid-column: auto;
-      grid-row: auto;
-      place-items: center;
-      justify-self: stretch;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       width: 100%;
       min-height: var(--wave-touch-target);
       border-radius: .45rem;
       color: var(--wave-link);
-      font-size: 2.6rem;
+      font-size: 2.15rem;
       font-weight: 600;
-      line-height: 1.05;
+      line-height: 1.1;
       overflow: visible;
       text-decoration: none;
     }
@@ -145,16 +131,14 @@
         background: var(--wave-control-bg);
       }
     }
-    .reader-navigation .reader-context {
-      grid-column: auto;
-      grid-row: auto;
+    .book-nav > .reader-context {
       min-width: 0;
-      padding: 0 .5rem;
+      padding: 0 .35rem;
     }
     .reader-settings-toggle {
       display: inline-flex;
       align-items: center;
-      min-height: var(--wave-control-min-height);
+      min-height: var(--wave-touch-target);
       border: 0;
       padding: 0;
       background: transparent;
@@ -173,7 +157,7 @@
       top: var(--book-contents-top, 4.25rem);
       right: max(1rem, env(safe-area-inset-right));
       left: auto;
-      width: min(18.5rem, calc(100vw - 2rem));
+      width: min(18rem, calc(100vw - 1.5rem));
       max-height: calc(100dvh - var(--book-contents-top, 4.25rem) - 1rem);
     }
     .reader-settings-controls {
@@ -182,9 +166,10 @@
     }
     .reader-setting-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: 5rem auto;
+      justify-content: end;
       align-items: center;
-      gap: 1rem;
+      gap: .6rem;
       min-height: var(--wave-touch-target);
       padding: .25rem 0;
       border-bottom: 1px solid var(--wave-rule);
@@ -197,6 +182,8 @@
       min-width: 0;
       color: var(--wave-text);
       font-weight: 600;
+      justify-self: end;
+      text-align: right;
     }
     .reader-setting-row > .control-wide [data-figure-label],
     .reader-setting-row > .control-wide .toolbar-theme-value {
@@ -249,39 +236,33 @@
     }
     @container (max-width: 36rem) {
       .book-nav {
-        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-        gap: 0;
+        grid-template-columns:
+          max-content
+          var(--wave-touch-target)
+          minmax(0, 1fr)
+          var(--wave-touch-target)
+          max-content;
         min-height: var(--wave-nav-fallback-height);
         padding: var(--wave-nav-padding-block) 0;
         font-size: .8rem;
       }
-      .book-nav-start,
-      .book-nav-end { display: flex; }
-      .reader-navigation { width: min(21rem, calc(100vw - 9rem)); }
       .reader-nav-slot {
         width: var(--wave-touch-target);
         min-height: var(--wave-touch-target);
       }
       .reader-nav-slot .previous-link,
       .reader-nav-slot .next-link {
+        grid-column: auto;
+        grid-row: auto;
         min-height: var(--wave-touch-target);
-        font-size: 2.6rem;
+        font-size: 2.15rem;
       }
-      .book-nav-start > .toc-toggle,
       .reader-settings-toggle {
         min-height: var(--wave-touch-target);
       }
-      .reader-navigation .reader-context {
-        grid-column: auto;
-        grid-row: auto;
+      .book-nav > .reader-context {
         padding: 0 .1rem;
-        font-size: 1rem;
-      }
-      .book-nav-start > .toc-toggle {
-        grid-column: auto;
-        grid-row: auto;
-        width: auto;
-        justify-content: flex-start;
+        font-size: .8rem;
       }
     }
     .reader-header.is-compact .book-nav {
@@ -297,7 +278,7 @@
         right: max(.75rem, env(safe-area-inset-right));
         bottom: auto;
         left: auto;
-        width: min(18.5rem, calc(100% - 1.5rem));
+        width: min(18rem, calc(100% - 1.5rem));
         max-height: calc(100dvh - var(--book-contents-top, 4.25rem) - .75rem);
       }
       .book-contents-popover {
@@ -308,7 +289,7 @@
         width: auto;
         max-height: calc(100dvh - var(--book-contents-top, 4.25rem) - .75rem);
       }
-      .reader-setting-row { gap: .65rem; }
+      .reader-setting-row { gap: .6rem; }
     }
   </style>
   <script src="$mathjax_url$" type="text/javascript"></script>
@@ -318,25 +299,19 @@
 <a class="skip-link" href="#main-content">Skip to content</a>
 <header class="reader-header page-shell">
   <nav class="book-nav$if(has_switchable_figures)$ has-switchable-figures$endif$" aria-label="Book navigation">
-    <span class="book-nav-links book-nav-start">
-      <button class="toc-toggle" type="button" popovertarget="book-contents" data-toc-toggle>Contents</button>
+    <button class="toc-toggle" type="button" popovertarget="book-contents" data-toc-toggle>Contents</button>
+    <span class="reader-nav-slot">
+      <a class="previous-link" href="$previous_url$"$if(previous_url)$$else$ hidden$endif$ aria-label="Previous: $previous_label$" title="$previous_label$"><span aria-hidden="true">‹</span></a>
     </span>
-    <span class="reader-navigation">
-      <span class="reader-nav-slot">
-        <a class="previous-link" href="$previous_url$"$if(previous_url)$$else$ hidden$endif$ aria-label="Previous: $previous_label$" title="$previous_label$"><span aria-hidden="true">‹</span></a>
-      </span>
-      <span class="reader-context" data-reader-context aria-label="Current reading position">
-        <span class="reader-context-chapter">$reader_chapter$</span>
-        <span class="reader-context-separator"$if(reader_title)$$else$ hidden$endif$ aria-hidden="true"> · </span>
-        <span class="reader-context-title"$if(reader_title)$$else$ hidden$endif$>$reader_title$</span>
-      </span>
-      <span class="reader-nav-slot">
-        <a class="next-link" href="$next_url$"$if(next_url)$$else$ hidden$endif$ aria-label="Next: $next_label$" title="$next_label$"><span aria-hidden="true">›</span></a>
-      </span>
+    <span class="reader-context" data-reader-context aria-label="Current reading position">
+      <span class="reader-context-chapter">$reader_chapter$</span>
+      <span class="reader-context-separator"$if(reader_title)$$else$ hidden$endif$ aria-hidden="true"> · </span>
+      <span class="reader-context-title"$if(reader_title)$$else$ hidden$endif$>$reader_title$</span>
     </span>
-    <span class="book-nav-end">
-      <button class="reader-settings-toggle js-only" type="button" popovertarget="reader-settings" aria-controls="reader-settings">Settings</button>
+    <span class="reader-nav-slot">
+      <a class="next-link" href="$next_url$"$if(next_url)$$else$ hidden$endif$ aria-label="Next: $next_label$" title="$next_label$"><span aria-hidden="true">›</span></a>
     </span>
+    <button class="reader-settings-toggle js-only" type="button" popovertarget="reader-settings" aria-controls="reader-settings">Settings</button>
   </nav>
 </header>
 <aside class="appearance-popover reader-settings-popover" id="reader-settings" popover aria-labelledby="reader-settings-heading">
