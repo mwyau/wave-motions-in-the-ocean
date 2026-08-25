@@ -4,7 +4,8 @@
 Vector source info is stored in each retained .tikz file as:
     % wave-source: pdf=ChapmanRizzoli5.pdf; page=21; trim=...bp ...bp ...bp ...bp
 
-Edited-raster source info is embedded as PNG text metadata (wave-source-*).
+Source-PDF-only placements are represented by ``\\sourceart`` in the chapter
+source and do not have vector siblings to compare.
 
 Normal updates write the maintained vector SVG and original-source PNG beside
 the TikZ source. ``--comparison`` additionally writes a temporary side-by-side
@@ -72,32 +73,12 @@ def side_by_side(left_path: Path, right_path: Path, out_path: Path) -> None:
 
 def compare(stem: str, dpi: int) -> Path:
     tikz = FIGURES / f"{stem}.tikz"
-    raster = FIGURES / f"{stem}.png"
-    pdf_name: str
-    page: int
-    trim: str
-    kind: str
-
-    if tikz.exists():
-        metadata = tikz_source_metadata(stem)
-        if metadata is None:
-            raise RuntimeError(f"Missing wave-source comment in {tikz}")
-        pdf_name, page, trim = metadata
-        kind = "vector"
-    elif raster.exists():
-        with Image.open(raster) as img:
-            info = img.info
-            try:
-                pdf_name = str(info["wave-source-pdf"])
-                page = int(info["wave-source-page"])
-                trim = str(info["wave-source-trim"])
-            except KeyError as exc:
-                raise RuntimeError(
-                    f"Missing embedded wave-source metadata in {raster}"
-                ) from exc
-        kind = "edited-raster"
-    else:
-        raise FileNotFoundError(f"No retained vector or edited raster named {stem!r}")
+    if not tikz.exists():
+        raise FileNotFoundError(f"No retained vector named {stem!r}")
+    metadata = tikz_source_metadata(stem)
+    if metadata is None:
+        raise RuntimeError(f"Missing wave-source comment in {tikz}")
+    pdf_name, page, trim = metadata
 
     OUTROOT.mkdir(parents=True, exist_ok=True)
     comparison = OUTROOT / f"{stem}.png"
@@ -106,13 +87,9 @@ def compare(stem: str, dpi: int) -> Path:
         tmpdir = Path(td)
         original = tmpdir / "original.png"
         reconstruction = tmpdir / "reconstruction.png"
-        masks = tikz_source_masks(stem) if kind == "vector" else ()
+        masks = tikz_source_masks(stem)
         render_source_crop(pdf_name, page, trim, original, dpi, masks=masks)
-        if kind == "vector":
-            render_tikz_png(stem, reconstruction, dpi)
-        else:
-            with Image.open(raster) as img:
-                img.convert("RGB").save(reconstruction)
+        render_tikz_png(stem, reconstruction, dpi)
         side_by_side(original, reconstruction, comparison)
 
     return comparison
@@ -122,9 +99,7 @@ def update_assets(stem: str) -> tuple[str, ...]:
     """Regenerate stale maintained siblings for one vector figure."""
     tikz, svg, png = figure_asset_paths(stem)
     if not tikz.is_file():
-        if png.is_file():
-            return ()
-        raise FileNotFoundError(f"No retained vector or raster named {stem!r}")
+        raise FileNotFoundError(f"No retained vector named {stem!r}")
 
     errors = maintained_figure_asset_errors(stem)
     if not errors:

@@ -1101,21 +1101,6 @@ Every `.tikz` file carries a `wave-source` comment naming the source PDF, physic
 - **Equation check:** n/a
 - **Scientific check:** Two channel walls and `v=0`, `y=0,a` labels reproduce the source geometry.
 
-#### Figure 5.15 — amphidromic pattern
-
-<table>
-<tr><th>Original / maintained raster</th></tr>
-<tr>
-  <td><img src="figures/ch05-p124-amphidromic-pattern.png" alt="Maintained source raster for Figure 5.15 — amphidromic pattern" width="390"></td>
-</tr>
-</table>
-
-- **Asset:** `ch05-p124-amphidromic-pattern.png`
-- **Printed page:** 124
-- **Representation:** edited-raster
-- **Equation check:** ai-checked
-- **Scientific check:** For equal counter-propagating Kelvin waves, superposition gives zeros at `y=a/2`, `x=(n+1/2) pi/k`, spacing `pi/k`, and one rotation per `2 pi/sigma`, matching the kept source field pattern.
-
 #### Figure 5.16 — closed channel
 
 <table>
@@ -1131,21 +1116,6 @@ Every `.tikz` file carries a `wave-source` comment naming the source PDF, physic
 - **Representation:** vector
 - **Equation check:** n/a
 - **Scientific check:** Three closed-channel boundaries and `u=0`, `v=0`, `x=0`, `y=0,a` labels are preserved.
-
-#### Figure 5.17 — kelvin turning corner
-
-<table>
-<tr><th>Original / maintained raster</th></tr>
-<tr>
-  <td><img src="figures/ch05-p126-kelvin-turning-corner.png" alt="Maintained source raster for Figure 5.17 — kelvin turning corner" width="390"></td>
-</tr>
-</table>
-
-- **Asset:** `ch05-p126-kelvin-turning-corner.png`
-- **Printed page:** 126
-- **Representation:** edited-raster
-- **Equation check:** partial
-- **Scientific check:** Far-field Kelvin directions and the no-normal-flow requirement are checked. The detailed near-corner field requires an infinite Poincaré-mode matching solution and is not uniquely reconstructed here, so keeping the source raster is intentional.
 
 #### Figure 5.18 — rossby dispersion
 
@@ -1680,6 +1650,36 @@ These placements remain deliberate source-PDF figures because their perspective,
 - **Representation:** source-pdf
 - **Equation check:** ai-checked
 - **Scientific check:** Same disposition: the checked mismatch is documented rather than silently corrected in source art. See `ERRATA.md`, printed p.113.
+
+#### Figure 5.15 — source PDF crop, printed page 124
+
+<table>
+<tr><th>Original source</th></tr>
+<tr>
+  <td><img src="figures/ch05-p124-amphidromic-pattern.png" alt="Original source figure for Figure 5.15 — amphidromic pattern" width="390"></td>
+</tr>
+</table>
+
+- **Asset:** `ch05-p124-amphidromic-pattern.png`
+- **Original source:** [ChapmanRizzoli5.pdf](../references/chapman-rizzoli-1989/ChapmanRizzoli5.pdf), physical page 29
+- **Representation:** source-pdf
+- **Equation check:** ai-checked
+- **Scientific check:** For equal counter-propagating Kelvin waves, superposition gives zeros at `y=a/2`, `x=(n+1/2) pi/k`, spacing `pi/k`, and one rotation per `2 pi/sigma`, matching the retained source field pattern.
+
+#### Figure 5.17 — source PDF crop, printed page 126
+
+<table>
+<tr><th>Original source</th></tr>
+<tr>
+  <td><img src="figures/ch05-p126-kelvin-turning-corner.png" alt="Original source figure for Figure 5.17 — kelvin turning corner" width="390"></td>
+</tr>
+</table>
+
+- **Asset:** `ch05-p126-kelvin-turning-corner.png`
+- **Original source:** [ChapmanRizzoli5.pdf](../references/chapman-rizzoli-1989/ChapmanRizzoli5.pdf), physical page 31
+- **Representation:** source-pdf
+- **Equation check:** partial
+- **Scientific check:** Far-field Kelvin directions and the no-normal-flow requirement are checked. The detailed near-corner field requires an infinite Poincaré-mode matching solution and is retained as source art.
 
 #### Figure 6.7 — source PDF crop, printed page 159
 

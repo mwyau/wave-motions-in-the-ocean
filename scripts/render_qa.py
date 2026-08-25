@@ -372,7 +372,7 @@ def figure_html_qa(dist: Path, report: Report, lines: list[str]) -> None:
     total_size = sum(path.stat().st_size for path in source_pngs)
     largest = max((path.stat().st_size for path in source_pngs), default=0)
     lines.append(
-        f"- Switchable HTML figures: {switchable}; same-stem source PNGs: "
+        f"- Switchable HTML figures: {switchable}; source-backed PNGs: "
         f"{len(source_pngs)}; total source-PNG size: {total_size:,} bytes; "
         f"largest: {largest:,} bytes"
     )

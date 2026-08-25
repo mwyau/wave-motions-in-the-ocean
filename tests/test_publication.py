@@ -188,12 +188,12 @@ def test_svg_is_stale_when_tikz_changes(
     assert any("sample.svg has digest" in error for error in errors)
 
 
-def test_raster_only_png_does_not_require_vector_siblings(
+def test_source_only_asset_does_not_require_vector_siblings(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     figures = tmp_path / "figures"
     figures.mkdir()
-    Image.new("RGB", (2, 2), "white").save(figures / "raster-only.png")
+    Image.new("RGB", (2, 2), "white").save(figures / "source-only.png")
     monkeypatch.setattr(publication, "FIGURES", figures)
 
     validate_maintained_figure_assets()

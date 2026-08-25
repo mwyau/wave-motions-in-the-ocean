@@ -24,16 +24,15 @@ Avoid screenshots, repeated lossy recompression, and committed before/after copi
 
 ## Figure ledger
 
-Record figure state, source info, representation choice, asset review, and equation/scientific checks in `src/FIGURES.md`.
+Record figure state, source info, representation choice, and equation/scientific
+checks in `src/FIGURES.md`. For a vector reconstruction, the committed
+same-stem PNG and SVG are the visual review surface.
 
 Keep entries ordered by chapter, then printed page, then asset name.
 
-Track representation and asset review separately:
+Track the literal representation:
 
 - **Representation:** `vector`, `source-pdf`, `edited-raster`, or another literal representation such as `source-photo` when needed.
-- **Asset review:** `complete`, `review-needed`, or `candidate`.
-
-`candidate` means the current source/raster representation may be worth replacing later; it is not a representation type. A deliberate source crop can be `source-pdf` + `complete`.
 
 Use `Equation check` consistently:
 
@@ -48,7 +47,22 @@ Do not infer `ai-checked` merely because a TikZ file contains a formula or visua
 
 An existing equation-check state records a prior audit; it is not proof to inherit blindly. If a figure is materially changed, or if its scientific correctness matters to the current task, independently recheck the affected constraints rather than relying on the existing ledger value.
 
-TikZ figures should carry their `wave-source` source comment. Intentionally edited rasters should keep equivalent embedded source metadata when tooling supports it.
+TikZ figures should carry their `wave-source` source comment. Source-PDF-only
+placements should use `\sourceart` in the chapter source; intentionally edited
+rasters should keep equivalent embedded source metadata when tooling supports it.
+
+For every TikZ figure with source-PDF provenance, maintain these files together:
+
+```text
+src/figures/<stem>.tikz  # authored vector source
+src/figures/<stem>.svg   # generated vector review/publication asset
+src/figures/<stem>.png   # generated original-source crop
+```
+
+Run `uv run --frozen python scripts/compare_figures.py <stem>` after changing
+TikZ or crop metadata. Do not edit the generated SVG or PNG by hand. Their
+source of truth is the TikZ, its provenance metadata, and the committed source
+PDF. Generated previews never imply human acceptance.
 
 `ERRATA.md` owns any substantive source discrepancy, proposed correction, evidence, and approval state. `FIGURES.md` owns the figure asset, representation choice, and scientific/equation checks. Cross-reference the erratum concisely instead of copying the full correction into both files.
 
@@ -94,11 +108,15 @@ For each new or materially changed vector:
 5. Build a faithful TikZ/vector representation without silently repairing source errors.
 6. Compile the TikZ independently.
 7. Inspect at final publication scale for labels, arrows, line contact, clipping, scale, and whitespace.
-8. Regenerate the comparison:
+8. Regenerate the maintained review assets:
 
 ```bash
 uv run --frozen python scripts/compare_figures.py <figure-name>
 ```
+
+Use `--comparison` only when a temporary raster side-by-side image under
+`audit/` is useful. Open `src/FIGURES.md` to review the committed Original and
+Vector pair directly.
 
 09. Inspect the affected full PDF/HTML/EPUB output as appropriate.
 10. Update `FIGURES.md`; record any substantive source problem in `ERRATA.md` as `pending-human-approval` unless the owner directly approved the correction in the current chat.
@@ -120,4 +138,9 @@ When an intentional raster edit is necessary:
 
 After figure work, run the relevant comparison plus the publication build containing the figure. For a coherent batch, finish with `./scripts/build.sh all`.
 
-Before considering a figure audit complete, confirm that every figure/direct source crop has explicit representation, asset-review, and equation-check states and that every `ai-checked`/`partial` claim has recoverable calculation/equation evidence. AI checking is never a substitute for the separate human-approval requirement for substantive source corrections.
+Before considering a figure audit complete, confirm that every figure/direct
+source crop has an explicit representation and equation-check state, every
+vector source-PDF pair has fresh committed SVG/PNG siblings, and every
+`ai-checked`/`partial` claim has recoverable calculation/equation evidence. AI
+checking is never a substitute for the separate human-approval requirement for
+substantive source corrections.

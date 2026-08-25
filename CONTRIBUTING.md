@@ -159,9 +159,15 @@ available.
 - `references/chapman-rizzoli-1989/` — original 1989 source scans
 
 For HTML, a TikZ figure with `wave-source` metadata can show either its
-reconstructed SVG or an original source-crop PNG. The build generates those
-same-stem PNGs under `release/assets/figures/`; they are derived assets, not
-maintained source files.
+reconstructed SVG or an original source-crop PNG. Maintain those generated
+same-stem assets beside the TikZ source with:
+
+```bash
+uv run --frozen python scripts/compare_figures.py <figure-stem>
+```
+
+The SVG and PNG are derived review assets, not independently edited source.
+The build checks and copies the committed files into `release/assets/figures/`.
 
 Generated files under `build/`, `release/`, and `audit/` are not committed.
 
