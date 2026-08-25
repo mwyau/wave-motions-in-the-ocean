@@ -86,10 +86,8 @@ def test_toolbar_labels_use_deterministic_spacing() -> None:
     ).read_text()
 
     assert '<span class="rendering-label">Rendering:&nbsp;</span>' in template
-    assert (
-        '<span class="control-wide">Text size:&nbsp;'
-        '<span class="toolbar-text-size">' in template
-    )
+    assert '<span class="reader-setting-label">Text:&nbsp;</span>' in template
+    assert 'class="text-size-value" data-text-size-value' in template
     assert (
         '<span class="control-wide">Theme:&nbsp;'
         '<span class="toolbar-theme-value">' in template

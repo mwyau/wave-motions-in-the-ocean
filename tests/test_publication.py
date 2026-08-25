@@ -68,6 +68,16 @@ def _write_equation_test_sources(root: Path) -> Path:
     return source
 
 
+def test_html_frontmatter_footer_starts_with_reader_link() -> None:
+    footer = build_html.html_frontmatter_footer()
+    start = footer.index('<li><a href="chapter1.html">Start reading</a></li>')
+    pdf = footer.index('<li><a href="wave-motions.pdf">PDF</a></li>')
+    epub = footer.index('<li><a href="wave-motions.epub">EPUB</a></li>')
+
+    assert start < pdf < epub
+    assert "wave-motions-facsimile.pdf" not in footer
+
+
 def test_equation_extraction_order_wrappers_and_exact_source(tmp_path: Path) -> None:
     source = _write_equation_test_sources(tmp_path)
     displays = collect_equation_displays(source)

@@ -1084,6 +1084,7 @@ def html_frontmatter_footer() -> str:
     )
     return (
         '<section class="edition-links"><h2>Read and download</h2><ul>'
+        '<li><a href="chapter1.html">Start reading</a></li>'
         + links
         + "</ul>"
         + f'<p>Contact: <a href="mailto:{CONTACT_EMAIL}">{CONTACT_EMAIL}</a></p>'

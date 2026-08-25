@@ -31,17 +31,26 @@
     }
   };
 
+  const setThemeMode = (mode) => {
+    if (!themeModes.includes(mode)) return;
+    themeMode = mode;
+    try {
+      if (themeMode === "auto") localStorage.removeItem(themeKey);
+      else localStorage.setItem(themeKey, themeMode);
+    } catch (_) {}
+    applyTheme();
+  };
+
   themeButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      const nextMode = button.dataset.themeOption;
-      if (!themeModes.includes(nextMode)) return;
-      themeMode = nextMode;
-      try {
-        if (themeMode === "auto") localStorage.removeItem(themeKey);
-        else localStorage.setItem(themeKey, themeMode);
-      } catch (_) {}
-      applyTheme();
+      setThemeMode(button.dataset.themeOption);
     });
+  });
+
+  themeToggle?.addEventListener("click", () => {
+    const nextMode =
+      themeModes[(themeModes.indexOf(themeMode) + 1) % themeModes.length];
+    setThemeMode(nextMode);
   });
 
   const textSizeKey = "wave-text-size";
@@ -52,7 +61,6 @@
   const textSizeDefault = 100;
   const legacyTextSizes = { small: 90, default: 100, large: 110 };
   const textSizeButtons = document.querySelectorAll("[data-text-size-action]");
-  const textSizeToggle = document.querySelector("[data-text-size-toggle]");
   const textSizeValue = document.querySelector("[data-text-size-value]");
 
   const normalizeTextSize = (value) => {
@@ -86,13 +94,6 @@
       if (action === "increase") button.disabled = textSizePercent >= textSizeMax;
     });
     if (textSizeValue) textSizeValue.textContent = `${textSizePercent}%`;
-    if (textSizeToggle) {
-      textSizeToggle.setAttribute(
-        "aria-label",
-        `Text size; current ${textSizePercent} percent`,
-      );
-      textSizeToggle.title = `Text size: ${textSizePercent}%`;
-    }
   };
 
   const visibleContentAnchor = () => {
@@ -377,7 +378,11 @@
       });
     });
   }
-  const initialMathReady = applyMathMode(initialMathMode, { initial: true });
+  let initialMathReady;
+  const startInitialMath = () => {
+    initialMathReady = applyMathMode(initialMathMode, { initial: true });
+    initialMathReady.then(alignFragmentAfterLayout);
+  };
 
   const copyText = async (text) => {
     try {
@@ -462,55 +467,6 @@
   const readerHeader = document.querySelector(".reader-header");
   const mainContent = document.querySelector("#main-content");
   const supportsPopover = "showPopover" in HTMLElement.prototype;
-  const appearancePanel = document.querySelector("#appearance-settings");
-  const textSizePanel = document.querySelector("#text-size-settings");
-
-  const settingsIsOpen = (panel) => {
-    if (!panel) return false;
-    return supportsPopover ? panel.matches(":popover-open") : !panel.hidden;
-  };
-
-  const syncSettingsExpanded = (panel, toggle) => {
-    if (toggle) toggle.setAttribute("aria-expanded", String(settingsIsOpen(panel)));
-  };
-
-  const positionSettings = (panel, toggle) => {
-    if (!panel || !toggle) return;
-    const gutter = 16;
-    const toggleRect = toggle.getBoundingClientRect();
-    const panelWidth = Number.parseFloat(getComputedStyle(panel).width) || 288;
-    const maxLeft = Math.max(gutter, innerWidth - panelWidth - gutter);
-    const left = Math.min(
-      Math.max(toggleRect.right - panelWidth, gutter),
-      maxLeft,
-    );
-    const top = Math.max(gutter, toggleRect.bottom + 8);
-    panel.style.setProperty("--appearance-left", `${left}px`);
-    panel.style.setProperty("--appearance-top", `${top}px`);
-  };
-
-  const installSettingsPopover = (panel, toggle) => {
-    if (!panel || !toggle) return;
-    if (supportsPopover) {
-      panel.hidden = false;
-      panel.addEventListener("beforetoggle", (event) => {
-        if (event.newState === "open") positionSettings(panel, toggle);
-        requestAnimationFrame(() => syncSettingsExpanded(panel, toggle));
-      });
-      panel.addEventListener("toggle", () => syncSettingsExpanded(panel, toggle));
-    } else {
-      toggle.addEventListener("click", () => {
-        const open = panel.hidden;
-        panel.hidden = !open;
-        if (open) positionSettings(panel, toggle);
-        syncSettingsExpanded(panel, toggle);
-      });
-    }
-    syncSettingsExpanded(panel, toggle);
-  };
-
-  installSettingsPopover(appearancePanel, themeToggle);
-  installSettingsPopover(textSizePanel, textSizeToggle);
 
   const updateMeasuredHeaderHeight = () => {
     if (!readerHeader) return;
@@ -524,6 +480,19 @@
     const headerBottom = readerHeader?.getBoundingClientRect().bottom ?? 0;
     const top = Math.max(gutter, headerBottom + 8);
     root.style.setProperty("--book-contents-top", `${top}px`);
+  };
+
+  const syncCompactHeader = () => {
+    if (!readerHeader) return false;
+    const compact = readerHeader.classList.contains("is-compact");
+    const threshold = compact ? 24 : 40;
+    const shouldCompact = scrollY > threshold;
+    if (shouldCompact === compact) return false;
+
+    readerHeader.classList.toggle("is-compact", shouldCompact);
+    updateMeasuredHeaderHeight();
+    updateContentsTop();
+    return true;
   };
 
   const updateContentsMode = () => {
@@ -585,11 +554,10 @@
   const updateContentsLayout = () => {
     updateMeasuredHeaderHeight();
     updateContentsTop();
-    if (settingsIsOpen(appearancePanel)) positionSettings(appearancePanel, themeToggle);
-    if (settingsIsOpen(textSizePanel)) positionSettings(textSizePanel, textSizeToggle);
     updateContentsMode();
     if (tocPanel?.matches(":popover-open")) positionContents();
   };
+  syncCompactHeader();
   updateContentsLayout();
   addEventListener("resize", updateContentsLayout, { passive: true });
   if (readerHeader && "ResizeObserver" in window) {
@@ -603,7 +571,8 @@
       if (contentsScrollFrame) return;
       contentsScrollFrame = requestAnimationFrame(() => {
         contentsScrollFrame = 0;
-        updateContentsTop();
+        if (!syncCompactHeader()) updateContentsTop();
+        else updateContentsLayout();
       });
     },
     { passive: true },
@@ -626,14 +595,16 @@
     if (Math.abs(delta) > 1) scrollBy(0, delta);
   };
 
+  let fragmentAlignmentPending = Boolean(location.hash);
   const alignFragmentAfterLayout = () => {
     requestAnimationFrame(() => {
       updateContentsLayout();
-      requestAnimationFrame(alignFragmentTarget);
+      requestAnimationFrame(() => {
+        alignFragmentTarget();
+        fragmentAlignmentPending = false;
+      });
     });
   };
-
-  initialMathReady.then(alignFragmentAfterLayout);
 
   const links = new Map();
   document.querySelectorAll("a[data-section-link]").forEach((link) => {
@@ -641,12 +612,18 @@
     if (!links.has(id)) links.set(id, []);
     links.get(id).push(link);
   });
-  if (!links.size) return;
+  if (!links.size) {
+    startInitialMath();
+    return;
+  }
 
   const headings = Array.from(document.querySelectorAll("main h1[id], main h2[id]")).filter(
     (heading) => links.has(heading.id),
   );
-  if (!headings.length) return;
+  if (!headings.length) {
+    startInitialMath();
+    return;
+  }
 
   const readerContextTitle = document.querySelector(".reader-context-title");
   const readerContextSeparator = document.querySelector(".reader-context-separator");
@@ -687,6 +664,13 @@
     );
   };
   const syncActiveFromPosition = () => {
+    if (fragmentAlignmentPending) {
+      const hashHeading = activeHeadingFromHash();
+      if (hashHeading) {
+        setActive(hashHeading);
+        return;
+      }
+    }
     setActive(activeHeadingFromPosition());
   };
   const syncActiveFromLocation = () => {
@@ -694,10 +678,21 @@
   };
 
   syncActiveFromLocation();
+  startInitialMath();
   addEventListener("hashchange", () => {
+    fragmentAlignmentPending = Boolean(location.hash);
     syncActiveFromLocation();
     alignFragmentAfterLayout();
   });
+  addEventListener(
+    "load",
+    () => {
+      fragmentAlignmentPending = Boolean(location.hash);
+      syncActiveFromLocation();
+      alignFragmentAfterLayout();
+    },
+    { once: true },
+  );
 
   let activeScrollFrame = 0;
   addEventListener(
