@@ -24,7 +24,7 @@ repos:
     hooks:
       - id: mdformat
         args: [--number]
-        exclude: ^README\.md$
+        exclude: '(^README\.md$|^src/(EQUATIONS|FIGURES)\.md$|^src/(equations|figures)/.*\.md$)'
         additional_dependencies:
         - mdformat-gfm
         - mdformat-myst

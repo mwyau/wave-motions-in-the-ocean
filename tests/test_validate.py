@@ -129,10 +129,14 @@ def test_figure_audit_uses_committed_visual_pairs_without_asset_review_state() -
         + (root / "scripts" / "validate.py").read_text()
     )
 
-    image_paths = re.findall(r'<img\s+src="([^"]+)"', text)
-    assert image_paths
-    for image_path in image_paths:
-        assert (figures.parent / image_path).is_file(), image_path
+    assert "<img" not in text
+    chapter_ledgers = sorted((figures.parent / "figures").glob("CHAPTER*.md"))
+    assert len(chapter_ledgers) == 6
+    for ledger in chapter_ledgers:
+        image_paths = re.findall(r'<img\s+src="([^"]+)"', ledger.read_text())
+        assert image_paths
+        for image_path in image_paths:
+            assert (ledger.parent / image_path).is_file(), image_path
 
     for tikz in sorted((figures.parent / "figures").glob("*.tikz")):
         assert (tikz.with_suffix(".svg")).is_file()

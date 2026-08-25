@@ -8,6 +8,7 @@ import build_html
 import publication
 from publication import (
     BuildInfo,
+    EquationDisplay,
     _balanced_command_args,
     _crop_source_image,
     _mask_box_pixels,
@@ -97,6 +98,33 @@ def test_equation_extraction_order_wrappers_and_exact_source(tmp_path: Path) -> 
     assert equation_markdown_math(displays[2]) == "$$\n\ty = 2\n$$"
 
 
+def test_equation_markdown_math_preserves_semantic_multiline_environments() -> None:
+    multline = EquationDisplay(
+        chapter=5,
+        printed_page=123,
+        physical_page=125,
+        display_ordinal=5,
+        display_type="multline*",
+        line=1,
+        source="\\begin{multline*}\n\\alpha + \\beta \\\\\n+\\gamma = 0\n\\end{multline*}",
+    )
+    gather = EquationDisplay(
+        chapter=2,
+        printed_page=20,
+        physical_page=22,
+        display_ordinal=1,
+        display_type="gather*",
+        line=1,
+        source="\\begin{gather*}\nx = 1 \\\\ y = 2\n\\end{gather*}",
+    )
+
+    multline_math = equation_markdown_math(multline)
+    gather_math = equation_markdown_math(gather)
+    assert "\\begin{multline*}" in multline_math
+    assert "\\begin{aligned}" not in multline_math
+    assert "\\begin{gathered}" in gather_math
+
+
 def test_equation_asset_paths_are_derived_from_the_stem() -> None:
     paths = equation_asset_paths("ch01-p002-e01")
     assert [path.name for path in paths] == [
@@ -108,20 +136,74 @@ def test_equation_asset_paths_are_derived_from_the_stem() -> None:
         equation_asset_paths("not-an-equation")
 
 
+def test_equation_asset_refresh_records_inputs_and_rejects_extras(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_dir = tmp_path / "references"
+    source_dir.mkdir()
+    (source_dir / "ChapmanRizzoli0_2.pdf").write_bytes(b"source pdf")
+    equation_dir = tmp_path / "equations"
+    display = EquationDisplay(
+        chapter=1,
+        printed_page=2,
+        physical_page=12,
+        display_ordinal=1,
+        display_type="waveequation",
+        line=1,
+        source="\\begin{waveequation}\n\tx = 1\n\\end{waveequation}",
+    )
+    equation_dir.mkdir()
+    for path in equation_asset_paths(display.stem):
+        image = Image.new("RGBA", (2, 2), "white")
+        image.save(equation_dir / path.name)
+
+    monkeypatch.setattr(publication, "SOURCE_DIR", source_dir)
+    publication.file_sha256.cache_clear()
+    assert publication.refresh_equation_assets([display], equation_dir) == 3
+    assert publication.equation_asset_errors([display], equation_dir) == []
+
+    with Image.open(equation_dir / f"{display.stem}-source.png") as image:
+        assert image.info["wave-source-pdf"] == "ChapmanRizzoli0_2.pdf"
+        assert image.info["wave-source-page"] == "12"
+        assert image.info["wave-source-crop-sha256"]
+
+    changed = EquationDisplay(
+        **{**display.__dict__, "source": display.source.replace("x = 1", "x = 2")}
+    )
+    assert any(
+        "wave-equation-source-sha256" in error
+        for error in publication.equation_asset_errors([changed], equation_dir)
+    )
+
+    (equation_dir / "extra.png").write_bytes(b"not a review asset")
+    assert any(
+        "unexpected equation asset" in error
+        for error in publication.equation_asset_errors([display], equation_dir)
+    )
+
+
 def test_equation_ledger_is_stable_and_contains_no_machine_data(tmp_path: Path) -> None:
     source = _write_equation_test_sources(tmp_path)
     first, count = equation_ledger_text(source)
     second, second_count = equation_ledger_text(source)
+    root, chapter_texts, split_count = publication.equation_ledger_texts(source)
 
     assert count == second_count == 4
+    assert split_count == 4
     assert first == second
+    assert root == first
     assert first.endswith("\n")
     assert not first.endswith("\n\n")
     assert "<!-- Generated from src/chapter1.tex through src/chapter6.tex." in first
-    assert "```tex\n\\begin{waveequation}\n\tx = 1\n\\end{waveequation}\n```" in first
-    assert "equations/ch01-p002-e01-source.png" in first
+    assert "```tex" not in first
+    assert "equations/ch01-p002-e01-source.png" not in first
+    assert (
+        "```tex\n\\begin{waveequation}\n\tx = 1\n\\end{waveequation}\n```"
+        in chapter_texts[1]
+    )
+    assert "../equations/ch01-p002-e01-source.png" in chapter_texts[1]
     assert all(
-        forbidden not in first
+        forbidden not in root + "".join(chapter_texts.values())
         for forbidden in ("2026-", "/home/", "tmp/", "Chromium", "git SHA")
     )
 

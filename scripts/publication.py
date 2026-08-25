@@ -157,6 +157,38 @@ EQUATION_PAGE_RE = re.compile(
 EQUATION_BEGIN_RE = re.compile(r"^\s*\\begin\{(?P<environment>[^}]+)\}\s*$")
 EQUATION_STEM_RE = re.compile(r"ch\d{2}-p\d{3}-e\d{2,}")
 
+FIGURE_LEDGER_CHAPTERS = tuple(range(1, 7))
+FIGURE_REPRESENTATIONS = frozenset({"vector", "source-pdf"})
+FIGURE_ENTRY_RE = re.compile(
+    r"^#### Figure (?P<chapter>[1-6])\.(?P<number>\d+) — (?P<title>.+)$",
+    re.MULTILINE,
+)
+FIGURE_PAGE_RE = re.compile(r"^- \*\*Printed page:\*\* (?P<page>\d+)$", re.MULTILINE)
+FIGURE_ASSET_RE = re.compile(r"^- \*\*Asset:\*\* `(?P<asset>[^`]+)`$", re.MULTILINE)
+FIGURE_REPRESENTATION_RE = re.compile(
+    r"^- \*\*Representation:\*\* (?P<representation>[^\s]+)$", re.MULTILINE
+)
+
+EQUATION_SOURCE_PDFS = {
+    1: "ChapmanRizzoli0_2.pdf",
+    2: "ChapmanRizzoli0_2.pdf",
+    3: "ChapmanRizzoli3.pdf",
+    4: "ChapmanRizzoli4.pdf",
+    5: "ChapmanRizzoli5.pdf",
+    6: "ChapmanRizzoli6.pdf",
+}
+EQUATION_ASSET_KINDS = ("source", "mathjax", "mathml")
+EQUATION_ASSET_VERSION = "v1"
+EQUATION_RENDER_CONFIG = {
+    "source": ("source-pdf", "v1", "retained-equation-crop"),
+    "mathjax": ("mathjax", "3.2.2", "chtml;scale=2;viewport=content;background=white"),
+    "mathml": (
+        "native-mathml",
+        "v1",
+        "pandoc-mathml;scale=2;viewport=content;background=white",
+    ),
+}
+
 
 def run(cmd: list[str], *, cwd: Path | None = None, quiet: bool = True) -> None:
     stdout = subprocess.DEVNULL if quiet else None
@@ -790,6 +822,427 @@ def validate_maintained_figure_assets(
         )
 
 
+@dataclass(frozen=True)
+class FigureLedgerEntry:
+    chapter: int
+    number: int
+    title: str
+    printed_page: int
+    asset: str
+    representation: str
+    block: str
+    image_paths: tuple[str, ...]
+
+    @property
+    def order_key(self) -> tuple[int, int, str]:
+        return self.printed_page, self.number, self.asset
+
+
+def figure_ledger_chapter_paths(root: Path | None = None) -> tuple[Path, ...]:
+    root = root or SRC
+    return tuple(
+        root / "figures" / f"CHAPTER{chapter}.md" for chapter in FIGURE_LEDGER_CHAPTERS
+    )
+
+
+def _figure_entries_from_text(
+    text: str,
+    *,
+    chapter: int | None = None,
+) -> tuple[FigureLedgerEntry, ...]:
+    matches = list(FIGURE_ENTRY_RE.finditer(text))
+    entries: list[FigureLedgerEntry] = []
+    for index, match in enumerate(matches):
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
+        block = text[match.start() : end].rstrip("\n")
+
+        page_match = FIGURE_PAGE_RE.search(block)
+        asset_match = FIGURE_ASSET_RE.search(block)
+        representation_match = FIGURE_REPRESENTATION_RE.search(block)
+        title_page_match = re.search(r"printed page (\d+)", match.group("title"))
+        missing = [
+            label
+            for label, found in (
+                ("Printed page", page_match or title_page_match),
+                ("Asset", asset_match),
+                ("Representation", representation_match),
+            )
+            if found is None
+        ]
+        if missing:
+            raise ValueError(
+                f"Figure {match.group('chapter')}.{match.group('number')} is missing "
+                + ", ".join(missing)
+            )
+        entry = FigureLedgerEntry(
+            chapter=int(match.group("chapter")),
+            number=int(match.group("number")),
+            title=match.group("title"),
+            printed_page=int(
+                page_match.group("page") if page_match else title_page_match.group(1)
+            ),
+            asset=asset_match.group("asset"),
+            representation=representation_match.group("representation"),
+            block=block,
+            image_paths=tuple(re.findall(r'<img\s+src="([^"]+)"', block)),
+        )
+        if chapter is not None and entry.chapter != chapter:
+            raise ValueError(
+                f"{chapter} ledger contains Figure {entry.chapter}.{entry.number}"
+            )
+        entries.append(entry)
+    return tuple(entries)
+
+
+def _figure_ledger_counts(
+    entries_by_chapter: dict[int, tuple[FigureLedgerEntry, ...]],
+) -> tuple[int, dict[str, int]]:
+    all_entries = [
+        entry for entries in entries_by_chapter.values() for entry in entries
+    ]
+    representations = {
+        representation: sum(
+            entry.representation == representation for entry in all_entries
+        )
+        for representation in sorted(FIGURE_REPRESENTATIONS)
+    }
+    return len(all_entries), representations
+
+
+def figure_ledger_text(
+    chapter_dir: Path | None = None,
+) -> tuple[str, int]:
+    """Return the generated figure-audit landing page and placement count."""
+    chapter_dir = chapter_dir or SRC / "figures"
+    entries_by_chapter: dict[int, tuple[FigureLedgerEntry, ...]] = {}
+    for chapter in FIGURE_LEDGER_CHAPTERS:
+        path = chapter_dir / f"CHAPTER{chapter}.md"
+        if path.is_file():
+            entries_by_chapter[chapter] = _figure_entries_from_text(
+                path.read_text(), chapter=chapter
+            )
+        else:
+            entries_by_chapter[chapter] = ()
+
+    total, representations = _figure_ledger_counts(entries_by_chapter)
+    lines = [
+        "# Figure audit",
+        "",
+        (
+            "<!-- Generated from src/figures/CHAPTER1.md through "
+            "src/figures/CHAPTER6.md. -->"
+        ),
+        "",
+        (
+            "FIGURES.md tracks scientific and technical figures in Chapters 1–6; "
+            "cover art, photographs, and other editorial images are outside this audit."
+        ),
+        "",
+        (
+            "The chapter files contain the detailed placement entries. They are ordered "
+            "by printed page, figure order on that page, and component asset."
+        ),
+        "",
+        (
+            "The committed 1989 PDFs are the visual and scientific reference. A figure "
+            "is not accepted merely because it looks cleaner: direction, magnitude "
+            "relationships, wavelength, nodes, tangencies, boundary contact, coordinate "
+            "orientation, and consistency with nearby equations must also survive review."
+        ),
+        "",
+        "Representation describes the maintained scientific asset:",
+        "",
+        (
+            "- `vector` — a maintained TikZ/vector reconstruction with its source-PDF "
+            "review crop when provenance is recorded."
+        ),
+        (
+            "- `source-pdf` — a direct crop retained from the immutable source PDF "
+            "because redrawing would add interpretation risk."
+        ),
+        "",
+        "Equation checks remain separate:",
+        "",
+        (
+            "- `ai-checked` — all materially equation-constrained content has been "
+            "checked by an AI model against the governing equation(s), analytically "
+            "or numerically as appropriate. This is not human validation or peer review."
+        ),
+        (
+            "- `partial` — some equation-constrained content has been checked, but "
+            "another material part remains schematic or lacks a direct check."
+        ),
+        (
+            "- `pending` — equation checking materially applies but has not yet been "
+            "completed and recorded."
+        ),
+        (
+            "- `n/a` — no meaningful equation-defined quantity or relation controls "
+            "the figure; visual, geometric, source, and source-fidelity checks still apply."
+        ),
+        "",
+        (
+            "An existing equation-check state records a prior audit; it is not proof to "
+            "inherit blindly after a material figure change. A source mismatch may still "
+            "be `ai-checked` when the mismatch itself has been checked and is recorded in "
+            "`ERRATA.md`. `ERRATA.md` owns source discrepancies and approval state; the "
+            "chapter ledgers cross-reference errata rather than duplicating proposed "
+            "corrections."
+        ),
+        "",
+        (
+            "This is an asset/placement ledger, not a count of distinct figures in the "
+            "book: one numbered figure can use more than one underlying asset or source "
+            "crop. Keep those components separate."
+        ),
+        "",
+        (
+            "Every `.tikz` file carries a `wave-source` comment naming the source PDF, "
+            "physical page, and crop. Run `uv run --frozen python "
+            "scripts/compare_figures.py <stem>` after changing TikZ or crop metadata; it "
+            "updates the checked-in `.svg` and `.png` siblings. Use `--comparison` only "
+            "when a temporary raster side-by-side image under `audit/` is useful. "
+            "Generated previews are not independently edited and never imply human "
+            "acceptance."
+        ),
+        "",
+        (
+            "Review the committed source crop and vector rendering together. Check "
+            "axes, coordinates, signs, orientation, propagation and group-velocity "
+            "directions, boundary contact, labels, and any equation-defined curves or "
+            "modes. The 1989 source PDFs remain the source-fidelity authority; a scientific "
+            "finding does not authorize a substantive source correction."
+        ),
+        "",
+        (
+            "For source-backed TikZ figures, run `uv run --frozen python "
+            "scripts/compare_figures.py <stem>` after changing the drawing or provenance "
+            "metadata. The publication checks validate the recorded SVG/PNG freshness "
+            "metadata; they do not imply scientific or human acceptance."
+        ),
+        "",
+        "## Summary",
+        "",
+        f"The six chapter ledgers contain **{total} scientific figure placements**.",
+        "",
+        "| Chapter | Placements | vector | source-pdf |",
+        "| --- | ---: | ---: | ---: |",
+    ]
+    for chapter in FIGURE_LEDGER_CHAPTERS:
+        entries = entries_by_chapter[chapter]
+        lines.append(
+            f"| Chapter {chapter} | {len(entries)} | "
+            f"{sum(entry.representation == 'vector' for entry in entries)} | "
+            f"{sum(entry.representation == 'source-pdf' for entry in entries)} |"
+        )
+    lines.extend(
+        [
+            (
+                f"| **Total** | **{total}** | **{representations['vector']}** | "
+                f"**{representations['source-pdf']}** |"
+            ),
+            "",
+            "## Chapters",
+            "",
+        ]
+    )
+    for chapter in FIGURE_LEDGER_CHAPTERS:
+        lines.append(
+            f"- [Chapter {chapter}](figures/CHAPTER{chapter}.md) — "
+            f"{len(entries_by_chapter[chapter])} placements"
+        )
+    lines.extend(
+        [
+            "",
+            "## Audit conventions",
+            "",
+            (
+                "Keep entries ordered by actual visual appearance. If one printed "
+                "figure uses several component assets, keep those components together "
+                "in their visual order. Preserve source discrepancies and approval state "
+                "in `ERRATA.md`; this ledger records the figure asset and its scientific "
+                "and equation checks."
+            ),
+            "",
+            (
+                "For any proposed substantive departure from the source, record a "
+                "`pending-human-approval` erratum. Do not infer or assign human approval "
+                "from a build, test, or scientific judgment."
+            ),
+            "",
+            "## Sizing and acceptance rules",
+            "",
+            (
+                "1. Size is part of the audit. A scientifically correct redraw should also "
+                "occupy roughly the same useful page area as the source without clipping or "
+                "forcing surrounding text into poor layout."
+            ),
+            (
+                "2. Prefer changing vector drawing scale/extent at the vector source so PDF "
+                "and generated SVG/HTML inherit the same improvement. Avoid PDF-only sizing "
+                "hacks."
+            ),
+            (
+                "3. A source crop may keep its source aspect ratio and whitespace when that "
+                "whitespace carries geometry or annotations; otherwise trim should be "
+                "tightened in the chapter inclusion rather than resampling the image."
+            ),
+            (
+                "4. Arrowheads must be checked for propagation/group-velocity direction, "
+                "not only placement. Equal-magnitude vectors must be constructed from equal "
+                "geometry rather than estimated visually."
+            ),
+            (
+                "5. Wave crests/wavelength markers must be generated from the same wavelength "
+                "parameter when a quantitative relation is implied."
+            ),
+            (
+                "6. On spherical/curvilinear figures, verify whether vectors/curves actually "
+                "touch or are tangent to the intended latitude/longitude/meridian "
+                "construction. Do not infer contact from a low-resolution scan."
+            ),
+            (
+                "7. For free-mode joins, enforce the stated matching conditions (for example "
+                "both field and flux/transport continuity), not only positional continuity."
+            ),
+            (
+                "8. The committed Original/Vector pair is the visual review surface; freshness "
+                "checks do not imply scientific or human acceptance."
+            ),
+            (
+                "9. Representation and equation check are independent. A vector may remain "
+                "pending for equation checking, and a kept source-PDF figure may be "
+                "`ai-checked` even when it intentionally preserves a documented source error."
+            ),
+            "",
+            "## Batch verification checklist",
+            "",
+            "For every changed vector:",
+            "",
+            "01. Inspect the full source page at high resolution.",
+            "02. Read the nearby equations/prose and list the geometric constraints.",
+            (
+                "03. Identify which equation-defined quantities materially control the figure, "
+                "if any."
+            ),
+            "04. Encode those constraints in coordinates/equations where practical.",
+            (
+                "05. For equation-defined charts or curves, independently evaluate or plot the "
+                "stated equation when practical and compare it to the vector reconstruction."
+            ),
+            (
+                "06. For equation-constrained geometry, independently calculate the relevant "
+                "angles, ratios, intersections, boundary values, continuity conditions, or "
+                "vector directions rather than checking only by eye."
+            ),
+            "07. Compile the TikZ independently.",
+            (
+                "08. Inspect arrowheads, labels, tangencies, crossings, wavelength, amplitude "
+                "ratios, and final scale."
+            ),
+            "09. Update the same-stem SVG/PNG pair and open the affected chapter entry.",
+            "10. Compile both PDF editions and generated HTML/EPUB at the batch checkpoint.",
+            "11. Compare affected pages/assets with the source.",
+            (
+                "12. Record intentional schematic simplifications and the explicit `Equation "
+                "check` state in the chapter ledger."
+            ),
+            "",
+            (
+                "Direct source crops use the committed PDF page through "
+                "`\\includegraphics[page=...,trim=...,clip]`; no permanent raster intermediary "
+                "is committed unless the source-only asset is intentionally retained."
+            ),
+        ]
+    )
+    return "\n".join(lines).rstrip("\n") + "\n", total
+
+
+def figure_ledger_errors(
+    root: Path | None = None,
+) -> list[str]:
+    """Return structural, selection, ordering, and freshness errors for the figure ledgers."""
+    root = root or SRC
+    chapter_dir = root / "figures"
+    errors: list[str] = []
+    expected_paths = figure_ledger_chapter_paths(root)
+    actual_paths = tuple(sorted(chapter_dir.glob("*.md")))
+    expected_set = set(expected_paths)
+    for path in expected_paths:
+        if not path.is_file() or path.stat().st_size == 0:
+            errors.append(f"missing figure chapter ledger: {path}")
+    for path in actual_paths:
+        if path not in expected_set:
+            errors.append(f"unexpected figure chapter ledger: {path}")
+
+    entries_by_chapter: dict[int, tuple[FigureLedgerEntry, ...]] = {}
+    for chapter, path in zip(FIGURE_LEDGER_CHAPTERS, expected_paths, strict=True):
+        if not path.is_file():
+            entries_by_chapter[chapter] = ()
+            continue
+        try:
+            entries = _figure_entries_from_text(path.read_text(), chapter=chapter)
+        except (OSError, ValueError) as exc:
+            errors.append(str(exc))
+            entries_by_chapter[chapter] = ()
+            continue
+        entries_by_chapter[chapter] = entries
+        if [entry.order_key for entry in entries] != sorted(
+            entry.order_key for entry in entries
+        ):
+            errors.append(f"{path} entries are not ordered by page, figure, asset")
+        for entry in entries:
+            if entry.representation not in FIGURE_REPRESENTATIONS:
+                errors.append(
+                    f"{path}: Figure {entry.chapter}.{entry.number} uses unsupported "
+                    f"representation {entry.representation!r}"
+                )
+            if "images/" in entry.block or "source-photo" in entry.block:
+                errors.append(
+                    f"{path}: Figure {entry.chapter}.{entry.number} contains an "
+                    "editorial image reference"
+                )
+            for image_path in entry.image_paths:
+                asset_path = (path.parent / image_path).resolve()
+                if not asset_path.is_file():
+                    errors.append(f"{path}: missing figure review asset {image_path}")
+
+    landing = root / "FIGURES.md"
+    if not landing.is_file() or landing.stat().st_size == 0:
+        errors.append(f"missing figure audit landing page: {landing}")
+    else:
+        landing_text = landing.read_text()
+        if FIGURE_ENTRY_RE.search(landing_text):
+            errors.append(f"{landing} still contains detailed figure entries")
+        if "Front matter and artwork" in landing_text:
+            errors.append(f"{landing} contains editorial artwork inventory")
+        try:
+            expected, _ = figure_ledger_text(chapter_dir)
+        except (OSError, ValueError) as exc:
+            errors.append(f"cannot regenerate {landing}: {exc}")
+        else:
+            if landing.read_bytes() != expected.encode("utf-8"):
+                errors.append(f"figure audit landing page is stale: {landing}")
+    return errors
+
+
+def figure_ledger_matches(path: Path | None = None) -> bool:
+    landing = path or SRC / "FIGURES.md"
+    if not landing.is_file():
+        return False
+    expected, _ = figure_ledger_text(landing.parent / "figures")
+    return landing.read_bytes() == expected.encode("utf-8")
+
+
+def write_figure_ledger(path: Path | None = None) -> int:
+    """Write the generated figure-audit landing page from chapter ledgers."""
+    landing = path or SRC / "FIGURES.md"
+    text, count = figure_ledger_text(landing.parent / "figures")
+    landing.parent.mkdir(parents=True, exist_ok=True)
+    landing.write_bytes(text.encode("utf-8"))
+    return count
+
+
 def referenced_tikz() -> list[str]:
     return referenced_tikz_in_texts(
         (SRC / f"chapter{i}.tex").read_text() for i in range(1, 7)
@@ -1191,22 +1644,22 @@ def _equation_body(display: EquationDisplay) -> str:
 
 
 def equation_markdown_math(display: EquationDisplay) -> str:
-    """Convert only repository display wrappers to GitHub Markdown math."""
+    """Convert repository display wrappers to semantically matched GitHub math."""
     body = _equation_body(display)
     if display.display_type == "bracket":
         return f"$$\n{body}\n$$"
     if display.display_type in {"waveequation", "equation", "equation*"}:
         return f"$$\n{body}\n$$"
-    if display.display_type in {
-        "wavealign",
-        "align",
-        "align*",
-        "gather",
-        "gather*",
-        "multline",
-        "multline*",
-    }:
+    if display.display_type in {"wavealign", "align", "align*"}:
         return f"$$\n\\begin{{aligned}}\n{body}\n\\end{{aligned}}\n$$"
+    if display.display_type in {"gather", "gather*"}:
+        return f"$$\n\\begin{{gathered}}\n{body}\n\\end{{gathered}}\n$$"
+    if display.display_type in {"multline", "multline*"}:
+        # MathJax's AMS package supports multline and preserves its deliberately
+        # asymmetric first/intermediate/last-line layout.  Do not turn it into
+        # aligned: that would add alignment points and change the real Chapter 5
+        # display's rendering semantics.
+        return f"$$\n\\begin{{{display.display_type}}}\n{body}\n\\end{{{display.display_type}}}\n$$"
     raise ValueError(f"unsupported equation display type: {display.display_type}")
 
 
@@ -1222,17 +1675,166 @@ def equation_asset_paths(stem: str) -> tuple[Path, Path, Path]:
     )
 
 
+def _equation_source_pdf(display: EquationDisplay) -> tuple[str, Path]:
+    name = EQUATION_SOURCE_PDFS[display.chapter]
+    return name, SOURCE_DIR / name
+
+
+def _equation_source_digest(display: EquationDisplay) -> str:
+    return hashlib.sha256(display.source.encode("utf-8")).hexdigest()
+
+
+def _equation_rendered_tex_digest(display: EquationDisplay) -> str:
+    return hashlib.sha256(equation_markdown_math(display).encode("utf-8")).hexdigest()
+
+
+def _png_pixel_digest(path: Path) -> str:
+    with Image.open(path) as image:
+        rgba = image.convert("RGBA")
+        identity = f"{rgba.width}x{rgba.height}\0".encode("ascii")
+        return hashlib.sha256(identity + rgba.tobytes()).hexdigest()
+
+
+def _equation_asset_metadata(
+    display: EquationDisplay,
+    kind: str,
+    path: Path | None = None,
+) -> dict[str, str]:
+    if kind not in EQUATION_ASSET_KINDS:
+        raise ValueError(f"unsupported equation asset kind: {kind!r}")
+    renderer, renderer_version, renderer_config = EQUATION_RENDER_CONFIG[kind]
+    metadata = {
+        "wave-equation-asset-version": EQUATION_ASSET_VERSION,
+        "wave-equation-asset-kind": kind,
+        "wave-equation-stem": display.stem,
+        "wave-equation-source-sha256": _equation_source_digest(display),
+        "wave-equation-rendered-tex-sha256": _equation_rendered_tex_digest(display),
+        "wave-equation-renderer": renderer,
+        "wave-equation-renderer-version": renderer_version,
+        "wave-equation-renderer-config": renderer_config,
+    }
+    if kind == "source":
+        pdf_name, pdf = _equation_source_pdf(display)
+        metadata.update(
+            {
+                "wave-source-pdf": pdf_name,
+                "wave-source-pdf-sha256": (
+                    file_sha256(str(pdf.resolve())) if pdf.is_file() else "<missing>"
+                ),
+                "wave-source-page": str(display.physical_page),
+                "wave-source-crop": "retained-equation-crop",
+            }
+        )
+        if path is not None and path.is_file():
+            metadata["wave-source-crop-sha256"] = _png_pixel_digest(path)
+    return metadata
+
+
+def expected_equation_asset_metadata(
+    display: EquationDisplay,
+    kind: str,
+    path: Path | None = None,
+) -> dict[str, str]:
+    """Return stable input metadata expected in one equation review PNG."""
+    return _equation_asset_metadata(display, kind, path)
+
+
 def equation_asset_errors(
     displays: Iterable[EquationDisplay] | None = None,
+    equation_dir: Path | None = None,
 ) -> list[str]:
-    """Return missing/empty PNG errors for the equation identities."""
-    displays = displays if displays is not None else collect_equation_displays()
+    """Return missing, stale, or malformed equation PNG metadata errors."""
+    displays = tuple(displays if displays is not None else collect_equation_displays())
+    equation_dir = equation_dir or SRC / "equations"
     errors: list[str] = []
+    expected_names = {
+        path.name for display in displays for path in equation_asset_paths(display.stem)
+    }
+    for path in sorted(equation_dir.glob("*.png")):
+        if path.name not in expected_names:
+            errors.append(f"unexpected equation asset: {path}")
+    source_pdf_errors: set[Path] = set()
     for display in displays:
-        for path in equation_asset_paths(display.stem):
+        paths = tuple(
+            equation_dir / path.name for path in equation_asset_paths(display.stem)
+        )
+        for kind, path in zip(EQUATION_ASSET_KINDS, paths, strict=True):
             if not path.is_file() or path.stat().st_size == 0:
                 errors.append(f"missing or empty equation asset: {path}")
+                continue
+            try:
+                actual = _png_text_metadata(path)
+                expected = _equation_asset_metadata(display, kind, path)
+            except (OSError, ValueError) as exc:
+                errors.append(str(exc))
+                continue
+            for key, value in expected.items():
+                if actual.get(key) != value:
+                    errors.append(
+                        f"{path} metadata {key} is {actual.get(key)!r}; "
+                        f"expected {value!r}"
+                    )
+            if kind == "source":
+                source_pdf = SOURCE_DIR / EQUATION_SOURCE_PDFS[display.chapter]
+                if not source_pdf.is_file() and source_pdf not in source_pdf_errors:
+                    source_pdf_errors.add(source_pdf)
+                    errors.append(f"missing equation source PDF: {source_pdf}")
     return errors
+
+
+def _rewrite_png_metadata(path: Path, metadata: dict[str, str]) -> None:
+    """Rewrite one PNG with deterministic text metadata and unchanged pixels."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.tmp")
+    try:
+        with Image.open(path) as source:
+            image = source.copy()
+        pnginfo = PngInfo()
+        for key, value in metadata.items():
+            pnginfo.add_text(key, value)
+        image.save(temporary, format="PNG", optimize=True, pnginfo=pnginfo)
+        temporary.replace(path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def refresh_equation_assets(
+    displays: Iterable[EquationDisplay] | None = None,
+    equation_dir: Path | None = None,
+) -> int:
+    """Refresh stable input metadata for the checked-in equation review PNGs.
+
+    The existing review crops are deliberate visual audit assets. This operation
+    preserves their pixels and rewrites only deterministic metadata, binding each
+    image to the extracted equation, renderer configuration, and source-page input.
+    A future renderer change must update ``EQUATION_RENDER_CONFIG`` and rerun this
+    explicit operation; ordinary validation never recaptures browser screenshots.
+    """
+    displays = tuple(displays if displays is not None else collect_equation_displays())
+    equation_dir = equation_dir or SRC / "equations"
+    missing = [
+        path
+        for display in displays
+        for path in tuple(
+            equation_dir / item.name for item in equation_asset_paths(display.stem)
+        )
+        if not path.is_file() or path.stat().st_size == 0
+    ]
+    if missing:
+        raise ValueError(
+            "cannot refresh missing equation review PNGs:\n- "
+            + "\n- ".join(str(path) for path in missing)
+        )
+    for display in displays:
+        paths = tuple(
+            equation_dir / path.name for path in equation_asset_paths(display.stem)
+        )
+        for kind, path in zip(EQUATION_ASSET_KINDS, paths, strict=True):
+            _rewrite_png_metadata(
+                path,
+                _equation_asset_metadata(display, kind, path),
+            )
+    return len(displays) * len(EQUATION_ASSET_KINDS)
 
 
 EQUATION_LEDGER_HEADER = (
@@ -1241,99 +1843,177 @@ EQUATION_LEDGER_HEADER = (
 )
 
 
+def _equation_entry_text(display: EquationDisplay) -> list[str]:
+    assets = tuple(
+        f"[![{label}](../equations/{display.stem}-{kind}.png)]"
+        f"(../equations/{display.stem}-{kind}.png)"
+        for label, kind in (
+            ("Source PDF", "source"),
+            ("MathJax", "mathjax"),
+            ("MathML", "mathml"),
+        )
+    )
+    return [
+        f"### p. {display.printed_page} · display {display.display_ordinal} · {display.stem}",
+        "",
+        (
+            f"Source: [chapter{display.chapter}.tex](../chapter{display.chapter}.tex):{display.line} "
+            f"· display type: `{display.display_type}`"
+        ),
+        "",
+        "#### Markdown math",
+        "",
+        equation_markdown_math(display),
+        "",
+        "<details>",
+        "<summary>LaTeX source</summary>",
+        "",
+        "```tex",
+        display.source,
+        "```",
+        "",
+        "</details>",
+        "",
+        "| Source PDF | MathJax | MathML |",
+        "| --- | --- | --- |",
+        f"| {assets[0]} | {assets[1]} | {assets[2]} |",
+        "",
+    ]
+
+
+def equation_ledger_texts(
+    source_dir: Path | None = None,
+) -> tuple[str, dict[int, str], int]:
+    """Return deterministic root and per-chapter equation ledger text."""
+    displays = collect_equation_displays(source_dir)
+    by_chapter = {
+        chapter: tuple(display for display in displays if display.chapter == chapter)
+        for chapter in range(1, 7)
+    }
+    root_lines = [
+        "# Equation audit",
+        "",
+        "<!-- Generated from src/chapter1.tex through src/chapter6.tex. -->",
+        "",
+        (
+            "This is generated review material for the display equations in the six "
+            "maintained chapter TeX files. The chapter ledgers are the detailed review "
+            "surface; the mathematical source of truth remains `src/chapter1.tex` through "
+            "`src/chapter6.tex`."
+        ),
+        "",
+        (
+            "Each entry shows the source-page crop, a MathJax rendering, and a native "
+            "MathML rendering. The Markdown math and the raw `<details>` LaTeX block "
+            "come from the same extracted display. Review the three images against the "
+            "source PDF and the maintained chapter source."
+        ),
+        "",
+        "Run:",
+        "",
+        "```sh",
+        "uv run --frozen python scripts/publication.py equations",
+        "uv run --frozen python scripts/publication.py equations --check",
+        "uv run --frozen python scripts/publication.py equations --assets",
+        "uv run --frozen python scripts/publication.py equations --assets --check",
+        "```",
+        "",
+        (
+            "`--check` regenerates all seven Markdown files in temporary storage and "
+            "compares their bytes. `--assets` refreshes stable input metadata on the "
+            "checked-in review PNGs; it does not run during ordinary publication builds. "
+            "The metadata records the extracted TeX, renderer configuration, and source "
+            "PDF/page identity, so validation can identify obvious stale assets without "
+            "recapturing browser screenshots."
+        ),
+        "",
+        f"The six chapters contain **{len(displays)} display equations**.",
+        "",
+        "| Chapter | Displays | Ledger |",
+        "| --- | ---: | --- |",
+    ]
+    for chapter in range(1, 7):
+        root_lines.append(
+            f"| Chapter {chapter} | {len(by_chapter[chapter])} | "
+            f"[CHAPTER{chapter}](equations/CHAPTER{chapter}.md) |"
+        )
+    root_lines.extend(
+        [
+            "",
+            (
+                "The raw LaTeX blocks are maintained source excerpts for review. Do not "
+                "edit them in Markdown; change the chapter TeX only after following the "
+                "source-audit rules."
+            ),
+        ]
+    )
+    chapter_texts: dict[int, str] = {}
+    for chapter in range(1, 7):
+        lines = [
+            f"# Equation audit — Chapter {chapter}",
+            "",
+            EQUATION_LEDGER_HEADER,
+            "",
+            "[Back to the equation audit](../EQUATIONS.md)",
+            "",
+            "Entries follow printed-page order and display order within each page.",
+            (
+                "The Markdown math and raw LaTeX source are produced from the same "
+                "extracted display."
+            ),
+            "",
+        ]
+        for display in by_chapter[chapter]:
+            lines.extend(_equation_entry_text(display))
+        chapter_texts[chapter] = "\n".join(lines).rstrip("\n") + "\n"
+    return "\n".join(root_lines).rstrip("\n") + "\n", chapter_texts, len(displays)
+
+
 def equation_ledger_text(
     source_dir: Path | None = None,
 ) -> tuple[str, int]:
-    """Return deterministic ledger bytes as text and the extracted count."""
-    displays = collect_equation_displays(source_dir)
-    lines = [
-        "# Equation ledger",
-        "",
-        EQUATION_LEDGER_HEADER,
-        "",
-        "This file is generated review material for the display equations in the six maintained chapter TeX files.",
-        "Entries follow chapter order, printed-page order, and display order within each page.",
-        "The Markdown equation and the LaTeX source block are produced from the same extracted display.",
-        "",
-    ]
-    current_chapter: int | None = None
-    for display in displays:
-        if display.chapter != current_chapter:
-            current_chapter = display.chapter
-            lines.extend([f"## Chapter {current_chapter}", ""])
-        asset_headers = ("Source PDF", "MathJax", "MathML")
-        asset_cells = (
-            (
-                f"[![Source PDF](equations/{display.stem}-source.png)]"
-                f"(equations/{display.stem}-source.png)"
-            ),
-            (
-                f"[![MathJax](equations/{display.stem}-mathjax.png)]"
-                f"(equations/{display.stem}-mathjax.png)"
-            ),
-            (
-                f"[![MathML](equations/{display.stem}-mathml.png)]"
-                f"(equations/{display.stem}-mathml.png)"
-            ),
-        )
-        asset_widths = tuple(
-            max(len(header), len(cell))
-            for header, cell in zip(asset_headers, asset_cells, strict=True)
-        )
-        asset_table = (
-            "| "
-            + " | ".join(
-                cell.ljust(width)
-                for cell, width in zip(asset_headers, asset_widths, strict=True)
-            )
-            + " |",
-            "| " + " | ".join("-" * width for width in asset_widths) + " |",
-            "| "
-            + " | ".join(
-                cell.ljust(width)
-                for cell, width in zip(asset_cells, asset_widths, strict=True)
-            )
-            + " |",
-        )
-        lines.extend(
-            [
-                f"### p. {display.printed_page} · display {display.display_ordinal} · {display.stem}",
-                "",
-                f"Source: `src/chapter{display.chapter}.tex:{display.line}` · display type: `{display.display_type}`",
-                "",
-                "#### Markdown math",
-                "",
-                equation_markdown_math(display),
-                "",
-                "<details>",
-                "<summary>LaTeX source</summary>",
-                "",
-                "```tex",
-                display.source,
-                "```",
-                "",
-                "</details>",
-                "",
-                *asset_table,
-                "",
-            ]
-        )
-    return "\n".join(lines).rstrip("\n") + "\n", len(displays)
+    """Return the generated root equation ledger and extracted count."""
+    root, _chapters, count = equation_ledger_texts(source_dir)
+    return root, count
+
+
+def equation_ledger_errors(
+    root: Path | None = None,
+    source_dir: Path | None = None,
+) -> list[str]:
+    """Return stale, missing, or unexpected generated equation ledger files."""
+    root = root or SRC / "EQUATIONS.md"
+    output_root = root.parent
+    expected_root, expected_chapters, _ = equation_ledger_texts(source_dir)
+    errors: list[str] = []
+    if not root.is_file() or root.read_bytes() != expected_root.encode("utf-8"):
+        errors.append(f"equation ledger is stale or missing: {root}")
+    equation_dir = output_root / "equations"
+    expected_names = {f"CHAPTER{chapter}.md" for chapter in range(1, 7)}
+    actual_names = {path.name for path in equation_dir.glob("*.md")}
+    for chapter, expected in expected_chapters.items():
+        path = equation_dir / f"CHAPTER{chapter}.md"
+        if not path.is_file() or path.read_bytes() != expected.encode("utf-8"):
+            errors.append(f"equation chapter ledger is stale or missing: {path}")
+    for name in sorted(actual_names - expected_names):
+        errors.append(f"unexpected equation chapter ledger: {equation_dir / name}")
+    return errors
 
 
 def equation_ledger_matches(path: Path | None = None) -> bool:
-    """Compare a checked-in ledger with a fresh in-memory regeneration."""
-    output = path or SRC / "EQUATIONS.md"
-    expected, _ = equation_ledger_text()
-    return output.is_file() and output.read_bytes() == expected.encode("utf-8")
+    return not equation_ledger_errors(path)
 
 
 def write_equation_ledger(path: Path | None = None) -> int:
-    """Regenerate the maintained equation ledger and return its display count."""
+    """Regenerate all maintained equation ledgers and return their display count."""
     output = path or SRC / "EQUATIONS.md"
-    text, count = equation_ledger_text()
+    root, chapter_texts, count = equation_ledger_texts()
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_bytes(text.encode("utf-8"))
+    output.write_bytes(root.encode("utf-8"))
+    equation_dir = output.parent / "equations"
+    equation_dir.mkdir(parents=True, exist_ok=True)
+    for chapter, text in chapter_texts.items():
+        (equation_dir / f"CHAPTER{chapter}.md").write_bytes(text.encode("utf-8"))
     return count
 
 
@@ -1563,25 +2243,89 @@ def _equations_cli(argv: list[str] | None = None) -> int:
         action="store_true",
         help="regenerate in a temporary location and compare byte-for-byte",
     )
+    parser.add_argument(
+        "--assets",
+        action="store_true",
+        help="refresh or check deterministic input metadata on review PNGs",
+    )
     args = parser.parse_args(argv)
     output = SRC / "EQUATIONS.md"
     if args.check:
         with tempfile.TemporaryDirectory(prefix="wave-equations-check-") as temporary:
             fresh = Path(temporary) / "EQUATIONS.md"
             count = write_equation_ledger(fresh)
-            if not output.is_file() or output.read_bytes() != fresh.read_bytes():
+            current_paths = (
+                output,
+                *(
+                    output.parent / "equations" / f"CHAPTER{chapter}.md"
+                    for chapter in range(1, 7)
+                ),
+            )
+            fresh_paths = (
+                fresh,
+                *(
+                    fresh.parent / "equations" / f"CHAPTER{chapter}.md"
+                    for chapter in range(1, 7)
+                ),
+            )
+            if any(
+                not current.is_file()
+                or not generated.is_file()
+                or current.read_bytes() != generated.read_bytes()
+                for current, generated in zip(current_paths, fresh_paths, strict=True)
+            ) or any(
+                path.name not in {f"CHAPTER{chapter}.md" for chapter in range(1, 7)}
+                for path in (output.parent / "equations").glob("*.md")
+            ):
                 print(
-                    f"equation ledger is stale: {output}; "
+                    f"equation ledgers are stale: {output}; "
                     "run 'uv run --frozen python scripts/publication.py equations' "
-                    f"to regenerate {count} entries",
+                    f"to regenerate {count} entries and all chapter files",
                     file=sys.stderr,
                 )
                 return 1
         print(f"equation ledger is current: {output}")
-        return 0
+    elif not args.assets:
+        count = write_equation_ledger(output)
+        print(f"generated equation ledgers: {output} ({count} entries)")
 
-    count = write_equation_ledger(output)
-    print(f"generated equation ledger: {output} ({count} entries)")
+    if args.assets:
+        if args.check:
+            errors = equation_asset_errors()
+            if errors:
+                print(
+                    "equation PNG asset metadata is stale:\n- " + "\n- ".join(errors),
+                    file=sys.stderr,
+                )
+                return 1
+            print("equation PNG asset metadata is current")
+        else:
+            count = refresh_equation_assets()
+            print(f"refreshed equation PNG metadata: {count} assets")
+    return 0
+
+
+def _figures_cli(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="publication.py figures")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="check the generated landing page and per-chapter ledger structure",
+    )
+    args = parser.parse_args(argv)
+    output = SRC / "FIGURES.md"
+    if args.check:
+        errors = figure_ledger_errors()
+        if errors:
+            print(
+                "figure ledger validation failed:\n- " + "\n- ".join(errors),
+                file=sys.stderr,
+            )
+            return 1
+        print(f"figure ledgers are current: {output}")
+        return 0
+    count = write_figure_ledger(output)
+    print(f"generated figure audit landing page: {output} ({count} placements)")
     return 0
 
 
@@ -1594,11 +2338,16 @@ def main(argv: list[str] | None = None) -> int:
     subparsers.add_parser(
         "equations", help="regenerate or check the equation review ledger"
     )
+    subparsers.add_parser(
+        "figures", help="generate or check the figure audit landing page"
+    )
     args, remainder = parser.parse_known_args(argv)
     if args.command == "build-info":
         return _build_info_cli(remainder)
     if args.command == "equations":
         return _equations_cli(remainder)
+    if args.command == "figures":
+        return _figures_cli(remainder)
     raise SystemExit(f"unsupported publication command: {args.command}")
 
 

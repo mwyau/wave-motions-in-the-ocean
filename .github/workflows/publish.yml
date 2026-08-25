@@ -8,8 +8,10 @@ on:
     paths:
       - "src/*.tex"
       - "src/*.bib"
+      - "src/*.md"
       - "src/layout/**"
       - "src/figures/**"
+      - "src/equations/**"
       - "src/images/**"
       - "references/chapman-rizzoli-1989/**"
       - "references/mit-ocw-2008/**"
