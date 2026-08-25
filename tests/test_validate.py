@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 import pytest
@@ -116,6 +117,28 @@ def test_figure_controls_are_conditional_and_progressive() -> None:
     assert "originalSrc" in script
     assert "wave-figure-view" not in script
     assert 'localStorage.setItem("wave-figure' not in script
+
+
+def test_figure_audit_uses_committed_visual_pairs_without_asset_review_state() -> None:
+    root = Path(__file__).resolve().parents[1]
+    figures = root / "src" / "FIGURES.md"
+    text = figures.read_text()
+
+    assert "Asset review" not in text
+    assert "review-needed" not in text
+    assert "same-stem source PNGs must not" not in (
+        (root / "scripts" / "build_html.py").read_text()
+        + (root / "scripts" / "validate.py").read_text()
+    )
+
+    image_paths = re.findall(r'<img\s+src="([^"]+)"', text)
+    assert image_paths
+    for image_path in image_paths:
+        assert (figures.parent / image_path).is_file(), image_path
+
+    for tikz in sorted((figures.parent / "figures").glob("*.tikz")):
+        assert (tikz.with_suffix(".svg")).is_file()
+        assert (tikz.with_suffix(".png")).is_file()
 
 
 def test_text_size_controls_are_numeric_actions() -> None:

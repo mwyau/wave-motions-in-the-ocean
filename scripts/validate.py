@@ -41,7 +41,6 @@ from publication import (
     AUTHORS,
     DOWNLOADS,
     EDITOR,
-    FIGURES,
     LANGUAGE,
     REPOSITORY_URL,
     SITE_URL,
@@ -49,6 +48,7 @@ from publication import (
     current_build,
     page_switchable_figure_stems,
     section_slug,
+    validate_maintained_figure_assets,
 )
 from publication import (
     MATHJAX_URL as MATHJAX_PINNED,
@@ -611,16 +611,10 @@ FIGURE_IMAGE_RE = re.compile(r"<img\b[^>]*>", re.IGNORECASE)
 
 def check_html_figures() -> None:
     """Validate HTML vector/source pairs and their progressive enhancement."""
-    maintained_pairs = sorted(
-        path.stem
-        for path in FIGURES.glob("*.tikz")
-        if path.with_suffix(".png").is_file()
-    )
-    if maintained_pairs:
-        fail(
-            "same-stem source PNGs are maintained beside TikZ figures: "
-            + ", ".join(maintained_pairs)
-        )
+    try:
+        validate_maintained_figure_assets()
+    except ValueError as exc:
+        fail(str(exc))
 
     for page in EXPECTED_HTML_PAGES:
         text = page.read_text(errors="replace")

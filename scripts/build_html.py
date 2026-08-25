@@ -1002,17 +1002,6 @@ FIGURE_DATA_ATTR_RE = re.compile(
 
 def validate_figure_markup() -> None:
     """Validate generated HTML figure pairs and progressive enhancement."""
-    source_pngs = {
-        path.stem
-        for path in (SRC / "figures").glob("*.png")
-        if (SRC / "figures" / f"{path.stem}.tikz").is_file()
-    }
-    if source_pngs:
-        raise SystemExit(
-            "same-stem source PNGs must not be maintained beside TikZ figures: "
-            + ", ".join(sorted(source_pngs))
-        )
-
     for page in EXPECTED_PAGES:
         text = page.read_text(errors="replace")
         expected_switchable = set(page_switchable_figure_stems(page, OUT))
