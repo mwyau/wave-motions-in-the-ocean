@@ -21,12 +21,12 @@ import sys
 import tempfile
 import unicodedata
 from collections.abc import Iterable
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 
 from PIL import Image, ImageDraw
+from PIL.PngImagePlugin import PngInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
@@ -38,7 +38,8 @@ CACHE = Path(os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motion
 SOURCE_PAGE_CACHE = CACHE / "source-pages"
 TIKZ_CACHE = CACHE / "tikz"
 SOURCE_RENDER_DPI = 170
-TIKZ_CACHE_VERSION = "v2"
+SOURCE_CROP_VERSION = "v1"
+TIKZ_CACHE_VERSION = "v3"
 FIGURE_ASSET_PREFIX = "assets/figures"
 BOOK_TITLE = "Wave Motions in the Ocean"
 PUBLICATION_TITLE = f"{BOOK_TITLE}: Myrl's View"
@@ -104,6 +105,9 @@ TIKZ_MASK_RE = re.compile(
     r"^% wave-source-mask:\s*pdf=(?P<pdf>[^;]+);\s*page=(?P<page>\d+);\s*"
     r"rect=(?P<rect>[^;]+);\s*origin=lower-left(?:;[^\n]*)?$",
     re.MULTILINE,
+)
+SVG_DIGEST_RE = re.compile(
+    r"<!--\s*wave-generated-sha256:\s*(?P<digest>[0-9a-f]{16,64})\s*-->"
 )
 SIGNATURE_RE = re.compile(
     r"\\wavesignature\{(?P<name>[^{}]+)\}\{(?P<place>[^{}]+)\}\{(?P<year>[^{}]+)\}"
@@ -243,6 +247,56 @@ def _asset_path(assets_root: Path, asset_prefix: str, name: str) -> Path:
     return assets_root / Path(asset_prefix) / name
 
 
+def figure_asset_paths(stem: str) -> tuple[Path, Path, Path]:
+    """Return the maintained TikZ, SVG, and source-PNG paths for a stem."""
+    path = Path(stem)
+    if path.name != stem or path.suffix:
+        raise ValueError(f"figure stem must be a plain basename, got {stem!r}")
+    return (
+        FIGURES / f"{stem}.tikz",
+        FIGURES / f"{stem}.svg",
+        FIGURES / f"{stem}.png",
+    )
+
+
+def maintained_tikz_stems() -> tuple[str, ...]:
+    """Return all maintained vector figure stems in stable order."""
+    return tuple(sorted(path.stem for path in FIGURES.glob("*.tikz")))
+
+
+def _format_bp(value: float) -> str:
+    return f"{value:g}bp"
+
+
+def _format_source_masks(
+    masks: tuple[tuple[float, float, float, float], ...],
+) -> str:
+    if not masks:
+        return "none"
+    return "; ".join(" ".join(_format_bp(value) for value in mask) for mask in masks)
+
+
+def _source_png_metadata(
+    pdf_name: str,
+    page: int,
+    trim: str,
+    masks: tuple[tuple[float, float, float, float], ...],
+    pdf_digest: str,
+    dpi: int,
+    angle: float,
+) -> dict[str, str]:
+    return {
+        "wave-source-pdf": pdf_name,
+        "wave-source-pdf-sha256": pdf_digest,
+        "wave-source-page": str(page),
+        "wave-source-trim": trim,
+        "wave-source-masks": _format_source_masks(masks),
+        "wave-source-dpi": str(dpi),
+        "wave-source-angle": f"{angle:g}",
+        "wave-source-renderer": SOURCE_CROP_VERSION,
+    }
+
+
 def _render_pdf_page(
     pdf: Path, page: int, dpi: int, prefix: Path, *, quiet: bool = True
 ) -> Path:
@@ -275,6 +329,7 @@ def _crop_source_image(
     angle: float = 0.0,
     optimize: bool = False,
     masks: tuple[tuple[float, float, float, float], ...] = (),
+    metadata: dict[str, str] | None = None,
 ) -> None:
     with Image.open(image_path) as source:
         image = source.convert("RGB")
@@ -304,7 +359,13 @@ def _crop_source_image(
     if angle:
         image = image.rotate(angle, expand=True, fillcolor="white")
     destination.parent.mkdir(parents=True, exist_ok=True)
-    image.save(destination, optimize=optimize)
+    save_kwargs: dict[str, object] = {"optimize": optimize}
+    if metadata:
+        pnginfo = PngInfo()
+        for key, value in metadata.items():
+            pnginfo.add_text(key, value)
+        save_kwargs["pnginfo"] = pnginfo
+    image.save(destination, **save_kwargs)
 
 
 def source_crop(
@@ -361,7 +422,19 @@ def source_crop(
     if not page_cache.exists():
         _render_pdf_page(pdf, page, dpi, page_cache.with_suffix(""))
 
-    crop_kwargs = {"angle": angle, "optimize": True}
+    crop_kwargs = {
+        "angle": angle,
+        "optimize": True,
+        "metadata": _source_png_metadata(
+            pdf_name,
+            page,
+            trim,
+            parsed_masks,
+            pdf_digest,
+            dpi,
+            angle,
+        ),
+    }
     if parsed_masks:
         crop_kwargs["masks"] = parsed_masks
     _crop_source_image(pdf, page, trim, page_cache, destination, **crop_kwargs)
@@ -409,6 +482,26 @@ def tikz_source_masks(stem: str) -> tuple[tuple[float, float, float, float], ...
     )
 
 
+def expected_source_png_metadata(stem: str) -> dict[str, str] | None:
+    """Return the metadata a maintained source PNG must contain."""
+    metadata = tikz_source_metadata(stem)
+    if metadata is None:
+        return None
+    pdf_name, page, trim = metadata
+    pdf = SOURCE_DIR / pdf_name
+    if not pdf.is_file():
+        raise FileNotFoundError(pdf)
+    return _source_png_metadata(
+        pdf_name,
+        page,
+        trim,
+        tikz_source_masks(stem),
+        file_sha256(str(pdf.resolve())),
+        SOURCE_RENDER_DPI,
+        0.0,
+    )
+
+
 def render_source_crop(
     pdf_name: str,
     page: int,
@@ -445,6 +538,31 @@ def _tikz_digest(stem: str) -> str:
     ).hexdigest()[:16]
 
 
+def svg_generation_digest(path: Path) -> str | None:
+    """Return the generated-input digest recorded in an SVG, if unambiguous."""
+    if not path.is_file():
+        return None
+    try:
+        text = path.read_text(errors="replace")
+    except OSError:
+        return None
+    matches = SVG_DIGEST_RE.findall(text)
+    return matches[0] if len(matches) == 1 else None
+
+
+def _write_svg_digest(path: Path, digest: str) -> None:
+    text = path.read_text()
+    text = SVG_DIGEST_RE.sub("", text)
+    marker = f"<!-- wave-generated-sha256: {digest} -->\n"
+    declaration = re.match(r"\s*<\?xml[^>]*\?>\s*", text)
+    if declaration:
+        position = declaration.end()
+        text = text[:position] + marker + text[position:]
+    else:
+        text = marker + text
+    path.write_text(text)
+
+
 def _compile_tikz_pdf(stem: str, workdir: Path, *, quiet: bool = True) -> Path:
     tikz = FIGURES / f"{stem}.tikz"
     if not tikz.exists():
@@ -474,28 +592,28 @@ def render_tikz_svg(
     work_root: Path,
     *,
     asset_prefix: str = FIGURE_ASSET_PREFIX,
+    force: bool = False,
 ) -> None:
     destination = _asset_path(assets_root, asset_prefix, f"{stem}.svg")
-    if destination.exists():
+    digest = _tikz_digest(stem)
+    if not force and svg_generation_digest(destination) == digest:
         return
     tikz = FIGURES / f"{stem}.tikz"
     if not tikz.exists():
         raise FileNotFoundError(tikz)
 
     cached_svg = TIKZ_CACHE / f"{stem}-{_tikz_digest(stem)}.svg"
-    if cached_svg.exists():
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(cached_svg, destination)
-        return
-
-    workdir = work_root / "tikz" / stem
-    pdf = _compile_tikz_pdf(stem, workdir)
-    svg = workdir / "figure.svg"
-    run(["pdftocairo", "-svg", str(pdf), str(svg)])
-    cached_svg.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(svg, cached_svg)
+    if not cached_svg.exists():
+        workdir = work_root / "tikz" / stem
+        pdf = _compile_tikz_pdf(stem, workdir)
+        svg = workdir / "figure.svg"
+        run(["pdftocairo", "-svg", str(pdf), str(svg)])
+        cached_svg.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(svg, cached_svg)
+    if svg_generation_digest(cached_svg) != digest:
+        _write_svg_digest(cached_svg, digest)
     destination.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(svg, destination)
+    shutil.copy2(cached_svg, destination)
 
 
 def render_tikz_png(stem: str, destination: Path, dpi: int) -> None:
@@ -545,6 +663,113 @@ def render_tikz_source_png(
     )
 
 
+def _png_text_metadata(path: Path) -> dict[str, str]:
+    try:
+        with Image.open(path) as image:
+            if image.format != "PNG":
+                raise ValueError(f"{path} is not a PNG")
+            return {key: str(value) for key, value in image.info.items()}
+    except (OSError, ValueError) as exc:
+        raise ValueError(f"cannot read PNG metadata from {path}: {exc}") from exc
+
+
+def maintained_figure_asset_errors(
+    stem: str,
+    *,
+    verify_content: bool = False,
+) -> list[str]:
+    """Return freshness errors for one maintained TikZ figure asset set."""
+    tikz, svg, png = figure_asset_paths(stem)
+    errors: list[str] = []
+    if not tikz.is_file():
+        return [f"{tikz} is missing"]
+
+    try:
+        source_metadata = tikz_source_metadata(stem)
+    except (OSError, ValueError) as exc:
+        errors.append(str(exc))
+        source_metadata = None
+
+    if not svg.is_file() or svg.stat().st_size == 0:
+        errors.append(f"{svg} is missing or empty")
+    else:
+        try:
+            svg_text = svg.read_text(errors="replace")
+        except OSError as exc:
+            errors.append(f"cannot read {svg}: {exc}")
+        else:
+            if "<svg" not in svg_text:
+                errors.append(f"{svg} is not an SVG document")
+            digest = svg_generation_digest(svg)
+            expected_digest = _tikz_digest(stem)
+            if digest != expected_digest:
+                errors.append(
+                    f"{svg} has digest {digest or '<missing>'}; "
+                    f"expected {expected_digest}"
+                )
+
+    if source_metadata is None:
+        return errors
+
+    if not png.is_file() or png.stat().st_size == 0:
+        errors.append(f"{png} is missing or empty")
+        return errors
+
+    try:
+        actual_metadata = _png_text_metadata(png)
+        expected_metadata = expected_source_png_metadata(stem)
+        assert expected_metadata is not None
+    except (OSError, ValueError) as exc:
+        errors.append(str(exc))
+        return errors
+
+    for key, expected in expected_metadata.items():
+        actual = actual_metadata.get(key)
+        if actual != expected:
+            errors.append(f"{png} metadata {key} is {actual!r}; expected {expected!r}")
+
+    if verify_content and not errors:
+        with tempfile.TemporaryDirectory(prefix="wave-figure-check-") as temporary:
+            temporary_root = Path(temporary)
+            temporary_svg = temporary_root / FIGURE_ASSET_PREFIX / f"{stem}.svg"
+            render_tikz_svg(
+                stem,
+                temporary_root,
+                temporary_root,
+                force=True,
+            )
+            if temporary_svg.read_bytes() != svg.read_bytes():
+                errors.append(f"{svg} content differs from a fresh rendering")
+
+            render_tikz_source_png(stem, temporary_root)
+            temporary_png = temporary_root / FIGURE_ASSET_PREFIX / f"{stem}.png"
+            if temporary_png.read_bytes() != png.read_bytes():
+                errors.append(f"{png} content differs from a fresh source crop")
+
+    return errors
+
+
+def validate_maintained_figure_assets(
+    stems: Iterable[str] | None = None,
+    *,
+    verify_content: bool = False,
+) -> None:
+    """Validate all maintained TikZ siblings without modifying source files."""
+    selected = tuple(stems) if stems is not None else maintained_tikz_stems()
+    errors = [
+        error
+        for stem in selected
+        for error in maintained_figure_asset_errors(
+            stem,
+            verify_content=verify_content,
+        )
+    ]
+    if errors:
+        raise ValueError(
+            "maintained figure asset validation failed:\n- " + "\n- ".join(errors)
+        )
+
+
 def referenced_tikz() -> list[str]:
     return referenced_tikz_in_texts(
         (SRC / f"chapter{i}.tex").read_text() for i in range(1, 7)
@@ -564,23 +789,19 @@ def prepare_original_assets(
     *,
     asset_prefix: str = FIGURE_ASSET_PREFIX,
 ) -> None:
-    """Generate same-stem source PNGs for HTML-used TikZ figures."""
+    """Copy maintained same-stem source PNGs for HTML-used TikZ figures."""
     stems = [
         stem for stem in referenced_tikz() if tikz_source_metadata(stem) is not None
     ]
     if not stems:
         return
-    print(f"Rendering {len(stems)} original TikZ source crops to PNG...")
-    failures: list[tuple[str, Exception]] = []
+    validate_maintained_figure_assets(stems)
+    print(f"Copying {len(stems)} maintained original TikZ source PNGs...")
     for stem in stems:
-        try:
-            render_tikz_source_png(stem, assets_root, asset_prefix=asset_prefix)
-        except Exception as exc:  # noqa: BLE001
-            failures.append((stem, exc))
-    if failures:
-        for stem, exc in failures:
-            print(f"Original source crop failed: {stem}: {exc}", file=sys.stderr)
-        raise SystemExit(f"{len(failures)} original source crop(s) failed")
+        source = FIGURES / f"{stem}.png"
+        destination = _asset_path(assets_root, asset_prefix, source.name)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, destination)
 
 
 def switchable_figure_stems(
@@ -621,26 +842,14 @@ def page_switchable_figure_stems(
 
 def prepare_vector_assets(assets_root: Path, work_root: Path) -> None:
     stems = referenced_tikz()
-    workers = max(1, min(4, os.cpu_count() or 2))
-    print(
-        f"Rendering {len(stems)} TikZ figures to SVG ({workers} workers; cache enabled)..."
-    )
-    failures: list[tuple[str, Exception]] = []
-    with ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = {
-            pool.submit(render_tikz_svg, stem, assets_root, work_root): stem
-            for stem in stems
-        }
-        for future in as_completed(futures):
-            stem = futures[future]
-            try:
-                future.result()
-            except Exception as exc:  # noqa: BLE001
-                failures.append((stem, exc))
-    if failures:
-        for stem, exc in failures:
-            print(f"TikZ render failed: {stem}: {exc}", file=sys.stderr)
-        raise SystemExit(f"{len(failures)} TikZ figure render(s) failed")
+    del work_root
+    validate_maintained_figure_assets()
+    print(f"Copying {len(stems)} maintained TikZ SVGs...")
+    for stem in stems:
+        source = FIGURES / f"{stem}.svg"
+        destination = _asset_path(assets_root, FIGURE_ASSET_PREFIX, source.name)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, destination)
 
 
 def copy_raster_assets(

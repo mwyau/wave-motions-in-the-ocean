@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 from PIL import Image, ImageChops
+from PIL.PngImagePlugin import PngInfo
 
 import build_html
 import publication
@@ -11,10 +12,14 @@ from publication import (
     _crop_source_image,
     _mask_box_pixels,
     _validate_mask_boxes,
+    expected_source_png_metadata,
+    figure_asset_paths,
+    maintained_figure_asset_errors,
     parse_mask,
     parse_trim,
     prepare_assets,
     prepare_original_assets,
+    prepare_vector_assets,
     reader_punctuation,
     section_slug,
     source_crop,
@@ -23,6 +28,7 @@ from publication import (
     tikz_source_masks,
     tikz_source_metadata,
     transform_tex,
+    validate_maintained_figure_assets,
 )
 
 
@@ -45,6 +51,152 @@ def test_parse_mask_rejects_wrong_count_and_units() -> None:
     for mask in ("1bp 2bp 3bp", "1px 2px 3px 4px", "1/2/3/4/5"):
         with pytest.raises(ValueError, match="expected four PDF mask coordinates"):
             parse_mask(mask)
+
+
+def test_figure_asset_paths_use_the_same_stem() -> None:
+    tikz, svg, png = figure_asset_paths("ch01-p004-phase-speed")
+
+    assert tikz.name == "ch01-p004-phase-speed.tikz"
+    assert svg.name == "ch01-p004-phase-speed.svg"
+    assert png.name == "ch01-p004-phase-speed.png"
+    with pytest.raises(ValueError):
+        figure_asset_paths("nested/figure")
+
+
+def _write_valid_figure_assets(
+    figures: Path,
+    source_dir: Path,
+    *,
+    trim: str = "1bp 2bp 3bp 4bp",
+    masks: str = "",
+) -> None:
+    figures.mkdir(parents=True, exist_ok=True)
+    tikz = figures / "sample.tikz"
+    tikz.write_text(
+        f"% wave-source: pdf=scan.pdf; page=3; trim={trim}\n"
+        + (masks + "\n" if masks else "")
+    )
+    publication.file_sha256.cache_clear()
+    expected = expected_source_png_metadata("sample")
+    assert expected is not None
+    (figures / "sample.svg").write_text(
+        f"<svg><!-- wave-generated-sha256: "
+        f"{publication._tikz_digest('sample')} --></svg>"
+    )
+    image = Image.new("RGB", (2, 2), "white")
+    info = PngInfo()
+    for key, value in expected.items():
+        info.add_text(key, value)
+    image.save(figures / "sample.png", pnginfo=info)
+
+
+def test_source_png_metadata_records_source_identity_and_render_inputs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+    source = source_dir / "scan.pdf"
+    source.write_bytes(b"scan")
+    figures = tmp_path / "figures"
+    monkeypatch.setattr(publication, "SOURCE_DIR", source_dir)
+    monkeypatch.setattr(publication, "FIGURES", figures)
+    _write_valid_figure_assets(figures, source_dir)
+
+    metadata = expected_source_png_metadata("sample")
+    assert metadata is not None
+    with Image.open(figures / "sample.png") as image:
+        assert image.info == metadata
+
+
+@pytest.mark.parametrize(
+    ("change", "expected"),
+    [
+        ("trim", "wave-source-trim"),
+        ("masks", "wave-source-masks"),
+        ("dpi", "wave-source-dpi"),
+    ],
+)
+def test_source_png_is_stale_when_crop_inputs_change(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    change: str,
+    expected: str,
+) -> None:
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+    (source_dir / "scan.pdf").write_bytes(b"scan")
+    figures = tmp_path / "figures"
+    monkeypatch.setattr(publication, "SOURCE_DIR", source_dir)
+    monkeypatch.setattr(publication, "FIGURES", figures)
+    _write_valid_figure_assets(figures, source_dir)
+
+    tikz = figures / "sample.tikz"
+    text = tikz.read_text()
+    if change == "trim":
+        text = text.replace("1bp 2bp 3bp 4bp", "2bp 2bp 3bp 4bp")
+    elif change == "masks":
+        text += (
+            "% wave-source-mask: pdf=scan.pdf; page=3; "
+            "rect=10bp 10bp 20bp 20bp; origin=lower-left\n"
+        )
+    else:
+        monkeypatch.setattr(publication, "SOURCE_RENDER_DPI", 171)
+    tikz.write_text(text)
+    publication.file_sha256.cache_clear()
+
+    errors = maintained_figure_asset_errors("sample")
+
+    assert any(expected in error for error in errors)
+
+
+def test_source_png_is_stale_when_source_pdf_changes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+    source = source_dir / "scan.pdf"
+    source.write_bytes(b"scan-a")
+    figures = tmp_path / "figures"
+    monkeypatch.setattr(publication, "SOURCE_DIR", source_dir)
+    monkeypatch.setattr(publication, "FIGURES", figures)
+    _write_valid_figure_assets(figures, source_dir)
+
+    source.write_bytes(b"scan-b")
+    publication.file_sha256.cache_clear()
+
+    errors = maintained_figure_asset_errors("sample")
+
+    assert any("wave-source-pdf-sha256" in error for error in errors)
+
+
+def test_svg_is_stale_when_tikz_changes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+    (source_dir / "scan.pdf").write_bytes(b"scan")
+    figures = tmp_path / "figures"
+    monkeypatch.setattr(publication, "SOURCE_DIR", source_dir)
+    monkeypatch.setattr(publication, "FIGURES", figures)
+    _write_valid_figure_assets(figures, source_dir)
+    (figures / "sample.tikz").write_text(
+        "% wave-source: pdf=scan.pdf; page=3; trim=1bp 2bp 3bp 4bp\n% changed\n"
+    )
+
+    errors = maintained_figure_asset_errors("sample")
+
+    assert any("sample.svg has digest" in error for error in errors)
+
+
+def test_raster_only_png_does_not_require_vector_siblings(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    figures = tmp_path / "figures"
+    figures.mkdir()
+    Image.new("RGB", (2, 2), "white").save(figures / "raster-only.png")
+    monkeypatch.setattr(publication, "FIGURES", figures)
+
+    validate_maintained_figure_assets()
 
 
 def test_tikz_source_masks_accepts_multiple_matching_masks(
@@ -189,9 +341,12 @@ def test_source_crop_identity_changes_with_source_and_render_inputs(
         *,
         angle: float,
         optimize: bool,
+        metadata: dict[str, str],
     ) -> None:
         destination.parent.mkdir(parents=True, exist_ok=True)
-        destination.write_bytes(f"{angle}:{optimize}".encode())
+        destination.write_bytes(
+            f"{angle}:{optimize}:{metadata['wave-source-dpi']}".encode()
+        )
 
     monkeypatch.setattr(publication, "_render_pdf_page", render)
     monkeypatch.setattr(publication, "_crop_source_image", crop)
@@ -328,29 +483,59 @@ def test_tikz_source_metadata_accepts_valid_and_rejects_malformed_comments(
         tikz_source_metadata("malformed-marker")
 
 
-def test_prepare_original_assets_skips_figures_without_source_provenance(
+def test_prepare_original_assets_copies_only_source_backed_tikz(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+    (source_dir / "scan.pdf").write_bytes(b"scan")
+    figures = tmp_path / "figures"
+    figures.mkdir()
+    (figures / "vector.tikz").write_text(
+        "% wave-source: pdf=scan.pdf; page=3; trim=1bp 2bp 3bp 4bp\n"
+    )
+    (figures / "digital.tikz").write_text("% digital-only\n")
+    monkeypatch.setattr(publication, "FIGURES", figures)
+    monkeypatch.setattr(publication, "SOURCE_DIR", source_dir)
+    (figures / "vector.svg").write_text(
+        f"<svg><!-- wave-generated-sha256: "
+        f"{publication._tikz_digest('vector')} --></svg>"
+    )
+    expected = expected_source_png_metadata("vector")
+    assert expected is not None
+    image = Image.new("RGB", (2, 2), "white")
+    info = PngInfo()
+    for key, value in expected.items():
+        info.add_text(key, value)
+    image.save(figures / "vector.png", pnginfo=info)
+
     monkeypatch.setattr(publication, "referenced_tikz", lambda: ["vector", "digital"])
-    metadata = {"vector": ("scan.pdf", 3, "1bp 2bp 3bp 4bp"), "digital": None}
-    monkeypatch.setattr(
-        publication,
-        "tikz_source_metadata",
-        lambda stem: metadata[stem],
-    )
-    calls: list[tuple[str, Path, str]] = []
-    monkeypatch.setattr(
-        publication,
-        "render_tikz_source_png",
-        lambda stem, assets_root, *, asset_prefix: (
-            calls.append((stem, assets_root, asset_prefix))
-            or "assets/figures/vector.png"
-        ),
-    )
+    publication.file_sha256.cache_clear()
 
-    prepare_original_assets(tmp_path)
+    prepare_original_assets(tmp_path / "assets")
 
-    assert calls == [("vector", tmp_path, "assets/figures")]
+    assert (tmp_path / "assets" / "assets" / "figures" / "vector.png").is_file()
+    assert not (tmp_path / "assets" / "assets" / "figures" / "digital.png").exists()
+
+
+def test_publication_asset_preparation_copies_maintained_vector_pair(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+    (source_dir / "scan.pdf").write_bytes(b"scan")
+    figures = tmp_path / "figures"
+    monkeypatch.setattr(publication, "FIGURES", figures)
+    monkeypatch.setattr(publication, "SOURCE_DIR", source_dir)
+    monkeypatch.setattr(publication, "referenced_tikz", lambda: ["sample"])
+    _write_valid_figure_assets(figures, source_dir)
+
+    output = tmp_path / "release"
+    prepare_vector_assets(output, tmp_path / "work")
+    prepare_original_assets(output)
+
+    assert (output / "assets" / "figures" / "sample.svg").is_file()
+    assert (output / "assets" / "figures" / "sample.png").is_file()
 
 
 def test_prepare_assets_only_generates_originals_when_requested(

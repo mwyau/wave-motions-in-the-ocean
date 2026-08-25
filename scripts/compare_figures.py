@@ -1,36 +1,41 @@
 #!/usr/bin/env python3
-"""Regenerate source-vs-reconstruction figure comparisons on demand.
+"""Maintain and audit same-stem source/reconstruction figure assets.
 
 Vector source info is stored in each retained .tikz file as:
     % wave-source: pdf=ChapmanRizzoli5.pdf; page=21; trim=...bp ...bp ...bp ...bp
 
 Edited-raster source info is embedded as PNG text metadata (wave-source-*).
-Outputs are temporary side-by-side images written directly under
-audit/figures/comparisons/<figure>.png.
-No overlay or difference image is produced.
+
+Normal updates write the maintained vector SVG and original-source PNG beside
+the TikZ source. ``--comparison`` additionally writes a temporary side-by-side
+PNG under ``audit/figures/comparisons/``.
 """
 
 from __future__ import annotations
 
 import argparse
-import re
+import shutil
 import sys
 import tempfile
 from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-from publication import render_source_crop, render_tikz_png, tikz_source_masks
+from publication import (
+    FIGURES,
+    figure_asset_paths,
+    maintained_figure_asset_errors,
+    maintained_tikz_stems,
+    render_source_crop,
+    render_tikz_png,
+    render_tikz_source_png,
+    render_tikz_svg,
+    tikz_source_masks,
+    tikz_source_metadata,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "src"
-FIGURES = SRC / "figures"
 OUTROOT = ROOT / "audit" / "figures" / "comparisons"
-META_RE = re.compile(
-    r"^% wave-source:\s*pdf=(?P<pdf>[^;]+);\s*page=(?P<page>\d+);\s*"
-    r"trim=(?P<trim>[^\n]+)$",
-    re.MULTILINE,
-)
 
 
 def side_by_side(left_path: Path, right_path: Path, out_path: Path) -> None:
@@ -74,13 +79,10 @@ def compare(stem: str, dpi: int) -> Path:
     kind: str
 
     if tikz.exists():
-        text = tikz.read_text()
-        m = META_RE.search(text)
-        if not m:
+        metadata = tikz_source_metadata(stem)
+        if metadata is None:
             raise RuntimeError(f"Missing wave-source comment in {tikz}")
-        pdf_name = m.group("pdf").strip()
-        page = int(m.group("page"))
-        trim = m.group("trim").strip()
+        pdf_name, page, trim = metadata
         kind = "vector"
     elif raster.exists():
         with Image.open(raster) as img:
@@ -116,6 +118,52 @@ def compare(stem: str, dpi: int) -> Path:
     return comparison
 
 
+def update_assets(stem: str) -> tuple[str, ...]:
+    """Regenerate stale maintained siblings for one vector figure."""
+    tikz, svg, png = figure_asset_paths(stem)
+    if not tikz.is_file():
+        if png.is_file():
+            return ()
+        raise FileNotFoundError(f"No retained vector or raster named {stem!r}")
+
+    errors = maintained_figure_asset_errors(stem)
+    if not errors:
+        return ()
+
+    with tempfile.TemporaryDirectory(prefix="wave-figure-update-") as temporary:
+        temporary_root = Path(temporary)
+        render_tikz_svg(
+            stem,
+            temporary_root,
+            temporary_root,
+            asset_prefix="figures",
+            force=True,
+        )
+        temporary_svg = temporary_root / "figures" / f"{stem}.svg"
+        shutil.copy2(temporary_svg, svg)
+
+        if tikz_source_metadata(stem) is not None:
+            render_tikz_source_png(
+                stem,
+                temporary_root,
+                asset_prefix="figures",
+            )
+            temporary_png = temporary_root / "figures" / f"{stem}.png"
+            shutil.copy2(temporary_png, png)
+
+    remaining = maintained_figure_asset_errors(stem)
+    if remaining:
+        raise RuntimeError("; ".join(remaining))
+    changed = [path.name for path in (svg, png) if path.exists()]
+    return tuple(changed)
+
+
+def check_assets(stem: str) -> None:
+    errors = maintained_figure_asset_errors(stem, verify_content=True)
+    if errors:
+        raise RuntimeError("; ".join(errors))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     group = parser.add_mutually_exclusive_group(required=True)
@@ -125,7 +173,7 @@ def main() -> int:
     group.add_argument(
         "--all",
         action="store_true",
-        help="regenerate comparisons for every retained TikZ figure",
+        help="synchronize maintained assets for every retained TikZ figure",
     )
     parser.add_argument(
         "--dpi",
@@ -133,32 +181,47 @@ def main() -> int:
         default=180,
         help="render resolution for audit evidence (default: 180)",
     )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="fail if maintained vector assets are stale; do not write them",
+    )
+    parser.add_argument(
+        "--comparison",
+        action="store_true",
+        help="also write a temporary raster comparison under audit/",
+    )
     args = parser.parse_args()
 
     if args.all:
-        stems = {p.stem for p in FIGURES.glob("*.tikz")}
-        for p in FIGURES.glob("*.png"):
-            try:
-                with Image.open(p) as img:
-                    if "wave-source-pdf" in img.info:
-                        stems.add(p.stem)
-            except OSError:
-                pass
-        stems = sorted(stems)
+        stems = list(maintained_tikz_stems())
     else:
         stems = [args.figure]
+    if args.check and args.comparison:
+        parser.error("--comparison cannot be combined with --check")
+
     failures: list[tuple[str, Exception]] = []
     for stem in stems:
         try:
-            path = compare(stem, args.dpi)
-            print(f"{stem}: {path.relative_to(ROOT)}")
+            if args.check:
+                check_assets(stem)
+                print(f"{stem}: maintained assets are fresh")
+            else:
+                changed = update_assets(stem)
+                if changed:
+                    print(f"{stem}: updated {', '.join(changed)}")
+                else:
+                    print(f"{stem}: maintained assets are up to date")
+                if args.comparison:
+                    path = compare(stem, args.dpi)
+                    print(f"{stem}: comparison {path.relative_to(ROOT)}")
         except Exception as exc:  # noqa: BLE001
             failures.append((stem, exc))
             print(f"{stem}: ERROR: {exc}", file=sys.stderr)
             if not args.all:
                 break
     if failures:
-        print(f"{len(failures)} comparison(s) failed", file=sys.stderr)
+        print(f"{len(failures)} figure asset operation(s) failed", file=sys.stderr)
         return 1
     return 0
 
