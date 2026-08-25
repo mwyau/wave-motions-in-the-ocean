@@ -1,4 +1,5 @@
-% wave-source: pdf=ChapmanRizzoli5.pdf; page=50; trim=145bp 465bp 115bp 155bp
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=50; trim=145bp 485bp 115bp 180bp
+% wave-source-mask: pdf=ChapmanRizzoli5.pdf; page=50; rect=145bp 580bp 195bp 611bp; origin=lower-left; reason=remove the overlapping preceding prose fragment while preserving both outer wall arrows
 % Source: Wave Motions in the Ocean, printed p.145 (physical p.50), upper figure.
 % Conceptual closure of eastward equatorially trapped Kelvin waves by boundary
 % Kelvin waves on north-south coasts.

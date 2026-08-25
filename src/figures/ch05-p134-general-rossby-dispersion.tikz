@@ -1,4 +1,5 @@
-% wave-source: pdf=ChapmanRizzoli5.pdf; page=39; trim=65bp 435bp 55bp 35bp
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=39; trim=65bp 460bp 55bp 20bp
+% wave-source-mask: pdf=ChapmanRizzoli5.pdf; page=39; rect=65bp 460bp 220bp 490bp; origin=lower-left; reason=remove the overlapping following prose while preserving the complete radius formula
 % Source: Wave Motions in the Ocean, printed p.134 (physical p.39).
 % Exact constant-frequency locus:
 % (k+beta/(2 sigma))^2+ell^2=(beta/(2 sigma))^2+(sigma^2-f^2)/(gD).

@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli5.pdf; page=34; trim=163.20bp 294.24bp 189.12bp 345.60bp
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=34; trim=163.20bp 270bp 189.12bp 351.60bp
 % Source: Wave Motions in the Ocean, printed p.129 (physical p.34).
 % The locus follows exactly from
 %   (k + beta/(2 sigma))^2 + ell^2 = (beta/(2 sigma))^2.

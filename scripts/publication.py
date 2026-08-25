@@ -26,7 +26,7 @@ from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
@@ -91,12 +91,18 @@ TIKZ_RENDER_TEMPLATE = r"""\documentclass{article}
 SOURCEART_RE = re.compile(
     r"\\sourceart(?:\[(?P<width>[^]]+)\])?"
     r"\{(?P<pdf>[^}]+)\}\{(?P<page>\d+)\}\{(?P<trim>[^}]+)\}"
+    r"(?:\[(?P<mask>[^]]+)\])?"
 )
 VECTOR_RE = re.compile(r"\\wavevectorart(?:\[(?P<width>[^]]+)\])?\{(?P<stem>[^}]+)\}")
 TIKZ_INPUT_RE = re.compile(r"\\input\{figures/(?P<stem>[^}]+)\.tikz\}")
 TIKZ_SOURCE_RE = re.compile(
     r"^% wave-source:\s*pdf=(?P<pdf>[^;]+);\s*page=(?P<page>\d+);\s*"
     r"trim=(?P<trim>[^\n]+)$",
+    re.MULTILINE,
+)
+TIKZ_MASK_RE = re.compile(
+    r"^% wave-source-mask:\s*pdf=(?P<pdf>[^;]+);\s*page=(?P<page>\d+);\s*"
+    r"rect=(?P<rect>[^;]+);\s*origin=lower-left(?:;[^\n]*)?$",
     re.MULTILINE,
 )
 SIGNATURE_RE = re.compile(
@@ -173,6 +179,15 @@ def parse_trim(text: str) -> tuple[float, float, float, float]:
     return tuple(map(float, values))
 
 
+def parse_mask(text: str) -> tuple[float, float, float, float]:
+    values = re.findall(r"(-?[0-9.]+)\s*bp", text)
+    if len(values) != 4:
+        values = re.findall(r"-?[0-9.]+", text)
+    if len(values) != 4:
+        raise ValueError(f"expected four PDF mask coordinates, got {text!r}")
+    return tuple(map(float, values))
+
+
 def _asset_path(assets_root: Path, asset_prefix: str, name: str) -> Path:
     return assets_root / Path(asset_prefix) / name
 
@@ -208,10 +223,23 @@ def _crop_source_image(
     *,
     angle: float = 0.0,
     optimize: bool = False,
+    masks: tuple[tuple[float, float, float, float], ...] = (),
 ) -> None:
     with Image.open(image_path) as source:
         image = source.convert("RGB")
     page_width, page_height = page_size_points(pdf, page)
+    if masks:
+        draw = ImageDraw.Draw(image)
+        for x0_pt, y0_pt, x1_pt, y1_pt in masks:
+            draw.rectangle(
+                (
+                    round(x0_pt / page_width * image.width),
+                    round(image.height - y1_pt / page_height * image.height),
+                    round(x1_pt / page_width * image.width),
+                    round(image.height - y0_pt / page_height * image.height),
+                ),
+                fill="white",
+            )
     left, bottom, right, top = parse_trim(trim)
     x0 = round(left / page_width * image.width)
     x1 = round(image.width - right / page_width * image.width)
@@ -236,6 +264,8 @@ def source_crop(
     angle: float = 0.0,
     dpi: int = SOURCE_RENDER_DPI,
     asset_name: str | None = None,
+    mask: str | None = None,
+    masks: tuple[tuple[float, float, float, float], ...] = (),
 ) -> str:
     """Render and crop a source-PDF page into a publication asset directory."""
     if Path(pdf_name).name != pdf_name:
@@ -245,7 +275,10 @@ def source_crop(
         raise FileNotFoundError(pdf)
 
     pdf_digest = file_sha256(str(pdf.resolve()))
-    identity = f"{pdf_name}|{pdf_digest}|{page}|{trim}|{angle:g}|dpi={dpi}"
+    parsed_masks = masks
+    if mask is not None:
+        parsed_masks = (parse_mask(mask),)
+    identity = f"{pdf_name}|{pdf_digest}|{page}|{trim}|{angle:g}|dpi={dpi}|masks={parsed_masks}"
     digest = hashlib.sha1(identity.encode()).hexdigest()[:10]
     if asset_name is None:
         name = f"source-{Path(pdf_name).stem}-p{page:03d}-{digest}.png"
@@ -269,15 +302,10 @@ def source_crop(
     if not page_cache.exists():
         _render_pdf_page(pdf, page, dpi, page_cache.with_suffix(""))
 
-    _crop_source_image(
-        pdf,
-        page,
-        trim,
-        page_cache,
-        destination,
-        angle=angle,
-        optimize=True,
-    )
+    crop_kwargs = {"angle": angle, "optimize": True}
+    if parsed_masks:
+        crop_kwargs["masks"] = parsed_masks
+    _crop_source_image(pdf, page, trim, page_cache, destination, **crop_kwargs)
     return f"{asset_prefix}/{name}"
 
 
@@ -304,6 +332,24 @@ def tikz_source_metadata(stem: str) -> tuple[str, int, str] | None:
     return pdf_name, int(match.group("page")), trim
 
 
+def tikz_source_masks(stem: str) -> tuple[tuple[float, float, float, float], ...]:
+    """Return absolute source-page masks recorded beside a TikZ crop."""
+    tikz = FIGURES / f"{stem}.tikz"
+    if not tikz.is_file():
+        raise FileNotFoundError(tikz)
+    text = tikz.read_text()
+    source = TIKZ_SOURCE_RE.search(text)
+    if source is None:
+        return ()
+    pdf_name = source.group("pdf").strip()
+    page = int(source.group("page"))
+    return tuple(
+        parse_mask(match.group("rect"))
+        for match in TIKZ_MASK_RE.finditer(text)
+        if match.group("pdf").strip() == pdf_name and int(match.group("page")) == page
+    )
+
+
 def render_source_crop(
     pdf_name: str,
     page: int,
@@ -312,6 +358,7 @@ def render_source_crop(
     dpi: int,
     *,
     angle: float = 0.0,
+    masks: tuple[tuple[float, float, float, float], ...] = (),
 ) -> None:
     """Render one source crop for figure-audit comparisons."""
     pdf = SOURCE_DIR / pdf_name
@@ -320,7 +367,10 @@ def render_source_crop(
     with tempfile.TemporaryDirectory(prefix="wave-source-") as temporary:
         prefix = Path(temporary) / "page"
         image_path = _render_pdf_page(pdf, page, dpi, prefix, quiet=False)
-        _crop_source_image(pdf, page, trim, image_path, destination, angle=angle)
+        crop_kwargs = {"angle": angle}
+        if masks:
+            crop_kwargs["masks"] = masks
+        _crop_source_image(pdf, page, trim, image_path, destination, **crop_kwargs)
 
 
 def _tikz_digest(stem: str) -> str:
@@ -432,6 +482,7 @@ def render_tikz_source_png(
         assets_root,
         asset_prefix=asset_prefix,
         asset_name=f"{stem}.png",
+        masks=tikz_source_masks(stem),
     )
 
 
@@ -615,6 +666,7 @@ def transform_tex(
             match.group("trim"),
             assets_root,
             asset_prefix=asset_prefix,
+            mask=match.group("mask"),
         )
         return rf"\includegraphics{{{relative}}}" + "\n\\wavefiguremark"
 

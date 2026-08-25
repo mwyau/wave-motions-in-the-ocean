@@ -66,12 +66,58 @@
 	\end{flushright}
 }
 
+\makeatletter
+
 % Direct crop from a source PDF: width, filename, physical page,
-% and trim rectangle.
-\NewDocumentCommand{\sourceart}{O{0.72} m m m}{%
+% and trim rectangle. A trailing slash-delimited mask is optional; its four
+% values are absolute PDF page coordinates in bp, ordered x0/y0/x1/y1.
+\newsavebox{\wavesourceartbox}
+\NewDocumentCommand{\sourceart}{O{0.72} m m m o}{%
 	\par\smallskip
 	\begin{center}
-		\includegraphics[page=#3,trim=#4,clip,width=#1\linewidth]{../references/chapman-rizzoli-1989/#2}%
+		\IfNoValueTF{#5}{%
+			\includegraphics[page=#3,trim=#4,clip,width=#1\linewidth]{../references/chapman-rizzoli-1989/#2}%
+		}{%
+			\sbox{\wavesourceartbox}{%
+				\includegraphics[page=#3,trim=#4,clip,width=#1\linewidth]{../references/chapman-rizzoli-1989/#2}%
+			}%
+			\def\waveparsecrop##1bp ##2bp ##3bp ##4bp\relax{%
+				\def\waveleft{##1}%
+				\def\wavebottom{##2}%
+				\def\waveright{##3}%
+				\def\wavetop{##4}%
+			}%
+			\expandafter\waveparsecrop#4\relax
+			\def\waveparsemask##1/##2/##3/##4\relax{%
+				\def\wavemaskxzero{##1}%
+				\def\wavemaskyzero{##2}%
+				\def\wavemaskxone{##3}%
+				\def\wavemaskyone{##4}%
+			}%
+			\expandafter\waveparsemask#5\relax
+			\pgfmathsetmacro{\wavebppt}{72.27/72}
+			\pgfmathsetmacro{\wavecropwidth}{606.72-\waveleft-\waveright}
+			\pgfmathsetmacro{\wavecropheight}{791.04-\wavebottom-\wavetop}
+			\pgfmathsetmacro{\wavesourceartscale}{%
+				(\strip@pt\wd\wavesourceartbox)/(\wavecropwidth*\wavebppt)%
+			}
+			\pgfmathsetmacro{\wavemaskxzero}{%
+				(\wavemaskxzero-\waveleft)*\wavebppt*\wavesourceartscale%
+			}
+			\pgfmathsetmacro{\wavemaskyzero}{%
+				(\wavemaskyzero-\wavebottom)*\wavebppt*\wavesourceartscale%
+			}
+			\pgfmathsetmacro{\wavemaskxone}{%
+				(\wavemaskxone-\waveleft)*\wavebppt*\wavesourceartscale%
+			}
+			\pgfmathsetmacro{\wavemaskyone}{%
+				(\wavemaskyone-\wavebottom)*\wavebppt*\wavesourceartscale%
+			}
+			\begin{tikzpicture}[x=1pt,y=1pt]
+				\node[anchor=south west,inner sep=0] at (0,0) {\usebox{\wavesourceartbox}};
+				\fill[white] (\wavemaskxzero,\wavemaskyzero) rectangle (\wavemaskxone,\wavemaskyone);
+			\end{tikzpicture}%
+		}%
 	\end{center}
 	\wavefiguremark
 	\smallskip
@@ -80,7 +126,6 @@
 % The requested width scales only TikZ geometry. Labels keep one physical
 % \small size, and line weights/arrowheads are not scaled with the picture.
 \newsavebox{\wavevectorbox}
-\makeatletter
 \NewDocumentCommand{\wavevectorart}{O{0.72} m}{%
 	\par\smallskip
 	\begin{center}

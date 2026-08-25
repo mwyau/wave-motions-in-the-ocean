@@ -76,6 +76,14 @@ If a redraw is schematic, state which properties are schematic and which are equ
 
 ## Vector verification workflow
 
+For every source-backed crop, review the full source page at 300–400 DPI and
+probe each edge in both directions by at least 6 bp. Use the smallest practical
+`left bottom right top` rectangle that contains the complete figure with a
+small safe margin and no unrelated prose. If no rectangle can separate
+overlapping source ink, record a narrow mask in absolute PDF page coordinates
+(origin at lower left) beside the source marker and retain the unmasked page
+render as audit evidence.
+
 For each new or materially changed vector:
 
 1. Inspect the full source page at high resolution.

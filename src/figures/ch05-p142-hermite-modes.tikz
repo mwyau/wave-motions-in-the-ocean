@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli5.pdf; page=47; trim=65bp 390bp 60bp 125bp
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=47; trim=65bp 410bp 60bp 150bp
 % Source: Wave Motions in the Ocean, printed p.142 (physical p.47).
 % Exact dimensionless shapes v_m proportional to exp(-xi^2/2) H_m(xi), m=0..3.
 % Each panel is rescaled by a constant solely for comparable visual height; zeros,

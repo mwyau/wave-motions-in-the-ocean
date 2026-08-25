@@ -20,7 +20,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-from publication import render_source_crop, render_tikz_png
+from publication import render_source_crop, render_tikz_png, tikz_source_masks
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
@@ -104,7 +104,8 @@ def compare(stem: str, dpi: int) -> Path:
         tmpdir = Path(td)
         original = tmpdir / "original.png"
         reconstruction = tmpdir / "reconstruction.png"
-        render_source_crop(pdf_name, page, trim, original, dpi)
+        masks = tikz_source_masks(stem) if kind == "vector" else ()
+        render_source_crop(pdf_name, page, trim, original, dpi, masks=masks)
         if kind == "vector":
             render_tikz_png(stem, reconstruction, dpi)
         else:

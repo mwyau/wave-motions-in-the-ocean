@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli5.pdf; page=50; trim=45bp 35bp 40bp 405bp
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=50; trim=45bp 65bp 40bp 440bp
 % Source: Wave Motions in the Ocean, printed p.145 (physical p.50), lower figure.
 % Curves are generated directly from the dimensionless equatorial dispersion law
 %   omega^3-(lambda^2+2m+1)omega-lambda=0.

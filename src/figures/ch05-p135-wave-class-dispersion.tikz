@@ -1,4 +1,5 @@
-% wave-source: pdf=ChapmanRizzoli5.pdf; page=40; trim=75bp 275bp 75bp 235bp
+% wave-source: pdf=ChapmanRizzoli5.pdf; page=40; trim=75bp 300bp 75bp 255bp
+% wave-source-mask: pdf=ChapmanRizzoli5.pdf; page=40; rect=75bp 525bp 175bp 541bp; origin=lower-left; reason=remove the preceding prose fragment while preserving the complete cone and C label
 % Source: Wave Motions in the Ocean, printed p.135 (physical p.40).
 % Nondimensional geometry uses K=k sqrt(gD)/f, L=ell sqrt(gD)/f,
 % Omega=sigma/f. Gravity-wave cross-sections satisfy K^2+L^2=Omega^2-1.
