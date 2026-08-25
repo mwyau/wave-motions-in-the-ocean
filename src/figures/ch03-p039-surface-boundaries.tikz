@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli3.pdf; page=3; trim=150bp 505bp 125bp 80bp
+% wave-source: pdf=ChapmanRizzoli3.pdf; page=3; trim=125bp 585bp 125bp 80bp
 % Source: Wave Motions in the Ocean, printed p.39 (physical p.3).
 % Equation-constrained geometry: the free surface is z=eta near z=0 and the rigid
 % flat bottom is z=-D. The wave profile is schematic; boundary locations are exact.

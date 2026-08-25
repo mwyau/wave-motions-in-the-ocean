@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli3.pdf; page=7; trim=225bp 250bp 225bp 475bp
+% wave-source: pdf=ChapmanRizzoli3.pdf; page=7; trim=195bp 225bp 180bp 460bp
 % Source: Wave Motions in the Ocean, printed p.42 (physical p.7).
 % Exact normalized plot of S=sigma*sqrt(D/g)=sqrt(K tanh K), K=kD.
 % Its K->0 tangent is S=K and its K->infinity asymptote is S=sqrt(K).

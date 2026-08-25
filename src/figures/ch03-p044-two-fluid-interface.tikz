@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli3.pdf; page=9; trim=165bp 500bp 130bp 85bp
+% wave-source: pdf=ChapmanRizzoli3.pdf; page=9; trim=180bp 530bp 145bp 120bp
 % Source: Wave Motions in the Ocean, printed p.44 (physical p.9).
 % Two semi-infinite irrotational fluids meet at z=eta near z=0; each potential
 % satisfies Laplace's equation. The interface waviness is schematic, labels exact.

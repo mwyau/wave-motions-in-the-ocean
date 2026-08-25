@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli3.pdf; page=20; trim=120bp 520bp 95bp 75bp
+% wave-source: pdf=ChapmanRizzoli3.pdf; page=20; trim=120bp 555bp 95bp 90bp
 % Source: Wave Motions in the Ocean, printed p.55 (physical p.20).
 % Exact triangle for rho(t)^2=r^2+V^2t^2+2Vtr cos(theta), t<0.
 % Display values choose -Vt=5.5, r=4.5, theta=28 deg; labels keep source signs.

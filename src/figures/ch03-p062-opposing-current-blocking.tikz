@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli3.pdf; page=27; trim=75bp 330bp 55bp 95bp
+% wave-source: pdf=ChapmanRizzoli3.pdf; page=27; trim=65bp 415bp 70bp 130bp
 % Source: Wave Motions in the Ocean, printed p.62 (physical p.27).
 % For normalized g=D=sigma=1, roots satisfy sqrt(k tanh k)=1+|U|k.
 % The critical tangency independently solves f(k)-k f'(k)=1: k=4.0426,

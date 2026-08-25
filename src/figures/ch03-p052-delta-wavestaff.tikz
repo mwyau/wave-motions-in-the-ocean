@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli3.pdf; page=17; trim=160bp 250bp 150bp 470bp
+% wave-source: pdf=ChapmanRizzoli3.pdf; page=17; trim=140bp 215bp 140bp 465bp
 % Source: Wave Motions in the Ocean, printed p.52 (physical p.17), lower figure.
 % Generated from eta proportional to t cos(g t^2/(4x)+pi/4) at fixed x,
 % using normalized g=x=1 and a display-only vertical scale.

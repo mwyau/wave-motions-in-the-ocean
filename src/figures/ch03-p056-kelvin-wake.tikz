@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli3.pdf; page=21; trim=125bp 400bp 115bp 135bp
+% wave-source: pdf=ChapmanRizzoli3.pdf; page=21; trim=145bp 500bp 125bp 145bp
 % Source: Wave Motions in the Ocean, printed p.56 (physical p.21), upper figure.
 % Crest families are generated from P(t_+)=constant and P(t_-)=constant after
 % substituting the stationary times. The cusp half-angle is exactly acos(sqrt(8/9))

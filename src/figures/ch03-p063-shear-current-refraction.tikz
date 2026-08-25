@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli3.pdf; page=28; trim=145bp 480bp 110bp 65bp
+% wave-source: pdf=ChapmanRizzoli3.pdf; page=28; trim=145bp 520bp 150bp 75bp
 % Source: Wave Motions in the Ocean, printed p.63 (physical p.28).
 % Equation-generated deep-water example with normalized sigma=1.2, ell=0.35,
 % g=1 and a smooth display V(x) rising from 0 to 0.65. At every x,

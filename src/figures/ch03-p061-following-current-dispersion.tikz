@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli3.pdf; page=26; trim=70bp 80bp 55bp 325bp
+% wave-source: pdf=ChapmanRizzoli3.pdf; page=26; trim=80bp 115bp 70bp 430bp
 % Source: Wave Motions in the Ocean, printed p.61 (physical p.26).
 % For normalized g=D=sigma=1, roots satisfy sqrt(k tanh k)=1-Uk.
 % The upper wave uses the same locally solved k(U(x)), so wavelength increases as U rises.
