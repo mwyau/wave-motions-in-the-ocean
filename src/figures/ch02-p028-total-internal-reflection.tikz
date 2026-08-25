@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=38; trim=80bp 95bp 75bp 535bp
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=38; trim=90bp 105bp 70bp 545bp
 % Source: Wave Motions in the Ocean, printed p.28 (physical p.38).
 % Equation-defined total-internal-reflection sequence.  For the illustrative ratio
 % c_1/c_2=0.75, theta_Ic=asin(0.75)=48.590 deg.  The subcritical panel uses

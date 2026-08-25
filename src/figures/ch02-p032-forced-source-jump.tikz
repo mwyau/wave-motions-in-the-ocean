@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=42; trim=90bp 485bp 80bp 90bp
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=42; trim=100bp 575bp 90bp 90bp
 % Source: Wave Motions in the Ocean, printed p.32 (physical p.42).
 % Equation-constrained redraw of a delta-forced one-dimensional acoustic source.
 % Integrating p_tt-c^2 p_xx=c^2 delta(x) q_t(t) across x=0 gives exactly

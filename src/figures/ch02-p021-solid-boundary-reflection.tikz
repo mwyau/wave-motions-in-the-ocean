@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=31; trim=105bp 405bp 100bp 125bp
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=31; trim=105bp 450bp 100bp 180bp
 % Source: Wave Motions in the Ocean, printed p.21 (physical p.31).
 % Vector redraw of incident and reflected plane waves at the solid boundary z=0.
 \begin{tikzpicture}[x=0.92cm,y=0.92cm,>=stealth,line cap=round,line join=round,font=\small]

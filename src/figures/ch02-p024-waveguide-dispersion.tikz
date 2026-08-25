@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=34; trim=145bp 125bp 170bp 455bp
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=34; trim=145bp 155bp 190bp 500bp
 % Source: Wave Motions in the Ocean, printed p.24 (physical p.34).
 % Equation-defined redraw using normalized variables K=(k^2+l^2)^{1/2}D/pi and
 % S=sigma D/(pi c_0), for which S_n=sqrt(K^2+n^2).  The n=0 branch is linear;

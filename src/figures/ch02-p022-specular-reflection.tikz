@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=32; trim=130bp 440bp 105bp 90bp
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=32; trim=140bp 500bp 135bp 105bp
 % Source: Wave Motions in the Ocean, printed p.22 (physical p.32).
 % Equation-constrained redraw of specular reflection from z=alpha x.  The wall
 % angle is a display choice; the normal is constructed exactly perpendicular to
