@@ -1,4 +1,5 @@
-% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=18; trim=123bp 490bp 72bp 145bp
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=18; trim=123bp 490bp 72bp 143bp
+% wave-source-mask: pdf=ChapmanRizzoli0_2.pdf; page=18; rect=123bp 642bp 540bp 650bp; origin=lower-left; reason=remove the overlapping preceding prose fragment while preserving the complete envelope apex
 % Vector redraw of the modulated plane-wave packet on printed page 8.
 % Source: ChapmanRizzoli0_2.pdf, physical page 18.
 \begin{tikzpicture}[x=0.82cm,y=0.82cm,>=stealth,line cap=round,line join=round,font=\small]

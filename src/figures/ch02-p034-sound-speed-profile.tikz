@@ -1,4 +1,5 @@
 % wave-source: pdf=ChapmanRizzoli0_2.pdf; page=44; trim=170bp 195bp 170bp 397bp
+% wave-source-mask: pdf=ChapmanRizzoli0_2.pdf; page=44; rect=170bp 382bp 240bp 397bp; origin=lower-left; reason=remove the preceding prose fragment while preserving the complete c label and upper axis
 % Source: Wave Motions in the Ocean, printed p.34 (physical p.44).
 % Source-traced vector of the empirical deep-sound-channel profile.  The chapter
 % gives c(s,T,z), but not the temperature/salinity profile needed to regenerate

@@ -180,12 +180,63 @@ def parse_trim(text: str) -> tuple[float, float, float, float]:
 
 
 def parse_mask(text: str) -> tuple[float, float, float, float]:
-    values = re.findall(r"(-?[0-9.]+)\s*bp", text)
-    if len(values) != 4:
-        values = re.findall(r"-?[0-9.]+", text)
-    if len(values) != 4:
-        raise ValueError(f"expected four PDF mask coordinates, got {text!r}")
-    return tuple(map(float, values))
+    number = r"-?(?:\d+(?:\.\d*)?|\.\d+)"
+    bp_match = re.fullmatch(
+        rf"\s*({number})\s*bp\s+({number})\s*bp\s+"
+        rf"({number})\s*bp\s+({number})\s*bp\s*",
+        text,
+    )
+    slash_match = re.fullmatch(
+        rf"\s*({number})\s*/\s*({number})\s*/\s*"
+        rf"({number})\s*/\s*({number})\s*",
+        text,
+    )
+    match = bp_match or slash_match
+    if match is None:
+        raise ValueError(
+            f"expected four PDF mask coordinates in bp or slash form, got {text!r}"
+        )
+    return tuple(map(float, match.groups()))
+
+
+def _validate_mask_boxes(
+    masks: tuple[tuple[float, float, float, float], ...],
+    page_width: float,
+    page_height: float,
+    trim: str,
+) -> None:
+    left, bottom, right, top = parse_trim(trim)
+    crop = (left, bottom, page_width - right, page_height - top)
+    if not (
+        0 <= crop[0] < crop[2] <= page_width and 0 <= crop[1] < crop[3] <= page_height
+    ):
+        raise ValueError(f"invalid crop for source page: {trim}")
+    for mask in masks:
+        x0, y0, x1, y1 = mask
+        if not (0 <= x0 < x1 <= page_width and 0 <= y0 < y1 <= page_height):
+            raise ValueError(
+                f"mask must be a non-reversed rectangle inside the source page: {mask}"
+            )
+        if not (
+            max(x0, crop[0]) < min(x1, crop[2]) and max(y0, crop[1]) < min(y1, crop[3])
+        ):
+            raise ValueError(f"mask does not intersect the final crop: {mask}")
+
+
+def _mask_box_pixels(
+    mask: tuple[float, float, float, float],
+    page_width: float,
+    page_height: float,
+    image_width: int,
+    image_height: int,
+) -> tuple[int, int, int, int]:
+    x0_pt, y0_pt, x1_pt, y1_pt = mask
+    return (
+        round(x0_pt / page_width * image_width),
+        round(image_height - y1_pt / page_height * image_height),
+        round(x1_pt / page_width * image_width),
+        round(image_height - y0_pt / page_height * image_height),
+    )
 
 
 def _asset_path(assets_root: Path, asset_prefix: str, name: str) -> Path:
@@ -228,19 +279,21 @@ def _crop_source_image(
     with Image.open(image_path) as source:
         image = source.convert("RGB")
     page_width, page_height = page_size_points(pdf, page)
+    left, bottom, right, top = parse_trim(trim)
     if masks:
+        _validate_mask_boxes(masks, page_width, page_height, trim)
         draw = ImageDraw.Draw(image)
-        for x0_pt, y0_pt, x1_pt, y1_pt in masks:
+        for mask in masks:
             draw.rectangle(
-                (
-                    round(x0_pt / page_width * image.width),
-                    round(image.height - y1_pt / page_height * image.height),
-                    round(x1_pt / page_width * image.width),
-                    round(image.height - y0_pt / page_height * image.height),
+                _mask_box_pixels(
+                    mask,
+                    page_width,
+                    page_height,
+                    image.width,
+                    image.height,
                 ),
                 fill="white",
             )
-    left, bottom, right, top = parse_trim(trim)
     x0 = round(left / page_width * image.width)
     x1 = round(image.width - right / page_width * image.width)
     y0 = round(top / page_height * image.height)
@@ -278,6 +331,12 @@ def source_crop(
     parsed_masks = masks
     if mask is not None:
         parsed_masks = (parse_mask(mask),)
+    if parsed_masks:
+        _validate_mask_boxes(
+            parsed_masks,
+            *page_size_points(pdf, page),
+            trim,
+        )
     identity = f"{pdf_name}|{pdf_digest}|{page}|{trim}|{angle:g}|dpi={dpi}|masks={parsed_masks}"
     digest = hashlib.sha1(identity.encode()).hexdigest()[:10]
     if asset_name is None:

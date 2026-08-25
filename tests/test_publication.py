@@ -1,12 +1,17 @@
 from pathlib import Path
 
 import pytest
+from PIL import Image, ImageChops
 
 import build_html
 import publication
 from publication import (
     BuildInfo,
     _balanced_command_args,
+    _crop_source_image,
+    _mask_box_pixels,
+    _validate_mask_boxes,
+    parse_mask,
     parse_trim,
     prepare_assets,
     prepare_original_assets,
@@ -15,6 +20,7 @@ from publication import (
     source_crop,
     switchable_figure_stems,
     tex_plain,
+    tikz_source_masks,
     tikz_source_metadata,
     transform_tex,
 )
@@ -28,6 +34,127 @@ def test_parse_trim_rejects_malformed_values() -> None:
     for trim in ("1bp 2bp 3bp", "1bp 2bp 3bp 4px", "1bp 2bp 3bp 4bp 5bp"):
         with pytest.raises(ValueError, match="expected four bp trim values"):
             parse_trim(trim)
+
+
+def test_parse_mask_accepts_bp_and_sourceart_slash_forms() -> None:
+    assert parse_mask("1bp 2.5bp -3bp 4.25bp") == (1.0, 2.5, -3.0, 4.25)
+    assert parse_mask("1/2.5/-3/4.25") == (1.0, 2.5, -3.0, 4.25)
+
+
+def test_parse_mask_rejects_wrong_count_and_units() -> None:
+    for mask in ("1bp 2bp 3bp", "1px 2px 3px 4px", "1/2/3/4/5"):
+        with pytest.raises(ValueError, match="expected four PDF mask coordinates"):
+            parse_mask(mask)
+
+
+def test_tikz_source_masks_accepts_multiple_matching_masks(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(publication, "FIGURES", tmp_path)
+    (tmp_path / "multiple.tikz").write_text(
+        "% wave-source: pdf=scan.pdf; page=3; trim=1bp 2bp 3bp 4bp\n"
+        "% wave-source-mask: pdf=scan.pdf; page=3; "
+        "rect=10bp 20bp 30bp 40bp; origin=lower-left\n"
+        "% wave-source-mask: pdf=scan.pdf; page=3; "
+        "rect=40bp 50bp 60bp 70bp; origin=lower-left\n"
+        "% wave-source-mask: pdf=other.pdf; page=3; "
+        "rect=1bp 2bp 3bp 4bp; origin=lower-left\n"
+    )
+
+    assert tikz_source_masks("multiple") == (
+        (10.0, 20.0, 30.0, 40.0),
+        (40.0, 50.0, 60.0, 70.0),
+    )
+
+
+@pytest.mark.parametrize(
+    "mask",
+    [
+        (40.0, 20.0, 20.0, 30.0),
+        (-1.0, 20.0, 30.0, 40.0),
+        (0.0, 80.0, 5.0, 90.0),
+    ],
+)
+def test_validate_mask_boxes_rejects_reversed_outside_and_disjoint_masks(
+    mask: tuple[float, float, float, float],
+) -> None:
+    with pytest.raises(ValueError):
+        _validate_mask_boxes((mask,), 100.0, 100.0, "10bp 10bp 10bp 10bp")
+
+
+def test_mask_page_coordinates_convert_from_lower_left() -> None:
+    assert _mask_box_pixels((10.0, 20.0, 30.0, 40.0), 100.0, 200.0, 1000, 2000) == (
+        100,
+        1600,
+        300,
+        1800,
+    )
+
+
+def test_masks_apply_before_crop_and_keep_absolute_page_location(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(publication, "page_size_points", lambda *_: (100.0, 100.0))
+    source = tmp_path / "page.png"
+    Image.new("RGB", (100, 100), "white").save(source)
+    with Image.open(source) as image:
+        image = image.convert("RGB")
+        image.putpixel((50, 50), (0, 0, 0))
+        image.putpixel((80, 20), (0, 0, 0))
+        image.putpixel((80, 50), (0, 0, 0))
+        image.save(source)
+
+    masks = ((40.0, 40.0, 60.0, 60.0), (70.0, 70.0, 90.0, 90.0))
+    full = tmp_path / "full.png"
+    shifted = tmp_path / "shifted.png"
+    _crop_source_image(
+        tmp_path / "scan.pdf",
+        3,
+        "0bp 0bp 0bp 0bp",
+        source,
+        full,
+        masks=masks,
+    )
+    _crop_source_image(
+        tmp_path / "scan.pdf",
+        3,
+        "10bp 0bp 0bp 0bp",
+        source,
+        shifted,
+        masks=masks,
+    )
+
+    with Image.open(full) as image:
+        assert image.getpixel((50, 50)) == (255, 255, 255)
+        assert image.getpixel((80, 20)) == (255, 255, 255)
+        assert image.getpixel((80, 50)) == (0, 0, 0)
+    with Image.open(shifted) as image:
+        assert image.getpixel((40, 50)) == (255, 255, 255)
+        assert image.getpixel((70, 20)) == (255, 255, 255)
+        assert image.getpixel((70, 50)) == (0, 0, 0)
+
+
+def test_no_mask_crop_remains_the_normal_pixel_crop(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(publication, "page_size_points", lambda *_: (100.0, 100.0))
+    source = tmp_path / "page.png"
+    original = Image.new("RGB", (100, 100), "white")
+    original.putpixel((50, 50), (0, 0, 0))
+    original.save(source)
+    destination = tmp_path / "crop.png"
+
+    _crop_source_image(
+        tmp_path / "scan.pdf",
+        3,
+        "10bp 20bp 30bp 40bp",
+        source,
+        destination,
+    )
+
+    expected = original.crop((10, 40, 70, 80))
+    with Image.open(destination) as actual:
+        assert ImageChops.difference(actual, expected).getbbox() is None
 
 
 def test_source_crop_identity_changes_with_source_and_render_inputs(

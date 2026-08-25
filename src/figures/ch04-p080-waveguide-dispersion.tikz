@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli4.pdf; page=17; trim=175bp 295bp 185bp 330bp
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=17; trim=175bp 289bp 185bp 330bp
 % Source: Wave Motions in the Ocean, printed p.80 (physical p.17).
 % Equation-generated normalized branches: sigma_n^2=(N^2+f^2 q_n^2)/(1+q_n^2), q_n=n*pi/(kD), and surface sigma_0^2=f^2+gD k^2.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
