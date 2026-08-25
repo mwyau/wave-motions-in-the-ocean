@@ -1,4 +1,5 @@
-% wave-source: pdf=ChapmanRizzoli6.pdf; page=18; trim=110bp 240bp 95bp 385bp
+% wave-source: pdf=ChapmanRizzoli6.pdf; page=18; trim=75bp 315bp 95bp 350bp
+% wave-source-mask: pdf=ChapmanRizzoli6.pdf; page=18; rect=0bp 420bp 300bp 470bp; origin=lower-left; reason=remove the overlapping preceding prose while preserving the complete upper axis label
 % Source: Wave Motions in the Ocean, printed p.164 (physical p.18), lower figure.
 % Schematic consequence of the derived result: increasing S raises each coastal-
 % trapped-wave branch; when S max[D_x]>1 the branch reaches the inertial frequency

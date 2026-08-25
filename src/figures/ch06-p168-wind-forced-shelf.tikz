@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli6.pdf; page=22; trim=155bp 420bp 135bp 240bp
+% wave-source: pdf=ChapmanRizzoli6.pdf; page=22; trim=155bp 440bp 135bp 240bp
 % Source: Wave Motions in the Ocean, printed p.168 (physical p.22).
 % Geometry follows the long-wave setup: x offshore, y alongshore, D=D(x), coast at
 % x=0, shelf edge x=L, and alongshelf wind stress tau^y. Bathymetric shape is schematic.

@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli6.pdf; page=7; trim=120bp 500bp 85bp 105bp
+% wave-source: pdf=ChapmanRizzoli6.pdf; page=7; trim=120bp 520bp 85bp 125bp
 % Source: Wave Motions in the Ocean, printed p.154 (physical p.7).
 % Exact scaled cross-section: z'=Rz makes the bottom z'=R alpha x and
 % theta=atan(R alpha). Tangent/normal directions identify along-bottom k and decay m.

@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli6.pdf; page=12; trim=75bp 450bp 65bp 135bp
+% wave-source: pdf=ChapmanRizzoli6.pdf; page=12; trim=75bp 485bp 65bp 160bp
 % Source: Wave Motions in the Ocean, printed p.159 (physical p.12), upper figure.
 % Equation-generated roots of tan(kL)=k/(ell-b). Normalized display uses
 % x=kL and (ell-b)L=-1.5; roots are x=2.1746260,5.0036453,8.0384628.

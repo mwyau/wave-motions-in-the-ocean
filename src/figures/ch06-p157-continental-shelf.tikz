@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli6.pdf; page=10; trim=155bp 520bp 140bp 80bp
+% wave-source: pdf=ChapmanRizzoli6.pdf; page=10; trim=155bp 560bp 140bp 80bp
 % Source: Wave Motions in the Ocean, printed p.157 (physical p.10).
 % Cross-shelf depth follows the chapter's analytic profile D=D0 exp(2 b x) on
 % 0<x<L and is constant offshore. Display values bL=0.45, D0/H=exp(-0.9).

@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli6.pdf; page=16; trim=155bp 360bp 125bp 270bp
+% wave-source: pdf=ChapmanRizzoli6.pdf; page=16; trim=155bp 380bp 125bp 310bp
 % Source: Wave Motions in the Ocean, printed p.162 (physical p.16).
 % Idealized coastal-trapped-wave geometry: x offshore, y alongshore, z vertical,
 % variable bottom z=-D(x), shelf width L, and flat deep ocean z=-H.

@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli6.pdf; page=5; trim=175bp 145bp 185bp 470bp
+% wave-source: pdf=ChapmanRizzoli6.pdf; page=5; trim=175bp 155bp 185bp 490bp
 % Source: Wave Motions in the Ocean, printed p.152 (physical p.5).
 % Equation-generated vertical structure from p~cosh(mu z), -1<=z<=0, normalized
 % by cosh(mu) so the bottom amplitude is one. Display uses mu=2.3 only to show trapping.
