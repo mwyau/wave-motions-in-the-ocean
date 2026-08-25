@@ -46,6 +46,8 @@ from publication import (
     SITE_URL,
     book_structure,
     current_build,
+    equation_asset_errors,
+    equation_ledger_matches,
     page_switchable_figure_stems,
     section_slug,
     validate_maintained_figure_assets,
@@ -215,6 +217,18 @@ def check_canonical_source() -> None:
             )
 
     print("TeX math audit OK")
+
+
+def check_equation_ledger() -> None:
+    if not equation_ledger_matches():
+        fail(
+            "equation ledger is stale; run "
+            "uv run --frozen python scripts/publication.py equations"
+        )
+    errors = equation_asset_errors()
+    if errors:
+        fail("equation asset validation failed:\n- " + "\n- ".join(errors))
+    print("Equation ledger and PNG assets are current")
 
 
 def check_punctuation() -> None:
@@ -1723,6 +1737,7 @@ def check_pdf_artifacts() -> None:
 
 
 def check_math(require_epubcheck: bool) -> None:
+    check_equation_ledger()
     check_canonical_source()
     check_punctuation()
     check_readme()

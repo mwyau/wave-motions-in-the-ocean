@@ -126,6 +126,10 @@ check_readme() {
   "$PYTHON" "$ROOT/scripts/sync_readme.py" --check
 }
 
+check_equations() {
+  "$PYTHON" "$ROOT/scripts/publication.py" equations --check
+}
+
 finalize_publication() {
   "$PYTHON" "$ROOT/scripts/release.py" finalize --root "$PUBLICATION"
 }
@@ -146,6 +150,7 @@ finish_all() {
 
 case "$TARGET" in
   all)
+    check_equations
     reset_generated
     build_pdf
     build_epub
@@ -153,12 +158,14 @@ case "$TARGET" in
     finish_all
     ;;
   pdf)
+    check_equations
     build_pdf
     if validation_enabled; then
       "$PYTHON" "$ROOT/scripts/validate.py" pdf
     fi
     ;;
   html)
+    check_equations
     build_html
     if validation_enabled; then
       "$PYTHON" "$ROOT/scripts/validate.py" html
@@ -166,6 +173,7 @@ case "$TARGET" in
     fi
     ;;
   epub)
+    check_equations
     build_epub
     if validation_enabled; then
       "$PYTHON" "$ROOT/scripts/validate.py" epub

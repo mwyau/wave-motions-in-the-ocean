@@ -12,6 +12,10 @@ from publication import (
     _crop_source_image,
     _mask_box_pixels,
     _validate_mask_boxes,
+    collect_equation_displays,
+    equation_asset_paths,
+    equation_ledger_text,
+    equation_markdown_math,
     expected_source_png_metadata,
     figure_asset_paths,
     maintained_figure_asset_errors,
@@ -30,6 +34,102 @@ from publication import (
     transform_tex,
     validate_maintained_figure_assets,
 )
+
+
+def _write_equation_test_sources(root: Path) -> Path:
+    source = root / "src"
+    source.mkdir()
+    (source / "chapter1.tex").write_text(
+        r"""% Source printed page 2 / physical page 1
+\begin{waveequation}
+	x = 1
+\end{waveequation}
+\begin{wavealign}
+	a &= b \\
+	c &= d
+\end{wavealign}
+% Source printed page 3 / source physical page 2
+\[
+	y = 2
+\]
+"""
+    )
+    (source / "chapter2.tex").write_text(
+        r"""% Source printed page 4 / physical page 1
+\begin{equation*}
+	z = 3
+\end{equation*}
+"""
+    )
+    for chapter in range(3, 7):
+        (source / f"chapter{chapter}.tex").write_text(
+            f"% Source printed page {chapter + 2} / physical page 1\n"
+        )
+    return source
+
+
+def test_equation_extraction_order_wrappers_and_exact_source(tmp_path: Path) -> None:
+    source = _write_equation_test_sources(tmp_path)
+    displays = collect_equation_displays(source)
+
+    assert [display.stem for display in displays] == [
+        "ch01-p002-e01",
+        "ch01-p002-e02",
+        "ch01-p003-e01",
+        "ch02-p004-e01",
+    ]
+    assert displays[0].source == "\\begin{waveequation}\n\tx = 1\n\\end{waveequation}"
+    assert displays[0].line == 2
+    assert equation_markdown_math(displays[0]) == "$$\n\tx = 1\n$$"
+    assert equation_markdown_math(displays[1]) == (
+        "$$\n\\begin{aligned}\n\ta &= b \\\\\n\tc &= d\n\\end{aligned}\n$$"
+    )
+    assert equation_markdown_math(displays[2]) == "$$\n\ty = 2\n$$"
+
+
+def test_equation_asset_paths_are_derived_from_the_stem() -> None:
+    paths = equation_asset_paths("ch01-p002-e01")
+    assert [path.name for path in paths] == [
+        "ch01-p002-e01-source.png",
+        "ch01-p002-e01-mathjax.png",
+        "ch01-p002-e01-mathml.png",
+    ]
+    with pytest.raises(ValueError):
+        equation_asset_paths("not-an-equation")
+
+
+def test_equation_ledger_is_stable_and_contains_no_machine_data(tmp_path: Path) -> None:
+    source = _write_equation_test_sources(tmp_path)
+    first, count = equation_ledger_text(source)
+    second, second_count = equation_ledger_text(source)
+
+    assert count == second_count == 4
+    assert first == second
+    assert first.endswith("\n")
+    assert not first.endswith("\n\n")
+    assert "<!-- Generated from src/chapter1.tex through src/chapter6.tex." in first
+    assert "```tex\n\\begin{waveequation}\n\tx = 1\n\\end{waveequation}\n```" in first
+    assert "equations/ch01-p002-e01-source.png" in first
+    assert all(
+        forbidden not in first
+        for forbidden in ("2026-", "/home/", "tmp/", "Chromium", "git SHA")
+    )
+
+
+def test_equation_cli_check_passes_and_fails_after_source_change(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    source = _write_equation_test_sources(tmp_path)
+    monkeypatch.setattr(publication, "SRC", source)
+    publication.write_equation_ledger()
+
+    assert publication._equations_cli(["--check"]) == 0
+    assert "current" in capsys.readouterr().out
+
+    chapter = source / "chapter1.tex"
+    chapter.write_text(chapter.read_text().replace("x = 1", "x = 9"))
+    assert publication._equations_cli(["--check"]) == 1
+    assert "stale" in capsys.readouterr().err
 
 
 def test_parse_trim_accepts_four_bp_values() -> None:

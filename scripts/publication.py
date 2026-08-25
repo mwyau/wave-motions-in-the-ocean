@@ -136,6 +136,26 @@ NATIVE_TAGGED_EQUATION_RE = re.compile(
     re.DOTALL,
 )
 FIGURE_MARK_RE = re.compile(r"\\wavefiguremark")
+EQUATION_DISPLAY_ENVS = frozenset(
+    {
+        "align",
+        "align*",
+        "equation",
+        "equation*",
+        "gather",
+        "gather*",
+        "multline",
+        "multline*",
+        "wavealign",
+        "waveequation",
+    }
+)
+EQUATION_PAGE_RE = re.compile(
+    r"^%\s*Source printed page (?P<printed>\d+) / "
+    r"(?:source )?physical page (?P<physical>\d+)\s*$"
+)
+EQUATION_BEGIN_RE = re.compile(r"^\s*\\begin\{(?P<environment>[^}]+)\}\s*$")
+EQUATION_STEM_RE = re.compile(r"ch\d{2}-p\d{3}-e\d{2,}")
 
 
 def run(cmd: list[str], *, cwd: Path | None = None, quiet: bool = True) -> None:
@@ -1045,6 +1065,279 @@ def prepare_flowing_sources(output_dir: Path, assets_root: Path) -> list[Path]:
 
 
 # ---------------------------------------------------------------------------
+# Equation ledger generation
+
+
+@dataclass(frozen=True)
+class EquationDisplay:
+    chapter: int
+    printed_page: int
+    physical_page: int
+    display_ordinal: int
+    display_type: str
+    line: int
+    source: str
+
+    @property
+    def stem(self) -> str:
+        return (
+            f"ch{self.chapter:02d}-p{self.printed_page:03d}-e{self.display_ordinal:02d}"
+        )
+
+
+def extract_equation_displays(
+    chapter_number: int,
+    path: Path | None = None,
+) -> tuple[EquationDisplay, ...]:
+    """Extract complete display blocks from one maintained chapter source."""
+    source_path = path or SRC / f"chapter{chapter_number}.tex"
+    lines = source_path.read_text().splitlines()
+    printed_page: int | None = None
+    physical_page: int | None = None
+    display_ordinal = 0
+    displays: list[EquationDisplay] = []
+    index = 0
+
+    while index < len(lines):
+        page_match = EQUATION_PAGE_RE.fullmatch(lines[index])
+        if page_match:
+            printed_page = int(page_match.group("printed"))
+            physical_page = int(page_match.group("physical"))
+            display_ordinal = 0
+            index += 1
+            continue
+
+        line = lines[index]
+        is_bracket = line.strip() == r"\["
+        begin_match = EQUATION_BEGIN_RE.fullmatch(line)
+        environment = (
+            begin_match.group("environment")
+            if begin_match and begin_match.group("environment") in EQUATION_DISPLAY_ENVS
+            else None
+        )
+        if not is_bracket and environment is None:
+            index += 1
+            continue
+        if printed_page is None or physical_page is None:
+            raise ValueError(
+                f"{source_path}:{index + 1}: display appears before a source-page comment"
+            )
+
+        start = index
+        end_token = r"\]" if is_bracket else rf"\end{{{environment}}}"
+        index += 1
+        while index < len(lines) and lines[index].strip() != end_token:
+            index += 1
+        if index >= len(lines):
+            raise ValueError(f"unclosed display in {source_path}:{start + 1}")
+
+        source = "\n".join(lines[start : index + 1])
+        display_ordinal += 1
+        displays.append(
+            EquationDisplay(
+                chapter=chapter_number,
+                printed_page=printed_page,
+                physical_page=physical_page,
+                display_ordinal=display_ordinal,
+                display_type="bracket" if is_bracket else environment,
+                line=start + 1,
+                source=source,
+            )
+        )
+        index += 1
+
+    if displays:
+        pages = [display.printed_page for display in displays]
+        if pages != sorted(pages):
+            raise ValueError(f"{source_path}: printed pages are not in source order")
+    return tuple(displays)
+
+
+def collect_equation_displays(
+    source_dir: Path | None = None,
+) -> tuple[EquationDisplay, ...]:
+    """Return all chapter displays in stable chapter/page/display order."""
+    source_dir = source_dir or SRC
+    displays: list[EquationDisplay] = []
+    for chapter_number in range(1, 7):
+        displays.extend(
+            extract_equation_displays(
+                chapter_number,
+                source_dir / f"chapter{chapter_number}.tex",
+            )
+        )
+
+    displays.sort(
+        key=lambda display: (
+            display.chapter,
+            display.printed_page,
+            display.display_ordinal,
+        )
+    )
+    identities = [
+        (display.chapter, display.printed_page, display.display_ordinal)
+        for display in displays
+    ]
+    if len(identities) != len(set(identities)):
+        raise ValueError("equation display identities are not unique")
+    return tuple(displays)
+
+
+def _equation_body(display: EquationDisplay) -> str:
+    lines = display.source.splitlines()
+    if len(lines) < 2:
+        raise ValueError(f"display source is incomplete for {display.stem}")
+    return "\n".join(lines[1:-1])
+
+
+def equation_markdown_math(display: EquationDisplay) -> str:
+    """Convert only repository display wrappers to GitHub Markdown math."""
+    body = _equation_body(display)
+    if display.display_type == "bracket":
+        return f"$$\n{body}\n$$"
+    if display.display_type in {"waveequation", "equation", "equation*"}:
+        return f"$$\n{body}\n$$"
+    if display.display_type in {
+        "wavealign",
+        "align",
+        "align*",
+        "gather",
+        "gather*",
+        "multline",
+        "multline*",
+    }:
+        return f"$$\n\\begin{{aligned}}\n{body}\n\\end{{aligned}}\n$$"
+    raise ValueError(f"unsupported equation display type: {display.display_type}")
+
+
+def equation_asset_paths(stem: str) -> tuple[Path, Path, Path]:
+    """Return the three maintained PNG paths derived from one equation stem."""
+    if EQUATION_STEM_RE.fullmatch(stem) is None:
+        raise ValueError(f"invalid equation stem: {stem!r}")
+    directory = SRC / "equations"
+    return (
+        directory / f"{stem}-source.png",
+        directory / f"{stem}-mathjax.png",
+        directory / f"{stem}-mathml.png",
+    )
+
+
+def equation_asset_errors(
+    displays: Iterable[EquationDisplay] | None = None,
+) -> list[str]:
+    """Return missing/empty PNG errors for the equation identities."""
+    displays = displays if displays is not None else collect_equation_displays()
+    errors: list[str] = []
+    for display in displays:
+        for path in equation_asset_paths(display.stem):
+            if not path.is_file() or path.stat().st_size == 0:
+                errors.append(f"missing or empty equation asset: {path}")
+    return errors
+
+
+EQUATION_LEDGER_HEADER = (
+    "<!-- Generated from src/chapter1.tex through src/chapter6.tex.\n"
+    "     Do not edit equation entries by hand. -->"
+)
+
+
+def equation_ledger_text(
+    source_dir: Path | None = None,
+) -> tuple[str, int]:
+    """Return deterministic ledger bytes as text and the extracted count."""
+    displays = collect_equation_displays(source_dir)
+    lines = [
+        "# Equation ledger",
+        "",
+        EQUATION_LEDGER_HEADER,
+        "",
+        "This file is generated review material for the display equations in the six maintained chapter TeX files.",
+        "Entries follow chapter order, printed-page order, and display order within each page.",
+        "The Markdown equation and the LaTeX source block are produced from the same extracted display.",
+        "",
+    ]
+    current_chapter: int | None = None
+    for display in displays:
+        if display.chapter != current_chapter:
+            current_chapter = display.chapter
+            lines.extend([f"## Chapter {current_chapter}", ""])
+        asset_headers = ("Source PDF", "MathJax", "MathML")
+        asset_cells = (
+            (
+                f"[![Source PDF](equations/{display.stem}-source.png)]"
+                f"(equations/{display.stem}-source.png)"
+            ),
+            (
+                f"[![MathJax](equations/{display.stem}-mathjax.png)]"
+                f"(equations/{display.stem}-mathjax.png)"
+            ),
+            (
+                f"[![MathML](equations/{display.stem}-mathml.png)]"
+                f"(equations/{display.stem}-mathml.png)"
+            ),
+        )
+        asset_widths = tuple(
+            max(len(header), len(cell))
+            for header, cell in zip(asset_headers, asset_cells, strict=True)
+        )
+        asset_table = (
+            "| "
+            + " | ".join(
+                cell.ljust(width)
+                for cell, width in zip(asset_headers, asset_widths, strict=True)
+            )
+            + " |",
+            "| " + " | ".join("-" * width for width in asset_widths) + " |",
+            "| "
+            + " | ".join(
+                cell.ljust(width)
+                for cell, width in zip(asset_cells, asset_widths, strict=True)
+            )
+            + " |",
+        )
+        lines.extend(
+            [
+                f"### p. {display.printed_page} · display {display.display_ordinal} · {display.stem}",
+                "",
+                f"Source: `src/chapter{display.chapter}.tex:{display.line}` · display type: `{display.display_type}`",
+                "",
+                "#### Markdown math",
+                "",
+                equation_markdown_math(display),
+                "",
+                "<details>",
+                "<summary>LaTeX source</summary>",
+                "",
+                "```tex",
+                display.source,
+                "```",
+                "",
+                "</details>",
+                "",
+                *asset_table,
+                "",
+            ]
+        )
+    return "\n".join(lines).rstrip("\n") + "\n", len(displays)
+
+
+def equation_ledger_matches(path: Path | None = None) -> bool:
+    """Compare a checked-in ledger with a fresh in-memory regeneration."""
+    output = path or SRC / "EQUATIONS.md"
+    expected, _ = equation_ledger_text()
+    return output.is_file() and output.read_bytes() == expected.encode("utf-8")
+
+
+def write_equation_ledger(path: Path | None = None) -> int:
+    """Regenerate the maintained equation ledger and return its display count."""
+    output = path or SRC / "EQUATIONS.md"
+    text, count = equation_ledger_text()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_bytes(text.encode("utf-8"))
+    return count
+
+
+# ---------------------------------------------------------------------------
 # Shared book model and reader-view helpers
 
 
@@ -1263,15 +1556,49 @@ def _build_info_cli(argv: list[str] | None = None) -> int:
     return 0
 
 
+def _equations_cli(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="publication.py equations")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="regenerate in a temporary location and compare byte-for-byte",
+    )
+    args = parser.parse_args(argv)
+    output = SRC / "EQUATIONS.md"
+    if args.check:
+        with tempfile.TemporaryDirectory(prefix="wave-equations-check-") as temporary:
+            fresh = Path(temporary) / "EQUATIONS.md"
+            count = write_equation_ledger(fresh)
+            if not output.is_file() or output.read_bytes() != fresh.read_bytes():
+                print(
+                    f"equation ledger is stale: {output}; "
+                    "run 'uv run --frozen python scripts/publication.py equations' "
+                    f"to regenerate {count} entries",
+                    file=sys.stderr,
+                )
+                return 1
+        print(f"equation ledger is current: {output}")
+        return 0
+
+    count = write_equation_ledger(output)
+    print(f"generated equation ledger: {output} ({count} entries)")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Shared publication support utilities")
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser(
         "build-info", help="print or write the current build identity"
     )
+    subparsers.add_parser(
+        "equations", help="regenerate or check the equation review ledger"
+    )
     args, remainder = parser.parse_known_args(argv)
     if args.command == "build-info":
         return _build_info_cli(remainder)
+    if args.command == "equations":
+        return _equations_cli(remainder)
     raise SystemExit(f"unsupported publication command: {args.command}")
 
 
