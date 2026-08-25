@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=22; trim=175bp 328bp 235bp 324bp
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=22; trim=120bp 255bp 180bp 395bp
 % Source: Wave Motions in the Ocean, printed p.12 (physical p.22).
 % Vector redraw of the path Gamma crossing a slowly varying train of wave crests.
 \begin{tikzpicture}[x=0.82cm,y=0.82cm,line cap=round,line join=round,font=\small]

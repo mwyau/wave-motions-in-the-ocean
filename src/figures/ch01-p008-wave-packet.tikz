@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=18; trim=113.04bp 486.00bp 72.00bp 132.00bp
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=18; trim=123bp 490bp 72bp 145bp
 % Vector redraw of the modulated plane-wave packet on printed page 8.
 % Source: ChapmanRizzoli0_2.pdf, physical page 18.
 \begin{tikzpicture}[x=0.82cm,y=0.82cm,>=stealth,line cap=round,line join=round,font=\small]

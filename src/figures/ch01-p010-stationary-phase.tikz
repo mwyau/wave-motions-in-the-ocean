@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=20; trim=84bp 481bp 117bp 202bp
+% wave-source: pdf=ChapmanRizzoli0_2.pdf; page=20; trim=84bp 481bp 117bp 230bp
 % Source: Wave Motions in the Ocean, printed p.10 (physical p.20).
 % Vector redraw of the stationary-phase integrand schematic.
 \begin{tikzpicture}[x=0.82cm,y=0.82cm,>=stealth,line cap=round,line join=round,font=\small]
