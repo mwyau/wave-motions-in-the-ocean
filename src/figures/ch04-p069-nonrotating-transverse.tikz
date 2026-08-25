@@ -17,6 +17,6 @@
   \node at (0.30,0.53) {$\theta$};
   \draw[->,line width=0.7pt] (O)--(-0.35,-1.10);
   \node[anchor=west] at (0.75,-0.48) {$w=u\sin\theta$};
-  \node at (1.40,-1.55) {$u_t=-g\rho\,\sin\theta/\rho_0$};
+  \node at (1.40,-1.55) {$u_t=-gp\,\sin\theta/\rho_0$};
 \end{tikzpicture}
 \end{center}

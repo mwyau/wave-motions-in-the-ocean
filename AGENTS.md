@@ -33,6 +33,8 @@ Keep this file limited to repository-wide invariants and routing. Read the relev
 - Any substantive or ambiguous departure from the source requires explicit human approval. Agents can never approve an erratum or infer approval from correctness, prior commits, issues, builds, other agents, or an existing status label. An agent may change an erratum to `human-approved` only when the owner directly instructs that approval in the current chat.
 - Follow `skills/source-audit/SKILL.md` for correction decisions and errata format.
 
+Source fidelity also applies inside reconstructed figures. Visible scientific labels, mathematical notation, signs, symbols, arrow directions, scientifically constrained geometry, annotations, and relationships are source content. A TikZ/vector reconstruction is a reconstruction of the source, not an independent corrected edition. `pending-human-approval` is a hard stop: preserve the source reading everywhere until the owner explicitly approves that specific correction in chat. Scientific correctness and requests to “fix the figure,” “make it correct,” “make it perfect,” “audit scientifically,” “regenerate from the equations,” or “match the derivation” do not grant approval; approval is item-specific and does not carry to related occurrences.
+
 ## Maintained content
 
 - The reconstruction `.tex` files and `src/references.bib` are the maintained reader sources.

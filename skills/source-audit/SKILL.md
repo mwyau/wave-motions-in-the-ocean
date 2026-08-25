@@ -8,6 +8,48 @@ The five 1989 PDFs under `references/chapman-rizzoli-1989/` control source-fidel
 
 Scientific review is diagnostic. It can identify a likely error and support a proposed erratum, but it does not authorize changing substantive source content.
 
+## Approval firewall
+
+The audit pipeline is diagnostic, not an authorization pipeline:
+
+```text
+source says X
+    ↓
+independent audit suggests Y
+    ↓
+ERRATA records Y as pending-human-approval
+    ↓
+maintained reconstruction still says/shows X
+```
+
+Only explicit owner approval of that specific correction in chat permits:
+
+```text
+ERRATA records the correction as human-approved
+    ↓
+the minimal approved X → Y change
+```
+
+This applies to every maintained reconstruction surface: prose, display and inline equations, tables, captions, substantive bibliography, labels and equations inside TikZ, and scientifically meaningful figure geometry.
+
+| Situation                                            | Reconstruction                         | ERRATA                      |
+| ---------------------------------------------------- | -------------------------------------- | --------------------------- |
+| Source and reconstruction differ accidentally        | Restore source                         | None unless useful          |
+| Minor mechanical typo with no substantive effect     | May correct                            | Optional `minor-correction` |
+| Source appears scientifically or substantively wrong | Preserve source                        | `pending-human-approval`    |
+| Source ambiguity cannot be resolved literally        | Use the best-supported literal reading | `pending-human-approval`    |
+| Owner explicitly approves this exact correction      | Apply the minimal approved change      | `human-approved`            |
+
+### Pending means not authorized
+
+`pending-human-approval` is not partial permission. The proposed correction must not appear in the maintained reconstruction. Approval of one erratum is item-specific and does not authorize another equation, figure, symbol, or related occurrence.
+
+### Do not reconcile disagreements silently
+
+If a chapter equation and source figure, source prose and source figure, or source equation and the mathematically expected result disagree, preserve each source surface faithfully. Do not make them agree by choosing whichever version seems scientifically preferable. Record the discrepancy and keep the proposed change pending.
+
+Example: if the chapter and figure print `p`, while science suggests `rho`, the chapter and maintained TikZ must still contain `p` when the erratum is pending. Likewise, if the source figure prints `-k/(ell+b)` but the nearby derivation gives `k/(ell-b)`, preserve the source figure label and chapter derivation separately; do not reconcile them in the committed vector.
+
 ## Check order
 
 Use this order when a source reading or scientific result is in question:

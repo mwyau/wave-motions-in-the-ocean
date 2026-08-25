@@ -434,9 +434,9 @@ Entries are ordered by chapter, then printed page, then item on the same page. S
 - **Category:** `figure`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 6, printed page 159, upper figure
-- **Source:** The figure labels the descending comparison as $-k/(\ell+b)$ and its horizontal limit as $\ell=\infty$, while the preceding derivation states $\ell<0$ and gives $\tan kL=-k/(-\ell+b)=k/(\ell-b)$.
-- **Proposed correction:** With the signed chapter variable, label the comparison as $-k/(b-\ell)=k/(\ell-b)$ and the horizontal limit as $\ell\to-\infty$. If the source intended the figure's $\ell$ to mean the nonnegative decay magnitude $-\ell$, that convention should be stated explicitly.
-- **Reason/evidence:** Matching $\psi=Ae^{b(x-L)}\sin kx$ to $\psi=Be^{\ell(x-L)}$ at $x=L$ gives $b\sin(kL)+k\cos(kL)=\ell\sin(kL)$, hence $\tan(kL)=k/(\ell-b)$. Since $b>0$ and $\ell<0$, the right side is negative and can be written $-k/(b-\ell)$. The source's descending geometry is consistent with this only after the implicit substitution $-\ell\mapsto\ell$.
+- **Source:** The source figure labels the descending comparison as $-k/(\ell+b)$ and its horizontal limit as $\ell=\infty$. The nearby chapter derivation uses signed $\ell<0$ and gives $\tan(kL)=k/(\ell-b)$.
+- **Proposed correction:** Clarify the figure's $\ell$ convention. If $\ell$ is intended to be the signed chapter variable, use $-k/(b-\ell)=k/(\ell-b)$ and $\ell\to-\infty$. If the figure instead uses $\ell$ for the positive offshore decay magnitude $-\ell$, state that convention explicitly.
+- **Reason/evidence:** Matching $\psi=Ae^{b(x-L)}\sin kx$ to $\psi=Be^{\ell(x-L)}$ at $x=L$ gives $b\sin(kL)+k\cos(kL)=\ell\sin(kL)$, hence $\tan(kL)=k/(\ell-b)$ for the chapter's signed variable. The source figure and nearby derivation use different visible notations, and the source does not state how they are to be reconciled. Preserve the source figure pending human review.
 
 ### Printed page 159 — modal maximum differentiated at fixed cross-shelf wavenumber
 

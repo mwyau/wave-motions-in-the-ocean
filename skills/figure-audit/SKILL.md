@@ -18,6 +18,22 @@ Do **not** use generative image synthesis to reconstruct scientific figures. Do 
 
 A scientifically “better” redraw is not automatically a faithful reconstruction. If the source figure, nearby equation, and physical interpretation disagree, preserve the source representation and record a `pending-human-approval` erratum. Only a `human-approved` erratum authorizes a substantive corrected redraw, and an agent may create that status only when the owner directly approves it in the current chat.
 
+## Source-visible content in vectors
+
+A TikZ/vector figure has two distinct correctness dimensions: source fidelity and scientific audit. The scientific audit can identify problems, but it cannot override source fidelity.
+
+Source-visible scientific content includes labels, variables, vector marks, plus/minus signs, numerator/denominator expressions, limits such as `ell=infinity`, arrow and ray directions, orientation, branch and root placement, boundary relationships, and relative geometry when it carries scientific meaning. These must match the 1989 figure unless the specific erratum is approved.
+
+An equation-generated reconstruction may calculate geometry independently, but `equation → source → reconstruction` is a check pipeline, not automatic authorization to replace the source. If the governing equation and source figure disagree:
+
+1. confirm the source figure literally;
+2. independently verify the equation or science;
+3. record a pending erratum;
+4. keep the vector faithful to the source;
+5. do not render the scientifically corrected version as the maintained reconstruction.
+
+Temporary corrected or reference plots belong only under the ignored `audit/` workspace. The maintained artifact is a source-faithful vector; a scientifically corrected hypothetical vector is audit evidence only unless the owner approves it.
+
 Autonomous textual corrections inside a reconstructed figure follow the same minor-correction rule as the source-audit skill: small, unambiguous spelling, grammar, transcription, or punctuation fixes are allowed when they cannot plausibly affect scientific, mathematical, bibliographic, or substantive editorial meaning. If uncertain, preserve the source and ask for human review.
 
 Avoid screenshots, repeated lossy recompression, and committed before/after copies. Temporary source renders, comparison images, numerical/reference plots, and scratch audit evidence belong under the ignored `audit/` workspace, preferably in a task-specific subdirectory such as `audit/figures/`.
@@ -88,6 +104,18 @@ For simple analytic geometry, an independent symbolic or numerical check is suff
 
 If a redraw is schematic, state which properties are schematic and which are equation-constrained. Use `partial` rather than `ai-checked` if a material equation-defined part remains unchecked.
 
+## Mandatory pre-edit gate for material vector changes
+
+Before materially changing a vector:
+
+1. identify its printed page;
+2. search `ERRATA.md` for that page, figure, or equation;
+3. check whether an applicable entry is `pending-human-approval`;
+4. if so, read its `Source` field before editing;
+5. ensure the maintained vector continues to reproduce `Source`, not `Proposed correction`.
+
+A trivial line-position tweak need not use this gate, but it is mandatory when changing labels, equations, scientific notation, arrows or directions, roots or branches, or scientific geometry. Never use the `Proposed correction` field as drawing instructions while the status is pending.
+
 ## Vector verification workflow
 
 For every source-backed placement—retained TikZ, source-art or direct-PDF crop,
@@ -133,6 +161,12 @@ When an intentional raster edit is necessary:
 - keep only the final edited book image in Git;
 - record the source page/crop and edit in `FIGURES.md` and embedded metadata where supported;
 - audit equation-defined scientific content separately from raster quality.
+
+## Mandatory post-edit source-fidelity gate
+
+For every materially changed scientific vector, compare the rendered vector's scientific labels, notation, and geometry directly with the source crop again before considering the work complete. Ask whether the edit made the figure scientifically “better” by departing from the source. If yes, stop, restore source fidelity, and record or propose the correction in `ERRATA.md` instead.
+
+Run this check even when equations were independently verified, tests pass, the vector looks cleaner, or an existing erratum already proposes the same correction. No materially changed vector may be considered complete while it contains a proposed correction from a `pending-human-approval` erratum.
 
 ## Completion
 

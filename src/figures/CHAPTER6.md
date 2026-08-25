@@ -99,7 +99,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 159
 - **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** Shelf/deep matching gives `tan(kL)=k/(ell-b)`. With `t=kL`, `ell<0`, and `b>0`, the descending comparison is `tan(t)=-m t`, where `m=[L(b-ell)]^{-1}>0`; numerical roots are `t=pi, 2pi`, `2.75032, 5.58578` for `m=0.15`, and `2.43566, 5.21370` for `m=0.35`. The vector preserves the six roots, the `ell=0` and `ell->-infinity` limits, and the half-integer tangent asymptotes. See `ERRATA.md`, printed p.159, for the source figure's unsigned-ell notation.
+- **Scientific check:** Roots for the displayed finite-slope comparisons were independently evaluated from `tan(t)+m t=0`. The 1989 source figure labels the comparison `-k/(ell+b)` and the horizontal limit `ell=infinity`, while the nearby derivation uses signed `ell<0` and gives `tan(kL)=k/(ell-b)`. The vector preserves the source notation pending resolution of this discrepancy; see `ERRATA.md`, printed p.159.
 
 #### Figure 6.7 — source PDF crop, printed page 159
 

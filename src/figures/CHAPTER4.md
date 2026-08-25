@@ -67,7 +67,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 69
 - **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The vector preserves the transverse `u` and `k` construction, `w=u sin(theta)`, and the displayed nonrotating momentum relation.
+- **Scientific check:** The vector preserves the transverse `u`/`k` construction, `w=u sin(theta)`, and the source's displayed `u_t=-g p sin(theta)/rho_0` relation. The nearby derivation indicates the density-perturbation form would be expected; see `ERRATA.md`, printed p.69. The reconstruction preserves the source pending human review.
 
 #### Figure 4.5 — rotating transverse
 
