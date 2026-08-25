@@ -105,7 +105,7 @@
     }
     .reader-navigation {
       display: grid;
-      grid-template-columns: var(--wave-control-min-height) minmax(0, 1fr) var(--wave-control-min-height);
+      grid-template-columns: 3.25rem minmax(0, 1fr) 3.25rem;
       align-items: center;
       justify-self: center;
       width: min(48rem, 46vw);
@@ -114,8 +114,8 @@
     .reader-nav-slot {
       display: grid;
       place-items: center;
-      width: var(--wave-control-min-height);
-      min-height: var(--wave-control-min-height);
+      width: 3.25rem;
+      min-height: 3.25rem;
     }
     .reader-nav-slot .previous-link,
     .reader-nav-slot .next-link {
@@ -125,11 +125,24 @@
       place-items: center;
       justify-self: stretch;
       width: 100%;
-      min-height: var(--wave-control-min-height);
+      min-height: 3.25rem;
+      border-radius: .45rem;
       color: var(--wave-link);
-      font-size: 1.35rem;
-      line-height: 1;
+      font-size: 2.6rem;
+      font-weight: 600;
+      line-height: .8;
       text-decoration: none;
+    }
+    .reader-nav-slot .previous-link:focus-visible,
+    .reader-nav-slot .next-link:focus-visible {
+      outline: 2px solid var(--wave-link);
+      outline-offset: 2px;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .reader-nav-slot .previous-link:hover,
+      .reader-nav-slot .next-link:hover {
+        background: var(--wave-control-bg);
+      }
     }
     .reader-navigation .reader-context {
       grid-column: auto;
@@ -156,28 +169,71 @@
       outline-offset: 3px;
     }
     .reader-settings-popover {
-      top: 4.25rem;
+      top: var(--book-contents-top, 4.25rem);
       right: max(1rem, env(safe-area-inset-right));
       left: auto;
-      width: min(20rem, calc(100vw - 2rem));
+      width: min(22rem, calc(100vw - 2rem));
+      max-height: calc(100dvh - var(--book-contents-top, 4.25rem) - 1rem);
     }
     .reader-settings-controls {
       display: grid;
-      margin-top: .25rem;
+      margin-top: .35rem;
+    }
+    .reader-setting-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 1rem;
+      min-height: 3.25rem;
+      padding: .45rem 0;
+      border-bottom: 1px solid var(--wave-rule);
+    }
+    .reader-setting-row:last-child { border-bottom: 0; }
+    .reader-setting-row > .control-wide,
+    .reader-setting-row > .reader-setting-label {
+      display: inline-flex;
+      align-items: baseline;
+      min-width: 0;
+      color: var(--wave-text);
+      font-weight: 600;
+    }
+    .reader-setting-row > .control-wide [data-figure-label],
+    .reader-setting-row > .control-wide .toolbar-theme-value {
+      display: none;
     }
     .reader-settings-controls .reader-cycle {
-      width: 100%;
-      justify-content: flex-start;
-      border: 0;
-      border-radius: 0;
-      border-bottom: 1px solid var(--wave-rule);
-      padding: .65rem .1rem;
-      background: transparent;
-      text-align: left;
+      grid-column: auto;
+      grid-row: auto;
+      width: auto;
+      min-width: 6rem;
+      justify-content: center;
+      border: 1px solid var(--wave-control-border);
+      border-radius: .5rem;
+      padding: .4rem .7rem;
+      background: var(--wave-control-bg);
+      text-align: center;
     }
-    .reader-settings-controls .reader-cycle:last-child { border-bottom: 0; }
     .reader-settings-controls .control-wide { display: inline-flex; }
     .reader-settings-controls .control-compact { display: none; }
+    .reader-settings-controls .text-size-options {
+      display: grid;
+      grid-template-columns: repeat(3, var(--wave-touch-target));
+      gap: .3rem;
+    }
+    .reader-settings-controls .text-size-options .appearance-option {
+      width: var(--wave-touch-target);
+      min-height: var(--wave-touch-target);
+      padding: .35rem .2rem;
+    }
+    .reader-settings-controls .text-size-value {
+      display: inline;
+      margin: 0;
+      color: var(--wave-muted);
+      font-size: .84em;
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+    #appearance-settings { display: none !important; }
     @supports not selector(:popover-open) {
       .reader-settings-popover { display: none; }
     }
@@ -191,13 +247,16 @@
       }
       .book-nav-start,
       .book-nav-end { display: flex; }
-      .reader-navigation { width: min(20rem, 42vw); }
+      .reader-navigation { width: min(21rem, 46vw); }
       .reader-nav-slot {
-        width: var(--wave-control-min-height);
-        min-height: var(--wave-control-min-height);
+        width: 3.25rem;
+        min-height: 3.25rem;
       }
       .reader-nav-slot .previous-link,
-      .reader-nav-slot .next-link,
+      .reader-nav-slot .next-link {
+        min-height: 3.25rem;
+        font-size: 2.6rem;
+      }
       .book-nav-start > .toc-toggle,
       .reader-settings-toggle {
         min-height: var(--wave-touch-target);
@@ -222,10 +281,22 @@
     }
     @media (max-width: 36rem) {
       .reader-settings-popover {
-        inset: auto max(.75rem, env(safe-area-inset-right)) max(.75rem, env(safe-area-inset-bottom)) auto;
-        width: min(20rem, calc(100vw - 1.5rem));
-        max-height: min(78dvh, 40rem);
+        top: var(--book-contents-top, 4.25rem);
+        right: max(.75rem, env(safe-area-inset-right));
+        bottom: auto;
+        left: auto;
+        width: min(22rem, calc(100vw - 1.5rem));
+        max-height: calc(100dvh - var(--book-contents-top, 4.25rem) - .75rem);
       }
+      .book-contents-popover {
+        top: var(--book-contents-top, 4.25rem);
+        right: max(.75rem, env(safe-area-inset-right));
+        bottom: auto;
+        left: max(.75rem, env(safe-area-inset-left));
+        width: auto;
+        max-height: calc(100dvh - var(--book-contents-top, 4.25rem) - .75rem);
+      }
+      .reader-setting-row { gap: .65rem; }
     }
   </style>
   <script src="$mathjax_url$" type="text/javascript"></script>
@@ -260,41 +331,41 @@
   <div class="appearance-inner">
     <strong class="appearance-title" id="reader-settings-heading">Settings</strong>
     <div class="reader-settings-controls">
-      <button class="math-renderer-cycle reader-cycle js-only" type="button" data-math-cycle>
-        <span class="control-wide"><span class="rendering-label">Rendering:&nbsp;</span><span class="math-label-bootstrap math-label-static">MathML</span><span class="math-label-bootstrap math-label-mathjax">MathJax</span><span class="math-label-bootstrap math-label-mathml">MathML</span><span class="math-label-runtime" data-math-label>MathML</span></span>
-        <span class="control-compact"><span class="math-label-bootstrap math-label-static">MathML</span><span class="math-label-bootstrap math-label-mathjax">MathJax</span><span class="math-label-bootstrap math-label-mathml">MathML</span><span class="math-label-runtime" data-math-label>MathML</span></span>
-      </button>
+      <div class="reader-setting-row">
+        <span class="reader-setting-label"><span class="rendering-label">Rendering:&nbsp;</span></span>
+        <button class="math-renderer-cycle reader-cycle js-only" type="button" data-math-cycle>
+          <span class="control-wide"><span class="math-label-bootstrap math-label-static">MathML</span><span class="math-label-bootstrap math-label-mathjax">MathJax</span><span class="math-label-bootstrap math-label-mathml">MathML</span><span class="math-label-runtime" data-math-label>MathML</span></span>
+          <span class="control-compact"><span class="math-label-bootstrap math-label-static">MathML</span><span class="math-label-bootstrap math-label-mathjax">MathJax</span><span class="math-label-bootstrap math-label-mathml">MathML</span><span class="math-label-runtime" data-math-label>MathML</span></span>
+        </button>
+      </div>
       $if(has_switchable_figures)$
-      <button class="figure-view-cycle reader-cycle js-only" type="button" data-figure-cycle aria-label="Figures currently showing vectors; switch to originals">
+      <div class="reader-setting-row">
         <span class="control-wide">Figures:&nbsp;<span data-figure-label>Vector</span></span>
-        <span class="control-compact" aria-hidden="true">Fig</span>
-      </button>
+        <button class="figure-view-cycle reader-cycle js-only" type="button" data-figure-cycle aria-label="Figures currently showing vectors; switch to originals">
+          <span class="control-wide"><span data-figure-label>Vector</span></span>
+          <span class="control-compact" aria-hidden="true">Fig</span>
+        </button>
+      </div>
       $endif$
-      <button class="text-size-toggle reader-cycle js-only" type="button" popovertarget="text-size-settings" aria-controls="text-size-settings" aria-haspopup="dialog" aria-expanded="false" data-text-size-toggle aria-label="Text size"><span class="control-wide">Text size:&nbsp;<span class="toolbar-text-size"></span></span><span class="text-size-icon control-compact" aria-hidden="true"><span class="text-size-icon-large">A</span><span class="text-size-icon-small">A</span></span></button>
-      <button class="theme-cycle reader-cycle js-only" type="button" popovertarget="appearance-settings" aria-controls="appearance-settings" aria-haspopup="dialog" aria-expanded="false" data-theme-cycle><span class="control-wide">Theme:&nbsp;<span class="toolbar-theme-value"></span></span><span class="control-compact">Theme</span></button>
+      <div class="reader-setting-row">
+        <span class="control-wide">Text size:&nbsp;<span class="toolbar-text-size"></span></span>
+        <span class="appearance-options text-size-options" role="group" aria-label="Text size">
+          <button class="appearance-option js-only" type="button" data-text-size-action="decrease" aria-label="Decrease text size">A−</button>
+          <button class="appearance-option js-only" type="button" data-text-size-action="reset" aria-label="Reset text size to 100%">A</button>
+          <button class="appearance-option js-only" type="button" data-text-size-action="increase" aria-label="Increase text size">A+</button>
+        </span>
+      </div>
+      <div class="reader-setting-row">
+        <span class="control-wide">Theme:&nbsp;<span class="toolbar-theme-value"></span></span>
+        <button class="theme-cycle reader-cycle js-only" type="button" data-theme-cycle aria-label="Theme"><span class="toolbar-theme-value"></span></button>
+      </div>
     </div>
   </div>
 </aside>
-<aside class="appearance-popover" id="appearance-settings" popover hidden aria-labelledby="appearance-heading">
-  <div class="appearance-inner">
-    <strong class="appearance-title" id="appearance-heading">Theme</strong>
-    <div class="appearance-options">
-      <button class="appearance-option" type="button" data-theme-option="auto" aria-label="Follow device appearance" aria-pressed="true">Device</button>
-      <button class="appearance-option" type="button" data-theme-option="light" aria-pressed="false">Light</button>
-      <button class="appearance-option" type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
-    </div>
-  </div>
-</aside>
-<aside class="appearance-popover text-size-popover" id="text-size-settings" popover hidden aria-labelledby="text-size-heading">
-  <div class="appearance-inner">
-    <strong class="appearance-title" id="text-size-heading">Text size</strong>
-    <div class="appearance-options text-size-options">
-      <button class="appearance-option js-only" type="button" data-text-size-action="decrease" aria-label="Decrease text size">A−</button>
-      <button class="appearance-option js-only" type="button" data-text-size-action="reset" aria-label="Reset text size to 100%">A</button>
-      <button class="appearance-option js-only" type="button" data-text-size-action="increase" aria-label="Increase text size">A+</button>
-    </div>
-    <output class="text-size-value" data-text-size-value aria-live="polite">100%</output>
-  </div>
+<aside id="appearance-settings" hidden aria-hidden="true">
+  <button type="button" data-theme-option="auto" aria-label="Follow device appearance" aria-pressed="true">Device</button>
+  <button type="button" data-theme-option="light" aria-pressed="false">Light</button>
+  <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
 </aside>
 <aside class="book-contents-rail" aria-label="Contents" data-book-toc-rail data-toc-scope hidden>
   <div class="book-contents-toolbar">
@@ -351,5 +422,16 @@ $if(bibliography)$
 $endif$
 </main>
 <footer class="build-info"><a href="#top">Back to top</a><span aria-hidden="true"> · </span><a href="$repository_url$">Repository</a><span aria-hidden="true"> · </span><a class="source-link" href="$source_url$" aria-label="Source for this page at build revision">Source</a><span aria-hidden="true"> · </span>Build: <a href="$build_url$"><code>$build_label$</code></a></footer>
+<script>
+  (() => {
+    const toggle = document.querySelector(".theme-cycle");
+    const modes = ["auto", "light", "dark"];
+    toggle?.addEventListener("click", () => {
+      const current = document.documentElement.dataset.theme || "auto";
+      const next = modes[(modes.indexOf(current) + 1) % modes.length];
+      document.querySelector(`[data-theme-option="${next}"]`)?.click();
+    });
+  })();
+</script>
 </body>
 </html>
