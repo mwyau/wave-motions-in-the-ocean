@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli4.pdf; page=21; trim=95bp 470bp 75bp 65bp
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=21; trim=95bp 520bp 75bp 65bp
 % Source: Wave Motions in the Ocean, printed p.84 (physical p.21).
 % Exact normalized plot C/x=-tanh x. Positive C has no root; negative C has one positive root (and its -k partner).
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]

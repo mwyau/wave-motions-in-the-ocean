@@ -1,4 +1,5 @@
-% wave-source: pdf=ChapmanRizzoli4.pdf; page=27; trim=95bp 205bp 75bp 500bp
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=27; trim=95bp 210bp 75bp 425bp
+% wave-source-mask: pdf=ChapmanRizzoli4.pdf; page=27; rect=95bp 361bp 205bp 367bp; origin=lower-left; reason=remove the overlapping prose baseline while preserving the complete z label
 % Source: Wave Motions in the Ocean, printed p.90 (physical p.27).
 % Exact subcritical velocity construction. With R=1.25 and a=0.32, incident and
 % reflected velocity directions follow the two characteristics dz/dx=-/+1/R.

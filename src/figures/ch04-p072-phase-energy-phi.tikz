@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli4.pdf; page=9; trim=105bp 95bp 95bp 520bp
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=9; trim=105bp 135bp 95bp 520bp
 % Source: Wave Motions in the Ocean, printed p.72 (physical p.9), lower pair.
 % c_g is the energy-propagation direction. Since k dot c_g=0, the phase arrow
 % is constructed exactly perpendicular to c_g; its side reverses when the

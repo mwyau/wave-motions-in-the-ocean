@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli4.pdf; page=25; trim=85bp 390bp 70bp 150bp
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=25; trim=85bp 420bp 70bp 235bp
 % Source: Wave Motions in the Ocean, printed p.88 (physical p.25).
 % Exact characteristic slopes dz/dx=+-1/R; wavevectors are normal to characteristics and group/energy directions tangent to them.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]

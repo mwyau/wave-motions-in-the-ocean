@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli4.pdf; page=30; trim=195bp 390bp 175bp 160bp
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=30; trim=170bp 430bp 180bp 220bp
 % Source: Wave Motions in the Ocean, printed p.93 (physical p.30).
 % Deliberately schematic analytic R^2(z) profile with one turning level R^2=0 (N^2=sigma^2); sign controls oscillatory versus evanescent vertical structure.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]

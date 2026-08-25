@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli4.pdf; page=26; trim=75bp 435bp 55bp 100bp
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=26; trim=75bp 540bp 55bp 65bp
 % Source: Wave Motions in the Ocean, printed p.89 (physical p.26).
 % Internal-wave energy reflects between the two fixed characteristic slopes +-1/R, not specularly about the wall normal.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]

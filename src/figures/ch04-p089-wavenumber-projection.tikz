@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli4.pdf; page=26; trim=170bp 210bp 150bp 345bp
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=26; trim=120bp 225bp 45bp 395bp
 % Source: Wave Motions in the Ocean, printed p.89 (physical p.26).
 % Exact subcritical construction R=1.25,a=0.32: k_i=(1,R), k_r=q(1,-R), q=(1+aR)/(1-aR), so along-wall phase projections are identical.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]

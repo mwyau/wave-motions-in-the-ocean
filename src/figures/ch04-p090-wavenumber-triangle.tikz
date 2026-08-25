@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli4.pdf; page=27; trim=130bp 590bp 110bp 70bp
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=27; trim=130bp 580bp 110bp 70bp
 % Source: Wave Motions in the Ocean, printed p.90 (physical p.27).
 % Exact subcritical construction. With R=1.25 and a=0.32, the incident and
 % reflected wavenumber directions are +/-atan(R), the wall angle is atan(a), and

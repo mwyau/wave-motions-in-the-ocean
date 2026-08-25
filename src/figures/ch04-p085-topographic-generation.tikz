@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli4.pdf; page=22; trim=70bp 500bp 55bp 80bp
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=22; trim=70bp 525bp 55bp 125bp
 % Source: Wave Motions in the Ocean, printed p.85 (physical p.22).
 % Equation-generated display: h=h0 sin(kx), w=U h_x, sigma=-Uk, and
 % m^2=(N/U)^2-k^2. The plotted carrier uses k=100 deg per display-x unit

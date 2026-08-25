@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli4.pdf; page=31; trim=105bp 305bp 90bp 240bp
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=31; trim=90bp 225bp 90bp 390bp
 % Source: Wave Motions in the Ocean, printed p.94 (physical p.31).
 % Generalized Sturm-Liouville eigenvalue ordering: negative k^2 evanescent sequence and positive k^2 travelling-wave sequence, both unbounded in their stated directions.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]

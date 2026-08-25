@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli4.pdf; page=20; trim=85bp 420bp 75bp 80bp
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=20; trim=75bp 515bp 75bp 70bp
 % Source: Wave Motions in the Ocean, printed p.83 (physical p.20).
 % Normalized exact plot C/x=-tan x. C=+0.7 (A) and C=-0.7 (A1); A1 has the additional small-|k| pair.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]

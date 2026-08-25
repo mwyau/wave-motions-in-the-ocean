@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli4.pdf; page=14; trim=85bp 495bp 75bp 45bp
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=14; trim=85bp 550bp 75bp 130bp
 % Source: Wave Motions in the Ocean, printed p.77 (physical p.14).
 % Equation-constrained classification from signs of S^2=sigma^2-f^2 and R^2.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]

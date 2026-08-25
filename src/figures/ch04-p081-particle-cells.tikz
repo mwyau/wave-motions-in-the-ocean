@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli4.pdf; page=18; trim=85bp 185bp 75bp 380bp
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=18; trim=85bp 140bp 75bp 425bp
 % Source: Wave Motions in the Ocean, printed p.81 (physical p.18).
 % Velocity cells use R=D=1, k=pi: u=-sin(pi x)cos(pi(z+1)), w=cos(pi x)sin(pi(z+1)); this is exactly divergence free.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]

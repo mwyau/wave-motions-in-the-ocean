@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli4.pdf; page=9; trim=90bp 470bp 80bp 60bp
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=9; trim=90bp 550bp 80bp 130bp
 % Source: Wave Motions in the Ocean, printed p.72 (physical p.9), upper pair.
 % k is the phase-propagation direction. Since k dot c_g=0, the energy/group-
 % velocity arrow is constructed exactly perpendicular to k; its side reverses

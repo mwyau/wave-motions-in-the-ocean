@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli4.pdf; page=16; trim=70bp 420bp 55bp 125bp
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=16; trim=35bp 345bp 55bp 272bp
 % Source: Wave Motions in the Ocean, printed p.79 (physical p.16).
 % Normalized exact plot of C/x=tan x, x=kRD; C=+0.7 and -0.7 illustrate S^2 signs.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]

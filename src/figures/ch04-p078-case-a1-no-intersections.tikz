@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli4.pdf; page=15; trim=190bp 300bp 165bp 390bp
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=15; trim=175bp 295bp 180bp 379bp
 % Source: Wave Motions in the Ocean, printed p.78 (physical p.15), lower sketch.
 % Normalized exact shapes for case A1 with S^2<0:
 %   LHS = -C/k, C>0;

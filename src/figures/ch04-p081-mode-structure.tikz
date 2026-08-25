@@ -1,4 +1,4 @@
-% wave-source: pdf=ChapmanRizzoli4.pdf; page=18; trim=115bp 430bp 100bp 95bp
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=18; trim=115bp 410bp 100bp 215bp
 % Source: Wave Motions in the Ocean, printed p.81 (physical p.18).
 % Exact n=1 vertical factors: w~sin(pi(z+D)/D), u~cos(pi(z+D)/D).
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
