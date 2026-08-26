@@ -120,6 +120,11 @@
       overflow: visible;
       text-decoration: none;
     }
+    .reader-nav-slot .reader-arrow {
+      display: block;
+      line-height: 1;
+      transform: translateY(-.04em);
+    }
     .reader-nav-slot .previous-link:focus-visible,
     .reader-nav-slot .next-link:focus-visible {
       outline: 2px solid var(--wave-link);
@@ -157,7 +162,7 @@
       top: var(--book-contents-top, 4.25rem);
       right: max(1rem, env(safe-area-inset-right));
       left: auto;
-      width: min(18rem, calc(100vw - 1.5rem));
+      width: min(16.75rem, calc(100vw - 1.5rem));
       max-height: calc(100dvh - var(--book-contents-top, 4.25rem) - 1rem);
     }
     .reader-settings-controls {
@@ -167,27 +172,22 @@
     .reader-setting-row {
       display: grid;
       grid-template-columns: 5rem auto;
-      justify-content: end;
+      justify-content: start;
       align-items: center;
-      gap: .6rem;
+      column-gap: .45rem;
       min-height: var(--wave-touch-target);
       padding: .25rem 0;
       border-bottom: 1px solid var(--wave-rule);
     }
     .reader-setting-row:last-child { border-bottom: 0; }
-    .reader-setting-row > .control-wide,
     .reader-setting-row > .reader-setting-label {
       display: inline-flex;
       align-items: baseline;
       min-width: 0;
       color: var(--wave-text);
       font-weight: 600;
-      justify-self: end;
-      text-align: right;
-    }
-    .reader-setting-row > .control-wide [data-figure-label],
-    .reader-setting-row > .control-wide .toolbar-theme-value {
-      display: none;
+      justify-self: start;
+      text-align: left;
     }
     .reader-settings-controls .reader-cycle {
       grid-column: auto;
@@ -278,7 +278,7 @@
         right: max(.75rem, env(safe-area-inset-right));
         bottom: auto;
         left: auto;
-        width: min(18rem, calc(100% - 1.5rem));
+        width: min(16.75rem, calc(100vw - 1.5rem));
         max-height: calc(100dvh - var(--book-contents-top, 4.25rem) - .75rem);
       }
       .book-contents-popover {
@@ -289,7 +289,7 @@
         width: auto;
         max-height: calc(100dvh - var(--book-contents-top, 4.25rem) - .75rem);
       }
-      .reader-setting-row { gap: .6rem; }
+      .reader-setting-row { column-gap: .45rem; }
     }
   </style>
   <script src="$mathjax_url$" type="text/javascript"></script>
@@ -301,7 +301,7 @@
   <nav class="book-nav$if(has_switchable_figures)$ has-switchable-figures$endif$" aria-label="Book navigation">
     <button class="toc-toggle" type="button" popovertarget="book-contents" data-toc-toggle>Contents</button>
     <span class="reader-nav-slot">
-      <a class="previous-link" href="$previous_url$"$if(previous_url)$$else$ hidden$endif$ aria-label="Previous: $previous_label$" title="$previous_label$"><span aria-hidden="true">‹</span></a>
+      <a class="previous-link" href="$previous_url$"$if(previous_url)$$else$ hidden$endif$ aria-label="Previous: $previous_label$" title="$previous_label$"><span class="reader-arrow" aria-hidden="true">‹</span></a>
     </span>
     <span class="reader-context" data-reader-context aria-label="Current reading position">
       <span class="reader-context-chapter">$reader_chapter$</span>
@@ -309,7 +309,7 @@
       <span class="reader-context-title"$if(reader_title)$$else$ hidden$endif$>$reader_title$</span>
     </span>
     <span class="reader-nav-slot">
-      <a class="next-link" href="$next_url$"$if(next_url)$$else$ hidden$endif$ aria-label="Next: $next_label$" title="$next_label$"><span aria-hidden="true">›</span></a>
+      <a class="next-link" href="$next_url$"$if(next_url)$$else$ hidden$endif$ aria-label="Next: $next_label$" title="$next_label$"><span class="reader-arrow" aria-hidden="true">›</span></a>
     </span>
     <button class="reader-settings-toggle js-only" type="button" popovertarget="reader-settings" aria-controls="reader-settings">Settings</button>
   </nav>
@@ -319,7 +319,7 @@
     <strong class="appearance-title" id="reader-settings-heading">Settings</strong>
     <div class="reader-settings-controls">
       <div class="reader-setting-row">
-        <span class="reader-setting-label"><span class="rendering-label">Rendering:&nbsp;</span></span>
+        <span class="reader-setting-label">Rendering:</span>
         <button class="math-renderer-cycle reader-cycle js-only" type="button" data-math-cycle>
           <span class="control-wide"><span class="math-label-bootstrap math-label-static">MathML</span><span class="math-label-bootstrap math-label-mathjax">MathJax</span><span class="math-label-bootstrap math-label-mathml">MathML</span><span class="math-label-runtime" data-math-label>MathML</span></span>
           <span class="control-compact"><span class="math-label-bootstrap math-label-static">MathML</span><span class="math-label-bootstrap math-label-mathjax">MathJax</span><span class="math-label-bootstrap math-label-mathml">MathML</span><span class="math-label-runtime" data-math-label>MathML</span></span>
@@ -327,7 +327,7 @@
       </div>
       $if(has_switchable_figures)$
       <div class="reader-setting-row">
-        <span class="control-wide">Figures:&nbsp;<span data-figure-label>Vector</span></span>
+        <span class="reader-setting-label">Figures:</span>
         <button class="figure-view-cycle reader-cycle js-only" type="button" data-figure-cycle aria-label="Figures currently showing vectors; switch to originals">
           <span class="control-wide"><span data-figure-label>Vector</span></span>
           <span class="control-compact" aria-hidden="true">Fig</span>
@@ -335,7 +335,7 @@
       </div>
       $endif$
       <div class="reader-setting-row">
-        <span class="reader-setting-label">Text:&nbsp;</span>
+        <span class="reader-setting-label">Text:</span>
         <span class="appearance-options text-size-options" role="group" aria-label="Text size">
           <button class="appearance-option js-only" type="button" data-text-size-action="decrease" aria-label="Decrease text size">A−</button>
           <button class="appearance-option text-size-reset js-only" type="button" data-text-size-action="reset" aria-label="Reset text size to 100%"><span class="text-size-value" data-text-size-value aria-live="polite">100%</span><span>Reset</span></button>
@@ -343,7 +343,7 @@
         </span>
       </div>
       <div class="reader-setting-row">
-        <span class="control-wide">Theme:&nbsp;<span class="toolbar-theme-value"></span></span>
+        <span class="reader-setting-label">Theme:</span>
         <button class="theme-cycle reader-cycle js-only" type="button" data-theme-cycle aria-label="Theme"><span class="toolbar-theme-value"></span></button>
       </div>
     </div>

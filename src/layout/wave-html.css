@@ -305,10 +305,6 @@ div.flushright { text-align: right; margin-top: -0.85em; }
   outline: 2px solid var(--wave-link);
   outline-offset: 2px;
 }
-.rendering-label {
-  color: var(--wave-text);
-  font-weight: 600;
-}
 .control-wide { display: inline-flex; }
 .control-compact { display: none; }
 .toolbar-theme-value::after { content: "Device"; }
@@ -349,7 +345,7 @@ div.flushright { text-align: right; margin-top: -0.85em; }
   top: var(--appearance-top, 4.25rem);
   left: var(--appearance-left, 1rem);
   z-index: 50;
-  width: min(18rem, calc(100vw - 1.5rem));
+  width: min(16.75rem, calc(100vw - 1.5rem));
   max-height: calc(100dvh - var(--appearance-top, 4.25rem) - 1rem);
   margin: 0;
   padding: 0;
@@ -741,7 +737,6 @@ a:visited { color: var(--wave-visited); }
 @container (max-width: 44rem) {
   .book-controls { gap: .6rem; }
   .book-control-divider { display: none; }
-  .rendering-label { display: none; }
 }
 @container (max-width: 36rem) {
   .book-nav {
@@ -812,7 +807,7 @@ a:visited { color: var(--wave-visited); }
   }
   .book-contents-popover::backdrop { background: rgb(0 0 0 / .14); }
   .appearance-popover {
-    width: min(18rem, calc(100vw - 1.5rem));
+    width: min(16.75rem, calc(100vw - 1.5rem));
   }
   .appearance-option {
     min-height: var(--wave-touch-target);
