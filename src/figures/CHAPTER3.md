@@ -195,5 +195,3 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Representation:** vector
 - **Equation check:** ai-checked
 - **Scientific check:** Deep-water ray is integrated from the absolute group velocity while enforcing constant `sigma` and `ell`, `k^2=(sigma-ell V)^4/g^2-ell^2`, and `ell=K sin(theta)`. The component triangle terminates at the wavevector tip; the chosen smooth `V(x)` profile is illustrative.
-
-### Chapter 4

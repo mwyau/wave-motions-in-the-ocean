@@ -51,6 +51,7 @@ from publication import (
     figure_ledger_errors,
     page_switchable_figure_stems,
     section_slug,
+    summarize_equation_asset_errors,
     validate_maintained_figure_assets,
 )
 from publication import (
@@ -226,10 +227,13 @@ def check_equation_ledger() -> None:
         fail("equation ledger validation failed:\n- " + "\n- ".join(ledger_errors))
     errors = equation_asset_errors()
     if errors:
-        fail("equation asset validation failed:\n- " + "\n- ".join(errors))
+        fail(
+            "equation asset validation failed:\n- "
+            + "\n- ".join(summarize_equation_asset_errors(errors))
+        )
     print(
-        "Equation ledgers are current; PNG assets are present with matching "
-        "recorded equation, renderer, and source-page metadata"
+        "Equation ledgers and SHA manifests are current; all equation PNG assets "
+        "are regenerated v2 assets with matching pixels, renderer, and source-page metadata"
     )
 
 

@@ -106,8 +106,11 @@ jobs:
 
       - name: Check source quality
         shell: bash
+        env:
+          WAVE_AUDIT_CHECK_ONLY: "1"
         run: |
           set -euo pipefail
+          uv run --frozen python scripts/publication.py audit-check --all
           uv run --frozen prek run --all-files
           if ! git diff --quiet; then
             echo "::warning title=Source quality::Quality hooks changed tracked files; commit their fixes."

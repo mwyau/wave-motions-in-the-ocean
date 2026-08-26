@@ -164,5 +164,3 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Representation:** vector
 - **Equation check:** ai-checked
 - **Scientific check:** For `c(z)` increasing upward, `k` remains fixed while `m` decreases. The ray is generated from `dz/dx=m/k=sqrt(sigma^2/(c^2 k^2)-1)` and approaches a horizontal tangent as `m` tends to zero; normalized display values are schematic.
-
-### Chapter 3

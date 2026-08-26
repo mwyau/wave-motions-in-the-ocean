@@ -482,5 +482,3 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Representation:** vector
 - **Equation check:** ai-checked
 - **Scientific check:** The generalized Sturm--Liouville ordering is reconstructed from the stated sequence: negative `k^2` evanescent modes are unbounded below and positive `k^2` travelling modes are unbounded above.
-
-### Chapter 5

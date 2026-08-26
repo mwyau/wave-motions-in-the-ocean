@@ -495,5 +495,3 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Representation:** vector
 - **Equation check:** ai-checked
 - **Scientific check:** The source-defined sinusoidal ray and its extrema were checked against its turning-latitude construction. See `ERRATA.md`, printed pp.146--147, for the separate group-velocity ray-law issue.
-
-### Chapter 6

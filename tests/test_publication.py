@@ -153,14 +153,74 @@ def test_equation_asset_refresh_records_inputs_and_rejects_extras(
         source="\\begin{waveequation}\n\tx = 1\n\\end{waveequation}",
     )
     equation_dir.mkdir()
-    for path in equation_asset_paths(display.stem):
-        image = Image.new("RGBA", (2, 2), "white")
-        image.save(equation_dir / path.name)
 
     monkeypatch.setattr(publication, "SOURCE_DIR", source_dir)
     publication.file_sha256.cache_clear()
+
+    source_page = tmp_path / "source-page.png"
+    Image.new("RGB", (2, 2), "white").save(source_page)
+    monkeypatch.setattr(
+        publication,
+        "_equation_source_page_path",
+        lambda _display, _dpi: source_page,
+    )
+
+    def fake_regenerate(displays, output_dir):
+        crop = publication.EquationSourceCrop(
+            trim="0bp 0bp 0bp 0bp", pixels=(0, 0, 2, 2)
+        )
+        for item in displays:
+            for kind, path in zip(
+                publication.EQUATION_ASSET_KINDS,
+                equation_asset_paths(item.stem),
+                strict=True,
+            ):
+                image = Image.new("RGB", (2, 2), "white")
+                metadata = publication._equation_asset_metadata(
+                    item,
+                    kind,
+                    source_crop=crop if kind == "source" else None,
+                )
+                publication._save_generated_equation_png(
+                    output_dir / path.name, image, metadata
+                )
+        return len(displays) * 3
+
+    monkeypatch.setattr(publication, "regenerate_equation_assets", fake_regenerate)
     assert publication.refresh_equation_assets([display], equation_dir) == 3
     assert publication.equation_asset_errors([display], equation_dir) == []
+
+    def rewrite_pixels(path: Path, *, version: str | None = None) -> None:
+        with Image.open(path) as original:
+            image = original.convert("RGB")
+            metadata = dict(original.info)
+        image.putpixel((0, 0), (0, 0, 0))
+        if version is not None:
+            metadata["wave-equation-asset-version"] = version
+        info = PngInfo()
+        for key, value in metadata.items():
+            info.add_text(key, str(value))
+        image.save(path, pnginfo=info)
+
+    source_asset = equation_dir / f"{display.stem}-source.png"
+    rewrite_pixels(source_asset)
+    assert publication.stale_equation_displays([display], equation_dir) == (display,)
+    assert all(
+        (equation_dir / path.name).is_file()
+        for path in equation_asset_paths(display.stem)
+    )
+
+    assert publication.refresh_equation_assets([display], equation_dir) == 3
+    rewrite_pixels(
+        equation_dir / f"{display.stem}-mathjax.png",
+        version="v1",
+    )
+    assert publication.stale_equation_displays([display], equation_dir) == (display,)
+    assert any(
+        "wave-equation-asset-version" in error
+        for error in publication.equation_asset_errors([display], equation_dir)
+    )
+    assert publication.refresh_equation_assets([display], equation_dir) == 3
 
     with Image.open(equation_dir / f"{display.stem}-source.png") as image:
         assert image.info["wave-source-pdf"] == "ChapmanRizzoli0_2.pdf"
@@ -178,8 +238,134 @@ def test_equation_asset_refresh_records_inputs_and_rejects_extras(
     (equation_dir / "extra.png").write_bytes(b"not a review asset")
     assert any(
         "unexpected equation asset" in error
-        for error in publication.equation_asset_errors([display], equation_dir)
+        for error in publication.equation_asset_errors(None, equation_dir)
     )
+
+
+def test_equations_assets_pass_only_stale_displays_to_regeneration(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    source = _write_equation_test_sources(tmp_path)
+    monkeypatch.setattr(publication, "SRC", source)
+    displays = tuple(
+        display for display in collect_equation_displays(source) if display.chapter == 1
+    )
+    stale = (displays[1],)
+    calls: list[tuple[EquationDisplay, ...]] = []
+    monkeypatch.setattr(
+        publication,
+        "stale_equation_displays",
+        lambda selected: stale,
+    )
+    monkeypatch.setattr(
+        publication,
+        "regenerate_equation_assets",
+        lambda selected, _equation_dir=None: calls.append(tuple(selected)) or 3,
+    )
+
+    assert publication._equations_cli(["--chapter", "1", "--assets"]) == 0
+    assert calls == [stale]
+    assert (
+        "Regenerated 1 equations (3 review assets) in Chapter 1."
+        in capsys.readouterr().out
+    )
+
+
+def test_equations_assets_current_does_not_render(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    source = _write_equation_test_sources(tmp_path)
+    monkeypatch.setattr(publication, "SRC", source)
+    monkeypatch.setattr(publication, "stale_equation_displays", lambda _selected: ())
+
+    def fail_if_rendered(*_args, **_kwargs):
+        raise AssertionError("current equation assets must not be regenerated")
+
+    monkeypatch.setattr(publication, "regenerate_equation_assets", fail_if_rendered)
+    assert publication._equations_cli(["--chapter", "1", "--assets"]) == 0
+    assert (
+        "Equation review assets are current for Chapter 1." in capsys.readouterr().out
+    )
+
+
+def test_stale_equation_check_does_not_render_source_pages(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    display = collect_equation_displays()[0]
+
+    def fail_if_rendered(*_args, **_kwargs):
+        raise AssertionError("stale detection must not rasterize source pages")
+
+    monkeypatch.setattr(publication, "_equation_source_page_path", fail_if_rendered)
+    assert publication.stale_equation_displays([display]) == ()
+
+
+def test_audit_update_reports_stale_asset_chapters_without_rendering(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    display = EquationDisplay(
+        chapter=4,
+        printed_page=69,
+        physical_page=70,
+        display_ordinal=1,
+        display_type="waveequation",
+        line=1,
+        source="\\begin{waveequation}\n\\omega = 1\n\\end{waveequation}",
+    )
+    writes: list[tuple[str, tuple[int, ...]]] = []
+    monkeypatch.setattr(publication, "collect_equation_displays", lambda: (display,))
+    monkeypatch.setattr(
+        publication,
+        "_equation_manifest_change_ids",
+        lambda chapters: {chapter: (display.stem,) for chapter in chapters},
+    )
+    monkeypatch.setattr(
+        publication,
+        "_equation_asset_input_stale_ids",
+        lambda _displays: {display.stem},
+    )
+    monkeypatch.setattr(
+        publication,
+        "write_figure_chapter_ledgers",
+        lambda _root, chapters: writes.append(("figures", tuple(chapters))),
+    )
+    monkeypatch.setattr(
+        publication,
+        "write_equation_ledger",
+        lambda _root, chapters=None: writes.append(("equations", tuple(chapters))),
+    )
+    monkeypatch.setattr(
+        publication,
+        "regenerate_equation_assets",
+        lambda *_args, **_kwargs: pytest.fail("the audit hook must not render assets"),
+    )
+
+    assert publication._audit_update_cli(["src/chapter4.tex"]) == 1
+    diagnostic = capsys.readouterr().err
+    assert diagnostic == (
+        "Equation review assets are stale in Chapter 4.\n\n"
+        "Regenerate:\n"
+        "  uv run --frozen python scripts/publication.py equations --chapter 4 --assets\n"
+    )
+    assert display.stem not in diagnostic
+    assert writes == [("figures", (4,)), ("equations", (4,))]
+
+    monkeypatch.setattr(
+        publication,
+        "_equation_manifest_change_ids",
+        lambda chapters: {chapter: () for chapter in chapters},
+    )
+    monkeypatch.setattr(
+        publication,
+        "_equation_asset_input_stale_ids",
+        lambda _displays: set(),
+    )
+    assert publication._audit_update_cli(["src/chapter4.tex"]) == 0
+    assert capsys.readouterr().err == ""
 
 
 def test_equation_ledger_is_stable_and_contains_no_machine_data(tmp_path: Path) -> None:
@@ -206,6 +392,104 @@ def test_equation_ledger_is_stable_and_contains_no_machine_data(tmp_path: Path) 
         forbidden not in root + "".join(chapter_texts.values())
         for forbidden in ("2026-", "/home/", "tmp/", "Chromium", "git SHA")
     )
+
+
+def _manifest_entries(text: str) -> dict[str, str]:
+    return {
+        entry: digest
+        for digest, entry in (
+            line.split("  ", 1)
+            for line in text.splitlines()
+            if line and not line.startswith("#")
+        )
+    }
+
+
+def test_equation_manifest_ignores_prose_and_changes_one_equation(
+    tmp_path: Path,
+) -> None:
+    source = _write_equation_test_sources(tmp_path)
+    before = _manifest_entries(publication.equation_ledger_manifest_text(1, source))
+    chapter = source / "chapter1.tex"
+    chapter.write_text(chapter.read_text() + "\n% prose-only correction\n")
+    prose_only = _manifest_entries(publication.equation_ledger_manifest_text(1, source))
+    assert prose_only == before
+
+    chapter.write_text(chapter.read_text().replace("x = 1", "x = 9"))
+    changed = _manifest_entries(publication.equation_ledger_manifest_text(1, source))
+    assert [entry for entry in before if before[entry] != changed[entry]] == [
+        "ch01-p002-e01"
+    ]
+
+
+def test_figure_manifest_ignores_review_state_but_hashes_tikz_input(
+    tmp_path: Path,
+) -> None:
+    figure_dir = tmp_path / "figures"
+    figure_dir.mkdir()
+    tikz = figure_dir / "sample.tikz"
+    tikz.write_text("\\draw (0,0) -- (1,1);\n")
+    entry = publication.FigureLedgerEntry(
+        chapter=4,
+        number=1,
+        title="Sample",
+        printed_page=69,
+        asset="sample.tikz",
+        representation="vector",
+        block=(
+            "- **Original source:** `ChapmanRizzoli4.pdf`, p. 70\n"
+            "- **Equation check:** pending\n"
+            "- **Review notes:** unchanged\n"
+        ),
+        image_paths=(),
+    )
+    before = publication.figure_entry_digest(entry, figure_dir)
+    noted = publication.FigureLedgerEntry(
+        **{**entry.__dict__, "block": entry.block.replace("unchanged", "new note")}
+    )
+    assert publication.figure_entry_digest(noted, figure_dir) == before
+    tikz.write_text("\\draw (0,0) -- (2,1);\n")
+    assert publication.figure_entry_digest(entry, figure_dir) != before
+
+
+def test_ledger_format_version_changes_all_equation_manifests(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = _write_equation_test_sources(tmp_path)
+    before = [
+        publication.equation_ledger_manifest_text(chapter, source)
+        for chapter in range(1, 7)
+    ]
+    monkeypatch.setattr(
+        publication, "EQUATION_LEDGER_VERSION", publication.EQUATION_LEDGER_VERSION + 1
+    )
+    after = [
+        publication.equation_ledger_manifest_text(chapter, source)
+        for chapter in range(1, 7)
+    ]
+    assert all(left != right for left, right in zip(before, after, strict=True))
+
+
+def test_chapter_specific_equation_generation_leaves_other_chapters_unchanged(
+    tmp_path: Path,
+) -> None:
+    source = _write_equation_test_sources(tmp_path)
+    output = source / "EQUATIONS.md"
+    publication.write_equation_ledger(output, source_dir=source)
+    other_chapter = source / "equations" / "CHAPTER2.md"
+    other_manifest = source / "equations" / "CHAPTER2.sha256"
+    before_chapter = other_chapter.read_bytes()
+    before_manifest = other_manifest.read_bytes()
+
+    chapter = source / "chapter1.tex"
+    chapter.write_text(chapter.read_text().replace("x = 1", "x = 9"))
+    publication.write_equation_ledger(
+        output,
+        chapters=(1,),
+        source_dir=source,
+    )
+    assert other_chapter.read_bytes() == before_chapter
+    assert other_manifest.read_bytes() == before_manifest
 
 
 def test_equation_cli_check_passes_and_fails_after_source_change(
