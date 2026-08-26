@@ -632,12 +632,14 @@ div.flushright { text-align: right; margin-top: -0.85em; }
 }
 figure { max-width: 100%; margin: 1.5rem 0; }
 figcaption {
+  color: var(--wave-muted);
+  font-size: .9em;
+}
+.wave-figure figcaption {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: .75rem;
-  color: var(--wave-muted);
-  font-size: .9em;
 }
 .figure-label { min-width: 0; }
 img, svg { display: block; max-width: 100%; height: auto; margin: 1.1rem auto; }
