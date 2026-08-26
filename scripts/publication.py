@@ -201,6 +201,10 @@ EQUATION_SOURCE_CROP_RE = re.compile(
     r"^(?P<x>\d+),(?P<y>\d+),(?P<width>\d+),(?P<height>\d+)@"
     r"(?P<dpi>\d+)dpi$"
 )
+EQUATION_REVIEW_ASSET_RE = re.compile(
+    r"^(?P<stem>ch(?P<chapter>\d{2})-p\d{3}-e\d{2,})"
+    r"-(?:source|mathjax|mathml)\.png$"
+)
 EQUATION_CHAPTER_HEADING_RE = re.compile(
     r"^### Chapter (?P<chapter>[1-6])\s*$", re.MULTILINE
 )
@@ -1884,6 +1888,50 @@ def equation_asset_paths(stem: str) -> tuple[Path, Path, Path]:
     )
 
 
+def obsolete_equation_asset_paths(
+    displays: Iterable[EquationDisplay],
+    equation_dir: Path | None = None,
+    *,
+    chapters: Iterable[int] | None = None,
+) -> tuple[Path, ...]:
+    """Return obsolete generated PNGs for the selected equation chapters."""
+    equation_dir = equation_dir or SRC / "equations"
+    displays = tuple(displays)
+    selected_chapters = set(
+        chapters if chapters is not None else (display.chapter for display in displays)
+    )
+    current_stems = {
+        display.stem for display in displays if display.chapter in selected_chapters
+    }
+    obsolete: list[Path] = []
+    for path in sorted(equation_dir.glob("*.png")):
+        if not path.is_file():
+            continue
+        match = EQUATION_REVIEW_ASSET_RE.fullmatch(path.name)
+        if match is None or int(match.group("chapter")) not in selected_chapters:
+            continue
+        if match.group("stem") not in current_stems:
+            obsolete.append(path)
+    return tuple(obsolete)
+
+
+def remove_obsolete_equation_assets(
+    displays: Iterable[EquationDisplay],
+    equation_dir: Path | None = None,
+    *,
+    chapters: Iterable[int] | None = None,
+) -> int:
+    """Remove only obsolete generated equation review PNGs."""
+    obsolete = obsolete_equation_asset_paths(
+        displays,
+        equation_dir,
+        chapters=chapters,
+    )
+    for path in obsolete:
+        path.unlink()
+    return len(obsolete)
+
+
 def _equation_source_pdf(display: EquationDisplay) -> tuple[str, Path]:
     name = EQUATION_SOURCE_PDFS[display.chapter]
     return name, SOURCE_DIR / name
@@ -3097,6 +3145,7 @@ def _equations_cli(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     output = SRC / "EQUATIONS.md"
     chapters = (args.chapter,) if args.chapter is not None else None
+    selected_chapters = chapters or FIGURE_LEDGER_CHAPTERS
     selected_displays = tuple(
         display
         for display in collect_equation_displays()
@@ -3115,6 +3164,10 @@ def _equations_cli(argv: list[str] | None = None) -> int:
         if args.check:
             errors.extend(equation_asset_errors(selected_displays))
         else:
+            removed = remove_obsolete_equation_assets(
+                selected_displays,
+                chapters=selected_chapters,
+            )
             stale = stale_equation_displays(selected_displays)
             if stale:
                 regenerate_equation_assets(stale)
@@ -3124,11 +3177,22 @@ def _equations_cli(argv: list[str] | None = None) -> int:
                     if len(stale_chapters) == 1
                     else "Chapters " + ", ".join(map(str, stale_chapters))
                 )
-                print(
-                    f"Regenerated {len(stale)} equations "
-                    f"({len(stale) * len(EQUATION_ASSET_KINDS)} review assets) "
-                    f"in {chapter_label}."
-                )
+                equation_word = "equation" if len(stale) == 1 else "equations"
+                if removed:
+                    print(
+                        f"Removed {removed} obsolete review assets and regenerated "
+                        f"{len(stale)} {equation_word} "
+                        f"({len(stale) * len(EQUATION_ASSET_KINDS)} review assets) "
+                        f"in {scope}."
+                    )
+                else:
+                    print(
+                        f"Regenerated {len(stale)} {equation_word} "
+                        f"({len(stale) * len(EQUATION_ASSET_KINDS)} review assets) "
+                        f"in {chapter_label}."
+                    )
+            elif removed:
+                print(f"Removed {removed} obsolete equation review assets in {scope}.")
             else:
                 print(f"Equation review assets are current for {scope}.")
     if errors:
@@ -3305,6 +3369,14 @@ def _audit_update_cli(argv: list[str] | None = None) -> int:
                 stale_asset_chapters.add(chapter)
 
     changed_stems = set(_changed_equation_asset_stems(args.paths))
+    for path in obsolete_equation_asset_paths(
+        displays,
+        chapters=chapters,
+    ):
+        match = EQUATION_REVIEW_ASSET_RE.fullmatch(path.name)
+        if match is not None:
+            stale_asset_chapters.add(int(match.group("chapter")))
+
     if changed_stems:
         direct = tuple(display for display in displays if display.stem in changed_stems)
         for display in direct:
