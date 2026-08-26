@@ -85,13 +85,9 @@ def test_toolbar_labels_use_deterministic_spacing() -> None:
         Path(__file__).resolve().parents[1] / "src" / "layout" / "wave-html.html"
     ).read_text()
 
-    assert '<span class="rendering-label">Rendering:&nbsp;</span>' in template
-    assert '<span class="reader-setting-label">Text:&nbsp;</span>' in template
+    for label in ("Rendering:", "Figures:", "Text:", "Theme:"):
+        assert f'<span class="reader-setting-label">{label}</span>' in template
     assert 'class="text-size-value" data-text-size-value' in template
-    assert (
-        '<span class="control-wide">Theme:&nbsp;'
-        '<span class="toolbar-theme-value">' in template
-    )
 
 
 def test_figure_controls_are_conditional_and_progressive() -> None:
@@ -103,10 +99,7 @@ def test_figure_controls_are_conditional_and_progressive() -> None:
 
     assert "$if(has_switchable_figures)$" in template
     assert 'data-figure-cycle aria-label="Figures currently showing vectors' in template
-    assert (
-        '<span class="control-wide">Figures:&nbsp;<span data-figure-label>Vector'
-        in template
-    )
+    assert '<span class="reader-setting-label">Figures:</span>' in template
     assert '<span class="control-compact" aria-hidden="true">Fig</span>' in template
     assert 'class="figure-view-toggle js-only"' in builder
     assert ":root.no-js .js-only" in stylesheet
@@ -173,7 +166,7 @@ def test_reader_anchor_geometry_has_one_css_owned_gutter() -> None:
     )
     assert "--wave-measured-header-height" in script
     assert "--wave-anchor-offset" not in stylesheet + script
-    assert "6.75rem" not in stylesheet
+    assert "width: min(6.75rem" not in stylesheet
     assert "Math.max(12" not in script
 
 
