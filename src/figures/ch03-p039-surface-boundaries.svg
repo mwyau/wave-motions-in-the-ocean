@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- wave-generated-sha256: 7a02f0fbf142e7bf -->
+<!-- wave-generated-sha256: 34766d40c5994387 -->
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="289.769pt" height="96.096pt" viewBox="0 0 289.769 96.096">
 <defs>
 <g>
@@ -40,6 +40,7 @@
 <g fill="rgb(0%, 0%, 0%)" fill-opacity="1">
 <use xlink:href="#glyph-0-3" x="158.060549" y="12.497433"/>
 </g>
+<path fill-rule="nonzero" fill="rgb(85.998535%, 85.998535%, 85.998535%)" fill-opacity="1" d="M 15.390625 86.585938 L 15.390625 84.058594 L 240.050781 84.058594 L 240.050781 86.585938 Z M 15.390625 86.585938 "/>
 <path fill="none" stroke-width="0.99628" stroke-linecap="round" stroke-linejoin="round" stroke="rgb(0%, 0%, 0%)" stroke-opacity="1" stroke-miterlimit="10" d="M 21.258943 18.424645 L 248.032535 18.424645 " transform="matrix(0.99068, 0, 0, -0.99068, -5.670193, 102.311529)"/>
 <path fill="none" stroke-width="0.34871" stroke-linecap="round" stroke-linejoin="round" stroke="rgb(0%, 0%, 0%)" stroke-opacity="1" stroke-miterlimit="10" d="M 21.258943 15.873526 L 248.032535 15.873526 " transform="matrix(0.99068, 0, 0, -0.99068, -5.670193, 102.311529)"/>
 <g fill="rgb(0%, 0%, 0%)" fill-opacity="1">

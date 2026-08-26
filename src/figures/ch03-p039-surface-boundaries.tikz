@@ -10,6 +10,7 @@
   % 145 x = 810 deg here, so the eta arrow terminates on an exact crest.
   \draw[<->,line width=0.55pt] (5.5862,3.10) -- (5.5862,3.24);
   \node[anchor=west] at (5.7062,3.24) {$\eta$};
+  \fill[black!14] (0.75,0.56) rectangle (8.75,0.65);
   \draw[line width=1.00pt] (0.75,0.65) -- (8.75,0.65);
   \draw[line width=0.35pt] (0.75,0.56) -- (8.75,0.56);
   \node[anchor=west] at (8.95,0.65) {$z=-D$};

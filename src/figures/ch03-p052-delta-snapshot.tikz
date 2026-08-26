@@ -10,13 +10,8 @@
           {2.15+0.95*pow(\q,-1.5)*cos(deg(12/\q+pi/4))});
   \draw[line width=0.46pt,domain=0.7:2.8,samples=100,variable=\q]
     plot ({0.75+6.9*(\q-0.7)/2.1},{2.15+0.95*pow(\q,-1.5)});
-  \node[anchor=west] at (4.55,2.95) {$x^{-3/2}$};
-
-  % Adjacent equal-phase positions: 12/q_a - 12/q_b = 2 pi exactly.
-  \def\qa{0.9}
-  \pgfmathsetmacro{\qb}{12/(12/\qa-2*pi)}
-  \pgfmathsetmacro{\xa}{0.75+6.9*(\qa-0.7)/2.1}
-  \pgfmathsetmacro{\xb}{0.75+6.9*(\qb-0.7)/2.1}
-  \draw[<->,line width=0.40pt] (\xa,3.42) -- (\xb,3.42);
-  \node[above] at ({(\xa+\xb)/2},3.42) {$\lambda$};
+  \draw[line width=0.46pt,domain=0.7:2.8,samples=100,variable=\q]
+    plot ({0.75+6.9*(\q-0.7)/2.1},{2.15-0.95*pow(\q,-1.5)});
+  \draw[->,line width=0.45pt] (5.05,3.55) -- (4.45,3.02);
+  \node[anchor=west] at (5.08,3.55) {$x^{-3/2}$};
 \end{tikzpicture}

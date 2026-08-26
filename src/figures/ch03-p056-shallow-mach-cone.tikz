@@ -1,4 +1,5 @@
 % wave-source: pdf=ChapmanRizzoli3.pdf; page=21; trim=140bp 220bp 125bp 410bp
+% wave-source-mask: pdf=ChapmanRizzoli3.pdf; page=21; rect=140bp 220bp 500bp 236bp; origin=lower-left; reason=remove the following prose baseline while preserving the complete Mach-cone sketch
 % Source: Wave Motions in the Ocean, printed p.56 (physical p.21), lower figure.
 % Exact nondispersive Mach-cone geometry for the illustrative ratio c/V=0.4:
 % every wave circle has radius c|t| and center displacement V|t|, so the common
