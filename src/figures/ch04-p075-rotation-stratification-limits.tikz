@@ -3,9 +3,13 @@
 % Endpoint limits with both rotation and constant stratification.
 \begin{center}
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \node[anchor=north west] at (0.18,4.35)
+    {$\sigma^2=N^2\cos^2\phi+f^2\sin^2\phi$};
+  \node[anchor=north west] at (0.18,3.85)
+    {$|\vec c_g|=|N^2-f^2|\sin\phi\cos\phi/\sigma K$};
   \draw[->,line width=0.8pt] (0,0)--(0,3.25);
   \draw[->,line width=0.8pt] (0,0)--(4.50,0);
-  \node[anchor=west,align=left] at (0.18,2.90) {$\phi=0^\circ$\\$\sigma=N$ (buoyancy oscillations)\\$|\vec c_g|=0$\\wavenumber = arbitrary horizontal, $m=0$\\(columnar structure)};
-  \node[anchor=west,align=left] at (4.10,1.42) {$\phi=90^\circ$\\$\sigma=f$ (inertial oscillations)\\$|\vec c_g|=0$\\wavenumber = vertical, $k=\ell=0$\\(layers uncoupled)};
+  \node[anchor=west,align=left] at (0.18,2.45) {$\phi=0^\circ$\\$\sigma=N$ (buoyancy oscillations)\\$|\vec c_g|=0$\\wavenumber = arbitrary horizontal, $m=0$\\(columnar structure)};
+  \node[anchor=west,align=left] at (5.15,1.05) {$\phi=90^\circ$\\$\sigma=f$ (inertial oscillations)\\$|\vec c_g|=0$\\wavenumber = vertical, $k=\ell=0$\\(layers uncoupled)};
 \end{tikzpicture}
 \end{center}

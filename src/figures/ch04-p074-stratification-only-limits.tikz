@@ -3,6 +3,8 @@
 % Endpoint limits for stratification only (f=0).
 \begin{center}
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \node[anchor=north west] at (0.18,4.05)
+    {$\sigma=N\cos\phi\ ;\qquad |\vec c_g|=N\sin\phi/K$};
   \draw[->,line width=0.8pt] (0,0)--(0,3.15);
   \draw[->,line width=0.8pt] (0,0)--(4.35,0);
   \node[anchor=west,align=left] at (0.18,2.72) {$\phi=0^\circ$\\$\sigma=N$ (buoyancy oscillations)\\$|\vec c_g|=0$\\wavenumber = arbitrary horizontal, $m=0$};

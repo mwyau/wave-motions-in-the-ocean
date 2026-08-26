@@ -1,19 +1,51 @@
 % wave-source: pdf=ChapmanRizzoli4.pdf; page=18; trim=85bp 140bp 75bp 425bp
 % Source: Wave Motions in the Ocean, printed p.81 (physical p.18).
-% Velocity cells use R=D=1, k=pi: u=-sin(pi x)cos(pi(z+1)), w=cos(pi x)sin(pi(z+1)); this is exactly divergence free.
-\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
-  \draw[->] (0.50,1.00)--(8.75,1.00) node[right] {$x$};
-  \draw[->] (0.70,0.55)--(0.70,4.35) node[above] {$z$};
-  \draw[line width=.8pt] (0.70,1.00)--(8.55,1.00) node[right] {$z=-D$};
-  \draw[line width=.8pt] (0.70,4.00)--(8.55,4.00) node[right] {$z=0$};
-  % closed streamlines of psi=-sin(pi x)sin(pi(z+1))/pi, shown schematically but with exact cell boundaries at integer x
-  \foreach \x in {1.7,3.7,5.7,7.7}{\draw[densely dashed] (\x,1.00)--(\x,4.00);}
-  \foreach \cx/\dir in {1.2/1,2.7/-1,4.7/1,6.7/-1,8.2/1}{
-    \draw[->,line width=.7pt] (\cx-0.32,2.50) arc[start angle=180,end angle={180+\dir*280},x radius=.32,y radius=1.05];}
-  % surface flow alternates convergence/divergence
-  \foreach \xa/\xb in {0.95/1.55,2.45/1.85,2.95/3.55,4.45/3.85,4.95/5.55,6.45/5.85,6.95/7.55,8.35/7.85}{\draw[->,line width=.65pt] (\xa,3.82)--(\xb,3.82);}
-  \node[anchor=south] at (1.70,4.03) {convergence};
-  \node[anchor=south] at (3.70,4.03) {convergence};
-  \node[anchor=south] at (5.70,4.03) {convergence};
-  \node at (4.6,0.55) {$n=1$ travelling internal-wave velocity cells};
+% Velocity cells for R=D=1, with u=-sin(pi x)cos(pi(z+D)/D) and
+% w=cos(pi x)sin(pi(z+D)/D). The arrows show the source's phase sections.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round,line join=round]
+  \def\xzero{0.75}
+  \def\ytop{4.00}
+  \def\ybot{0.45}
+
+  % Free surface, bottom, and phase axis.
+  \draw[->,line width=.8pt] (\xzero,\ytop)--(8.62,\ytop) node[right] {$x$};
+  \draw[line width=.8pt] (\xzero,\ybot)--(8.40,\ybot);
+  \node[anchor=east] at (0.58,\ytop) {$z=0$};
+  \node[anchor=east] at (0.58,\ybot) {$z=-D$};
+
+  % Phase labels along the surface.
+  \node[anchor=south] at (0.75,4.08) {$0$};
+  \node[anchor=south] at (2.65,4.08) {$\dfrac{\pi x}{RD}=\dfrac{\pi}{2}$};
+  \node[anchor=south] at (4.55,4.08) {$=\pi$};
+  \node[anchor=south] at (6.45,4.08) {$=\dfrac{3\pi}{2}$};
+  \node[anchor=south] at (8.35,4.08) {$=2\pi$};
+
+  % Vertical phase sections at 0, pi, and 2 pi.
+  \foreach \x/\dir in {0.75/1,4.55/-1,8.35/1}{
+    \foreach \y in {0.72,1.12,1.52,1.92,2.32,2.72,3.12,3.52}{
+      \draw[->,line width=.62pt] (\x,\y)--(\x,{\y+0.22*\dir});
+    }
+  }
+
+  % Phase pi/2 and 3 pi/2 have horizontal flow that changes sign across mid-depth.
+  \draw[line width=.8pt] (2.65,\ybot)--(2.65,\ytop);
+  \draw[line width=.8pt] (6.45,\ybot)--(6.45,\ytop);
+  \fill (2.65,2.25) circle (0.035);
+  \fill (6.45,2.25) circle (0.035);
+
+  % At pi/2, upper flow is to the right and lower flow to the left.
+  \foreach \y/\len in {3.68/0.95,3.38/0.95,3.08/0.85,2.78/0.75,2.48/0.55,2.18/0.30}{
+    \draw[->,line width=.62pt] (2.65,\y)--({2.65+\len},\y);
+  }
+  \foreach \y/\len in {1.88/0.42,1.58/0.64,1.28/0.82,0.98/1.02,0.68/1.12}{
+    \draw[->,line width=.62pt] (2.65,\y)--({2.65-\len},\y);
+  }
+
+  % At 3 pi/2, the horizontal directions reverse.
+  \foreach \y/\len in {3.68/0.95,3.38/0.95,3.08/0.85,2.78/0.75,2.48/0.55,2.18/0.30}{
+    \draw[->,line width=.62pt] (6.45,\y)--({6.45-\len},\y);
+  }
+  \foreach \y/\len in {1.88/0.42,1.58/0.64,1.28/0.82,0.98/1.02,0.68/1.12}{
+    \draw[->,line width=.62pt] (6.45,\y)--({6.45+\len},\y);
+  }
 \end{tikzpicture}
