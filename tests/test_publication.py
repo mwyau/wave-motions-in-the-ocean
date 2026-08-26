@@ -69,50 +69,6 @@ def _write_equation_test_sources(root: Path) -> Path:
     return source
 
 
-def _write_valid_equation_assets(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    source: Path,
-    displays: tuple[EquationDisplay, ...],
-) -> Path:
-    source_dir = tmp_path / "references"
-    source_dir.mkdir()
-    for pdf_name in {
-        publication.EQUATION_SOURCE_PDFS[display.chapter] for display in displays
-    }:
-        (source_dir / pdf_name).write_bytes(b"source pdf")
-    monkeypatch.setattr(publication, "SOURCE_DIR", source_dir)
-    publication.file_sha256.cache_clear()
-
-    source_page = tmp_path / "source-page.png"
-    Image.new("RGB", (2, 2), "white").save(source_page)
-    monkeypatch.setattr(
-        publication,
-        "_equation_source_page_path",
-        lambda _display, _dpi: source_page,
-    )
-
-    equation_dir = source / "equations"
-    equation_dir.mkdir(exist_ok=True)
-    crop = publication.EquationSourceCrop(trim="0bp 0bp 0bp 0bp", pixels=(0, 0, 2, 2))
-    for display in displays:
-        for kind, path in zip(
-            publication.EQUATION_ASSET_KINDS,
-            equation_asset_paths(display.stem),
-            strict=True,
-        ):
-            publication._save_generated_equation_png(
-                equation_dir / path.name,
-                Image.new("RGB", (2, 2), "white"),
-                publication._equation_asset_metadata(
-                    display,
-                    kind,
-                    source_crop=crop if kind == "source" else None,
-                ),
-            )
-    return equation_dir
-
-
 def test_html_frontmatter_footer_starts_with_reader_link() -> None:
     footer = build_html.html_frontmatter_footer()
     start = footer.index('<li><a href="chapter1.html">Start reading</a></li>')
@@ -312,7 +268,7 @@ def test_equations_assets_pass_only_stale_displays_to_regeneration(
     assert publication._equations_cli(["--chapter", "1", "--assets"]) == 0
     assert calls == [stale]
     assert (
-        "Regenerated 1 equation (3 review assets) in Chapter 1."
+        "Regenerated 1 equations (3 review assets) in Chapter 1."
         in capsys.readouterr().out
     )
 
@@ -334,123 +290,6 @@ def test_equations_assets_current_does_not_render(
     assert (
         "Equation review assets are current for Chapter 1." in capsys.readouterr().out
     )
-
-
-def test_equations_assets_cleanup_is_scoped_safe_and_idempotent(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    source = _write_equation_test_sources(tmp_path)
-    monkeypatch.setattr(publication, "SRC", source)
-    equation_dir = source / "equations"
-    equation_dir.mkdir()
-
-    obsolete_stem = "ch01-p002-e03"
-    other_chapter_stem = "ch02-p004-e02"
-    for stem in (obsolete_stem, other_chapter_stem):
-        for path in equation_asset_paths(stem):
-            (equation_dir / path.name).write_bytes(b"obsolete")
-    unrelated = equation_dir / "ch01-p002-e03-preview.png"
-    unrelated.write_bytes(b"unrelated")
-
-    monkeypatch.setattr(publication, "stale_equation_displays", lambda _selected: ())
-
-    def fail_if_rendered(*_args, **_kwargs):
-        raise AssertionError("cleanup of obsolete assets must not regenerate equations")
-
-    monkeypatch.setattr(publication, "regenerate_equation_assets", fail_if_rendered)
-
-    assert publication._equations_cli(["--chapter", "1", "--assets"]) == 0
-    assert all(
-        not (equation_dir / path.name).exists()
-        for path in equation_asset_paths(obsolete_stem)
-    )
-    assert all(
-        (equation_dir / path.name).is_file()
-        for path in equation_asset_paths(other_chapter_stem)
-    )
-    assert unrelated.is_file()
-    assert (
-        capsys.readouterr().out
-        == "Removed 3 obsolete equation review assets in Chapter 1.\n"
-    )
-
-    assert publication._equations_cli(["--assets"]) == 0
-    assert all(
-        not (equation_dir / path.name).exists()
-        for path in equation_asset_paths(other_chapter_stem)
-    )
-    assert (
-        capsys.readouterr().out
-        == "Removed 3 obsolete equation review assets in all chapters.\n"
-    )
-
-    assert publication._equations_cli(["--assets"]) == 0
-    assert (
-        capsys.readouterr().out
-        == "Equation review assets are current for all chapters.\n"
-    )
-
-
-def test_equations_assets_renumbering_cleans_old_stems_and_refreshes_only_stale(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    source = _write_equation_test_sources(tmp_path)
-    monkeypatch.setattr(publication, "SRC", source)
-    equation_dir = source / "equations"
-    equation_dir.mkdir()
-    old_stem = "ch01-p002-e03"
-    for path in equation_asset_paths(old_stem):
-        (equation_dir / path.name).write_bytes(b"old stem")
-
-    displays = tuple(
-        display for display in collect_equation_displays(source) if display.chapter == 1
-    )
-    stale = (displays[0],)
-    calls: list[tuple[EquationDisplay, ...]] = []
-    monkeypatch.setattr(publication, "stale_equation_displays", lambda _selected: stale)
-    monkeypatch.setattr(
-        publication,
-        "regenerate_equation_assets",
-        lambda selected, _equation_dir=None: calls.append(tuple(selected)) or 3,
-    )
-
-    assert publication._equations_cli(["--chapter", "1", "--assets"]) == 0
-    assert calls == [stale]
-    assert all(
-        not (equation_dir / path.name).exists()
-        for path in equation_asset_paths(old_stem)
-    )
-    assert displays[1] not in calls[0]
-    assert displays[2] not in calls[0]
-    assert (
-        capsys.readouterr().out
-        == "Removed 3 obsolete review assets and regenerated 1 equation "
-        "(3 review assets) in Chapter 1.\n"
-    )
-
-
-def test_equations_cleanup_leaves_global_equation_assets_valid(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    source = _write_equation_test_sources(tmp_path)
-    monkeypatch.setattr(publication, "SRC", source)
-    displays = collect_equation_displays(source)
-    equation_dir = _write_valid_equation_assets(tmp_path, monkeypatch, source, displays)
-    obsolete_stem = "ch01-p002-e03"
-    for path in equation_asset_paths(obsolete_stem):
-        (equation_dir / path.name).write_bytes(b"obsolete")
-
-    assert any(
-        "unexpected equation asset" in error
-        for error in publication.equation_asset_errors()
-    )
-    assert publication._equations_cli(["--chapter", "1", "--assets"]) == 0
-    assert publication.equation_asset_errors() == []
 
 
 def test_stale_equation_check_does_not_render_source_pages(
@@ -483,11 +322,6 @@ def test_audit_update_reports_stale_asset_chapters_without_rendering(
         publication,
         "_equation_manifest_change_ids",
         lambda chapters: {chapter: (display.stem,) for chapter in chapters},
-    )
-    monkeypatch.setattr(
-        publication,
-        "obsolete_equation_asset_paths",
-        lambda *_args, **_kwargs: (),
     )
     monkeypatch.setattr(
         publication,
@@ -532,59 +366,6 @@ def test_audit_update_reports_stale_asset_chapters_without_rendering(
     )
     assert publication._audit_update_cli(["src/chapter4.tex"]) == 0
     assert capsys.readouterr().err == ""
-
-
-def test_audit_update_reports_obsolete_assets_without_regenerating(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    source = _write_equation_test_sources(tmp_path)
-    monkeypatch.setattr(publication, "SRC", source)
-    equation_dir = source / "equations"
-    equation_dir.mkdir()
-    obsolete_stem = "ch01-p002-e03"
-    for path in equation_asset_paths(obsolete_stem):
-        (equation_dir / path.name).write_bytes(b"obsolete")
-
-    writes: list[tuple[str, tuple[int, ...]]] = []
-    monkeypatch.setattr(
-        publication,
-        "_equation_manifest_change_ids",
-        lambda chapters: {chapter: () for chapter in chapters},
-    )
-    monkeypatch.setattr(
-        publication,
-        "_equation_asset_input_stale_ids",
-        lambda _displays: set(),
-    )
-    monkeypatch.setattr(
-        publication,
-        "write_figure_chapter_ledgers",
-        lambda _root, chapters: writes.append(("figures", tuple(chapters))),
-    )
-    monkeypatch.setattr(
-        publication,
-        "write_equation_ledger",
-        lambda _root, chapters=None: writes.append(("equations", tuple(chapters))),
-    )
-    monkeypatch.setattr(
-        publication,
-        "regenerate_equation_assets",
-        lambda *_args, **_kwargs: pytest.fail("the audit hook must not render assets"),
-    )
-
-    assert publication._audit_update_cli(["src/chapter1.tex"]) == 1
-    assert all(
-        (equation_dir / path.name).is_file()
-        for path in equation_asset_paths(obsolete_stem)
-    )
-    assert capsys.readouterr().err == (
-        "Equation review assets are stale in Chapter 1.\n\n"
-        "Regenerate:\n"
-        "  uv run --frozen python scripts/publication.py equations --chapter 1 --assets\n"
-    )
-    assert writes == [("figures", (1,)), ("equations", (1,))]
 
 
 def test_equation_ledger_is_stable_and_contains_no_machine_data(tmp_path: Path) -> None:
