@@ -242,6 +242,8 @@
   const mathLabels = document.querySelectorAll("[data-math-label]");
   const mathRenderers = document.querySelectorAll("[data-math-renderer]");
   const readerPagePattern = /^(?:index|chapter\d+|references)\.html$/;
+  const readerChapterLink = document.querySelector("a.reader-context-chapter[href]");
+  if (readerChapterLink) readerChapterLink.setAttribute("href", "#top");
 
   const showMathMode = (mode) => {
     mathRenderers.forEach((node) => {

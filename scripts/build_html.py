@@ -610,6 +610,7 @@ def reader_state(index: int | None) -> dict[str, str]:
         raise ValueError(f"unexpected chapter number: {index}")
     return {
         "reader_chapter": f"Chapter {chapter.number}",
+        "reader_chapter_url": f"chapter{chapter.number}.html",
         "reader_title": html.escape(chapter.title),
     }
 
@@ -795,6 +796,55 @@ def template_variable_args(values: dict[str, str]) -> list[str]:
         if value:
             args.extend(["--variable", f"{name}:{value}"])
     return args
+
+
+READER_CONTEXT_RE = re.compile(
+    r'<span class="reader-context"[^>]*>(?P<body>.*?)</span>\s*'
+    r'<span class="reader-nav-slot">',
+    re.DOTALL,
+)
+
+
+def validate_reader_context() -> None:
+    """Validate the static chapter link and section-only context slot."""
+    for page in EXPECTED_PAGES:
+        text = page.read_text(errors="replace")
+        matches = READER_CONTEXT_RE.findall(text)
+        if len(matches) != 1:
+            raise SystemExit(
+                f"{page.name}: reader context is missing or has changed structure"
+            )
+        body = matches[0]
+        if body.count('class="reader-context-chapter"') != 1:
+            raise SystemExit(
+                f"{page.name}: reader context chapter label is missing or duplicated"
+            )
+        if body.count('class="reader-context-title"') != 1:
+            raise SystemExit(
+                f"{page.name}: reader context section slot is missing or duplicated"
+            )
+
+        chapter = chapter_for_page(page)
+        if chapter is None:
+            expected = (
+                f'<span class="reader-context-chapter">'
+                f"{'Front matter' if page.name == 'index.html' else 'References'}"
+                "</span>"
+            )
+            if expected not in body or re.search(r"<a\b", body):
+                raise SystemExit(
+                    f"{page.name}: non-chapter context must remain non-clickable"
+                )
+            continue
+
+        expected = (
+            f'<a class="reader-context-chapter" '
+            f'href="chapter{chapter.number}.html">Chapter {chapter.number}</a>'
+        )
+        if body.count(expected) != 1 or len(re.findall(r"<a\b", body)) != 1:
+            raise SystemExit(
+                f"{page.name}: only the chapter label may be linked in the reader context"
+            )
 
 
 def heading_text(fragment: str) -> str:
@@ -1234,6 +1284,7 @@ def validate() -> None:
         if any(re.search(r"\bhidden\b", opening) for opening in mathml_openings):
             raise SystemExit(f"{page.name}: MathML alternates must start visible")
 
+    validate_reader_context()
     validate_figure_markup()
 
     for chapter in CHAPTERS:

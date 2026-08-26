@@ -242,6 +242,19 @@ div.flushright { text-align: right; margin-top: -0.85em; }
   font-weight: 600;
   color: var(--wave-heading);
 }
+a.reader-context-chapter,
+a.reader-context-chapter:visited {
+  color: var(--wave-link);
+  text-decoration: none;
+}
+a.reader-context-chapter:hover {
+  color: var(--wave-link);
+  text-decoration: underline;
+}
+a.reader-context-chapter:focus-visible {
+  outline: 2px solid var(--wave-link);
+  outline-offset: 3px;
+}
 .reader-context-separator {
   flex-shrink: 0;
   color: var(--wave-muted);

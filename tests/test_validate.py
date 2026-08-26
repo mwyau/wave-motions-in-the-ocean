@@ -90,6 +90,25 @@ def test_toolbar_labels_use_deterministic_spacing() -> None:
     assert 'class="text-size-value" data-text-size-value' in template
 
 
+def test_reader_context_keeps_chapter_link_static_and_section_updates_local() -> None:
+    root = Path(__file__).resolve().parents[1]
+    template = (root / "src" / "layout" / "wave-html.html").read_text()
+    stylesheet = (root / "src" / "layout" / "wave-html.css").read_text()
+    script = (root / "src" / "layout" / "wave-html.js").read_text()
+    builder = (root / "scripts" / "build_html.py").read_text()
+
+    assert (
+        '<a class="reader-context-chapter" href="$reader_chapter_url$">$reader_chapter$</a>'
+        in template
+    )
+    assert '<span class="reader-context-chapter">$reader_chapter$</span>' in template
+    assert '"reader_chapter_url": f"chapter{chapter.number}.html"' in builder
+    assert "readerContextTitle.textContent = title;" in script
+    assert "readerContext.textContent" not in script
+    assert "a.reader-context-chapter:hover" in stylesheet
+    assert "a.reader-context-chapter:focus-visible" in stylesheet
+
+
 def test_figure_controls_are_conditional_and_progressive() -> None:
     root = Path(__file__).resolve().parents[1]
     template = (root / "src" / "layout" / "wave-html.html").read_text()

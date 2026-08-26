@@ -79,6 +79,19 @@ def test_html_frontmatter_footer_starts_with_reader_link() -> None:
     assert "wave-motions-facsimile.pdf" not in footer
 
 
+@pytest.mark.parametrize(
+    ("index", "expected_url"),
+    [(None, None), (0, None)]
+    + [(number, f"chapter{number}.html") for number in range(1, 7)],
+)
+def test_reader_state_links_only_chapter_context_to_its_start(
+    index: int | None, expected_url: str | None
+) -> None:
+    state = build_html.reader_state(index)
+
+    assert state.get("reader_chapter_url") == expected_url
+
+
 def test_equation_extraction_order_wrappers_and_exact_source(tmp_path: Path) -> None:
     source = _write_equation_test_sources(tmp_path)
     displays = collect_equation_displays(source)

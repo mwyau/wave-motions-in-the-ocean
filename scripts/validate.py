@@ -634,6 +634,41 @@ FIGURE_BLOCK_RE = re.compile(
     re.DOTALL,
 )
 FIGURE_IMAGE_RE = re.compile(r"<img\b[^>]*>", re.IGNORECASE)
+READER_CONTEXT_RE = re.compile(
+    r'<span class="reader-context"[^>]*>(?P<body>.*?)</span>\s*'
+    r'<span class="reader-nav-slot">',
+    re.DOTALL,
+)
+
+
+def check_html_reader_context(page: Path, text: str) -> None:
+    """Validate the chapter-only link in the generated reader context."""
+    matches = READER_CONTEXT_RE.findall(text)
+    if len(matches) != 1:
+        fail(f"{page.name}: reader context is missing or has changed structure")
+    body = matches[0]
+    if body.count('class="reader-context-chapter"') != 1:
+        fail(f"{page.name}: reader context chapter label is missing or duplicated")
+    if body.count('class="reader-context-title"') != 1:
+        fail(f"{page.name}: reader context section slot is missing or duplicated")
+
+    page_index = html_page_index(page)
+    if page_index is None or page_index == 0:
+        expected = (
+            f'<span class="reader-context-chapter">'
+            f"{'Front matter' if page_index is None else 'References'}"
+            "</span>"
+        )
+        if expected not in body or re.search(r"<a\b", body):
+            fail(f"{page.name}: non-chapter context must remain non-clickable")
+        return
+
+    expected = (
+        f'<a class="reader-context-chapter" '
+        f'href="chapter{page_index}.html">Chapter {page_index}</a>'
+    )
+    if body.count(expected) != 1 or len(re.findall(r"<a\b", body)) != 1:
+        fail(f"{page.name}: only the chapter label may be linked in the reader context")
 
 
 def check_html_figures() -> None:
@@ -804,6 +839,7 @@ def check_html() -> None:
     for page in EXPECTED_HTML_PAGES:
         text = page.read_text(errors="replace")
         page_index = html_page_index(page)
+        check_html_reader_context(page, text)
         if not re.search(
             rf'<html[^>]+lang="{re.escape(LANGUAGE)}"', text, flags=re.IGNORECASE
         ):

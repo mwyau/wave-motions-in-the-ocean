@@ -311,7 +311,11 @@
       <a class="previous-link" href="$previous_url$"$if(previous_url)$$else$ hidden$endif$ aria-label="Previous: $previous_label$" title="$previous_label$"><span class="reader-arrow" aria-hidden="true">‹</span></a>
     </span>
     <span class="reader-context" data-reader-context aria-label="Current reading position">
+      $if(reader_chapter_url)$
+      <a class="reader-context-chapter" href="$reader_chapter_url$">$reader_chapter$</a>
+      $else$
       <span class="reader-context-chapter">$reader_chapter$</span>
+      $endif$
       <span class="reader-context-separator"$if(reader_title)$$else$ hidden$endif$ aria-hidden="true"> · </span>
       <span class="reader-context-title"$if(reader_title)$$else$ hidden$endif$>$reader_title$</span>
     </span>
