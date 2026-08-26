@@ -230,6 +230,13 @@
       font-variant-numeric: tabular-nums;
       font-weight: 600;
     }
+    .reader-settings-controls .text-size-step {
+      display: block;
+      line-height: 1;
+      font-weight: 650;
+    }
+    .reader-settings-controls .text-size-step-small { font-size: .7rem; }
+    .reader-settings-controls .text-size-step-large { font-size: 1.45rem; }
     #appearance-settings { display: none !important; }
     @supports not selector(:popover-open) {
       .reader-settings-popover { display: none; }
@@ -337,9 +344,9 @@
       <div class="reader-setting-row">
         <span class="reader-setting-label">Text:</span>
         <span class="appearance-options text-size-options" role="group" aria-label="Text size">
-          <button class="appearance-option js-only" type="button" data-text-size-action="decrease" aria-label="Decrease text size">A−</button>
+          <button class="appearance-option js-only" type="button" data-text-size-action="decrease" aria-label="Decrease text size"><span class="text-size-step text-size-step-small" aria-hidden="true">A</span></button>
           <button class="appearance-option text-size-reset js-only" type="button" data-text-size-action="reset" aria-label="Reset text size to 100%"><span class="text-size-value" data-text-size-value aria-live="polite">100%</span><span>Reset</span></button>
-          <button class="appearance-option js-only" type="button" data-text-size-action="increase" aria-label="Increase text size">A+</button>
+          <button class="appearance-option js-only" type="button" data-text-size-action="increase" aria-label="Increase text size"><span class="text-size-step text-size-step-large" aria-hidden="true">A</span></button>
         </span>
       </div>
       <div class="reader-setting-row">
