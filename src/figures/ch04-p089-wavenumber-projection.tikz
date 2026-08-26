@@ -1,0 +1,21 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=26; trim=120bp 225bp 45bp 395bp
+% Source: Wave Motions in the Ocean, printed p.89 (physical p.26), lower panel.
+% Exact subcritical projection: k_i=(1,R), k_r=q(1,-R),
+% q=(1+aR)/(1-aR), so the along-wall phase projections agree.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round,line join=round]
+  \def\R{1.25}\def\a{0.32}
+  \pgfmathsetmacro{\q}{(1+\a*\R)/(1-\a*\R)}
+  \coordinate (O) at (4.25,2.05);
+  \draw[->] (0.65,2.05)--(8.35,2.05) node[right] {$x$};
+  \draw[->] (4.25,0.45)--(4.25,4.70) node[above] {$z$};
+  \path[fill=black!10] (0.80,1.17)--(7.80,3.17)--(7.80,3.29)--(0.80,1.29)--cycle;
+  \draw[line width=1.0pt] (0.80,1.20)--(7.80,3.20) node[right] {$z=ax$};
+  \draw[->,line width=.85pt] (2.75,3.65)--(O) node[midway,left] {$\text{energy}_i$};
+  \draw[->,line width=.85pt] (O)--++(1.15,1.35) node[above] {$\text{energy}_r$};
+  \draw[->,line width=.85pt] (O)--++(1.20,0.75) node[above] {$\vec k_i$};
+  \draw[->,line width=.85pt] (O)--++({0.75*\q},{-0.94*\q}) node[right] {$\vec k_r$};
+  \draw[<->,line width=.55pt] (O)--++(1.05,0.30) node[midway,below] {$\tan^{-1}a$};
+  \draw[<->,line width=.55pt] (O)--++(0.72,0.90) node[midway,left] {$\tan^{-1}R$};
+  \draw[<->,line width=.55pt] (O)--++(0.70,-0.88) node[midway,right] {$\tan^{-1}R$};
+  \node[anchor=west,align=left] at (1.10,0.45) {$|\vec k_i|\cos(\tan^{-1}R-\tan^{-1}a)$\\$=|\vec k_r|\cos(\tan^{-1}R+\tan^{-1}a)$};
+\end{tikzpicture}

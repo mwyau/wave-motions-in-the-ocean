@@ -1,0 +1,25 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=2; trim=185bp 545bp 155bp 75bp
+% Source: Wave Motions in the Ocean, printed p.65 (physical p.2).
+% Schematic background density profile rho_0(z) with a parcel displaced upward
+% from its equilibrium position by xi. The source does not specify an analytic
+% density profile here; only monotonic stratification and the displacement are
+% scientifically required.
+\par\smallskip
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  \draw[line width=0.75pt] (0,-0.15) -- (0,3.45);
+  \draw[line width=0.75pt] (-0.40,3.15) -- (3.25,3.15);
+  \node[anchor=east] at (-0.12,1.55) {$z$};
+  \node[anchor=south] at (2.25,3.22) {$\rho$};
+  \draw[line width=0.85pt] (0.48,2.80)
+    .. controls (1.10,2.48) and (1.85,1.78) .. (2.72,0.55);
+  \coordinate (E) at (1.82,1.80);
+  \coordinate (P) at (1.82,2.44);
+  \fill (E) circle (1.1pt);
+  \draw[line width=0.75pt] (P) circle[x radius=0.16,y radius=0.12];
+  \draw[decorate,decoration={brace,amplitude=3pt},line width=0.60pt]
+    (2.15,1.83) -- (2.15,2.41);
+  \node[anchor=west] at (2.25,2.11) {$\xi$};
+\end{tikzpicture}
+\end{center}
+\smallskip

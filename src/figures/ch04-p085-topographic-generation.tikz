@@ -1,0 +1,26 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=22; trim=70bp 525bp 55bp 125bp
+% Source: Wave Motions in the Ocean, printed p.85 (physical p.22).
+% The source is a geometric schematic: a mean flow passes over a stippled
+% sinusoidal bottom with local x and z axes. The nearby text defines h=h0 sin(kx).
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round,line join=round]
+  \draw[->,line width=8pt] (0.95,4.25)--(2.55,4.25) node[midway,above] {$U$};
+  \path[fill=black!12] (0.65,0.70)
+    .. controls (1.10,1.18) and (1.55,1.18) .. (2.05,0.70)
+    .. controls (2.55,0.32) and (3.05,0.32) .. (3.55,0.70)
+    .. controls (4.05,1.18) and (4.55,1.18) .. (5.05,0.70)
+    .. controls (5.55,0.34) and (6.05,0.34) .. (6.55,0.70)
+    .. controls (7.05,1.25) and (7.55,1.25) .. (8.05,0.70)
+    .. controls (8.45,0.34) and (8.75,0.34) .. (9.15,0.70)
+    -- cycle;
+  \draw[line width=.85pt]
+    (0.65,0.70)
+    .. controls (1.10,1.18) and (1.55,1.18) .. (2.05,0.70)
+    .. controls (2.55,0.32) and (3.05,0.32) .. (3.55,0.70)
+    .. controls (4.05,1.18) and (4.55,1.18) .. (5.05,0.70)
+    .. controls (5.55,0.34) and (6.05,0.34) .. (6.55,0.70)
+    .. controls (7.05,1.25) and (7.55,1.25) .. (8.05,0.70)
+    .. controls (8.45,0.34) and (8.75,0.34) .. (9.15,0.70);
+  \foreach \x/\y in {0.95/0.92,1.35/0.98,1.75/0.84,2.25/0.55,2.75/0.45,3.25/0.54,3.85/0.90,4.25/0.98,4.75/0.84,5.25/0.55,5.75/0.46,6.25/0.55,6.85/0.98,7.25/1.04,7.75/0.86,8.25/0.55,8.65/0.46}{\fill (\x,\y) circle (0.45pt);}
+  \draw[->,line width=.75pt] (2.85,0.70)--(2.85,2.45) node[above] {$z$};
+  \draw[->,line width=.75pt] (2.85,1.12)--(8.95,1.12) node[right] {$x$};
+\end{tikzpicture}

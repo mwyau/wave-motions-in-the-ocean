@@ -1,0 +1,24 @@
+% wave-source: pdf=ChapmanRizzoli6.pdf; page=22; trim=155bp 440bp 135bp 240bp
+% Source: Wave Motions in the Ocean, printed p.168 (physical p.22).
+% Coastal/shelf geometry follows the source. The nearby forcing statement is
+% represented by restrained alongshelf wind-stress arrows above the shelf.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round,line join=round]
+  \draw[->,line width=.75pt] (1.05,4.45)--(8.55,4.45) node[right] {$x$};
+  \draw[->,line width=.75pt] (1.05,4.45)--(1.05,5.60) node[above] {$z$};
+  \draw[->,line width=.75pt] (1.05,4.45)--(3.00,5.05) node[above] {$y$};
+  \path[fill=black!12] (1.05,4.45)
+    .. controls (2.05,4.30) and (3.05,3.80) .. (4.05,3.05)
+    .. controls (4.55,2.55) and (4.75,1.95) .. (5.15,1.35)
+    -- (8.65,1.35)--(8.65,1.05)--(1.05,1.05)--cycle;
+  \draw[line width=.90pt] (1.05,4.45)
+    .. controls (2.05,4.30) and (3.05,3.80) .. (4.05,3.05)
+    .. controls (4.55,2.55) and (4.75,1.95) .. (5.15,1.35)
+    -- (8.65,1.35);
+  \draw[line width=.90pt] (1.05,4.45)--(1.05,1.05)--(8.65,1.05);
+  \foreach \x/\y in {1.25/4.0,1.65/3.7,2.05/3.4,2.45/3.2,2.85/2.9,3.25/2.6,3.65/2.25,4.0/1.95,4.4/1.55,4.8/1.25,5.5/1.20,6.2/1.20,6.9/1.20,7.6/1.20,8.2/1.20}{\fill (\x,\y) circle (0.45pt);}
+  \node[anchor=west] at (1.28,3.65) {$x=0$};
+  \draw[line width=.55pt] (5.15,0.82)--(5.15,1.35);
+  \node[below] at (5.15,0.78) {$x=L$};
+  \foreach \x in {2.55,3.25,3.95,4.65}{\draw[->,line width=.65pt] (\x,5.05)--++(0.62,0.20);}
+  \node[anchor=west] at (4.85,5.55) {$\tau^y$};
+\end{tikzpicture}

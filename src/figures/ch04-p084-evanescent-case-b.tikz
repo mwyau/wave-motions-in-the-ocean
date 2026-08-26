@@ -1,0 +1,37 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=21; trim=95bp 520bp 75bp 65bp
+% Source: Wave Motions in the Ocean, printed p.84 (physical p.21).
+% Exact normalized plot C/x=-tanh x; the positive-C panel has no root and
+% the negative-C panel has the symmetric pair shown by the source.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
+  \foreach \dx/\C in {0/0.7,4.85/-0.7}{
+    \begin{scope}[xshift=\dx cm]
+      \draw[->] (0.70,2.35)--(4.55,2.35) node[right] {$x=kRD$};
+      \draw[->] (2.60,0.42)--(2.60,4.28);
+      \ifdim\C pt>0pt
+        \draw (1.62,4.48) circle (0.25);
+        \node at (1.62,4.48) {$B$};
+        \node[anchor=west] at (1.98,4.48) {$\sigma^2>f^2$};
+      \else
+        \draw (1.62,4.48) circle (0.25);
+        \node at (1.62,4.48) {$B1$};
+        \node[anchor=west] at (2.05,4.48) {$\sigma^2<f^2$};
+      \fi
+      \draw[line width=.75pt,domain=-3.4:3.4,samples=120,smooth,variable=\x]
+        plot ({2.60+0.55*\x},{2.35-1.10*tanh(\x)});
+      \draw[line width=.75pt,domain=-3.4:-0.10,samples=80,smooth,variable=\x]
+        plot ({2.60+0.55*\x},{2.35+0.72*(\C/\x)});
+      \draw[line width=.75pt,domain=0.10:3.4,samples=80,smooth,variable=\x]
+        plot ({2.60+0.55*\x},{2.35+0.72*(\C/\x)});
+      \node[anchor=west] at (3.50,3.55) {$\mathrm{LHS}$};
+      \node[anchor=west] at (3.48,1.30) {$\mathrm{RHS}$};
+      \ifdim\C pt<0pt
+        \pgfmathsetmacro{\root}{0.94761}
+        \foreach \r in {-0.94761,0.94761}{
+          \draw ({2.60+0.55*\r},{2.35-1.10*tanh(\r)}) circle (0.10);
+        }
+      \else
+        \node at (2.60,3.25) {no intersection};
+      \fi
+    \end{scope}
+  }
+\end{tikzpicture}

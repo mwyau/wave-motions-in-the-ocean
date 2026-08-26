@@ -8,18 +8,18 @@ Entries follow printed page, figure order on the page, and component asset.
 #### Figure 4.1 — parcel displacement
 
 <table>
-<tr><th>Original source</th></tr>
+<tr><th>Original</th><th>Vector</th></tr>
 <tr>
-  <td><img src="../figures/ch04-p065-parcel-displacement-source.png" alt="Original source figure for Figure 4.1 — parcel displacement" width="390"></td>
+  <td><img src="../figures/ch04-p065-parcel-displacement.png" alt="Original source figure for Figure 4.1 — parcel displacement" width="390"></td>
+  <td><img src="../figures/ch04-p065-parcel-displacement.svg" alt="Vector reconstruction for Figure 4.1 — parcel displacement" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch04-p065-parcel-displacement-source.png`
-- **Original source:** [ChapmanRizzoli4.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli4.pdf), physical page 2
+- **Asset:** `ch04-p065-parcel-displacement.tikz`
 - **Printed page:** 65
-- **Representation:** source-pdf
+- **Representation:** vector
 - **Equation check:** n/a
-- **Scientific check:** Keep the source parcel, monotonic density profile, and upward displacement `xi`; the source does not fix an analytic profile that would justify redrawing it.
+- **Scientific check:** The reconstruction preserves the source parcel, monotonic density profile, and upward displacement `xi`; the crop uses the audited `545bp` lower trim and does not add an analytic density law.
 
 #### Figure 4.2 — boundary value problem
 
@@ -56,34 +56,34 @@ Entries follow printed page, figure order on the page, and component asset.
 #### Figure 4.4 — nonrotating transverse
 
 <table>
-<tr><th>Original source</th></tr>
+<tr><th>Original</th><th>Vector</th></tr>
 <tr>
-  <td><img src="../figures/ch04-p069-nonrotating-transverse-source.png" alt="Original source figure for Figure 4.4 — nonrotating transverse" width="390"></td>
+  <td><img src="../figures/ch04-p069-nonrotating-transverse.png" alt="Original source figure for Figure 4.4 — nonrotating transverse" width="390"></td>
+  <td><img src="../figures/ch04-p069-nonrotating-transverse.svg" alt="Vector reconstruction for Figure 4.4 — nonrotating transverse" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch04-p069-nonrotating-transverse-source.png`
-- **Original source:** [ChapmanRizzoli4.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli4.pdf), physical page 6
+- **Asset:** `ch04-p069-nonrotating-transverse.tikz`
 - **Printed page:** 69
-- **Representation:** source-pdf
+- **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The source crop retains the transverse `u` and `k` construction, `w=u sin(theta)`, and the displayed nonrotating momentum relation.
+- **Scientific check:** The vector preserves the transverse `u` and `k` construction, `w=u sin(theta)`, and the displayed nonrotating momentum relation.
 
 #### Figure 4.5 — rotating transverse
 
 <table>
-<tr><th>Original source</th></tr>
+<tr><th>Original</th><th>Vector</th></tr>
 <tr>
-  <td><img src="../figures/ch04-p070-rotating-transverse-source.png" alt="Original source figure for Figure 4.5 — rotating transverse" width="390"></td>
+  <td><img src="../figures/ch04-p070-rotating-transverse.png" alt="Original source figure for Figure 4.5 — rotating transverse" width="390"></td>
+  <td><img src="../figures/ch04-p070-rotating-transverse.svg" alt="Vector reconstruction for Figure 4.5 — rotating transverse" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch04-p070-rotating-transverse-source.png`
-- **Original source:** [ChapmanRizzoli4.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli4.pdf), physical page 7
+- **Asset:** `ch04-p070-rotating-transverse.tikz`
 - **Printed page:** 70
-- **Representation:** source-pdf
+- **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The source crop retains the transverse velocity, the `f_parallel`/`f_perp` decomposition, and both displayed rotating-transverse equations.
+- **Scientific check:** The vector preserves the transverse velocity, the `f_parallel`/`f_perp` decomposition, and both displayed rotating-transverse equations.
 
 #### Figure 4.6 — phase energy theta
 
@@ -184,18 +184,18 @@ Entries follow printed page, figure order on the page, and component asset.
 #### Figure 4.12 — frequency regimes
 
 <table>
-<tr><th>Original source</th></tr>
+<tr><th>Original</th><th>Vector</th></tr>
 <tr>
-  <td><img src="../figures/ch04-p077-frequency-regimes-source.png" alt="Original source figure for Figure 4.12 — frequency regimes" width="390"></td>
+  <td><img src="../figures/ch04-p077-frequency-regimes.png" alt="Original source figure for Figure 4.12 — frequency regimes" width="390"></td>
+  <td><img src="../figures/ch04-p077-frequency-regimes.svg" alt="Vector reconstruction for Figure 4.12 — frequency regimes" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch04-p077-frequency-regimes-source.png`
-- **Original source:** [ChapmanRizzoli4.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli4.pdf), physical page 14
+- **Asset:** `ch04-p077-frequency-regimes.tikz`
 - **Printed page:** 77
-- **Representation:** source-pdf
+- **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The source crop retains both `N^2>f^2` and `N^2<f^2` sign rows, the `f`/`N` ordering, and the A, A1, B, and B1 labels used by the following case analysis.
+- **Scientific check:** The vector preserves both `N^2>f^2` and `N^2<f^2` sign rows, the `f`/`N` ordering, and the A, A1, B, and B1 labels used by the following case analysis.
 
 #### Figure 4.13 — case a intersections
 
@@ -232,18 +232,18 @@ Entries follow printed page, figure order on the page, and component asset.
 #### Figure 4.15 — case b intersections
 
 <table>
-<tr><th>Original source</th></tr>
+<tr><th>Original</th><th>Vector</th></tr>
 <tr>
-  <td><img src="../figures/ch04-p079-case-b-intersections-source.png" alt="Original source figure for Figure 4.15 — case b intersections" width="390"></td>
+  <td><img src="../figures/ch04-p079-case-b-intersections.png" alt="Original source figure for Figure 4.15 — case b intersections" width="390"></td>
+  <td><img src="../figures/ch04-p079-case-b-intersections.svg" alt="Vector reconstruction for Figure 4.15 — case b intersections" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch04-p079-case-b-intersections-source.png`
-- **Original source:** [ChapmanRizzoli4.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli4.pdf), physical page 16
+- **Asset:** `ch04-p079-case-b-intersections.tikz`
 - **Printed page:** 79
-- **Representation:** source-pdf
+- **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The source crop retains the complete B/B1 panels, tangent asymptotes, LHS/RHS curves, and circled intersections used in the case-B mode count.
+- **Scientific check:** Roots of `tan(t)+C/t=0` were independently checked for both signs of `C`; the vector retains the complete B/B1 panels, tangent asymptotes, LHS/RHS curves, and root markers.
 
 #### Figure 4.16 — waveguide dispersion
 
@@ -264,18 +264,18 @@ Entries follow printed page, figure order on the page, and component asset.
 #### Figure 4.17 — mode structure
 
 <table>
-<tr><th>Original source</th></tr>
+<tr><th>Original</th><th>Vector</th></tr>
 <tr>
-  <td><img src="../figures/ch04-p081-mode-structure-source.png" alt="Original source figure for Figure 4.17 — mode structure" width="390"></td>
+  <td><img src="../figures/ch04-p081-mode-structure.png" alt="Original source figure for Figure 4.17 — mode structure" width="390"></td>
+  <td><img src="../figures/ch04-p081-mode-structure.svg" alt="Vector reconstruction for Figure 4.17 — mode structure" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch04-p081-mode-structure-source.png`
-- **Original source:** [ChapmanRizzoli4.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli4.pdf), physical page 18
+- **Asset:** `ch04-p081-mode-structure.tikz`
 - **Printed page:** 81
-- **Representation:** source-pdf
+- **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The source crop retains the paired `w/w_0` and `u/Rw_0` vertical profiles, their boundary values, and the `z=0,-D` labels.
+- **Scientific check:** The checked `n=1` factors `w/w_0=sin(pi(z+D)/D)` and `u/(Rw_0)=-cos(pi(z+D)/D)` set the paired profiles, boundary values, and `z=0,-D` labels.
 
 #### Figure 4.18 — particle cells
 
@@ -296,98 +296,98 @@ Entries follow printed page, figure order on the page, and component asset.
 #### Figure 4.19 — evanescent case a
 
 <table>
-<tr><th>Original source</th></tr>
+<tr><th>Original</th><th>Vector</th></tr>
 <tr>
-  <td><img src="../figures/ch04-p083-evanescent-case-a-source.png" alt="Original source figure for Figure 4.19 — evanescent case a" width="390"></td>
+  <td><img src="../figures/ch04-p083-evanescent-case-a.png" alt="Original source figure for Figure 4.19 — evanescent case a" width="390"></td>
+  <td><img src="../figures/ch04-p083-evanescent-case-a.svg" alt="Vector reconstruction for Figure 4.19 — evanescent case a" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch04-p083-evanescent-case-a-source.png`
-- **Original source:** [ChapmanRizzoli4.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli4.pdf), physical page 20
+- **Asset:** `ch04-p083-evanescent-case-a.tikz`
 - **Printed page:** 83
-- **Representation:** source-pdf
+- **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The source crop retains both A/A1 panels, their asymptotes, LHS/RHS curves, and circled roots, including the extra A1 pair.
+- **Scientific check:** Roots of `C/t=-tan(t)` were independently checked for both case signs; the vector retains both A/A1 panels, asymptotes, LHS/RHS curves, and all symmetric root markers.
 
 #### Figure 4.20 — evanescent case b
 
 <table>
-<tr><th>Original source</th></tr>
+<tr><th>Original</th><th>Vector</th></tr>
 <tr>
-  <td><img src="../figures/ch04-p084-evanescent-case-b-source.png" alt="Original source figure for Figure 4.20 — evanescent case b" width="390"></td>
+  <td><img src="../figures/ch04-p084-evanescent-case-b.png" alt="Original source figure for Figure 4.20 — evanescent case b" width="390"></td>
+  <td><img src="../figures/ch04-p084-evanescent-case-b.svg" alt="Vector reconstruction for Figure 4.20 — evanescent case b" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch04-p084-evanescent-case-b-source.png`
-- **Original source:** [ChapmanRizzoli4.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli4.pdf), physical page 21
+- **Asset:** `ch04-p084-evanescent-case-b.tikz`
 - **Printed page:** 84
-- **Representation:** source-pdf
+- **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The source crop retains both B/B1 panels, the LHS/RHS curves, and the root/no-intersection distinction used in the evanescent-mode discussion.
+- **Scientific check:** Solving `C/t=-tanh(t)` gives no real root for the positive case and the checked symmetric pair `t=+/-0.94761` for the negative case; both B/B1 panels retain that distinction.
 
 #### Figure 4.21 — topographic generation
 
 <table>
-<tr><th>Original source</th></tr>
+<tr><th>Original</th><th>Vector</th></tr>
 <tr>
-  <td><img src="../figures/ch04-p085-topographic-generation-source.png" alt="Original source figure for Figure 4.21 — topographic generation" width="390"></td>
+  <td><img src="../figures/ch04-p085-topographic-generation.png" alt="Original source figure for Figure 4.21 — topographic generation" width="390"></td>
+  <td><img src="../figures/ch04-p085-topographic-generation.svg" alt="Vector reconstruction for Figure 4.21 — topographic generation" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch04-p085-topographic-generation-source.png`
-- **Original source:** [ChapmanRizzoli4.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli4.pdf), physical page 22
+- **Asset:** `ch04-p085-topographic-generation.tikz`
 - **Printed page:** 85
-- **Representation:** source-pdf
+- **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The source crop retains the stippled topography, mean flow `U`, and `x,z` axes; the surrounding equations state the topographic forcing and radiation conditions.
+- **Scientific check:** The vector preserves the stippled `h=h_0 sin(kx)` topography, mean flow `U`, and local `x,z` axes; the nearby forcing and radiation equations constrain the schematic.
 
 #### Figure 4.22 — characteristics
 
 <table>
-<tr><th>Original source</th></tr>
+<tr><th>Original</th><th>Vector</th></tr>
 <tr>
-  <td><img src="../figures/ch04-p088-characteristics-source.png" alt="Original source figure for Figure 4.22 — characteristics" width="390"></td>
+  <td><img src="../figures/ch04-p088-characteristics.png" alt="Original source figure for Figure 4.22 — characteristics" width="390"></td>
+  <td><img src="../figures/ch04-p088-characteristics.svg" alt="Vector reconstruction for Figure 4.22 — characteristics" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch04-p088-characteristics-source.png`
-- **Original source:** [ChapmanRizzoli4.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli4.pdf), physical page 25
+- **Asset:** `ch04-p088-characteristics.tikz`
 - **Printed page:** 88
-- **Representation:** source-pdf
+- **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The source crop retains both characteristic panels, phase arrows, and the sign labels for `x-Rz=0` and `x+Rz=0`.
+- **Scientific check:** The vector preserves the two characteristic slopes `dz/dx=+/-1/R`, their parallel phase lines, phase arrows, and the sign labels for `x-Rz=0` and `x+Rz=0`.
 
 #### Figure 4.23 — slope reflection
 
 <table>
-<tr><th>Original source</th></tr>
+<tr><th>Original</th><th>Vector</th></tr>
 <tr>
-  <td><img src="../figures/ch04-p089-slope-reflection-source.png" alt="Original source figure for Figure 4.23 — slope reflection" width="390"></td>
+  <td><img src="../figures/ch04-p089-slope-reflection.png" alt="Original source figure for Figure 4.23 — slope reflection" width="390"></td>
+  <td><img src="../figures/ch04-p089-slope-reflection.svg" alt="Vector reconstruction for Figure 4.23 — slope reflection" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch04-p089-slope-reflection-source.png`
-- **Original source:** [ChapmanRizzoli4.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli4.pdf), physical page 26
+- **Asset:** `ch04-p089-slope-reflection.tikz`
 - **Printed page:** 89
-- **Representation:** source-pdf
+- **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The source crop retains the two characteristic lines, incident/reflected energy directions, and the paired wavevector directions used to show non-specular reflection.
+- **Scientific check:** The vector preserves the two characteristic lines, incident/reflected energy directions, and paired wavevector directions used to show non-specular reflection.
 
 #### Figure 4.24 — wavenumber projection
 
 <table>
-<tr><th>Original source</th></tr>
+<tr><th>Original</th><th>Vector</th></tr>
 <tr>
-  <td><img src="../figures/ch04-p089-wavenumber-projection-source.png" alt="Original source figure for Figure 4.24 — wavenumber projection" width="390"></td>
+  <td><img src="../figures/ch04-p089-wavenumber-projection.png" alt="Original source figure for Figure 4.24 — wavenumber projection" width="390"></td>
+  <td><img src="../figures/ch04-p089-wavenumber-projection.svg" alt="Vector reconstruction for Figure 4.24 — wavenumber projection" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch04-p089-wavenumber-projection-source.png`
-- **Original source:** [ChapmanRizzoli4.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli4.pdf), physical page 26
+- **Asset:** `ch04-p089-wavenumber-projection.tikz`
 - **Printed page:** 89
-- **Representation:** source-pdf
+- **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The source crop retains the sloping wall, both characteristic directions, incident/reflected wavevectors, and all angle annotations used in the equal-projection construction.
+- **Scientific check:** With `k_i=(1,R)` and `q=(1+aR)/(1-aR)`, the vector preserves the sloping wall, characteristic directions, incident/reflected wavevectors, and equal-projection angle construction.
 
 #### Figure 4.25 — wavenumber triangle
 
@@ -454,31 +454,31 @@ Entries follow printed page, figure order on the page, and component asset.
 #### Figure 4.29 — turning profile
 
 <table>
-<tr><th>Original source</th></tr>
+<tr><th>Original</th><th>Vector</th></tr>
 <tr>
-  <td><img src="../figures/ch04-p093-turning-profile-source.png" alt="Original source figure for Figure 4.29 — turning profile" width="390"></td>
+  <td><img src="../figures/ch04-p093-turning-profile.png" alt="Original source figure for Figure 4.29 — turning profile" width="390"></td>
+  <td><img src="../figures/ch04-p093-turning-profile.svg" alt="Vector reconstruction for Figure 4.29 — turning profile" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch04-p093-turning-profile-source.png`
-- **Original source:** [ChapmanRizzoli4.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli4.pdf), physical page 30
+- **Asset:** `ch04-p093-turning-profile.tikz`
 - **Printed page:** 93
-- **Representation:** source-pdf
+- **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The source crop retains the exponential/oscillating/exponential regions, both turning levels, and the signs of `R^2` used in the discussion.
+- **Scientific check:** The equation-constrained sign topology has two turning levels, exponential outer regions, and an oscillating `R^2>0` interior; the vector preserves those source regions and labels.
 
 #### Figure 4.30 — eigenvalue spectrum
 
 <table>
-<tr><th>Original source</th></tr>
+<tr><th>Original</th><th>Vector</th></tr>
 <tr>
-  <td><img src="../figures/ch04-p094-eigenvalue-spectrum-source.png" alt="Original source figure for Figure 4.30 — eigenvalue spectrum" width="390"></td>
+  <td><img src="../figures/ch04-p094-eigenvalue-spectrum.png" alt="Original source figure for Figure 4.30 — eigenvalue spectrum" width="390"></td>
+  <td><img src="../figures/ch04-p094-eigenvalue-spectrum.svg" alt="Vector reconstruction for Figure 4.30 — eigenvalue spectrum" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch04-p094-eigenvalue-spectrum-source.png`
-- **Original source:** [ChapmanRizzoli4.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli4.pdf), physical page 31
+- **Asset:** `ch04-p094-eigenvalue-spectrum.tikz`
 - **Printed page:** 94
-- **Representation:** source-pdf
-- **Equation check:** ai-checked
-- **Scientific check:** The source crop retains the `R^2(z)` profile, the evanescent and travelling mode sketches, and the generalized spectrum ordering from negative to positive `k^2`.
+- **Representation:** vector
+- **Equation check:** partial
+- **Scientific check:** The vector preserves the sign-changing `R^2(z)` profile and the source ordering of evanescent (`k^2<0`) and travelling (`k^2>0`) modes; the detailed eigenfunction curves remain schematic.

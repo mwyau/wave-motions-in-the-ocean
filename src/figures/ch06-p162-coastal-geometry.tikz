@@ -1,0 +1,26 @@
+% wave-source: pdf=ChapmanRizzoli6.pdf; page=16; trim=155bp 374bp 125bp 310bp
+% Source: Wave Motions in the Ocean, printed p.162 (physical p.16).
+% Idealized coastal-trapped-wave geometry: x offshore, y alongshore, z vertical,
+% variable bottom z=-D(x), shelf width L, and flat deep ocean z=-H.
+\begin{tikzpicture}[x=1.05cm,y=1.05cm,>=stealth,line cap=round,line join=round,font=\small]
+  \coordinate (O) at (0,0);
+  \def\L{2.75}
+  \draw[->,line width=.80pt] (O)--(5.50,0) node[right] {$x$};
+  \draw[->,line width=.80pt] (O)--(0,1.35) node[above] {$z$};
+  \draw[->,line width=.80pt] (O)--(2.05,0.55) node[right] {$y$};
+  \path[fill=black!12] (0,0)--(0,-2.15)--(5.35,-2.15)--(5.35,-1.86)--(\L,-1.86)
+    .. controls (2.30,-1.75) and (1.85,-1.55) .. (1.62,-1.26)
+    .. controls (1.38,-0.95) and (0.84,-0.55) .. (0,0)--cycle;
+  \draw[line width=.80pt] (0,0)--(0,-2.15)--(5.35,-2.15);
+  \draw[line width=.80pt] (0,0)
+    .. controls (0.84,-0.55) and (1.38,-0.95) .. (1.62,-1.26)
+    .. controls (1.85,-1.55) and (2.30,-1.75) .. (\L,-1.86)--(5.35,-1.86);
+  \foreach \x/\y in {0.35/-0.45,0.65/-0.65,0.95/-0.85,1.25/-1.10,1.55/-1.35,1.85/-1.55,2.15/-1.70,2.45/-1.78,3.2/-1.86,3.8/-1.86,4.4/-1.86,5.0/-1.86}{\fill (\x,\y) circle (0.45pt);}
+  \node[anchor=east] at (-0.12,0) {$z=0$};
+  \node[anchor=west] at (0.20,-0.72) {$x=0$};
+  \node[anchor=west] at (1.90,-0.88) {$z=-D(x)$};
+  \draw[->,line width=.50pt] (2.10,-0.98)--(1.72,-1.28);
+  \draw[line width=.55pt] (\L,-1.65)--(\L,-2.03);
+  \node[anchor=west] at (\L+0.10,-1.40) {$x=L$};
+  \node[anchor=south] at (4.35,-1.83) {$z=-H$};
+\end{tikzpicture}

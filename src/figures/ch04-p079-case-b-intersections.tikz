@@ -1,0 +1,48 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=16; trim=35bp 345bp 55bp 272bp
+% Source: Wave Motions in the Ocean, printed p.79 (physical p.16).
+% Normalized exact plot of C/x=tan(x), with x=kRD. Positive and negative
+% roots are plotted for the two signs of C shown by cases B and B1.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
+  \def\xmin{-9.2}\def\xmax{9.2}\def\scale{0.205}
+  \foreach \dx/\C in {0/0.7,5.05/-0.7}{
+    \begin{scope}[xshift=\dx cm]
+      \draw[->] (0.75,2.35)--(4.60,2.35) node[right] {$x=kRD$};
+      \draw[->] (2.68,0.30)--(2.68,4.42);
+      \ifdim\C pt>0pt
+        \draw (1.62,4.62) circle (0.25);
+        \node at (1.62,4.62) {$B$};
+        \node[anchor=west] at (1.98,4.62) {$\sigma^2>f^2$};
+      \else
+        \draw (1.62,4.62) circle (0.25);
+        \node at (1.62,4.62) {$B1$};
+        \node[anchor=west] at (2.05,4.62) {$\sigma^2<f^2$};
+      \fi
+      \begin{scope}
+        \clip (0.70,0.34) rectangle (4.60,4.40);
+        \foreach \p in {-7.8540,-4.7124,-1.5708,1.5708,4.7124,7.8540}{
+          \pgfmathsetmacro{\xx}{2.68+\scale*\p}
+          \draw[densely dashed] (\xx,0.45)--(\xx,4.22);
+        }
+        \foreach \a/\b in {-9.0/-7.88,-7.83/-4.73,-4.68/-1.59,-1.54/1.54,1.59/4.68,4.73/7.83,7.88/9.0}{
+          \draw[line width=.65pt,domain=\a:\b,samples=90,smooth,variable=\x]
+            plot ({2.68+\scale*\x},{2.35+0.28*tan(deg(\x))});
+        }
+        \draw[line width=.75pt,domain=-9.0:-0.12,samples=80,smooth,variable=\x]
+          plot ({2.68+\scale*\x},{2.35+0.72*(\C/\x)});
+        \draw[line width=.75pt,domain=0.12:9.0,samples=80,smooth,variable=\x]
+          plot ({2.68+\scale*\x},{2.35+0.72*(\C/\x)});
+      \end{scope}
+      \node[anchor=west] at (2.78,3.90) {$C/x$};
+      \node[anchor=west] at (3.65,3.48) {$\tan x$};
+      \ifdim\C pt>0pt
+        \foreach \r in {-6.3923,-3.3477,-0.7506,0.7506,3.3477,6.3923}{
+          \draw ({2.68+\scale*\r},{2.35+0.72*(\C/\r)}) circle (0.10);
+        }
+      \else
+        \foreach \r in {-6.1702,-2.9051,2.9051,6.1702}{
+          \draw ({2.68+\scale*\r},{2.35+0.72*(\C/\r)}) circle (0.10);
+        }
+      \fi
+    \end{scope}
+  }
+\end{tikzpicture}

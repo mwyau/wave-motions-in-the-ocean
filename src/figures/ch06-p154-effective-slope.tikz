@@ -1,0 +1,14 @@
+% wave-source: pdf=ChapmanRizzoli6.pdf; page=7; trim=120bp 520bp 85bp 125bp
+% Source: Wave Motions in the Ocean, printed p.154 (physical p.7).
+% Paired original/scaled slopes and their governing field equations.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round,line join=round]
+  \path[fill=black!10] (0.55,0.62)--(2.95,3.47)--(2.95,3.63)--(0.55,0.78)--cycle;
+  \path[fill=black!10] (5.55,0.62)--(7.95,3.47)--(7.95,3.63)--(5.55,0.78)--cycle;
+  \draw[line width=1.0pt] (0.55,0.70)--(2.95,3.55);
+  \draw[line width=1.0pt] (5.55,0.70)--(7.95,3.55);
+  \node[align=center] at (1.55,2.92) {$p_{xx}+p_{yy}+\left(\dfrac{f^2-\sigma^2}{N^2}\right)p_{zz}=0$};
+  \node[align=center] at (1.58,1.65) {$z=\alpha x$\\$w=\alpha u$};
+  \node[align=center] at (6.70,2.92) {$p_{xx}-\ell^2p+p_{z'z'}=0$};
+  \node[anchor=west] at (6.00,1.60) {$z'=R\alpha x$};
+  \draw[->,line width=.9pt] (3.35,2.05)--(4.95,2.05);
+\end{tikzpicture}

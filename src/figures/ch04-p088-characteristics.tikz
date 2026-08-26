@@ -1,0 +1,28 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=25; trim=85bp 420bp 70bp 235bp
+% Source: Wave Motions in the Ocean, printed p.88 (physical p.25).
+% Characteristics have slopes dz/dx=+-1/R; phase/wavevector directions are
+% normal to them and energy/group directions are tangent to them.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
+  \def\R{1.35}
+  \foreach \dx/\sgn/\label/\phaseang in {0/1/{$x-Rz=0$}/-53,4.25/-1/{$x+Rz=0$}/53}{
+    \begin{scope}[xshift=\dx cm]
+      \draw[->] (0.55,2.35)--(3.75,2.35) node[right] {$x$};
+      \draw[->] (2.05,0.45)--(2.05,4.30) node[above] {$z$};
+      \ifnum\sgn=1
+        \draw[line width=.75pt] (0.70,0.85)--(3.40,3.85) node[above right] {\label};
+        \draw[line width=.45pt,dashed] (0.95,1.12)--(3.10,3.52);
+        \draw[line width=.45pt,dashed] (0.70,0.85)--(2.85,3.25);
+        \draw[line width=.45pt,dashed] (1.20,1.40)--(3.40,3.85);
+        \draw[->,line width=.8pt] (2.45,1.90)--(3.12,1.15) node[midway,right] {phase};
+        \node[anchor=west] at (0.75,3.75) {$+$};\node[anchor=east] at (1.15,1.05) {$-$};
+      \else
+        \draw[line width=.75pt] (0.70,3.85)--(3.40,0.85) node[below right] {\label};
+        \draw[line width=.45pt,dashed] (0.95,3.58)--(3.10,1.18);
+        \draw[line width=.45pt,dashed] (0.70,3.85)--(2.85,1.45);
+        \draw[line width=.45pt,dashed] (1.20,3.30)--(3.40,0.85);
+        \draw[->,line width=.8pt] (2.45,2.80)--(3.12,3.55) node[midway,right] {phase};
+        \node[anchor=west] at (0.75,1.05) {$-$};\node[anchor=east] at (1.15,3.75) {$+$};
+      \fi
+    \end{scope}
+  }
+\end{tikzpicture}

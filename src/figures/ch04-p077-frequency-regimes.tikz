@@ -1,0 +1,45 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=14; trim=79bp 532bp 75bp 130bp
+% Source: Wave Motions in the Ocean, printed p.77 (physical p.14).
+% Sign classification for S^2 and R^2, with the two orderings of N and f.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
+  \def\xstart{0.65}
+  \def\xend{8.00}
+  \def\ytop{3.45}
+  \def\ybottom{1.20}
+  \newcommand{\sign}[3]{\node at (#1,#2) {$#3$};}
+  \newcommand{\caseaxis}[4]{%
+    \draw[->] (\xstart,#1)--(\xend,#1) node[right] {$\sigma$};
+    \draw (2.65,#1-0.16)--(2.65,#1+0.16) node[below=3pt] {#2};
+    \draw (4.95,#1-0.16)--(4.95,#1+0.16) node[below=3pt] {#3};
+    \node[anchor=east] at (\xstart-0.18,#1+0.38) {$S^2$};
+    \node[anchor=east] at (\xstart-0.18,#1-0.38) {$R^2$};
+    \node[anchor=west] at (\xend+0.72,#1-0.03) {#4};
+  }
+  \caseaxis{\ytop}{$f$}{$N$}{$N^2>f^2$}
+  \sign{1.55}{\ytop+0.40}{-}
+  \sign{3.80}{\ytop+0.40}{+}
+  \sign{6.45}{\ytop+0.40}{+}
+  \sign{1.55}{\ytop-0.40}{-}
+  \sign{3.80}{\ytop-0.40}{+}
+  \sign{6.45}{\ytop-0.40}{-}
+  \draw (2.00,\ytop-0.38) circle (0.23);
+  \node at (2.00,\ytop-0.38) {A1};
+  \draw (4.10,\ytop-0.38) circle (0.23);
+  \node at (4.10,\ytop-0.38) {B};
+  \draw (6.65,\ytop-0.38) circle (0.23);
+  \node at (6.65,\ytop-0.38) {A};
+
+  \caseaxis{\ybottom}{$N$}{$f$}{$N^2<f^2$}
+  \sign{1.55}{\ybottom+0.40}{-}
+  \sign{3.80}{\ybottom+0.40}{-}
+  \sign{6.45}{\ybottom+0.40}{+}
+  \sign{1.55}{\ybottom-0.40}{-}
+  \sign{3.80}{\ybottom-0.40}{+}
+  \sign{6.45}{\ybottom-0.40}{-}
+  \draw (2.00,\ybottom-0.38) circle (0.23);
+  \node at (2.00,\ybottom-0.38) {A1};
+  \draw (4.10,\ybottom-0.38) circle (0.23);
+  \node at (4.10,\ybottom-0.38) {B1};
+  \draw (6.65,\ybottom-0.38) circle (0.23);
+  \node at (6.65,\ybottom-0.38) {A};
+\end{tikzpicture}
