@@ -531,7 +531,8 @@
     tocRail.hidden = !showRail;
     tocRail.style.removeProperty("visibility");
     tocRail.style.removeProperty("pointer-events");
-    tocToggle.hidden = showRail;
+    tocToggle.style.visibility = showRail ? "hidden" : "";
+    tocToggle.style.pointerEvents = showRail ? "none" : "";
     root.dataset.tocReady = "";
 
     if (showRail && tocPanel?.matches(":popover-open")) tocPanel.hidePopover();
