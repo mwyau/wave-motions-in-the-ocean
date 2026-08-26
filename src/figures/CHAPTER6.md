@@ -5,53 +5,53 @@
 This chapter ledger contains scientific and technical figure placements only.
 Entries follow printed page, figure order on the page, and component asset.
 
-#### Figure 6.1 — sloping channel
+#### Figure 6.1 — source PDF crop, printed page 151
 
 <table>
-<tr><th>Original</th><th>Vector</th></tr>
+<tr><th>Original source</th></tr>
 <tr>
-  <td><img src="../figures/ch06-p151-sloping-channel.png" alt="Original source figure for Figure 6.1 — sloping channel" width="390"></td>
-  <td><img src="../figures/ch06-p151-sloping-channel.svg" alt="Vector reconstruction for Figure 6.1 — sloping channel" width="390"></td>
+  <td><img src="../figures/ch06-p151-sloping-channel-source.png" alt="Original source figure for Figure 6.1 — sloping channel" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch06-p151-sloping-channel.tikz`
+- **Asset:** `ch06-p151-sloping-channel-source.png`
+- **Original source:** [ChapmanRizzoli6.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli6.pdf), physical page 4
 - **Printed page:** 151
-- **Representation:** vector
+- **Representation:** source-pdf
 - **Equation check:** ai-checked
-- **Scientific check:** The channel is constructed with sidewalls `y=0,L`, rigid lid `z=0`, and the planar bottom `z=-H+alpha y`; perspective depth is schematic but every boundary contact follows the stated geometry.
+- **Scientific check:** The source crop retains the channel perspective, sidewalls `y=0,L`, rigid lid, axes, and planar bottom `z=-H+alpha y` without replacing the source projection with a new construction.
 
-#### Figure 6.2 — bottom trapped mode
+#### Figure 6.2 — source PDF crop, printed page 152
 
 <table>
-<tr><th>Original</th><th>Vector</th></tr>
+<tr><th>Original source</th></tr>
 <tr>
-  <td><img src="../figures/ch06-p152-bottom-trapped-mode.png" alt="Original source figure for Figure 6.2 — bottom trapped mode" width="390"></td>
-  <td><img src="../figures/ch06-p152-bottom-trapped-mode.svg" alt="Vector reconstruction for Figure 6.2 — bottom trapped mode" width="390"></td>
+  <td><img src="../figures/ch06-p152-bottom-trapped-mode-source.png" alt="Original source figure for Figure 6.2 — bottom trapped mode" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch06-p152-bottom-trapped-mode.tikz`
+- **Asset:** `ch06-p152-bottom-trapped-mode-source.png`
+- **Original source:** [ChapmanRizzoli6.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli6.pdf), physical page 5
 - **Printed page:** 152
-- **Representation:** vector
+- **Representation:** source-pdf
 - **Equation check:** ai-checked
-- **Scientific check:** The vertical structure is generated from normalized `cosh(mu z)` with `mu^2=S^2(n^2 pi^2+k^2)`. Evaluation confirms amplitude increases monotonically toward the bottom and trapping strengthens with increasing `mu`.
+- **Scientific check:** The source crop retains the paired large- and small-`Sk` bottom-trapped profiles and their sloping-bottom boundary; the nearby equation supplies the `cosh(mu z)` interpretation.
 
-#### Figure 6.3 — effective slope
+#### Figure 6.3 — source PDF crop, printed page 154
 
 <table>
-<tr><th>Original</th><th>Vector</th></tr>
+<tr><th>Original source</th></tr>
 <tr>
-  <td><img src="../figures/ch06-p154-effective-slope.png" alt="Original source figure for Figure 6.3 — effective slope" width="390"></td>
-  <td><img src="../figures/ch06-p154-effective-slope.svg" alt="Vector reconstruction for Figure 6.3 — effective slope" width="390"></td>
+  <td><img src="../figures/ch06-p154-effective-slope-source.png" alt="Original source figure for Figure 6.3 — effective slope" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch06-p154-effective-slope.tikz`
+- **Asset:** `ch06-p154-effective-slope-source.png`
+- **Original source:** [ChapmanRizzoli6.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli6.pdf), physical page 7
 - **Printed page:** 154
-- **Representation:** vector
+- **Representation:** source-pdf
 - **Equation check:** ai-checked
-- **Scientific check:** The scaled bottom is `z prime=R alpha x`, with `theta=atan(R alpha)` and `R alpha=S/sqrt(1-omega^2)`; tangent `k` and normal decay `m` are perpendicular.
+- **Scientific check:** The source crop retains the original and scaled slope diagrams, their field equations, and the `z'=R alpha x` transformation used by the following derivation.
 
 #### Figure 6.4 — bottom slope trapping
 
@@ -69,37 +69,37 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Equation check:** ai-checked
 - **Scientific check:** From the checked dispersion relation, for `omega<1` the sign of `k^2` is the sign of `S^2-omega^2`: propagation requires `omega<S`, while `omega>S` is evanescent. The reflection/trapping panels encode those regimes.
 
-#### Figure 6.5 — continental shelf
+#### Figure 6.5 — source PDF crop, printed page 157
 
 <table>
-<tr><th>Original</th><th>Vector</th></tr>
+<tr><th>Original source</th></tr>
 <tr>
-  <td><img src="../figures/ch06-p157-continental-shelf.png" alt="Original source figure for Figure 6.5 — continental shelf" width="390"></td>
-  <td><img src="../figures/ch06-p157-continental-shelf.svg" alt="Vector reconstruction for Figure 6.5 — continental shelf" width="390"></td>
+  <td><img src="../figures/ch06-p157-continental-shelf-source.png" alt="Original source figure for Figure 6.5 — continental shelf" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch06-p157-continental-shelf.tikz`
+- **Asset:** `ch06-p157-continental-shelf-source.png`
+- **Original source:** [ChapmanRizzoli6.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli6.pdf), physical page 10
 - **Printed page:** 157
-- **Representation:** vector
+- **Representation:** source-pdf
 - **Equation check:** ai-checked
-- **Scientific check:** The shelf profile is generated from `D=D_0 exp(2bx)` for `0<x<L` and matched to constant depth offshore; coast, shelf edge, and alongshore/offshore axes obey the chapter definition.
+- **Scientific check:** The source crop retains the stippled shelf cross-section, coast, shelf edge, offshore flat bottom, and alongshore/offshore axes without asserting a redrawn analytic depth profile.
 
-#### Figure 6.6 — shelf root condition
+#### Figure 6.6 — source PDF crop, printed page 159
 
 <table>
-<tr><th>Original</th><th>Vector</th></tr>
+<tr><th>Original source</th></tr>
 <tr>
-  <td><img src="../figures/ch06-p159-shelf-root-condition.png" alt="Original source figure for Figure 6.6 — shelf root condition" width="390"></td>
-  <td><img src="../figures/ch06-p159-shelf-root-condition.svg" alt="Vector reconstruction for Figure 6.6 — shelf root condition" width="390"></td>
+  <td><img src="../figures/ch06-p159-shelf-root-condition-source.png" alt="Original source figure for Figure 6.6 — shelf root condition" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch06-p159-shelf-root-condition.tikz`
+- **Asset:** `ch06-p159-shelf-root-condition-source.png`
+- **Original source:** [ChapmanRizzoli6.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli6.pdf), physical page 12
 - **Printed page:** 159
-- **Representation:** vector
+- **Representation:** source-pdf
 - **Equation check:** ai-checked
-- **Scientific check:** The root plot is generated from `tan(kL)=k/(ell-b)`. For normalized `(ell-b)L=-1.5`, roots are `2.1746260`, `5.0036453`, and `8.0384628`, approaching half-integer-`pi` asymptotes.
+- **Scientific check:** The source crop retains the complete `tan(kL)` root chart, its `ell=0` and `ell=infinity` branches, and the half-integer asymptotes used in the mode discussion.
 
 #### Figure 6.7 — source PDF crop, printed page 159
 
@@ -131,21 +131,21 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Equation check:** partial
 - **Scientific check:** Keep the information-dense full coastal spectrum. The family content (one Kelvin wave, discrete shelf/edge families, Poincaré continuum, no Yanai analogue) is checked, but every detailed branch/cutoff for general `D(x)` is not independently reconstructible from the notes.
 
-#### Figure 6.9 — coastal geometry
+#### Figure 6.9 — source PDF crop, printed page 162
 
 <table>
-<tr><th>Original</th><th>Vector</th></tr>
+<tr><th>Original source</th></tr>
 <tr>
-  <td><img src="../figures/ch06-p162-coastal-geometry.png" alt="Original source figure for Figure 6.9 — coastal geometry" width="390"></td>
-  <td><img src="../figures/ch06-p162-coastal-geometry.svg" alt="Vector reconstruction for Figure 6.9 — coastal geometry" width="390"></td>
+  <td><img src="../figures/ch06-p162-coastal-geometry-source.png" alt="Original source figure for Figure 6.9 — coastal geometry" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch06-p162-coastal-geometry.tikz`
+- **Asset:** `ch06-p162-coastal-geometry-source.png`
+- **Original source:** [ChapmanRizzoli6.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli6.pdf), physical page 16
 - **Printed page:** 162
-- **Representation:** vector
+- **Representation:** source-pdf
 - **Equation check:** n/a
-- **Scientific check:** `z=-H` is attached to the flat deep-ocean bottom; the lower shaded closure is distinguished from the physical bottom.
+- **Scientific check:** The source crop retains the three-dimensional coastal coordinate system, variable depth `D(x)`, shelf edge `x=L`, and stippled deep-ocean bottom.
 
 #### Figure 6.10 — ctw dispersion family
 
@@ -211,18 +211,18 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Equation check:** partial
 - **Scientific check:** The source family layout is preserved with `ell<0` to the left, inertial line `sigma=f`, and strong-stratification Kelvin limit `omega=-S ell/(n pi)`. Intermediate coastal-trapped/shelf-wave branch shapes are schematic because no unique `D(x)` is specified. See `ERRATA.md`, printed p.167.
 
-#### Figure 6.14 — wind forced shelf
+#### Figure 6.14 — source PDF crop, printed page 168
 
 <table>
-<tr><th>Original</th><th>Vector</th></tr>
+<tr><th>Original source</th></tr>
 <tr>
-  <td><img src="../figures/ch06-p168-wind-forced-shelf.png" alt="Original source figure for Figure 6.14 — wind forced shelf" width="390"></td>
-  <td><img src="../figures/ch06-p168-wind-forced-shelf.svg" alt="Vector reconstruction for Figure 6.14 — wind forced shelf" width="390"></td>
+  <td><img src="../figures/ch06-p168-wind-forced-shelf-source.png" alt="Original source figure for Figure 6.14 — wind forced shelf" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch06-p168-wind-forced-shelf.tikz`
+- **Asset:** `ch06-p168-wind-forced-shelf-source.png`
+- **Original source:** [ChapmanRizzoli6.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli6.pdf), physical page 22
 - **Printed page:** 168
-- **Representation:** vector
+- **Representation:** source-pdf
 - **Equation check:** n/a
-- **Scientific check:** Coast, offshore `x`, alongshore `y`, shelf edge `x=L`, `D(x)`, and alongshelf wind-stress direction are isolated as vector geometry. The bathymetric curve is schematic and no equation-defined plotted quantity is asserted.
+- **Scientific check:** The source crop retains the three-dimensional shelf/coast geometry, offshore and alongshore axes, shelf edge `x=L`, and alongshelf wind-stress arrows.
