@@ -12,7 +12,7 @@ Edited by **Albert M. W. Yau** — August 2026
 [![Read EPUB](https://img.shields.io/badge/Read-EPUB-2da44e)](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.epub)
 [![BY-NC-SA 4.0](https://img.shields.io/badge/-BY--NC--SA%204.0-ED592F?logo=creativecommons&logoColor=white&labelColor=333333)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![Publish](https://github.com/mwyau/wave-motions-in-the-ocean/actions/workflows/publish.yml/badge.svg?branch=main)](https://github.com/mwyau/wave-motions-in-the-ocean/actions/workflows/publish.yml)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22059881.svg)](https://doi.org/10.5281/zenodo.22059881)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.22059881-blue.svg)](https://doi.org/10.5281/zenodo.22059881)
 <!-- README_BADGES_END -->
 
 ## Preface — David C. Chapman
