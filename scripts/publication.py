@@ -3113,7 +3113,8 @@ def _equations_cli(argv: list[str] | None = None) -> int:
 
     if args.assets:
         if args.check:
-            errors.extend(equation_asset_errors(selected_displays))
+            asset_displays = None if args.chapter is None else selected_displays
+            errors.extend(equation_asset_errors(asset_displays))
         else:
             stale = stale_equation_displays(selected_displays)
             if stale:
@@ -3124,8 +3125,9 @@ def _equations_cli(argv: list[str] | None = None) -> int:
                     if len(stale_chapters) == 1
                     else "Chapters " + ", ".join(map(str, stale_chapters))
                 )
+                equation_word = "equation" if len(stale) == 1 else "equations"
                 print(
-                    f"Regenerated {len(stale)} equations "
+                    f"Regenerated {len(stale)} {equation_word} "
                     f"({len(stale) * len(EQUATION_ASSET_KINDS)} review assets) "
                     f"in {chapter_label}."
                 )

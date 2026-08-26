@@ -242,17 +242,76 @@ def test_equation_asset_refresh_records_inputs_and_rejects_extras(
     )
 
 
+def test_equations_asset_check_scope_controls_unexpected_png_scan(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    source = _write_equation_test_sources(tmp_path)
+    source_dir = tmp_path / "references"
+    source_dir.mkdir()
+    (source_dir / "ChapmanRizzoli0_2.pdf").write_bytes(b"source pdf")
+    source_page = tmp_path / "source-page.png"
+    Image.new("RGB", (2, 2), "white").save(source_page)
+
+    monkeypatch.setattr(publication, "SRC", source)
+    monkeypatch.setattr(publication, "SOURCE_DIR", source_dir)
+    monkeypatch.setattr(
+        publication,
+        "_equation_source_page_path",
+        lambda _display, _dpi: source_page,
+    )
+    publication.file_sha256.cache_clear()
+    publication.write_equation_ledger()
+
+    equation_dir = source / "equations"
+    crop = publication.EquationSourceCrop(trim="0bp 0bp 0bp 0bp", pixels=(0, 0, 2, 2))
+    for display in collect_equation_displays(source):
+        for kind, path in zip(
+            publication.EQUATION_ASSET_KINDS,
+            equation_asset_paths(display.stem),
+            strict=True,
+        ):
+            metadata = publication._equation_asset_metadata(
+                display,
+                kind,
+                source_crop=crop if kind == "source" else None,
+            )
+            publication._save_generated_equation_png(
+                equation_dir / path.name,
+                Image.new("RGB", (2, 2), "white"),
+                metadata,
+            )
+
+    (equation_dir / "unrelated.png").write_bytes(b"not a review asset")
+
+    assert publication._equations_cli(["--assets", "--check"]) == 1
+    assert "unexpected equation asset" in capsys.readouterr().err
+
+    assert publication._equations_cli(["--chapter", "1", "--assets", "--check"]) == 0
+    assert "current for Chapter 1" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    ("stale_indexes", "message"),
+    [
+        ((1,), "Regenerated 1 equation (3 review assets) in Chapter 1."),
+        ((0, 1), "Regenerated 2 equations (6 review assets) in Chapter 1."),
+    ],
+)
 def test_equations_assets_pass_only_stale_displays_to_regeneration(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
+    stale_indexes: tuple[int, ...],
+    message: str,
 ) -> None:
     source = _write_equation_test_sources(tmp_path)
     monkeypatch.setattr(publication, "SRC", source)
     displays = tuple(
         display for display in collect_equation_displays(source) if display.chapter == 1
     )
-    stale = (displays[1],)
+    stale = tuple(displays[index] for index in stale_indexes)
     calls: list[tuple[EquationDisplay, ...]] = []
     monkeypatch.setattr(
         publication,
@@ -267,10 +326,7 @@ def test_equations_assets_pass_only_stale_displays_to_regeneration(
 
     assert publication._equations_cli(["--chapter", "1", "--assets"]) == 0
     assert calls == [stale]
-    assert (
-        "Regenerated 1 equations (3 review assets) in Chapter 1."
-        in capsys.readouterr().out
-    )
+    assert message in capsys.readouterr().out
 
 
 def test_equations_assets_current_does_not_render(
