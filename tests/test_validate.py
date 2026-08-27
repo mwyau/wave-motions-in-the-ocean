@@ -105,7 +105,16 @@ def test_reader_context_keeps_chapter_link_static_and_section_updates_local() ->
     assert '"reader_chapter_url": f"chapter{chapter.number}.html"' in builder
     assert "readerContextTitle.textContent = title;" in script
     assert "readerContext.textContent" not in script
-    assert "a.reader-context-chapter:hover" in stylesheet
+    chapter_link_rule = re.search(
+        r"a\.reader-context-chapter,\s*"
+        r"a\.reader-context-chapter:visited\s*\{(?P<body>.*?)\}",
+        stylesheet,
+        re.DOTALL,
+    )
+    assert chapter_link_rule is not None
+    chapter_link_styles = chapter_link_rule.group("body")
+    assert "font-weight: 500;" in chapter_link_styles
+    assert "text-decoration: underline;" in chapter_link_styles
     assert "a.reader-context-chapter:focus-visible" in stylesheet
 
 
