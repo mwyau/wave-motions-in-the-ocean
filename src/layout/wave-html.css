@@ -228,7 +228,6 @@ div.flushright { text-align: right; margin-top: -0.85em; }
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   color: var(--wave-text);
@@ -238,6 +237,8 @@ div.flushright { text-align: right; margin-top: -0.85em; }
   padding: 0 .25rem;
 }
 .reader-context-chapter {
+  display: inline-flex;
+  align-items: center;
   flex-shrink: 0;
   font-weight: 600;
   color: var(--wave-heading);
