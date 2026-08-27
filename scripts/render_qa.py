@@ -797,7 +797,6 @@ def mathml_comparison_specimen(
         "if (textSizePercentages.has(requestedTextSize)) {"
         "const numericTextSize = Number.parseInt(requestedTextSize, 10);"
         "document.documentElement.style.setProperty('--wave-text-scale', String(numericTextSize / 100));"
-        "document.documentElement.style.setProperty('--wave-toolbar-text-size', `\"${requestedTextSize}\"`);"
         "}"
         "</script>"
         "<title>MathJax and native MathML comparison</title>"

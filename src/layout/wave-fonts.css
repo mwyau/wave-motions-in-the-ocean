@@ -28,9 +28,5 @@
   font-display: swap;
 }
 body {
-  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
   font-optical-sizing: auto;
-}
-h1, h2, h3, nav, button, .reader-context, .book-contents-rail, .book-contents-popover, .appearance-popover {
-  font-family: "Source Sans 3", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }

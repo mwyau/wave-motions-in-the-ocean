@@ -102,9 +102,10 @@ def test_reader_context_keeps_chapter_link_static_and_section_updates_local() ->
         in template
     )
     assert '<span class="reader-context-chapter">$reader_chapter$</span>' in template
-    assert '"reader_chapter_url": f"chapter{chapter.number}.html"' in builder
+    assert '"reader_chapter_url": "#top"' in builder
     assert "readerContextTitle.textContent = title;" in script
     assert "readerContext.textContent" not in script
+    assert "readerChapterLink" not in script
     chapter_link_rule = re.search(
         r"a\.reader-context-chapter,\s*"
         r"a\.reader-context-chapter:visited\s*\{(?P<body>.*?)\}",
@@ -128,7 +129,9 @@ def test_figure_controls_are_conditional_and_progressive() -> None:
     assert "$if(has_switchable_figures)$" in template
     assert 'data-figure-cycle aria-label="Figures currently showing vectors' in template
     assert '<span class="reader-setting-label">Figures:</span>' in template
-    assert '<span class="control-compact" aria-hidden="true">Fig</span>' in template
+    assert "<span data-figure-label>Vector</span>" in template
+    assert "control-wide" not in template
+    assert "control-compact" not in template
     assert 'class="figure-view-toggle js-only"' in builder
     assert ":root.no-js .js-only" in stylesheet
     assert 'const figureModes = ["vector", "original"]' in script
@@ -136,6 +139,26 @@ def test_figure_controls_are_conditional_and_progressive() -> None:
     assert "originalSrc" in script
     assert "wave-figure-view" not in script
     assert 'localStorage.setItem("wave-figure' not in script
+
+
+def test_reader_settings_use_single_runtime_labels() -> None:
+    root = Path(__file__).resolve().parents[1]
+    template = (root / "src" / "layout" / "wave-html.html").read_text()
+    stylesheet = (root / "src" / "layout" / "wave-html.css").read_text()
+    script = (root / "src" / "layout" / "wave-html.js").read_text()
+
+    assert template.count("data-math-label") == 1
+    assert template.count("data-figure-label") == 1
+    assert template.count("data-theme-label") == 1
+    assert 'id="appearance-settings"' not in template
+    assert "data-theme-option" not in template
+    assert "toolbar-theme-value" not in template
+    assert "math-label-bootstrap" not in template
+    assert "--wave-toolbar-text-size" not in stylesheet + script
+    assert "themeButtons" not in script
+    assert "toolbar-theme-value" not in stylesheet
+    assert "control-wide" not in stylesheet
+    assert "control-compact" not in stylesheet
 
 
 def test_figure_audit_uses_committed_visual_pairs_without_asset_review_state() -> None:

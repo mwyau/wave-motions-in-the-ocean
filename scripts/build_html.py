@@ -610,7 +610,7 @@ def reader_state(index: int | None) -> dict[str, str]:
         raise ValueError(f"unexpected chapter number: {index}")
     return {
         "reader_chapter": f"Chapter {chapter.number}",
-        "reader_chapter_url": f"chapter{chapter.number}.html",
+        "reader_chapter_url": "#top",
         "reader_title": html.escape(chapter.title),
     }
 
@@ -769,11 +769,10 @@ def page_metadata(path: Path) -> dict[str, str]:
 def template_variables(path: Path) -> dict[str, str]:
     index = page_index(path)
     info = current_build()
-    revision = info.sha if info.sha != "unknown" else "main"
     values = {
         "asset_version": html.escape(info.short_sha, quote=True),
         "source_url": html.escape(source_url(index, info.sha), quote=True),
-        "repository_url": html.escape(f"{REPOSITORY_URL}/tree/{revision}", quote=True),
+        "repository_url": html.escape(REPOSITORY_URL, quote=True),
         "build_label": html.escape(info.label),
         "build_url": html.escape(info.commit_url, quote=True),
         "book_toc": book_toc(index),
@@ -839,7 +838,7 @@ def validate_reader_context() -> None:
 
         expected = (
             f'<a class="reader-context-chapter" '
-            f'href="chapter{chapter.number}.html">Chapter {chapter.number}</a>'
+            f'href="#top">Chapter {chapter.number}</a>'
         )
         if body.count(expected) != 1 or len(re.findall(r"<a\b", body)) != 1:
             raise SystemExit(

@@ -81,8 +81,7 @@ def test_html_frontmatter_footer_starts_with_reader_link() -> None:
 
 @pytest.mark.parametrize(
     ("index", "expected_url"),
-    [(None, None), (0, None)]
-    + [(number, f"chapter{number}.html") for number in range(1, 7)],
+    [(None, None), (0, None)] + [(number, "#top") for number in range(1, 7)],
 )
 def test_reader_state_links_only_chapter_context_to_its_start(
     index: int | None, expected_url: str | None

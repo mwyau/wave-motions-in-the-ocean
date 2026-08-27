@@ -5,7 +5,7 @@
   const themeModes = ["auto", "light", "dark"];
   const themeNames = { auto: "Device", light: "Light", dark: "Dark" };
   const themeToggle = document.querySelector("[data-theme-cycle]");
-  const themeButtons = document.querySelectorAll("[data-theme-option]");
+  const themeLabel = document.querySelector("[data-theme-label]");
   let themeMode = "auto";
 
   try {
@@ -16,12 +16,7 @@
   const applyTheme = () => {
     if (themeMode === "auto") delete root.dataset.theme;
     else root.dataset.theme = themeMode;
-    themeButtons.forEach((button) => {
-      button.setAttribute(
-        "aria-pressed",
-        String(button.dataset.themeOption === themeMode),
-      );
-    });
+    if (themeLabel) themeLabel.textContent = themeNames[themeMode];
     if (themeToggle) {
       themeToggle.setAttribute(
         "aria-label",
@@ -40,12 +35,6 @@
     } catch (_) {}
     applyTheme();
   };
-
-  themeButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      setThemeMode(button.dataset.themeOption);
-    });
-  });
 
   themeToggle?.addEventListener("click", () => {
     const nextMode =
@@ -87,7 +76,6 @@
     } else {
       root.style.setProperty("--wave-text-scale", String(textSizePercent / 100));
     }
-    root.style.setProperty("--wave-toolbar-text-size", `"${textSizePercent}%"`);
     textSizeButtons.forEach((button) => {
       const action = button.dataset.textSizeAction;
       if (action === "decrease") button.disabled = textSizePercent <= textSizeMin;
@@ -239,11 +227,9 @@
   const initialMathMode = mathUrlOverride || bootstrapMathMode;
   let mathMode = initialMathMode;
   const mathCycle = document.querySelector("[data-math-cycle]");
-  const mathLabels = document.querySelectorAll("[data-math-label]");
+  const mathLabel = document.querySelector("[data-math-label]");
   const mathRenderers = document.querySelectorAll("[data-math-renderer]");
   const readerPagePattern = /^(?:index|chapter\d+|references)\.html$/;
-  const readerChapterLink = document.querySelector("a.reader-context-chapter[href]");
-  if (readerChapterLink) readerChapterLink.setAttribute("href", "#top");
 
   const showMathMode = (mode) => {
     mathRenderers.forEach((node) => {
@@ -254,9 +240,7 @@
   const syncMathControl = () => {
     if (!mathCycle) return;
     const nextMode = mathModes[(mathModes.indexOf(mathMode) + 1) % mathModes.length];
-    mathLabels.forEach((label) => {
-      label.textContent = mathNames[mathMode];
-    });
+    if (mathLabel) mathLabel.textContent = mathNames[mathMode];
     mathCycle.setAttribute(
       "aria-label",
       `Rendering: ${mathNames[mathMode]}; switch to ${mathNames[nextMode]}`,
@@ -469,9 +453,6 @@
     });
     groups.forEach((group) =>
       group.addEventListener("toggle", () => {
-        if (!group.open && group.querySelector(":scope > summary.is-current-chapter")) {
-          group.open = true;
-        }
         syncLabel();
       }),
     );
@@ -497,19 +478,6 @@
     const headerBottom = readerHeader?.getBoundingClientRect().bottom ?? 0;
     const top = Math.max(gutter, headerBottom + 8);
     root.style.setProperty("--book-contents-top", `${top}px`);
-  };
-
-  const syncCompactHeader = () => {
-    if (!readerHeader) return false;
-    const compact = readerHeader.classList.contains("is-compact");
-    const threshold = compact ? 24 : 40;
-    const shouldCompact = scrollY > threshold;
-    if (shouldCompact === compact) return false;
-
-    readerHeader.classList.toggle("is-compact", shouldCompact);
-    updateMeasuredHeaderHeight();
-    updateContentsTop();
-    return true;
   };
 
   const updateContentsMode = () => {
@@ -538,7 +506,7 @@
     root.dataset.tocReady = "";
 
     if (showRail && tocPanel?.matches(":popover-open")) tocPanel.hidePopover();
-    if (showRail && !wasVisible) requestAnimationFrame(() => orientContents({ reset: true }));
+    if (showRail && !wasVisible) requestAnimationFrame(() => orientContents());
   };
 
   const positionContents = () => {
@@ -560,7 +528,7 @@
       });
       tocPanel.addEventListener("toggle", (event) => {
         if (event.newState === "open") {
-          requestAnimationFrame(() => orientContents({ reset: true }));
+          requestAnimationFrame(orientContents);
         }
       });
       tocPanel.addEventListener("click", (event) => {
@@ -582,26 +550,11 @@
     updateContentsMode();
     if (tocPanel?.matches(":popover-open")) positionContents();
   };
-  syncCompactHeader();
   updateContentsLayout();
   addEventListener("resize", updateContentsLayout, { passive: true });
   if (readerHeader && "ResizeObserver" in window) {
     new ResizeObserver(() => updateContentsLayout()).observe(readerHeader);
   }
-
-  let contentsScrollFrame = 0;
-  addEventListener(
-    "scroll",
-    () => {
-      if (contentsScrollFrame) return;
-      contentsScrollFrame = requestAnimationFrame(() => {
-        contentsScrollFrame = 0;
-        if (!syncCompactHeader()) updateContentsTop();
-        else updateContentsLayout();
-      });
-    },
-    { passive: true },
-  );
 
   const fragmentTarget = () => {
     let id = "";
@@ -706,10 +659,9 @@
     );
   };
 
-  const orientContents = ({ reset = false } = {}) => {
+  const orientContents = () => {
     syncCurrentChapter(activeSectionId);
     contentsViews().forEach((view) => {
-      if (reset) view.scrollTop = 0;
       const target = contentsTarget(view);
       if (!target) return;
       target.closest("details.book-toc-group")?.setAttribute("open", "");

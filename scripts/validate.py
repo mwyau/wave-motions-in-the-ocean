@@ -663,10 +663,7 @@ def check_html_reader_context(page: Path, text: str) -> None:
             fail(f"{page.name}: non-chapter context must remain non-clickable")
         return
 
-    expected = (
-        f'<a class="reader-context-chapter" '
-        f'href="chapter{page_index}.html">Chapter {page_index}</a>'
-    )
+    expected = f'<a class="reader-context-chapter" href="#top">Chapter {page_index}</a>'
     if body.count(expected) != 1 or len(re.findall(r"<a\b", body)) != 1:
         fail(f"{page.name}: only the chapter label may be linked in the reader context")
 
@@ -861,8 +858,10 @@ def check_html() -> None:
             'class="skip-link"',
             'class="reader-header page-shell"',
             'class="book-nav',
+            'id="reader-settings"',
             "data-theme-cycle",
-            'id="appearance-settings"',
+            "data-theme-label",
+            "data-math-label",
             'data-text-size-action="decrease"',
             'data-text-size-action="reset"',
             'data-text-size-action="increase"',
@@ -874,6 +873,7 @@ def check_html() -> None:
             'class="book-contents-popover"',
             'class="build-info"',
             ">Source</a>",
+            "Build <a",
             "Front matter",
             "References",
             "assets/wave.css",
@@ -894,13 +894,21 @@ def check_html() -> None:
                 fail(f"HTML requirement {required!r} is missing from {page.name}")
         if text.count("data-theme-cycle") != 1:
             fail(f"HTML Appearance control count is not one in {page.name}")
-        if text.count('id="appearance-settings"') != 1:
-            fail(f"HTML Appearance panel count is not one in {page.name}")
-        for mode in ("auto", "light", "dark"):
-            if text.count(f'data-theme-option="{mode}"') != 1:
-                fail(
-                    f"HTML theme choice {mode!r} is not present exactly once in {page.name}"
-                )
+        if text.count("data-theme-label") != 1 or text.count("data-math-label") != 1:
+            fail(f"HTML reader setting labels are missing or duplicated in {page.name}")
+        if text.count("data-figure-cycle") != text.count("data-figure-label"):
+            fail(f"HTML figure setting labels do not match controls in {page.name}")
+        if any(
+            marker in text
+            for marker in (
+                'id="appearance-settings"',
+                "data-theme-option=",
+                "toolbar-theme-value",
+                "control-wide",
+                "control-compact",
+            )
+        ):
+            fail(f"obsolete reader setting markup remains in {page.name}")
         for action in TEXT_SIZE_ACTIONS:
             if text.count(f'data-text-size-action="{action}"') != 1:
                 fail(
@@ -919,6 +927,17 @@ def check_html() -> None:
             fail(f"HTML Contents controls are duplicated or missing in {page.name}")
         if text.count('class="build-info"') != 1:
             fail(f"HTML build stamp count is not one in {page.name}")
+        if '<a href="#top">Back to top</a>' not in text:
+            fail(f"HTML back-to-top link is missing from {page.name}")
+        repository_link = (
+            f'<a href="{html.escape(REPOSITORY_URL, quote=True)}">Repository</a>'
+        )
+        if repository_link not in text or f"{REPOSITORY_URL}/tree/" in text:
+            fail(
+                f"HTML repository link must point to the repository root in {page.name}"
+            )
+        if "Build: <a" in text:
+            fail(f"HTML build label has an unexpected colon in {page.name}")
         if text.count('property="og:image"') != 1:
             fail(f"HTML social preview image metadata count is not one in {page.name}")
         if 'class="book-context"' in text or "data-theme-select" in text:
