@@ -79,16 +79,24 @@ def test_html_frontmatter_footer_starts_with_reader_link() -> None:
     assert "wave-motions-facsimile.pdf" not in footer
 
 
-@pytest.mark.parametrize(
-    ("index", "expected_url"),
-    [(None, None), (0, None)] + [(number, "#top") for number in range(1, 7)],
-)
-def test_reader_state_links_only_chapter_context_to_its_start(
-    index: int | None, expected_url: str | None
-) -> None:
+@pytest.mark.parametrize("index", [None, 0, *range(1, 7)])
+def test_reader_state_links_context_to_page_start(index: int | None) -> None:
     state = build_html.reader_state(index)
 
-    assert state.get("reader_chapter_url") == expected_url
+    assert state["reader_chapter_url"] == "#top"
+
+
+def test_reader_toc_respects_manual_collapsed_groups() -> None:
+    script = (
+        Path(__file__).resolve().parents[1] / "src" / "layout" / "wave-html.js"
+    ).read_text()
+
+    assert "if (isCurrent) group.open = true;" not in script
+    assert "activeGroup?.open" in script
+    assert (
+        'target.closest("details.book-toc-group")?.setAttribute("open", "");'
+        not in script
+    )
 
 
 def test_equation_extraction_order_wrappers_and_exact_source(tmp_path: Path) -> None:

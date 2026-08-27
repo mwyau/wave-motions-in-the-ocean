@@ -597,11 +597,13 @@ def reader_state(index: int | None) -> dict[str, str]:
     if index is None:
         return {
             "reader_chapter": "Front matter",
+            "reader_chapter_url": "#top",
             "reader_title": "",
         }
     if index == 0:
         return {
             "reader_chapter": "References",
+            "reader_chapter_url": "#top",
             "reader_title": "",
         }
 
@@ -805,7 +807,7 @@ READER_CONTEXT_RE = re.compile(
 
 
 def validate_reader_context() -> None:
-    """Validate the static chapter link and section-only context slot."""
+    """Validate the page-start link and section-only context slot."""
     for page in EXPECTED_PAGES:
         text = page.read_text(errors="replace")
         matches = READER_CONTEXT_RE.findall(text)
@@ -824,25 +826,17 @@ def validate_reader_context() -> None:
             )
 
         chapter = chapter_for_page(page)
-        if chapter is None:
-            expected = (
-                f'<span class="reader-context-chapter">'
-                f"{'Front matter' if page.name == 'index.html' else 'References'}"
-                "</span>"
-            )
-            if expected not in body or re.search(r"<a\b", body):
-                raise SystemExit(
-                    f"{page.name}: non-chapter context must remain non-clickable"
-                )
-            continue
-
-        expected = (
-            f'<a class="reader-context-chapter" '
-            f'href="#top">Chapter {chapter.number}</a>'
+        label = (
+            f"Chapter {chapter.number}"
+            if chapter is not None
+            else "Front matter"
+            if page.name == "index.html"
+            else "References"
         )
+        expected = f'<a class="reader-context-chapter" href="#top">{label}</a>'
         if body.count(expected) != 1 or len(re.findall(r"<a\b", body)) != 1:
             raise SystemExit(
-                f"{page.name}: only the chapter label may be linked in the reader context"
+                f"{page.name}: reader context label must link only to the page start"
             )
 
 

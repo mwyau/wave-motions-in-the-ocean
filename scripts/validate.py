@@ -642,7 +642,7 @@ READER_CONTEXT_RE = re.compile(
 
 
 def check_html_reader_context(page: Path, text: str) -> None:
-    """Validate the chapter-only link in the generated reader context."""
+    """Validate the page-start link in the generated reader context."""
     matches = READER_CONTEXT_RE.findall(text)
     if len(matches) != 1:
         fail(f"{page.name}: reader context is missing or has changed structure")
@@ -653,19 +653,16 @@ def check_html_reader_context(page: Path, text: str) -> None:
         fail(f"{page.name}: reader context section slot is missing or duplicated")
 
     page_index = html_page_index(page)
-    if page_index is None or page_index == 0:
-        expected = (
-            f'<span class="reader-context-chapter">'
-            f"{'Front matter' if page_index is None else 'References'}"
-            "</span>"
-        )
-        if expected not in body or re.search(r"<a\b", body):
-            fail(f"{page.name}: non-chapter context must remain non-clickable")
-        return
-
-    expected = f'<a class="reader-context-chapter" href="#top">Chapter {page_index}</a>'
+    label = (
+        f"Chapter {page_index}"
+        if page_index is not None and page_index > 0
+        else "Front matter"
+        if page_index is None
+        else "References"
+    )
+    expected = f'<a class="reader-context-chapter" href="#top">{label}</a>'
     if body.count(expected) != 1 or len(re.findall(r"<a\b", body)) != 1:
-        fail(f"{page.name}: only the chapter label may be linked in the reader context")
+        fail(f"{page.name}: reader context label must link only to the page start")
 
 
 def check_html_figures() -> None:

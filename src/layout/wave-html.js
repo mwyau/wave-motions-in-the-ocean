@@ -634,7 +634,6 @@
         const summary = group.querySelector(":scope > summary");
         const isCurrent = group === current;
         summary?.classList.toggle("is-current-chapter", isCurrent);
-        if (isCurrent) group.open = true;
       });
     });
   };
@@ -652,8 +651,9 @@
           (link) => link.dataset.sectionLink === activeSectionId,
         )
       : null;
+    const activeGroup = activeLink?.closest("details.book-toc-group");
+    if (activeLink && activeGroup?.open) return activeLink;
     return (
-      activeLink ||
       view.querySelector("summary.is-current-chapter") ||
       view.querySelector('summary a[aria-current="page"]')
     );
@@ -664,7 +664,6 @@
     contentsViews().forEach((view) => {
       const target = contentsTarget(view);
       if (!target) return;
-      target.closest("details.book-toc-group")?.setAttribute("open", "");
       requestAnimationFrame(() => {
         const viewRect = view.getBoundingClientRect();
         const targetRect = target.getBoundingClientRect();
