@@ -246,11 +246,9 @@ div.flushright { text-align: right; margin-top: -0.85em; }
 a.reader-context-chapter,
 a.reader-context-chapter:visited {
   color: var(--wave-link);
-  text-decoration: none;
-}
-a.reader-context-chapter:hover {
-  color: var(--wave-link);
+  font-weight: 500;
   text-decoration: underline;
+  text-underline-offset: .13em;
 }
 a.reader-context-chapter:focus-visible {
   outline: 2px solid var(--wave-link);
