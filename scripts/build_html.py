@@ -984,6 +984,14 @@ FIGURE_LABEL_RE = re.compile(
     re.DOTALL,
 )
 FIGURE_IMAGE_SRC_RE = re.compile(r'\bsrc="([^"]+)"', re.IGNORECASE)
+FIGURE_CONTROL_RE = re.compile(
+    r"<button\b[^>]*\bdata-figure-cycle\b[^>]*>(.*?)</button>",
+    re.DOTALL | re.IGNORECASE,
+)
+FIGURE_LABEL_VALUE_RE = re.compile(
+    r"<span\b[^>]*\bdata-figure-label\b[^>]*>(.*?)</span>",
+    re.DOTALL | re.IGNORECASE,
+)
 
 
 def _figure_image_src(image_tag: str) -> str:
@@ -1089,9 +1097,31 @@ def validate_figure_markup() -> None:
     for page in EXPECTED_PAGES:
         text = page.read_text(errors="replace")
         expected_switchable = set(page_switchable_figure_stems(page, OUT))
+        controls = FIGURE_CONTROL_RE.findall(text)
+        if (
+            len(controls) != 1
+            or text.count("data-figure-cycle") != 1
+            or text.count("data-figure-label") != 1
+        ):
+            raise SystemExit(
+                f"{page.name}: expected one global figure rendering preference"
+            )
+        control = controls[0]
+        labels = FIGURE_LABEL_VALUE_RE.findall(control)
+        label = re.sub(r"<[^>]+>", "", labels[0]).strip() if len(labels) == 1 else ""
+        if label != "Original":
+            raise SystemExit(
+                f"{page.name}: global figure rendering preference must start at Original"
+            )
+        if not re.search(
+            r'\baria-label="Default figure rendering: Original"',
+            text,
+            re.IGNORECASE,
+        ):
+            raise SystemExit(
+                f"{page.name}: global figure preference has the wrong label"
+            )
         blocks = FIGURE_BLOCK_RE.findall(text)
-        if text.count("data-figure-cycle") or text.count("data-figure-label"):
-            raise SystemExit(f"{page.name}: obsolete global figure controls remain")
         for block in blocks:
             images = FIGURE_IMAGE_TAG_RE.findall(block)
             if len(images) != 1 or block.count("<figcaption>") != 1:

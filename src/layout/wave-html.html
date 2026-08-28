@@ -56,6 +56,10 @@
         if (!hasValidMathOverride && savedMathMode === "mathml") {
           initialMathMode = "mathml";
         }
+        const savedFigureView = localStorage.getItem("wave-figure-view");
+        if (savedFigureView === "original" || savedFigureView === "vector") {
+          root.dataset.initialFigure = savedFigureView;
+        }
       } catch (_) {}
       root.dataset.initialMath = initialMathMode;
       if (initialMathMode !== "mathjax") return;
@@ -111,6 +115,12 @@
         <span class="reader-setting-label">Rendering:</span>
         <button class="math-renderer-cycle reader-cycle js-only" type="button" data-math-cycle>
           <span data-math-label>MathML</span>
+        </button>
+      </div>
+      <div class="reader-setting-row">
+        <span class="reader-setting-label">Figures:</span>
+        <button class="figure-view-cycle reader-cycle js-only" type="button" data-figure-cycle aria-label="Default figure rendering: Original" title="Default figure rendering: Original">
+          <span data-figure-label>Original</span>
         </button>
       </div>
       <div class="reader-setting-row">

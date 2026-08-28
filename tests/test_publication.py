@@ -1190,12 +1190,14 @@ def test_install_figure_markup_leaves_source_art_without_switch_action(
     assert 'src="assets/figures/source-art.png"' in output
 
 
-def test_html_template_has_no_global_figure_setting() -> None:
+def test_html_template_has_global_figure_preference() -> None:
     template = (publication.SRC / "layout" / "wave-html.html").read_text()
 
-    assert "Figures:" not in template
-    assert "data-figure-cycle" not in template
-    assert "data-figure-label" not in template
+    assert template.count('<div class="reader-setting-row">') == 4
+    assert template.count("data-figure-cycle") == 1
+    assert template.count("data-figure-label") == 1
+    assert 'aria-label="Default figure rendering: Original"' in template
+    assert ">Original</span>" in template
     assert "has_switchable_figures" not in template
 
 

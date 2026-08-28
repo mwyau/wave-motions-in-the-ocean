@@ -99,10 +99,23 @@
     scrollBy(0, anchor.node.getBoundingClientRect().top - anchor.top);
   };
 
-  const figureModes = ["vector", "original"];
+  const figureKey = "wave-figure-view";
+  const figureModes = ["original", "vector"];
+  const figureNames = { original: "Original", vector: "Vector" };
+  const figureControl = document.querySelector("[data-figure-cycle]");
+  const figureLabel = document.querySelector("[data-figure-label]");
   const switchableFigures = Array.from(
     document.querySelectorAll("figure.wave-figure-switchable"),
   );
+  let figurePreference = "original";
+
+  try {
+    const bootstrapFigure = root.dataset.initialFigure;
+    const savedFigure = figureModes.includes(bootstrapFigure)
+      ? bootstrapFigure
+      : localStorage.getItem(figureKey);
+    if (figureModes.includes(savedFigure)) figurePreference = savedFigure;
+  } catch (_) {}
 
   const figureImage = (figure) => figure.querySelector("img[data-vector-src]");
 
@@ -118,6 +131,14 @@
         ? "Switch to reconstructed vector figure"
         : "Switch to original source figure",
     );
+  };
+
+  const syncFigureControl = () => {
+    if (!figureControl || !figureModes.includes(figurePreference)) return;
+    const name = figureNames[figurePreference];
+    if (figureLabel) figureLabel.textContent = name;
+    figureControl.setAttribute("aria-label", `Default figure rendering: ${name}`);
+    figureControl.title = `Default figure rendering: ${name}`;
   };
 
   const setFigureMode = (figure, mode) => {
@@ -142,7 +163,26 @@
     });
   };
 
+  const persistFigurePreference = (mode) => {
+    try {
+      localStorage.setItem(figureKey, mode);
+    } catch (_) {}
+  };
+
+  const applyFigurePreference = (mode, { persist = false } = {}) => {
+    if (!figureModes.includes(mode)) return;
+    const anchor = visibleContentAnchor();
+    const images = switchableFigures
+      .map((figure) => setFigureMode(figure, mode))
+      .filter(Boolean);
+    figurePreference = mode;
+    syncFigureControl();
+    if (persist) persistFigurePreference(mode);
+    restoreAfterFigureChange(anchor, images);
+  };
+
   switchableFigures.forEach((figure) => {
+    setFigureMode(figure, figurePreference);
     syncFigureAction(figure);
     const toggle = figure.querySelector("[data-figure-toggle]");
     toggle?.addEventListener("click", () => {
@@ -152,6 +192,12 @@
       const image = setFigureMode(figure, next);
       restoreAfterFigureChange(anchor, image ? [image] : []);
     });
+  });
+
+  syncFigureControl();
+  figureControl?.addEventListener("click", () => {
+    const next = figureModes[(figureModes.indexOf(figurePreference) + 1) % figureModes.length];
+    applyFigurePreference(next, { persist: true });
   });
 
   textSizeButtons.forEach((button) => {

@@ -638,6 +638,14 @@ FIGURE_TOGGLE_RE = re.compile(
     r"<button\b[^>]*\bdata-figure-toggle\b[^>]*>(.*?)</button>",
     re.DOTALL | re.IGNORECASE,
 )
+FIGURE_CONTROL_RE = re.compile(
+    r"<button\b[^>]*\bdata-figure-cycle\b[^>]*>(.*?)</button>",
+    re.DOTALL | re.IGNORECASE,
+)
+FIGURE_LABEL_VALUE_RE = re.compile(
+    r"<span\b[^>]*\bdata-figure-label\b[^>]*>(.*?)</span>",
+    re.DOTALL | re.IGNORECASE,
+)
 READER_CONTEXT_RE = re.compile(
     r'<span class="reader-context"[^>]*>(?P<body>.*?)</span>\s*'
     r'<span class="reader-nav-slot">',
@@ -679,8 +687,25 @@ def check_html_figures() -> None:
     for page in EXPECTED_HTML_PAGES:
         text = page.read_text(errors="replace")
         expected = set(page_switchable_figure_stems(page, PUBLICATION))
-        if text.count("data-figure-cycle") or text.count("data-figure-label"):
-            fail(f"{page.name}: obsolete global figure controls remain")
+        controls = FIGURE_CONTROL_RE.findall(text)
+        if (
+            len(controls) != 1
+            or text.count("data-figure-cycle") != 1
+            or text.count("data-figure-label") != 1
+        ):
+            fail(f"{page.name}: expected one global figure rendering preference")
+        control_labels = FIGURE_LABEL_VALUE_RE.findall(controls[0])
+        control_label = (
+            re.sub(r"<[^>]+>", "", control_labels[0]).strip()
+            if len(control_labels) == 1
+            else ""
+        )
+        if control_label != "Original":
+            fail(
+                f"{page.name}: global figure rendering preference must start at Original"
+            )
+        if 'aria-label="Default figure rendering: Original"' not in text:
+            fail(f"{page.name}: global figure preference has the wrong label")
         blocks = FIGURE_BLOCK_RE.findall(text)
         for block in blocks:
             images = FIGURE_IMAGE_RE.findall(block)
@@ -881,6 +906,8 @@ def check_html() -> None:
             "data-theme-cycle",
             "data-theme-label",
             "data-math-label",
+            "data-figure-cycle",
+            "data-figure-label",
             'data-text-size-action="decrease"',
             'data-text-size-action="reset"',
             'data-text-size-action="increase"',
@@ -915,8 +942,6 @@ def check_html() -> None:
             fail(f"HTML Appearance control count is not one in {page.name}")
         if text.count("data-theme-label") != 1 or text.count("data-math-label") != 1:
             fail(f"HTML reader setting labels are missing or duplicated in {page.name}")
-        if text.count("data-figure-cycle") or text.count("data-figure-label"):
-            fail(f"obsolete global figure controls remain in {page.name}")
         if any(
             marker in text
             for marker in (

@@ -294,6 +294,14 @@ FIGURE_TOGGLE_RE = re.compile(
     r"<button\b[^>]*\bdata-figure-toggle\b[^>]*>(.*?)</button>",
     re.DOTALL | re.IGNORECASE,
 )
+FIGURE_CONTROL_RE = re.compile(
+    r"<button\b[^>]*\bdata-figure-cycle\b[^>]*>(.*?)</button>",
+    re.DOTALL | re.IGNORECASE,
+)
+FIGURE_LABEL_VALUE_RE = re.compile(
+    r"<span\b[^>]*\bdata-figure-label\b[^>]*>(.*?)</span>",
+    re.DOTALL | re.IGNORECASE,
+)
 
 
 def figure_html_qa(dist: Path, report: Report, lines: list[str]) -> None:
@@ -371,11 +379,26 @@ def figure_html_qa(dist: Path, report: Report, lines: list[str]) -> None:
                     "HTML",
                     f"{name}: switchable figure has the wrong initial action label",
                 )
-        if text.count("data-figure-cycle") or text.count("data-figure-label"):
+        controls = FIGURE_CONTROL_RE.findall(text)
+        control_labels = (
+            FIGURE_LABEL_VALUE_RE.findall(controls[0]) if len(controls) == 1 else []
+        )
+        control_label = (
+            re.sub(r"<[^>]+>", "", control_labels[0]).strip()
+            if len(control_labels) == 1
+            else ""
+        )
+        if (
+            len(controls) != 1
+            or text.count("data-figure-cycle") != 1
+            or text.count("data-figure-label") != 1
+            or control_label != "Original"
+            or 'aria-label="Default figure rendering: Original"' not in text
+        ):
             report.add(
                 "ERROR",
                 "HTML",
-                f"{name}: obsolete global figure controls remain",
+                f"{name}: global figure rendering preference is missing or malformed",
             )
         switchable += page_switchable
 
@@ -1450,8 +1473,14 @@ def reader_regression_specimen(report: Report) -> Path:
           return null;
         }
       };
+      const loadReader = (url) => new Promise((resolve) => {
+        frame.addEventListener("load", () => {
+          setTimeout(() => resolve(frame.contentDocument), 300);
+        }, { once: true });
+        frame.src = url;
+      });
       const run = async () => {
-        const doc = frame.contentDocument;
+        let doc = frame.contentDocument;
         if (!doc) {
           check(false, "reader document is available");
           finish();
@@ -1460,12 +1489,6 @@ def reader_regression_specimen(report: Report) -> Path:
         await wait(300);
         const figures = Array.from(doc.querySelectorAll("figure.wave-figure-switchable"));
         check(figures.length >= 2, "page has at least two switchable figures");
-        check(
-          !doc.querySelector("[data-figure-cycle]") &&
-            !doc.querySelector("[data-figure-label]") &&
-            !/Figures\\s*:/.test(doc.querySelector("#reader-settings")?.textContent || ""),
-          "Settings has no global Figures control",
-        );
         const parts = figures.slice(0, 2).map((figure) => ({
           figure,
           image: figure.querySelector("img[data-vector-src]"),
@@ -1513,7 +1536,65 @@ def reader_regression_specimen(report: Report) -> Path:
             .map((key) => name + ":" + key),
         );
         check(stores.length === storageNames.length, "reader storage is available for the persistence check");
-        check(figureStorageKeys().length === 0, "figure switching writes no storage preference");
+        const figureControl = doc.querySelector("[data-figure-cycle]");
+        const figureControlLabel = doc.querySelector("[data-figure-label]");
+        check(Boolean(figureControl && figureControlLabel), "Settings exposes the global Figures control");
+        if (figureControl && figureControlLabel) {
+          check(figureControlLabel.textContent.trim() === "Original", "global figure preference initially says Original");
+          check(
+            figureControl.getAttribute("aria-label") === "Default figure rendering: Original" &&
+              figureControl.title === "Default figure rendering: Original",
+            "global figure preference has default-oriented accessibility text",
+          );
+        }
+        check(figureStorageKeys().length === 0, "local figure switching writes no storage preference");
+
+        figureControl?.click();
+        await wait(50);
+        check(isVector(first) && isVector(second), "global Vector preference updates all current figures");
+        check(
+          figureControlLabel?.textContent.trim() === "Vector" &&
+            figureControl?.getAttribute("aria-label") === "Default figure rendering: Vector",
+          "global figure preference changes to Vector",
+        );
+        check(
+          frame.contentWindow.localStorage.getItem("wave-figure-view") === "vector",
+          "global Vector preference is persisted",
+        );
+        check(
+          !figureStorageKeys().some((key) => key.startsWith("sessionStorage:")),
+          "figure preference is not written to session storage",
+        );
+
+        first.toggle.click();
+        await wait(50);
+        check(isOriginal(first) && isVector(second), "local override affects only its figure after a global change");
+        check(figureControlLabel?.textContent.trim() === "Vector", "local override leaves the global preference unchanged");
+        figureControl?.click();
+        await wait(50);
+        check(isOriginal(first) && isOriginal(second), "a global change resets temporary local overrides");
+        check(
+          frame.contentWindow.localStorage.getItem("wave-figure-view") === "original" &&
+            figureControlLabel?.textContent.trim() === "Original",
+          "global Original preference is persisted",
+        );
+        figureControl?.click();
+        await wait(50);
+        doc = await loadReader("/chapter1.html?math=mathjax");
+        const reloadedFigures = Array.from(doc.querySelectorAll("figure.wave-figure-switchable")).slice(0, 2);
+        const reloadedParts = reloadedFigures.map((figure) => ({
+          image: figure.querySelector("img[data-vector-src]"),
+          toggle: figure.querySelector("[data-figure-toggle]"),
+        }));
+        check(
+          reloadedParts.length === 2 && reloadedParts.every(isVector),
+          "persisted Vector preference applies on a new page load",
+        );
+        check(
+          doc.querySelector("[data-figure-label]")?.textContent.trim() === "Vector" &&
+            doc.querySelector("[data-figure-cycle]")?.getAttribute("aria-label") === "Default figure rendering: Vector",
+          "new page Settings reflects the persisted Vector preference",
+        );
 
         const panel = doc.querySelector("#reader-settings");
         const settingsButton = doc.querySelector("[aria-controls=reader-settings]");
@@ -1546,9 +1627,33 @@ def reader_regression_specimen(report: Report) -> Path:
         };
         check(Boolean(panel && settingsButton && reset && decrease && increase), "Settings exposes its expected controls");
         if (panel && settingsButton && reset && decrease && increase) {
+          const rows = Array.from(panel.querySelectorAll(".reader-setting-row"));
+          const rowLabels = rows.map((row) => row.querySelector(".reader-setting-label")?.textContent.trim());
+          const rowControls = rows.map((row) => row.children[1]);
+          check(
+            rowLabels.join("|") === "Rendering:|Figures:|Text:|Theme:",
+            "Settings has its four aligned rows",
+          );
+          check(
+            rowControls.every(Boolean) &&
+              Math.max(...rowControls.map((control) => control.getBoundingClientRect().width)) -
+                Math.min(...rowControls.map((control) => control.getBoundingClientRect().width)) <= 1,
+            "Settings controls have equal total widths",
+          );
+          check(
+            rows.every((row) => {
+              const label = row.querySelector(".reader-setting-label");
+              const control = row.children[1];
+              return label && control &&
+                label.getBoundingClientRect().right <= control.getBoundingClientRect().left &&
+                label.scrollWidth <= label.clientWidth;
+            }),
+            "Settings labels fit without wrapping or overlapping controls",
+          );
           panel.style.maxHeight = "8rem";
           panel.style.overflow = "auto";
           await setTextSize(100);
+          check(panel.scrollWidth <= panel.clientWidth, "Settings has no horizontal overflow at its default size");
           check(panel.scrollHeight > panel.clientHeight, "Settings overflow check includes a vertical scrollbar");
           await setTextSize(50);
           await setTextSize(200);
@@ -1575,7 +1680,10 @@ def reader_regression_specimen(report: Report) -> Path:
             label + " is not an independent horizontal scroll container",
           );
         }
-        check(figureStorageKeys().length === 0, "figure switching still has no storage preference after all checks");
+        check(
+          frame.contentWindow.localStorage.getItem("wave-figure-view") === "vector",
+          "figure preference remains persisted after all checks",
+        );
         finish();
       };
       frame.addEventListener("load", () => {
@@ -1584,6 +1692,10 @@ def reader_regression_specimen(report: Report) -> Path:
           finish();
         });
       }, { once: true });
+      try {
+        localStorage.removeItem("wave-figure-view");
+        sessionStorage.removeItem("wave-figure-view");
+      } catch (_) {}
       frame.src = "/chapter1.html?math=mathjax";
     })();
   </script>
@@ -1626,6 +1738,7 @@ def reader_visual_specimen(report: Report) -> Path:
       ]);
       const textSize = Number.parseInt(params.get("text-size"), 10);
       const theme = params.get("theme");
+      const settingsOpen = params.get("settings") === "1";
       const frame = document.querySelector("#reader-visual-frame");
       frame.addEventListener("load", () => {
         const root = frame.contentDocument.documentElement;
@@ -1633,6 +1746,9 @@ def reader_visual_specimen(report: Report) -> Path:
           root.style.setProperty("--wave-text-scale", String(textSize / 100));
         }
         if (theme === "light" || theme === "dark") root.dataset.theme = theme;
+        if (settingsOpen) {
+          frame.contentDocument.querySelector("[aria-controls=reader-settings]")?.click();
+        }
         document.documentElement.dataset.qaReady = "";
       }, { once: true });
       frame.src = "/" + (allowedPages.has(page) ? page : "chapter1.html");
@@ -1682,6 +1798,23 @@ def browser_reader_visual_jobs(
                 False,
             )
         )
+    settings_query = urllib.parse.urlencode(
+        {
+            "page": "chapter1.html",
+            "text-size": "100%",
+            "theme": "light",
+            "settings": "1",
+        }
+    )
+    jobs.append(
+        (
+            "reader-settings-390.png",
+            f"{READER_VISUAL_ROUTE}?{settings_query}",
+            390,
+            844,
+            False,
+        )
+    )
 
 
 def browser_reader_regressions(
@@ -1731,7 +1864,7 @@ def browser_reader_regressions(
         return
     lines.append(
         "- Chromium reader regression assertions: PASS "
-        "(per-figure switching, no figure persistence/global control, Settings "
+        "(global and per-figure switching, figure persistence, Settings layout and "
         "overflow at 50%/100%/200%, and inline MathJax/MathML overflow)"
     )
 
