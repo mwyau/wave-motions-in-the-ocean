@@ -756,23 +756,6 @@ img[src$="salmon-hendershott-como-1980.jpg"] {
   padding: 0;
   math-style: normal;
 }
-.math.inline {
-  display: inline-block;
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  vertical-align: middle;
-  -webkit-overflow-scrolling: touch;
-}
-.math.inline > mjx-container[jax="CHTML"] {
-  display: inline-block;
-  max-width: 100%;
-}
-.math.inline > math {
-  display: inline math;
-  max-width: 100%;
-  overflow-x: auto;
-}
 mjx-container[jax="CHTML"] { color: inherit; }
 pre, table { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 table { display: block; }
