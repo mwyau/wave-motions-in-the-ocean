@@ -634,6 +634,10 @@ FIGURE_BLOCK_RE = re.compile(
     re.DOTALL,
 )
 FIGURE_IMAGE_RE = re.compile(r"<img\b[^>]*>", re.IGNORECASE)
+FIGURE_TOGGLE_RE = re.compile(
+    r"<button\b[^>]*\bdata-figure-toggle\b[^>]*>(.*?)</button>",
+    re.DOTALL | re.IGNORECASE,
+)
 READER_CONTEXT_RE = re.compile(
     r'<span class="reader-context"[^>]*>(?P<body>.*?)</span>\s*'
     r'<span class="reader-nav-slot">',
@@ -675,11 +679,8 @@ def check_html_figures() -> None:
     for page in EXPECTED_HTML_PAGES:
         text = page.read_text(errors="replace")
         expected = set(page_switchable_figure_stems(page, PUBLICATION))
-        controls = text.count("data-figure-cycle")
-        if controls != int(bool(expected)):
-            fail(
-                f"{page.name}: Figures control presence does not match switchable figures"
-            )
+        if text.count("data-figure-cycle") or text.count("data-figure-label"):
+            fail(f"{page.name}: obsolete global figure controls remain")
         blocks = FIGURE_BLOCK_RE.findall(text)
         for block in blocks:
             images = FIGURE_IMAGE_RE.findall(block)
@@ -714,11 +715,16 @@ def check_html_figures() -> None:
                 or not (PUBLICATION / original.group(1)).is_file()
             ):
                 fail(f"{page.name}: switchable figure asset is missing")
-            if (
-                block.count("data-figure-toggle") != 1
-                or ">Vector</button>" not in block
-            ):
+            toggles = FIGURE_TOGGLE_RE.findall(block)
+            toggle_text = (
+                re.sub(r"<[^>]+>", "", toggles[0]).strip() if len(toggles) == 1 else ""
+            )
+            if len(toggles) != 1 or toggle_text != "Switch to Vector":
                 fail(f"{page.name}: switchable figure is missing its local action")
+            if 'aria-label="Switch to reconstructed vector figure"' not in block:
+                fail(
+                    f"{page.name}: switchable figure has the wrong initial action label"
+                )
 
 
 def check_html() -> None:
@@ -774,6 +780,18 @@ def check_html() -> None:
     selector = 'mjx-container[jax="CHTML"][display="true"]'
     if selector not in css_text or "overflow-x: auto" not in css_text:
         fail("HTML stylesheet is missing responsive display-math overflow handling")
+    inline_math_rule = re.search(
+        r"\.math\.inline\s*\{(?P<body>[^}]*)\}", css_text, flags=re.DOTALL
+    )
+    if inline_math_rule is None:
+        fail("HTML stylesheet is missing the inline-math flow invariant")
+    inline_math_css = inline_math_rule.group("body")
+    if "display: inline" not in inline_math_css:
+        fail("HTML inline mathematics must remain in normal inline flow")
+    if "overflow: visible" not in inline_math_css or re.search(
+        r"overflow(?:-x)?\s*:\s*(?:auto|scroll)", inline_math_css
+    ):
+        fail("HTML inline mathematics must not become an independent scroll container")
 
     combined = "\n".join(
         path.read_text(errors="replace") for path in EXPECTED_HTML_PAGES
@@ -897,8 +915,8 @@ def check_html() -> None:
             fail(f"HTML Appearance control count is not one in {page.name}")
         if text.count("data-theme-label") != 1 or text.count("data-math-label") != 1:
             fail(f"HTML reader setting labels are missing or duplicated in {page.name}")
-        if text.count("data-figure-cycle") != text.count("data-figure-label"):
-            fail(f"HTML figure setting labels do not match controls in {page.name}")
+        if text.count("data-figure-cycle") or text.count("data-figure-label"):
+            fail(f"obsolete global figure controls remain in {page.name}")
         if any(
             marker in text
             for marker in (

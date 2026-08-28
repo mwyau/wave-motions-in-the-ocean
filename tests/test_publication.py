@@ -1143,9 +1143,9 @@ def test_install_figure_markup_adds_one_switchable_image_and_local_action(
     assert 'src="assets/figures/paired.png"' in output
     assert 'data-vector-src="assets/figures/paired.svg"' in output
     assert 'data-original-src="assets/figures/paired.png"' in output
-    assert 'aria-label="Show reconstructed vector figure"' in output
+    assert 'aria-label="Switch to reconstructed vector figure"' in output
     assert 'data-figure-view="original"' in output
-    assert ">Vector</button>" in output
+    assert ">Switch to Vector</button>" in output
 
 
 def test_install_figure_markup_splits_image_after_paragraph_content(
@@ -1168,7 +1168,7 @@ def test_install_figure_markup_splits_image_after_paragraph_content(
     assert '</span></p>\n<figure class="wave-figure wave-figure-switchable"' in output
     assert output.count('<figure class="wave-figure wave-figure-switchable"') == 1
     assert output.count("<img") == 1
-    assert ">Vector</button>" in output
+    assert ">Switch to Vector</button>" in output
 
 
 def test_install_figure_markup_leaves_source_art_without_switch_action(
@@ -1188,6 +1188,15 @@ def test_install_figure_markup_leaves_source_art_without_switch_action(
     assert '<figure class="wave-figure">' in output
     assert "figure-view-toggle" not in output
     assert 'src="assets/figures/source-art.png"' in output
+
+
+def test_html_template_has_no_global_figure_setting() -> None:
+    template = (publication.SRC / "layout" / "wave-html.html").read_text()
+
+    assert "Figures:" not in template
+    assert "data-figure-cycle" not in template
+    assert "data-figure-label" not in template
+    assert "has_switchable_figures" not in template
 
 
 def test_balanced_command_args_handles_nested_braces() -> None:

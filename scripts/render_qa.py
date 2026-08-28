@@ -53,6 +53,8 @@ MATHML_NS = "http://www.w3.org/1998/Math/MathML"
 MATH_PARITY_TEXT_SIZES = ("50%", "100%", "200%")
 MATH_PARITY_VIEWPORTS = ((390, 844), (768, 1000), (1440, 1200))
 MATHML_COMPARISON_ROUTE = "/__render-qa__/mathml-mathjax-comparison.html"
+READER_REGRESSION_ROUTE = "/__render-qa__/reader-regressions.html"
+READER_VISUAL_ROUTE = "/__render-qa__/reader-visual.html"
 CHAPTER5_BOUNDARY_RE = re.compile(r"&&\\text\{(?:at|as)\}z=", re.IGNORECASE)
 
 
@@ -288,6 +290,10 @@ FIGURE_BLOCK_RE = re.compile(
     re.DOTALL,
 )
 FIGURE_IMAGE_RE = re.compile(r"<img\b[^>]*>", re.IGNORECASE)
+FIGURE_TOGGLE_RE = re.compile(
+    r"<button\b[^>]*\bdata-figure-toggle\b[^>]*>(.*?)</button>",
+    re.DOTALL | re.IGNORECASE,
+)
 
 
 def figure_html_qa(dist: Path, report: Report, lines: list[str]) -> None:
@@ -349,18 +355,27 @@ def figure_html_qa(dist: Path, report: Report, lines: list[str]) -> None:
                     "HTML",
                     f"{name}: switchable figure asset is missing",
                 )
-            if block.count("data-figure-toggle") != 1:
+            toggles = FIGURE_TOGGLE_RE.findall(block)
+            toggle_text = (
+                re.sub(r"<[^>]+>", "", toggles[0]).strip() if len(toggles) == 1 else ""
+            )
+            if len(toggles) != 1 or toggle_text != "Switch to Vector":
                 report.add(
                     "ERROR",
                     "HTML",
-                    f"{name}: switchable figure local action count is not one",
+                    f"{name}: switchable figure initial local action is not Switch to Vector",
                 )
-        expected_controls = int(page_switchable > 0)
-        if text.count("data-figure-cycle") != expected_controls:
+            if 'aria-label="Switch to reconstructed vector figure"' not in block:
+                report.add(
+                    "ERROR",
+                    "HTML",
+                    f"{name}: switchable figure has the wrong initial action label",
+                )
+        if text.count("data-figure-cycle") or text.count("data-figure-label"):
             report.add(
                 "ERROR",
                 "HTML",
-                f"{name}: Figures toolbar control does not match figure assets",
+                f"{name}: obsolete global figure controls remain",
             )
         switchable += page_switchable
 
@@ -870,6 +885,25 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
             f"- CSS includes dark-theme rules: "
             f"{'yes' if 'prefers-color-scheme: dark' in css_text else 'no'}"
         )
+        inline_math_rule = re.search(
+            r"\.math\.inline\s*\{(?P<body>[^}]*)\}",
+            css_text,
+            flags=re.DOTALL,
+        )
+        inline_math_css = inline_math_rule.group("body") if inline_math_rule else ""
+        if (
+            inline_math_rule is None
+            or "display: inline" not in inline_math_css
+            or "overflow: visible" not in inline_math_css
+            or re.search(r"overflow(?:-x)?\s*:\s*(?:auto|scroll)", inline_math_css)
+        ):
+            report.add(
+                "ERROR",
+                "HTML",
+                "inline mathematics is missing its normal-flow overflow invariant",
+            )
+        else:
+            lines.append("- Inline mathematics normal-flow overflow invariant: yes")
         if re.search(r"url\(\s*['\"]?https?://", css_text, flags=re.IGNORECASE):
             external_runtime.append("external CSS url()")
     else:
@@ -923,6 +957,9 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
             if specimen_page is not None
             else {}
         )
+        qa_pages[READER_REGRESSION_ROUTE] = reader_regression_specimen(report)
+        jobs = []
+        browser_reader_visual_jobs(report, qa_pages, jobs)
         fragment_case = first_section_case(dist / "chapter4.html")
         if fragment_case is not None:
             section_id, _section_title = fragment_case
@@ -937,7 +974,6 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
             )
             qa_pages["/__render-qa__/fragment-chapter4.html"] = fragment_wrapper
         with local_server(dist, qa_pages=qa_pages) as base:
-            jobs = []
             for name in EXPECTED_HTML:
                 jobs.append((f"desktop-{Path(name).stem}.png", name, 1440, 1000, False))
                 jobs.append((f"mobile-{Path(name).stem}.png", name, 390, 844, False))
@@ -1003,6 +1039,10 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
                     f"- Browser screenshots: `{screenshots.relative_to(report.out)}/` "
                     f"({len(jobs)} cases)"
                 )
+                lines.append(
+                    "- Reader visual screenshot matrix: 390px, 768px, and 1440px "
+                    "at 50%/100%/200% in light mode plus 100% in dark mode"
+                )
 
             if fragment_case is None:
                 report.add(
@@ -1032,6 +1072,7 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
                     lines.append(
                         f"- Direct-fragment reader context: PASS (`chapter4.html#{section_id}`)"
                     )
+            browser_reader_regressions(browser, base, report, lines)
     else:
         report.add(
             "INFO",
@@ -1297,7 +1338,7 @@ def write_report(report: Report) -> Path:
             "- Review every PDF contact sheet for unexpected blank pages, large whitespace changes, clipping, undersized figures, and abrupt pagination changes.",
             "- Inspect modern PDF pages 1–12 at full size (cover, half-title, frontispiece, title/edition notice, Contents, prefaces/editor note) plus every chapter opener and figure-dense page.",
             "- For facsimile, verify the exact 184-page physical structure before release and compare any suspicious blank/sparse pages to the source-page edition.",
-            "- Open HTML in a real desktop browser and a phone/narrow viewport; test top/bottom navigation, Appearance theme/text-size choices, direct section permalinks, scrolling active-section updates, back/forward fragment navigation, wide Contents rail, no-JS/native and scripted narrow Contents behavior, static MathML first paint, MathJax atomic swap/fallback, the non-persistent math URL override, global and local vector/source figure switching, wide math/tables, image scaling, and the explicit 320px toolbar screenshot.",
+            "- Open HTML in a real desktop browser and a phone/narrow viewport; test top/bottom navigation, Appearance theme/text-size choices, direct section permalinks, scrolling active-section updates, back/forward fragment navigation, wide Contents rail, no-JS/native and scripted narrow Contents behavior, static MathML first paint, MathJax atomic swap/fallback, the non-persistent math URL override, per-figure vector/source switching, wide math/tables, image scaling, and the explicit 320px toolbar screenshot.",
             "- Complete the EPUB reader matrix above in real reading systems; structural/browser inspection alone is insufficient.",
             "",
         ]
@@ -1363,6 +1404,336 @@ def main() -> int:
         print(f"{finding.level}: [{finding.area}] {finding.message}")
     errors = sum(1 for finding in report.findings if finding.level == "ERROR")
     return 1 if args.strict and errors else 0
+
+
+def reader_regression_specimen(report: Report) -> Path:
+    """Write an audit-only page that exercises the live HTML reader in Chromium."""
+    page = report.out / "html" / "reader-regressions.html"
+    page.parent.mkdir(parents=True, exist_ok=True)
+    page.write_text(
+        """<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reader regression assertions</title>
+  <style>
+    html, body { width: 100%; min-height: 100%; margin: 0; }
+    iframe { position: absolute; inset: 0; width: 100%; height: 100vh; border: 0; opacity: 0; }
+    #reader-regression-results { position: relative; z-index: 1; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <iframe id="reader-regression-frame" title="Reader regression target"></iframe>
+  <pre id="reader-regression-results"></pre>
+  <script>
+    (() => {
+      const frame = document.querySelector("#reader-regression-frame");
+      const output = document.querySelector("#reader-regression-results");
+      const checks = [];
+      const wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+      const check = (condition, message) => {
+        checks.push({ ok: Boolean(condition), message });
+      };
+      const finish = () => {
+        const failed = checks.filter(({ ok }) => !ok);
+        output.dataset.qaStatus = failed.length ? "fail" : "pass";
+        output.textContent = JSON.stringify({
+          status: output.dataset.qaStatus,
+          checks,
+        });
+      };
+      const storageEntries = (name) => {
+        try {
+          return [name, frame.contentWindow[name]];
+        } catch (_) {
+          return null;
+        }
+      };
+      const run = async () => {
+        const doc = frame.contentDocument;
+        if (!doc) {
+          check(false, "reader document is available");
+          finish();
+          return;
+        }
+        await wait(300);
+        const figures = Array.from(doc.querySelectorAll("figure.wave-figure-switchable"));
+        check(figures.length >= 2, "page has at least two switchable figures");
+        check(
+          !doc.querySelector("[data-figure-cycle]") &&
+            !doc.querySelector("[data-figure-label]") &&
+            !/Figures\\s*:/.test(doc.querySelector("#reader-settings")?.textContent || ""),
+          "Settings has no global Figures control",
+        );
+        const parts = figures.slice(0, 2).map((figure) => ({
+          figure,
+          image: figure.querySelector("img[data-vector-src]"),
+          toggle: figure.querySelector("[data-figure-toggle]"),
+        }));
+        const complete = parts.length === 2 && parts.every(({ image, toggle }) => image && toggle);
+        check(complete, "the first two figures have paired images and local actions");
+        if (!complete) {
+          finish();
+          return;
+        }
+        const [first, second] = parts;
+        const isOriginal = ({ image }) =>
+          image.getAttribute("src") === image.dataset.originalSrc &&
+          image.getAttribute("src").endsWith(".png");
+        const isVector = ({ image }) =>
+          image.getAttribute("src") === image.dataset.vectorSrc &&
+          image.getAttribute("src").endsWith(".svg");
+        check(isOriginal(first) && isOriginal(second), "first two figures initially use original PNGs");
+        check(
+          first.toggle.textContent.trim() === "Switch to Vector" &&
+            second.toggle.textContent.trim() === "Switch to Vector",
+          "first two figures initially say Switch to Vector",
+        );
+        first.toggle.click();
+        await wait(50);
+        check(isVector(first), "first figure switches to its vector SVG");
+        check(
+          first.toggle.textContent.trim() === "Switch to Original" &&
+            first.toggle.getAttribute("aria-label") === "Switch to original source figure",
+          "first action changes to Switch to Original with matching ARIA",
+        );
+        check(isOriginal(second), "second figure remains on its original PNG");
+        check(second.toggle.textContent.trim() === "Switch to Vector", "second action remains Switch to Vector");
+        first.toggle.click();
+        await wait(50);
+        check(isOriginal(first), "first figure switches back to its original PNG");
+        check(first.toggle.textContent.trim() === "Switch to Vector", "first action restores Switch to Vector");
+
+        const storageNames = ["localStorage", "sessionStorage"];
+        const stores = storageNames.map(storageEntries).filter(Boolean);
+        const figureStorageKeys = () => stores.flatMap(([name, store]) =>
+          Object.keys(store)
+            .filter((key) => /figure/i.test(key))
+            .map((key) => name + ":" + key),
+        );
+        check(stores.length === storageNames.length, "reader storage is available for the persistence check");
+        check(figureStorageKeys().length === 0, "figure switching writes no storage preference");
+
+        const panel = doc.querySelector("#reader-settings");
+        const settingsButton = doc.querySelector("[aria-controls=reader-settings]");
+        const reset = doc.querySelector('[data-text-size-action="reset"]');
+        const decrease = doc.querySelector('[data-text-size-action="decrease"]');
+        const increase = doc.querySelector('[data-text-size-action="increase"]');
+        const popoverOpen = () => {
+          try {
+            return panel?.matches(":popover-open") || false;
+          } catch (_) {
+            return false;
+          }
+        };
+        const openSettings = async () => {
+          if (!panel) return;
+          if (!popoverOpen() && typeof panel.showPopover === "function") panel.showPopover();
+          if (!popoverOpen()) settingsButton?.click();
+          await wait(20);
+        };
+        const setTextSize = async (percent) => {
+          reset?.click();
+          const button = percent < 100 ? decrease : increase;
+          const clicks = Math.abs(percent - 100) / 10;
+          for (let index = 0; index < clicks; index += 1) button?.click();
+          await openSettings();
+          check(
+            panel && panel.scrollWidth <= panel.clientWidth,
+            "Settings has no horizontal overflow at " + percent + "% text size",
+          );
+        };
+        check(Boolean(panel && settingsButton && reset && decrease && increase), "Settings exposes its expected controls");
+        if (panel && settingsButton && reset && decrease && increase) {
+          panel.style.maxHeight = "8rem";
+          panel.style.overflow = "auto";
+          await setTextSize(100);
+          check(panel.scrollHeight > panel.clientHeight, "Settings overflow check includes a vertical scrollbar");
+          await setTextSize(50);
+          await setTextSize(200);
+          reset.click();
+        }
+        if (panel && popoverOpen() && typeof panel.hidePopover === "function") panel.hidePopover();
+
+        const mathjaxInline = doc.querySelector('span[data-math-renderer="mathjax"].math.inline');
+        const mathmlInline = doc.querySelector('span[data-math-renderer="mathml"].math.inline');
+        const mathjaxNode = mathjaxInline?.querySelector('mjx-container[jax="CHTML"]');
+        const mathmlNode = mathmlInline?.querySelector("math");
+        check(Boolean(mathjaxNode), "a representative inline MathJax node is rendered");
+        check(Boolean(mathmlNode), "a representative native MathML node is present");
+        for (const [label, node] of [
+          ["inline math wrapper", mathjaxInline],
+          ["MathJax inline node", mathjaxNode],
+          ["native MathML wrapper", mathmlInline],
+          ["native MathML node", mathmlNode],
+        ]) {
+          if (!node) continue;
+          const style = getComputedStyle(node);
+          check(
+            style.overflowX !== "auto" && style.overflowX !== "scroll",
+            label + " is not an independent horizontal scroll container",
+          );
+        }
+        check(figureStorageKeys().length === 0, "figure switching still has no storage preference after all checks");
+        finish();
+      };
+      frame.addEventListener("load", () => {
+        run().catch((error) => {
+          check(false, "reader regression script completed without an exception: " + error);
+          finish();
+        });
+      }, { once: true });
+      frame.src = "/chapter1.html?math=mathjax";
+    })();
+  </script>
+</body>
+</html>
+"""
+    )
+    return page
+
+
+def reader_visual_specimen(report: Report) -> Path:
+    """Write an audit-only iframe page for the responsive reader screenshot matrix."""
+    page = report.out / "html" / "reader-visual.html"
+    page.parent.mkdir(parents=True, exist_ok=True)
+    page.write_text(
+        """<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reader visual QA</title>
+  <style>
+    html, body, iframe { width: 100%; height: 100%; margin: 0; border: 0; display: block; }
+    body { overflow: hidden; }
+  </style>
+</head>
+<body>
+  <iframe id="reader-visual-frame" title="Reader visual target"></iframe>
+  <script>
+    (() => {
+      const params = new URLSearchParams(location.search);
+      const page = params.get("page");
+      const allowedPages = new Set([
+        "chapter1.html",
+        "chapter2.html",
+        "chapter3.html",
+        "chapter4.html",
+        "chapter5.html",
+        "chapter6.html",
+      ]);
+      const textSize = Number.parseInt(params.get("text-size"), 10);
+      const theme = params.get("theme");
+      const frame = document.querySelector("#reader-visual-frame");
+      frame.addEventListener("load", () => {
+        const root = frame.contentDocument.documentElement;
+        if ([50, 100, 200].includes(textSize)) {
+          root.style.setProperty("--wave-text-scale", String(textSize / 100));
+        }
+        if (theme === "light" || theme === "dark") root.dataset.theme = theme;
+        document.documentElement.dataset.qaReady = "";
+      }, { once: true });
+      frame.src = "/" + (allowedPages.has(page) ? page : "chapter1.html");
+    })();
+  </script>
+</body>
+</html>
+"""
+    )
+    return page
+
+
+def browser_reader_visual_jobs(
+    report: Report,
+    qa_pages: dict[str, Path],
+    jobs: list[tuple[str, str, int, int, bool]],
+) -> None:
+    visual_page = reader_visual_specimen(report)
+    qa_pages[READER_VISUAL_ROUTE] = visual_page
+    for width, height in ((390, 844), (768, 1000), (1440, 1200)):
+        for text_size in MATH_PARITY_TEXT_SIZES:
+            query = urllib.parse.urlencode(
+                {
+                    "page": "chapter1.html",
+                    "text-size": text_size,
+                    "theme": "light",
+                }
+            )
+            jobs.append(
+                (
+                    f"reader-light-{width}-{text_size.replace('%', '')}.png",
+                    f"{READER_VISUAL_ROUTE}?{query}",
+                    width,
+                    height,
+                    False,
+                )
+            )
+        query = urllib.parse.urlencode(
+            {"page": "chapter1.html", "text-size": "100%", "theme": "dark"}
+        )
+        jobs.append(
+            (
+                f"reader-dark-{width}-100.png",
+                f"{READER_VISUAL_ROUTE}?{query}",
+                width,
+                height,
+                False,
+            )
+        )
+
+
+def browser_reader_regressions(
+    browser: str,
+    base: str,
+    report: Report,
+    lines: list[str],
+) -> None:
+    ok, dom = browser_dump_dom(
+        browser,
+        f"{base}{READER_REGRESSION_ROUTE}",
+        width=390,
+        height=844,
+    )
+    if not ok:
+        report.add(
+            "WARNING",
+            "HTML",
+            "headless DOM dump failed; reader behavior regression assertions skipped",
+        )
+        return
+    status = re.search(
+        r'<pre id="reader-regression-results"[^>]*data-qa-status="([^"]+)"',
+        dom,
+        flags=re.IGNORECASE,
+    )
+    if status is None:
+        report.add(
+            "ERROR",
+            "HTML",
+            "reader behavior regression assertions did not report a result",
+        )
+        return
+    if status.group(1) != "pass":
+        result = re.search(
+            r'<pre id="reader-regression-results"[^>]*>.*?</pre>',
+            dom,
+            flags=re.DOTALL | re.IGNORECASE,
+        )
+        detail = html.unescape(result.group(0)) if result else "no assertion details"
+        report.add(
+            "ERROR",
+            "HTML",
+            "reader behavior regression assertions failed: "
+            + re.sub(r"\s+", " ", detail).strip()[:1600],
+        )
+        return
+    lines.append(
+        "- Chromium reader regression assertions: PASS "
+        "(per-figure switching, no figure persistence/global control, Settings "
+        "overflow at 50%/100%/200%, and inline MathJax/MathML overflow)"
+    )
 
 
 if __name__ == "__main__":

@@ -42,6 +42,7 @@ def write_publication(root: Path, *, include_boundary: bool = True) -> None:
     mathjax_fonts = assets / "mathjax" / "output" / "chtml" / "fonts" / "woff-v2"
     mathjax_fonts.mkdir(parents=True)
     (assets / "wave.css").write_text(
+        ".math.inline { display: inline; overflow: visible; } "
         "@media (max-width: 700px) {} @media (prefers-color-scheme: dark) {}"
     )
     (assets / "wave.js").write_text("")

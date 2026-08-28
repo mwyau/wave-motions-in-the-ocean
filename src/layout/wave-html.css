@@ -330,10 +330,10 @@ a.reader-context-chapter:focus-visible {
 }
 .reader-setting-row {
   display: grid;
-  grid-template-columns: 5rem auto;
+  grid-template-columns: 4.25rem minmax(0, 1fr);
   justify-content: start;
   align-items: center;
-  column-gap: .45rem;
+  column-gap: .35rem;
   min-height: var(--wave-touch-target);
   padding: .25rem 0;
   border-bottom: 1px solid var(--wave-rule);
@@ -357,8 +357,9 @@ a.reader-context-chapter:focus-visible {
 }
 .reader-settings-controls .text-size-options {
   display: grid;
-  grid-template-columns: var(--wave-touch-target) 3.75rem var(--wave-touch-target);
-  gap: .3rem;
+  grid-template-columns: var(--wave-touch-target) 3rem var(--wave-touch-target);
+  gap: .25rem;
+  min-width: 0;
 }
 .reader-settings-controls .text-size-options .appearance-option {
   width: var(--wave-touch-target);
@@ -366,7 +367,7 @@ a.reader-context-chapter:focus-visible {
   padding: .35rem .2rem;
 }
 .reader-settings-controls .text-size-options .text-size-reset {
-  width: 3.75rem;
+  width: 3rem;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
@@ -395,7 +396,8 @@ a.reader-context-chapter:focus-visible {
   opacity: .45;
 }
 .figure-view-toggle {
-  flex: 0 0 auto;
+  grid-column: 3;
+  justify-self: end;
   margin: 0;
   border: 0;
   padding: .2rem .3rem;
@@ -406,6 +408,7 @@ a.reader-context-chapter:focus-visible {
   font-size: .82em;
   line-height: 1.2;
   min-height: var(--wave-touch-target);
+  opacity: .85;
   text-decoration: none;
 }
 .figure-view-toggle:hover,
@@ -415,6 +418,16 @@ a.reader-context-chapter:focus-visible {
 .figure-view-toggle:focus-visible {
   outline: 2px solid var(--wave-link);
   outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .wave-figure-switchable figcaption > .figure-view-toggle {
+    opacity: 0;
+  }
+  .wave-figure-switchable figcaption:hover > .figure-view-toggle,
+  .wave-figure-switchable figcaption:focus-within > .figure-view-toggle,
+  .wave-figure-switchable figcaption > .figure-view-toggle:focus-visible {
+    opacity: 1;
+  }
 }
 :root.no-js .js-only { display: none !important; }
 :root.js[data-initial-math="mathjax"]:not([data-math-ready]) #main-content {
@@ -437,6 +450,7 @@ a.reader-context-chapter:focus-visible {
   padding: 0;
   overflow: auto;
   overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   border: 1px solid var(--wave-rule);
   border-radius: .65rem;
   background: var(--wave-bg);
@@ -704,12 +718,17 @@ figcaption {
 }
 .wave-figure-switchable > img { width: 100%; }
 .wave-figure figcaption {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content minmax(0, 1fr);
   align-items: baseline;
-  justify-content: space-between;
   gap: .75rem;
 }
-.figure-label { min-width: 0; }
+.wave-figure .figure-label {
+  grid-column: 2;
+  min-width: 0;
+  justify-self: center;
+  text-align: center;
+}
 img, svg { display: block; max-width: 100%; height: auto; margin: 1.1rem auto; }
 img[src$="salmon-hendershott-como-1980.jpg"] {
   width: min(100%, 28rem);
@@ -755,6 +774,11 @@ img[src$="salmon-hendershott-como-1980.jpg"] {
   margin: 0;
   padding: 0;
   math-style: normal;
+}
+.math.inline {
+  display: inline;
+  overflow: visible;
+  vertical-align: baseline;
 }
 mjx-container[jax="CHTML"] { color: inherit; }
 pre, table { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -885,8 +909,6 @@ a:visited { color: var(--wave-visited); }
   img, svg { margin: .8rem auto; }
   .math.display { padding-bottom: calc(1em + 1.1rem); }
   .wave-figure-switchable { width: 100%; }
-  .wave-figure figcaption { flex-wrap: wrap; }
-  .wave-figure .figure-view-toggle { margin-left: auto; }
 }
 @page { margin: 18mm 16mm 20mm; }
 @media print {

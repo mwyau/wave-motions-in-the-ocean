@@ -782,8 +782,6 @@ def template_variables(path: Path) -> dict[str, str]:
         **navigation_state(index),
         **reader_state(index),
     }
-    if page_switchable_figure_stems(path, OUT):
-        values["has_switchable_figures"] = "true"
     if chapter_for_page(path) is not None:
         values["chapter_title_block"] = "true"
     if index is None:
@@ -1027,7 +1025,8 @@ def _figure_markup(image_tag: str, label: str, switchable: set[str]) -> str:
     if is_switchable:
         action = (
             '<button type="button" class="figure-view-toggle js-only" '
-            'data-figure-toggle aria-label="Show reconstructed vector figure">Vector</button>'
+            'data-figure-toggle aria-label="Switch to reconstructed vector figure">'
+            "Switch to Vector</button>"
         )
     return (
         f'<figure class="{class_name}"'
@@ -1091,11 +1090,8 @@ def validate_figure_markup() -> None:
         text = page.read_text(errors="replace")
         expected_switchable = set(page_switchable_figure_stems(page, OUT))
         blocks = FIGURE_BLOCK_RE.findall(text)
-        controls = text.count("data-figure-cycle")
-        if controls != int(bool(expected_switchable)):
-            raise SystemExit(
-                f"{page.name}: Figures toolbar control does not match switchable assets"
-            )
+        if text.count("data-figure-cycle") or text.count("data-figure-label"):
+            raise SystemExit(f"{page.name}: obsolete global figure controls remain")
         for block in blocks:
             images = FIGURE_IMAGE_TAG_RE.findall(block)
             if len(images) != 1 or block.count("<figcaption>") != 1:
@@ -1155,12 +1151,21 @@ def validate_figure_markup() -> None:
                 raise SystemExit(
                     f"{page.name}: switchable figure asset is missing on disk"
                 )
-            if (
-                block.count("data-figure-toggle") != 1
-                or ">Vector</button>" not in block
-            ):
+            toggles = re.findall(
+                r"<button\b[^>]*\bdata-figure-toggle\b[^>]*>(.*?)</button>",
+                block,
+                flags=re.DOTALL | re.IGNORECASE,
+            )
+            toggle_text = (
+                re.sub(r"<[^>]+>", "", toggles[0]).strip() if len(toggles) == 1 else ""
+            )
+            if len(toggles) != 1 or toggle_text != "Switch to Vector":
                 raise SystemExit(
                     f"{page.name}: switchable figure is missing its local action"
+                )
+            if 'aria-label="Switch to reconstructed vector figure"' not in block:
+                raise SystemExit(
+                    f"{page.name}: switchable figure has the wrong initial action label"
                 )
 
 
