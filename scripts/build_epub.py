@@ -26,6 +26,7 @@ from publication import (
     EDITOR,
     LANGUAGE,
     PUBLICATION_TITLE,
+    PUBLICATION_YEAR,
     SITE_URL,
     current_build,
     prepare_assets,
@@ -172,7 +173,7 @@ def write_metadata() -> Path:
         f'title: "{PUBLICATION_TITLE}"\n'
         "author:\n"
         + "".join(f"  - {author}\n" for author in AUTHORS)
-        + 'date: "1989"\n'
+        + f'date: "{PUBLICATION_YEAR}"\n'
         f"lang: {LANGUAGE}\n"
         'rights: "CC BY-NC-SA 4.0"\n'
         f'identifier: "{SITE_URL}/"\n'

@@ -32,6 +32,7 @@ from PIL.PngImagePlugin import PngInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
+CITATION_CFF = ROOT / "CITATION.cff"
 REFERENCES = ROOT / "references"
 SOURCE_DIR = REFERENCES / "chapman-rizzoli-1989"
 FIGURES = SRC / "figures"
@@ -43,10 +44,33 @@ SOURCE_RENDER_DPI = 170
 SOURCE_CROP_VERSION = "v1"
 TIKZ_CACHE_VERSION = "v3"
 FIGURE_ASSET_PREFIX = "assets/figures"
+
+
+def _citation_scalar(name: str) -> str:
+    """Read one simple scalar from the maintained citation record."""
+    pattern = re.compile(
+        rf"(?m)^[ \t]+{re.escape(name)}:[ \t]*(?:"
+        r'"(?P<double>[^"]+)"|'
+        r"'(?P<single>[^']+)'|"
+        r"(?P<bare>[^\s#]+))[ \t]*$"
+    )
+    matches = list(pattern.finditer(CITATION_CFF.read_text()))
+    if len(matches) != 1:
+        raise ValueError(
+            f"expected exactly one {name!r} scalar in {CITATION_CFF}, "
+            f"found {len(matches)}"
+        )
+    match = matches[0]
+    return next(value for value in match.groups() if value is not None)
+
+
 BOOK_TITLE = "Wave Motions in the Ocean"
 PUBLICATION_TITLE = f"{BOOK_TITLE}: Myrl's View"
 AUTHORS = ("David C. Chapman", "Paola Malanotte-Rizzoli")
 EDITOR = "Albert M. W. Yau"
+PUBLICATION_YEAR = _citation_scalar("year")
+DOI = _citation_scalar("doi")
+DOI_URL = f"https://doi.org/{DOI}"
 CONTACT_EMAIL = "albert.yau@stonybrook.edu"
 LANGUAGE = "en-US"
 MATHJAX_URL = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"

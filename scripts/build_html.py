@@ -8,6 +8,7 @@ Pandoc renders each final HTML page through the maintained reader template in
 from __future__ import annotations
 
 import html
+import json
 import os
 import re
 import shutil
@@ -17,17 +18,24 @@ import tarfile
 import unicodedata
 import urllib.request
 import xml.etree.ElementTree as ET
+from dataclasses import dataclass
 from pathlib import Path
+from xml.sax.saxutils import escape as xml_escape
 
 from PIL import Image
 
 from publication import (
+    AUTHORS,
     BOOK_TITLE,
     CONTACT_EMAIL,
+    DOI_URL,
     DOWNLOADS,
+    EDITOR,
     LANGUAGE,
+    LICENSE_URL,
     MATHJAX_URL,
     PUBLICATION_TITLE,
+    PUBLICATION_YEAR,
     REPOSITORY_URL,
     SITE_URL,
     book_structure,
@@ -36,6 +44,7 @@ from publication import (
     page_switchable_figure_stems,
     prepare_assets,
     prepare_flowing_sources,
+    reader_punctuation,
     section_slug,
 )
 
@@ -50,6 +59,8 @@ AMS_CSL = SRC / "layout" / "wave-ams.csl"
 SOCIAL_PREVIEW_TEMPLATE = SRC / "layout" / "social-preview.tex"
 COVER_SOURCE = SRC / "cover-modern.tex"
 SOCIAL_PREVIEW = ASSETS / "social-preview.png"
+SITEMAP = OUT / "sitemap.xml"
+SITEMAP_NAMESPACE = "http://www.sitemaps.org/schemas/sitemap/0.9"
 LOCAL_MATHJAX_URL = "assets/mathjax/tex-chtml-full.js"
 VENDOR_ARCHIVES = {
     "mathjax-3.2.2": (
@@ -65,14 +76,6 @@ VENDOR_ARCHIVES = {
         "ed1808970eb3c7301c9a523bee26473ba0bb62fa"
     ),
 }
-SOCIAL_DESCRIPTION = (
-    "Digital edition of Wave Motions in the Ocean: Myrl’s View by David C. Chapman "
-    "and Paola Malanotte-Rizzoli, edited by Albert M. W. Yau."
-)
-SOCIAL_IMAGE_ALT = (
-    "Wave Motions in the Ocean: Myrl’s View, by David C. Chapman and "
-    "Paola Malanotte-Rizzoli, edited by Albert M. W. Yau."
-)
 CHAPTERS = book_structure()
 if not CHAPTERS:
     raise SystemExit("book structure has no chapters")
@@ -90,6 +93,9 @@ EXPECTED_PAGES = [
 ]
 HTML_DOWNLOADS = tuple(
     item for item in DOWNLOADS if item[0] != "wave-motions-facsimile.pdf"
+)
+MODERN_PDF_FILENAME = next(
+    filename for filename, label in HTML_DOWNLOADS if label == "PDF"
 )
 FRONTMATTER_SECTIONS = (
     ("preface-david-c-chapman", "Preface — David C. Chapman"),
@@ -552,6 +558,137 @@ def page_index(path: Path) -> int | None:
     return chapter.number
 
 
+@dataclass(frozen=True)
+class PageMetadata:
+    """Raw metadata shared by the HTML head, structured data, and sitemap."""
+
+    page_title: str
+    description: str
+    canonical_url: str
+    social_title: str
+    social_url: str
+    social_image: str
+    social_image_alt: str
+    structured_data: dict[str, object]
+    scholar_tags: tuple[tuple[str, str], ...] = ()
+
+
+def canonical_page_url(path: Path) -> str:
+    """Return the clean public URL for one member of the HTML page inventory."""
+    base = SITE_URL.rstrip("/")
+    return f"{base}/" if path.name == "index.html" else f"{base}/{path.name}"
+
+
+def _schema_person(name: str) -> dict[str, str]:
+    return {"@type": "Person", "name": name}
+
+
+def _book_reference() -> dict[str, str]:
+    book_url = canonical_page_url(EXPECTED_PAGES[0])
+    return {
+        "@type": "Book",
+        "@id": book_url,
+        "name": PUBLICATION_TITLE,
+        "url": book_url,
+    }
+
+
+def page_metadata_record(path: Path) -> PageMetadata:
+    """Build one raw, authoritative metadata record for a public HTML page."""
+    context = page_context(path)
+    canonical_url = canonical_page_url(path)
+    display_title = reader_punctuation(PUBLICATION_TITLE)
+    author_text = " and ".join(AUTHORS)
+    page_title = (
+        BOOK_TITLE if path.name == "index.html" else f"{context} — {BOOK_TITLE}"
+    )
+    social_title = (
+        display_title if path.name == "index.html" else f"{context} — {display_title}"
+    )
+    social_image = f"{SITE_URL.rstrip('/')}/assets/social-preview.png"
+    social_image_alt = f"{display_title}, by {author_text}, edited by {EDITOR}."
+
+    if path.name == "index.html":
+        description = (
+            f"Digital edition of {display_title} by {author_text}, edited by {EDITOR}."
+        )
+        structured_data: dict[str, object] = {
+            "@context": "https://schema.org",
+            "@type": "Book",
+            "name": PUBLICATION_TITLE,
+            "author": [_schema_person(author) for author in AUTHORS],
+            "editor": _schema_person(EDITOR),
+            "inLanguage": LANGUAGE,
+            "datePublished": PUBLICATION_YEAR,
+            "url": canonical_url,
+            "license": LICENSE_URL,
+            "identifier": DOI_URL,
+        }
+        scholar_tags = (
+            ("citation_title", PUBLICATION_TITLE),
+            *(("citation_author", author) for author in AUTHORS),
+            ("citation_publication_date", PUBLICATION_YEAR),
+            ("citation_pdf_url", f"{canonical_url}{MODERN_PDF_FILENAME}"),
+        )
+    else:
+        chapter = chapter_for_page(path)
+        if chapter is not None:
+            sections = "; ".join(chapter.sections)
+            description = f"{chapter.title}. Sections: {sections}."
+            structured_data = {
+                "@context": "https://schema.org",
+                "@type": "Chapter",
+                "name": chapter.title,
+                "position": chapter.number,
+                "url": canonical_url,
+                "isPartOf": _book_reference(),
+            }
+        else:
+            description = f"References for {display_title}."
+            structured_data = {
+                "@context": "https://schema.org",
+                "@type": "WebPage",
+                "name": "References",
+                "url": canonical_url,
+            }
+        scholar_tags = ()
+
+    return PageMetadata(
+        page_title=page_title,
+        description=description,
+        canonical_url=canonical_url,
+        social_title=social_title,
+        social_url=canonical_url,
+        social_image=social_image,
+        social_image_alt=social_image_alt,
+        structured_data=structured_data,
+        scholar_tags=scholar_tags,
+    )
+
+
+def structured_data_json(payload: dict[str, object]) -> str:
+    """Serialize JSON-LD safely for an inline script element."""
+    serialized = json.dumps(
+        payload,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    return (
+        serialized.replace("&", r"\u0026")
+        .replace("<", r"\u003c")
+        .replace(">", r"\u003e")
+    )
+
+
+def scholar_metadata_html(tags: tuple[tuple[str, str], ...]) -> str:
+    return "\n".join(
+        f'<meta name="{html.escape(name, quote=True)}" '
+        f'content="{html.escape(value, quote=True)}">'
+        for name, value in tags
+    )
+
+
 def navigation_state(index: int | None) -> dict[str, str]:
     previous_url = ""
     previous_label = ""
@@ -744,27 +881,20 @@ def build_social_preview() -> None:
 
 
 def page_metadata(path: Path) -> dict[str, str]:
-    context = page_context(path)
-    page_title = (
-        BOOK_TITLE if path.name == "index.html" else f"{context} — {BOOK_TITLE}"
-    )
-    if path.name == "index.html":
-        social_title = PUBLICATION_TITLE.replace("'", "’")
-        page_url = f"{SITE_URL}/"
-    else:
-        social_title = f"{context} — {PUBLICATION_TITLE}".replace("'", "’")
-        page_url = f"{SITE_URL}/{path.name}"
-    image_url = f"{SITE_URL}/assets/social-preview.png"
+    metadata = page_metadata_record(path)
     return {
         "language": html.escape(LANGUAGE, quote=True),
-        "page_title": html.escape(page_title),
-        "description": html.escape(SOCIAL_DESCRIPTION, quote=True),
-        "social_title": html.escape(social_title, quote=True),
-        "social_url": html.escape(page_url, quote=True),
-        "social_image": html.escape(image_url, quote=True),
-        "social_image_alt": html.escape(SOCIAL_IMAGE_ALT, quote=True),
+        "page_title": html.escape(metadata.page_title, quote=True),
+        "description": html.escape(metadata.description, quote=True),
+        "canonical_url": html.escape(metadata.canonical_url, quote=True),
+        "social_title": html.escape(metadata.social_title, quote=True),
+        "social_url": html.escape(metadata.social_url, quote=True),
+        "social_image": html.escape(metadata.social_image, quote=True),
+        "social_image_alt": html.escape(metadata.social_image_alt, quote=True),
         "mathjax_upstream": html.escape(MATHJAX_URL, quote=True),
         "mathjax_url": html.escape(LOCAL_MATHJAX_URL, quote=True),
+        "scholar_metadata": scholar_metadata_html(metadata.scholar_tags),
+        "structured_data": structured_data_json(metadata.structured_data),
     }
 
 
@@ -795,6 +925,31 @@ def template_variable_args(values: dict[str, str]) -> list[str]:
         if value:
             args.extend(["--variable", f"{name}:{value}"])
     return args
+
+
+def canonical_page_urls() -> tuple[str, ...]:
+    return tuple(page_metadata_record(page).canonical_url for page in EXPECTED_PAGES)
+
+
+def sitemap_text() -> str:
+    lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        f'<urlset xmlns="{SITEMAP_NAMESPACE}">',
+    ]
+    for url in canonical_page_urls():
+        lines.extend(
+            (
+                "  <url>",
+                f"    <loc>{xml_escape(url)}</loc>",
+                "  </url>",
+            )
+        )
+    lines.append("</urlset>")
+    return "\n".join(lines) + "\n"
+
+
+def write_sitemap() -> None:
+    SITEMAP.write_text(sitemap_text(), encoding="utf-8")
 
 
 READER_CONTEXT_RE = re.compile(
@@ -1370,6 +1525,7 @@ def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     for page in EXPECTED_PAGES:
         page.unlink(missing_ok=True)
+    SITEMAP.unlink(missing_ok=True)
     BUILD.mkdir(parents=True)
     ASSETS.mkdir(parents=True)
     prepare_assets(OUT, BUILD, include_originals=True)
@@ -1395,6 +1551,7 @@ def main() -> int:
         install_figure_markup(page)
     build_references(source_dir)
     install_stable_section_ids()
+    write_sitemap()
     validate()
     print(
         f"HTML build OK: front matter + {len(CHAPTERS)} chapters + "

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import html
+import json
 import os
 import posixpath
 import re
@@ -37,6 +38,7 @@ from build_epub import (
     text_content,
     validate_structure,
 )
+from build_html import page_metadata_record
 from publication import (
     AUTHORS,
     DOWNLOADS,
@@ -68,6 +70,7 @@ README = ROOT / "README.md"
 EPUB = PUBLICATION / "wave-motions.epub"
 MODERN_PDF = PUBLICATION / "wave-motions.pdf"
 FACSIMILE_PDF = PUBLICATION / "wave-motions-facsimile.pdf"
+SITEMAP = PUBLICATION / "sitemap.xml"
 LATEX_CACHE = (
     Path(os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motions")))
     / "latex"
@@ -138,6 +141,7 @@ EXPECTED_HTML_PAGES = (
     PUBLICATION / "references.html",
 )
 REMOTE_SCHEMES = {"http", "https"}
+SITEMAP_NAMESPACE = "http://www.sitemaps.org/schemas/sitemap/0.9"
 FETCHING_LINK_RELS = {
     "dns-prefetch",
     "icon",
@@ -407,6 +411,79 @@ def html_source_url(path: Path, sha: str) -> str:
         source_path = f"src/chapter{index}.tex"
     revision = sha if sha != "unknown" else "main"
     return f"{REPOSITORY_URL}/blob/{revision}/{source_path}"
+
+
+def check_html_metadata() -> None:
+    """Check generated discovery metadata without crawling the publication."""
+    expected_urls = tuple(
+        page_metadata_record(page).canonical_url for page in EXPECTED_HTML_PAGES
+    )
+    for page in EXPECTED_HTML_PAGES:
+        metadata = page_metadata_record(page)
+        text = page.read_text(errors="replace")
+
+        canonical = re.findall(r'<link\s+rel="canonical"\s+href="([^"]+)">', text)
+        social_urls = re.findall(
+            r'<meta\s+property="og:url"\s+content="([^"]+)">', text
+        )
+        if canonical != [metadata.canonical_url]:
+            fail(f"{page.name}: canonical URL is missing or duplicated")
+        if social_urls != [metadata.social_url]:
+            fail(f"{page.name}: Open Graph URL does not match canonical")
+
+        descriptions = (
+            re.findall(r'<meta\s+name="description"\s+content="([^"]*)">', text),
+            re.findall(
+                r'<meta\s+property="og:description"\s+content="([^"]*)">',
+                text,
+            ),
+            re.findall(
+                r'<meta\s+name="twitter:description"\s+content="([^"]*)">',
+                text,
+            ),
+        )
+        if any(
+            [html.unescape(value) for value in values] != [metadata.description]
+            for values in descriptions
+        ):
+            fail(f"{page.name}: description metadata is missing or inconsistent")
+
+        json_ld = re.findall(
+            r'<script\s+type="application/ld\+json">(.*?)</script>',
+            text,
+            flags=re.DOTALL,
+        )
+        if len(json_ld) != 1:
+            fail(f"{page.name}: JSON-LD is missing or duplicated")
+        try:
+            parsed_json_ld = json.loads(json_ld[0])
+        except json.JSONDecodeError as exc:
+            fail(f"{page.name}: JSON-LD is invalid: {exc}")
+        if parsed_json_ld != metadata.structured_data:
+            fail(f"{page.name}: JSON-LD does not match page metadata")
+
+        scholar = tuple(
+            (name, html.unescape(value))
+            for name, value in re.findall(
+                r'<meta\s+name="(citation_[^"]+)"\s+content="([^"]*)">',
+                text,
+            )
+        )
+        if scholar != metadata.scholar_tags:
+            fail(f"{page.name}: Scholar metadata is missing, duplicated, or misplaced")
+
+    require_file(SITEMAP)
+    try:
+        sitemap_root = ET.parse(SITEMAP).getroot()
+    except ET.ParseError as exc:
+        fail(f"sitemap.xml is not well-formed XML: {exc}")
+    namespace = f"{{{SITEMAP_NAMESPACE}}}"
+    if sitemap_root.tag != f"{namespace}urlset":
+        fail("sitemap.xml has the wrong root element")
+    url_elements = sitemap_root.findall(f"{namespace}url")
+    sitemap_urls = [element.findtext(f"{namespace}loc") for element in url_elements]
+    if sitemap_urls != list(expected_urls):
+        fail("sitemap.xml does not match the canonical HTML page inventory")
 
 
 def _is_remote_reference(value: str) -> bool:
@@ -755,6 +832,7 @@ def check_html_figures() -> None:
 def check_html() -> None:
     for page in EXPECTED_HTML_PAGES:
         require_file(page)
+    check_html_metadata()
     check_html_figures()
     css = PUBLICATION / "assets" / "wave.css"
     require_file(css)
@@ -925,12 +1003,15 @@ def check_html() -> None:
             "assets/wave.css",
             "assets/wave.js",
             'name="mathjax-upstream"',
+            'rel="canonical"',
             'property="og:title"',
             'property="og:url"',
+            'property="og:description"',
             'property="og:image"',
             'property="og:image:width" content="1200"',
             'property="og:image:height" content="630"',
             'name="twitter:card" content="summary_large_image"',
+            'type="application/ld+json"',
             f"{SITE_URL}/assets/social-preview.png",
             label,
             build_url,

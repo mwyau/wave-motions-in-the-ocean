@@ -1,3 +1,5 @@
+import json
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
@@ -77,6 +79,59 @@ def test_html_frontmatter_footer_starts_with_reader_link() -> None:
 
     assert start < pdf < epub
     assert "wave-motions-facsimile.pdf" not in footer
+
+
+def test_html_metadata_uses_actual_chapter_and_section_titles() -> None:
+    chapter = build_html.CHAPTERS[0]
+    metadata = build_html.page_metadata_record(
+        build_html.OUT / f"chapter{chapter.number}.html"
+    )
+
+    assert metadata.description == (
+        f"{chapter.title}. Sections: {'; '.join(chapter.sections)}."
+    )
+    assert metadata.canonical_url == (
+        f"{publication.SITE_URL}/chapter{chapter.number}.html"
+    )
+    assert metadata.social_url == metadata.canonical_url
+    assert metadata.structured_data["@type"] == "Chapter"
+    assert metadata.structured_data["name"] == chapter.title
+    assert metadata.scholar_tags == ()
+
+
+def test_html_book_metadata_has_book_level_scholar_fields() -> None:
+    metadata = build_html.page_metadata_record(build_html.OUT / "index.html")
+
+    assert metadata.structured_data["@type"] == "Book"
+    assert metadata.structured_data["identifier"] == publication.DOI_URL
+    assert metadata.scholar_tags == (
+        ("citation_title", publication.PUBLICATION_TITLE),
+        ("citation_author", publication.AUTHORS[0]),
+        ("citation_author", publication.AUTHORS[1]),
+        ("citation_publication_date", publication.PUBLICATION_YEAR),
+        (
+            "citation_pdf_url",
+            f"{publication.SITE_URL}/wave-motions.pdf",
+        ),
+    )
+    assert "citation_doi" not in build_html.scholar_metadata_html(metadata.scholar_tags)
+
+
+def test_html_sitemap_matches_the_canonical_page_inventory() -> None:
+    root = ET.fromstring(build_html.sitemap_text())
+    namespace = {"sitemap": build_html.SITEMAP_NAMESPACE}
+    urls = [
+        element.text for element in root.findall("sitemap:url/sitemap:loc", namespace)
+    ]
+
+    assert len(urls) == 8
+    assert urls == list(build_html.canonical_page_urls())
+
+
+def test_html_structured_data_serializes_as_json() -> None:
+    metadata = build_html.page_metadata(build_html.OUT / "index.html")
+
+    assert json.loads(metadata["structured_data"])["@type"] == "Book"
 
 
 @pytest.mark.parametrize("index", [None, 0, *range(1, 7)])
