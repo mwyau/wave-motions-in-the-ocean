@@ -99,7 +99,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo -E apt-get install -y --no-install-recommends \
-            qpdf poppler-utils pandoc unzip xz-utils
+            chromium qpdf poppler-utils pandoc unzip xz-utils
 
       - name: Check HTML JavaScript
         run: node --check src/layout/wave-html.js
@@ -195,6 +195,9 @@ jobs:
 
       - name: Validate publication
         run: uv run --frozen python scripts/validate.py all --require-epubcheck
+
+      - name: Run Chromium reader QA
+        run: uv run --frozen python scripts/render_qa.py release --strict
 
       - name: Check release gate
         if: startsWith(github.ref, 'refs/tags/v')

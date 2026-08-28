@@ -1610,6 +1610,10 @@ def reader_regression_specimen(report: Report) -> Path:
           const permalinkRect = headingPermalink.getBoundingClientRect();
           const copyRect = headingCopy.getBoundingClientRect();
           const copyStyle = getComputedStyle(headingCopy);
+          const viewport = frame.contentWindow.visualViewport;
+          const viewportLeft = viewport?.offsetLeft ?? 0;
+          const viewportWidth = viewport?.width ?? doc.documentElement.clientWidth;
+          const viewportRight = viewportLeft + viewportWidth;
           check(
             copyStyle.position === "absolute" && copyStyle.display !== "none",
             "heading Copy link is absolutely positioned without display:none",
@@ -1619,12 +1623,18 @@ def reader_regression_specimen(report: Report) -> Path:
             "heading action width is determined by the # permalink only",
           );
           check(
-            copyRect.left >= permalinkRect.right - 1 &&
-              Math.abs(
-                (copyRect.top + copyRect.height / 2) -
-                  (actionsRect.top + actionsRect.height / 2),
-              ) <= 2,
+            (copyRect.left >= permalinkRect.right - 1 ||
+              copyRect.right <= permalinkRect.left + 1) &&
+            Math.abs(
+              (copyRect.top + copyRect.height / 2) -
+                (actionsRect.top + actionsRect.height / 2),
+            ) <= 2,
             "heading Copy link is beside and vertically aligned with #",
+          );
+          check(
+            copyRect.left >= viewportLeft - 1 &&
+              copyRect.right <= viewportRight + 1,
+            "heading Copy link stays inside the visible viewport at narrow width",
           );
           headingCopy.focus();
           await wait(20);
@@ -1869,51 +1879,61 @@ def browser_reader_regressions(
     report: Report,
     lines: list[str],
 ) -> None:
-    ok, dom = browser_dump_dom(
-        browser,
-        f"{base}{READER_REGRESSION_ROUTE}",
-        width=390,
-        height=844,
-    )
-    if not ok:
-        report.add(
-            "WARNING",
-            "HTML",
-            "headless DOM dump failed; reader behavior regression assertions skipped",
+    passed = True
+    for width, height in ((390, 844), (320, 844)):
+        ok, dom = browser_dump_dom(
+            browser,
+            f"{base}{READER_REGRESSION_ROUTE}",
+            width=width,
+            height=height,
         )
-        return
-    status = re.search(
-        r'<pre id="reader-regression-results"[^>]*data-qa-status="([^"]+)"',
-        dom,
-        flags=re.IGNORECASE,
-    )
-    if status is None:
-        report.add(
-            "ERROR",
-            "HTML",
-            "reader behavior regression assertions did not report a result",
-        )
-        return
-    if status.group(1) != "pass":
-        result = re.search(
-            r'<pre id="reader-regression-results"[^>]*>.*?</pre>',
+        if not ok:
+            report.add(
+                "WARNING",
+                "HTML",
+                f"headless DOM dump failed at {width}px; reader behavior regression "
+                "assertions skipped",
+            )
+            passed = False
+            continue
+        status = re.search(
+            r'<pre id="reader-regression-results"[^>]*data-qa-status="([^"]+)"',
             dom,
-            flags=re.DOTALL | re.IGNORECASE,
+            flags=re.IGNORECASE,
         )
-        detail = html.unescape(result.group(0)) if result else "no assertion details"
-        report.add(
-            "ERROR",
-            "HTML",
-            "reader behavior regression assertions failed: "
-            + re.sub(r"\s+", " ", detail).strip()[:1600],
+        if status is None:
+            report.add(
+                "ERROR",
+                "HTML",
+                f"reader behavior regression assertions did not report a result at "
+                f"{width}px",
+            )
+            passed = False
+            continue
+        if status.group(1) != "pass":
+            result = re.search(
+                r'<pre id="reader-regression-results"[^>]*>.*?</pre>',
+                dom,
+                flags=re.DOTALL | re.IGNORECASE,
+            )
+            detail = (
+                html.unescape(result.group(0)) if result else "no assertion details"
+            )
+            report.add(
+                "ERROR",
+                "HTML",
+                f"reader behavior regression assertions failed at {width}px: "
+                + re.sub(r"\s+", " ", detail).strip()[:1600],
+            )
+            passed = False
+    if passed:
+        lines.append(
+            "- Chromium reader regression assertions: PASS at 320px and 390px "
+            "(global and per-figure switching, figure persistence, Settings layout, "
+            "heading permalink actions, narrow heading wrapping, visible-viewport "
+            "copy-link containment, overflow at 50%/100%/200%, and inline "
+            "MathJax/MathML overflow)"
         )
-        return
-    lines.append(
-        "- Chromium reader regression assertions: PASS "
-        "(global and per-figure switching, figure persistence, Settings layout, "
-        "heading permalink actions, narrow heading wrapping, overflow at "
-        "50%/100%/200%, and inline MathJax/MathML overflow)"
-    )
 
 
 if __name__ == "__main__":

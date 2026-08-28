@@ -101,7 +101,10 @@
   };
 
   const syncHeadingCopyPositions = () => {
-    const boundary = document.documentElement.clientWidth;
+    const viewport = window.visualViewport;
+    const viewportLeft = viewport?.offsetLeft ?? 0;
+    const viewportWidth = viewport?.width ?? document.documentElement.clientWidth;
+    const boundary = viewportLeft + viewportWidth;
     document.querySelectorAll(".heading-copy-link").forEach((link) => {
       link.classList.remove("is-left");
       link.classList.toggle(
@@ -643,6 +646,12 @@
     passive: true,
   });
   addEventListener("resize", syncHeadingCopyPositions, { passive: true });
+  window.visualViewport?.addEventListener("resize", syncHeadingCopyPositions, {
+    passive: true,
+  });
+  window.visualViewport?.addEventListener("scroll", syncHeadingCopyPositions, {
+    passive: true,
+  });
   if (readerHeader && "ResizeObserver" in window) {
     new ResizeObserver(() => updateContentsLayout()).observe(readerHeader);
   }
