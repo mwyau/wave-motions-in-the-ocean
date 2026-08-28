@@ -19,7 +19,10 @@ from validate import (
 )
 
 
-def test_modern_pdf_size_warning_is_advisory(tmp_path: Path, capsys) -> None:
+def test_modern_pdf_size_warning_is_advisory(
+    tmp_path: Path, capsys, monkeypatch
+) -> None:
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
     pdf = tmp_path / "wave-motions.pdf"
     for size in (
         GOOGLE_SCHOLAR_PDF_WARNING_BYTES - 1,
@@ -39,6 +42,26 @@ def test_modern_pdf_size_warning_is_advisory(tmp_path: Path, capsys) -> None:
         in message
     )
     assert "recommends Google Book Search for larger books" in message
+
+
+def test_modern_pdf_size_warning_uses_github_annotation(
+    tmp_path: Path, capsys, monkeypatch
+) -> None:
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    pdf = tmp_path / "wave-motions.pdf"
+    warning_size = GOOGLE_SCHOLAR_PDF_WARNING_BYTES + 120_000
+    pdf.write_bytes(b"x" * warning_size)
+
+    assert check_modern_pdf_size(pdf) == warning_size
+    captured = capsys.readouterr()
+
+    assert captured.err == ""
+    assert "::warning title=Google Scholar PDF size::" in captured.out
+    assert "modern PDF is 5.12 MB" in captured.out
+    assert (
+        "Google Scholar's webmaster guidance limits directly indexed files to 5 MB"
+        in captured.out
+    )
 
 
 def test_strip_tex_comments_keeps_escaped_percent_signs() -> None:

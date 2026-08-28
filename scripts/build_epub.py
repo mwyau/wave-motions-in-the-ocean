@@ -100,7 +100,7 @@ def bibliography_entry_count() -> int:
 
 def epub_inputs() -> list[Path]:
     source_dir = BUILD / "source"
-    paths = prepare_flowing_sources(source_dir, BUILD)
+    paths = prepare_flowing_sources(source_dir, BUILD, include_epub_only=True)
     frontmatter = paths[0]
     credit_source = SRC / "cover-credit.tex"
     if not credit_source.is_file():

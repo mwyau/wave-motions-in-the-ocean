@@ -1062,6 +1062,7 @@ def test_transform_tex_removes_pdf_only_content_and_source_markers(
     source = r"""
 \begin{wavepdfonly}pdf-only text\end{wavepdfonly}
 \begin{wavewebonly}web text\end{wavewebonly}
+\begin{waveepubonly}epub-only text\end{waveepubonly}
 \nopagecolor\sourcepagebreak\sourcesetpage{11}
 \begin{waveequation}x = 1\end{waveequation}
 \wavefiguremark
@@ -1070,11 +1071,39 @@ def test_transform_tex_removes_pdf_only_content_and_source_markers(
 
     assert "pdf-only text" not in transformed
     assert "web text" in transformed
+    assert "epub-only text" not in transformed
     assert "sourcepagebreak" not in transformed
     assert "sourcesetpage" not in transformed
     assert r"\nopagecolor" not in transformed
     assert r"\[x = 1\]" in transformed
     assert r"\wavefiguremark" not in transformed
+
+
+def test_transform_tex_includes_epub_only_content(
+    tmp_path: Path,
+) -> None:
+    source = r"""
+\NewDocumentCommand{\waveprereleaseedition}{}{
+	Pre-release digital edition\\
+	August 2026
+}
+\begin{waveepubonly}\waveprereleaseedition\end{waveepubonly}
+"""
+
+    html_transformed = transform_tex(source, None, tmp_path)
+    epub_transformed = transform_tex(
+        source,
+        None,
+        tmp_path,
+        include_epub_only=True,
+    )
+
+    assert "Pre-release digital edition" not in html_transformed
+    assert "August 2026" not in html_transformed
+    assert "Pre-release digital edition" in epub_transformed
+    assert "August 2026" in epub_transformed
+    assert "waveepubonly" not in epub_transformed
+    assert "waveprereleaseedition" not in epub_transformed
 
 
 def test_transform_tex_numbers_editorial_equations_and_alignments(

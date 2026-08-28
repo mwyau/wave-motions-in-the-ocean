@@ -183,6 +183,15 @@ PDF_ONLY_RE = re.compile(
     r"\\begin\{wavepdfonly\}.*?\\end\{wavepdfonly\}",
     re.DOTALL,
 )
+EPUB_ONLY_RE = re.compile(
+    r"\\begin\{waveepubonly\}(?P<body>.*?)\\end\{waveepubonly\}",
+    re.DOTALL,
+)
+PRERELEASE_EDITION_RE = re.compile(
+    r"\\NewDocumentCommand\{\\waveprereleaseedition\}\{\}\{"
+    r"(?P<body>[^{}]*)\}",
+    re.DOTALL,
+)
 WAVE_NUMBERED_RE = re.compile(
     r"\\begin\{(?P<env>waveequation|wavealign)\}(?P<body>.*?)"
     r"\\end\{(?P=env)\}",
@@ -1589,9 +1598,22 @@ def transform_tex(
     assets_root: Path,
     *,
     asset_prefix: str = FIGURE_ASSET_PREFIX,
+    include_epub_only: bool = False,
 ) -> str:
     """Apply generated-only flowing-publication transformations."""
+    edition_match = PRERELEASE_EDITION_RE.search(text)
+    edition_body = None
+    if edition_match:
+        edition_body = edition_match.group("body").strip()
+        text = text[: edition_match.start()] + text[edition_match.end() :]
+
     text = PDF_ONLY_RE.sub("", text)
+    if include_epub_only:
+        text = EPUB_ONLY_RE.sub(lambda match: match.group("body"), text)
+    else:
+        text = EPUB_ONLY_RE.sub("", text)
+    if edition_body is not None:
+        text = text.replace(r"\waveprereleaseedition", edition_body)
     text = text.replace(r"\begin{wavewebonly}", "").replace(r"\end{wavewebonly}", "")
     text = text.replace(r"\nopagecolor", "")
     text = text.replace(r"\sourcepagebreak", "")
@@ -1713,14 +1735,23 @@ def transform_tex(
     return text
 
 
-def prepare_flowing_sources(output_dir: Path, assets_root: Path) -> list[Path]:
+def prepare_flowing_sources(
+    output_dir: Path, assets_root: Path, *, include_epub_only: bool = False
+) -> list[Path]:
     """Write transformed front matter and chapters for a flowing edition."""
     output_dir.mkdir(parents=True, exist_ok=True)
     assets_root.mkdir(parents=True, exist_ok=True)
     frontmatter = (SRC / "frontmatter-modern.tex").read_text()
     frontmatter = frontmatter.replace(r"\tableofcontents", "")
     frontmatter_path = output_dir / "frontmatter.tex"
-    frontmatter_path.write_text(transform_tex(frontmatter, None, assets_root))
+    frontmatter_path.write_text(
+        transform_tex(
+            frontmatter,
+            None,
+            assets_root,
+            include_epub_only=include_epub_only,
+        )
+    )
 
     paths = [frontmatter_path]
     for chapter_number in range(1, 7):
@@ -1730,6 +1761,7 @@ def prepare_flowing_sources(output_dir: Path, assets_root: Path) -> list[Path]:
                 (SRC / f"chapter{chapter_number}.tex").read_text(),
                 chapter_number,
                 assets_root,
+                include_epub_only=include_epub_only,
             )
         )
         paths.append(path)
