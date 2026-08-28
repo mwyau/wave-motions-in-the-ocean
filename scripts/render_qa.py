@@ -1361,7 +1361,7 @@ def write_report(report: Report) -> Path:
             "- Review every PDF contact sheet for unexpected blank pages, large whitespace changes, clipping, undersized figures, and abrupt pagination changes.",
             "- Inspect modern PDF pages 1–12 at full size (cover, half-title, frontispiece, title/edition notice, Contents, prefaces/editor note) plus every chapter opener and figure-dense page.",
             "- For facsimile, verify the exact 184-page physical structure before release and compare any suspicious blank/sparse pages to the source-page edition.",
-            "- Open HTML in a real desktop browser and a phone/narrow viewport; test top/bottom navigation, Appearance theme/text-size choices, direct section permalinks, scrolling active-section updates, back/forward fragment navigation, wide Contents rail, no-JS/native and scripted narrow Contents behavior, static MathML first paint, MathJax atomic swap/fallback, the non-persistent math URL override, per-figure vector/source switching, wide math/tables, image scaling, and the explicit 320px toolbar screenshot.",
+            "- Open HTML in a real desktop browser and a phone/narrow viewport; test top/bottom navigation, Appearance theme/text-size choices, direct section permalinks, heading permalink/copy-link reveal and focus, scrolling active-section updates, back/forward fragment navigation, wide Contents rail, no-JS/native and scripted narrow Contents behavior, static MathML first paint, MathJax atomic swap/fallback, the non-persistent math URL override, per-figure vector/source switching, wide math/tables, image scaling, and the explicit 320px toolbar screenshot.",
             "- Complete the EPUB reader matrix above in real reading systems; structural/browser inspection alone is insufficient.",
             "",
         ]
@@ -1595,6 +1595,53 @@ def reader_regression_specimen(report: Report) -> Path:
             doc.querySelector("[data-figure-cycle]")?.getAttribute("aria-label") === "Default figure rendering: Vector",
           "new page Settings reflects the persisted Vector preference",
         );
+
+        const heading = Array.from(doc.querySelectorAll("main h1[id], main h2[id]"))
+          .sort((left, right) => right.textContent.length - left.textContent.length)[0];
+        const headingActions = heading?.querySelector(":scope > .heading-actions");
+        const headingPermalink = headingActions?.querySelector(":scope > .heading-permalink");
+        const headingCopy = headingActions?.querySelector(":scope > .heading-copy-link");
+        check(
+          Boolean(heading && headingActions && headingPermalink && headingCopy),
+          "headings expose separate permalink and copy-link actions",
+        );
+        if (heading && headingActions && headingPermalink && headingCopy) {
+          const headingHeight = heading.getBoundingClientRect().height;
+          const actionsRect = headingActions.getBoundingClientRect();
+          const permalinkRect = headingPermalink.getBoundingClientRect();
+          const copyRect = headingCopy.getBoundingClientRect();
+          const copyStyle = getComputedStyle(headingCopy);
+          check(
+            copyStyle.position === "absolute" && copyStyle.display !== "none",
+            "heading Copy link is absolutely positioned without display:none",
+          );
+          check(
+            Math.abs(actionsRect.width - permalinkRect.width) <= 1,
+            "heading action width is determined by the # permalink only",
+          );
+          check(
+            copyRect.left >= permalinkRect.right - 1 &&
+              Math.abs(
+                (copyRect.top + copyRect.height / 2) -
+                  (actionsRect.top + actionsRect.height / 2),
+              ) <= 2,
+            "heading Copy link is beside and vertically aligned with #",
+          );
+          headingCopy.focus();
+          await wait(20);
+          const revealedStyle = getComputedStyle(headingCopy);
+          check(
+            doc.activeElement === headingCopy &&
+              revealedStyle.opacity !== "0" &&
+              revealedStyle.pointerEvents !== "none",
+            "heading Copy link reveals on keyboard focus",
+          );
+          check(
+            Math.abs(heading.getBoundingClientRect().height - headingHeight) <= 1,
+            "revealing heading Copy link does not change narrow heading wrapping",
+          );
+          headingCopy.blur();
+        }
 
         const panel = doc.querySelector("#reader-settings");
         const settingsButton = doc.querySelector("[aria-controls=reader-settings]");
@@ -1864,8 +1911,9 @@ def browser_reader_regressions(
         return
     lines.append(
         "- Chromium reader regression assertions: PASS "
-        "(global and per-figure switching, figure persistence, Settings layout and "
-        "overflow at 50%/100%/200%, and inline MathJax/MathML overflow)"
+        "(global and per-figure switching, figure persistence, Settings layout, "
+        "heading permalink actions, narrow heading wrapping, overflow at "
+        "50%/100%/200%, and inline MathJax/MathML overflow)"
     )
 
 

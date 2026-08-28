@@ -676,8 +676,8 @@ a.reader-context-chapter:focus-visible {
 }
 .heading-copy-link {
   position: absolute;
-  inset-inline-end: 0;
-  top: calc(100% + .25rem);
+  inset-inline-start: calc(100% + .38em);
+  top: 50%;
   z-index: 1;
   margin: 0;
   border: 0;
@@ -691,6 +691,7 @@ a.reader-context-chapter:focus-visible {
   line-height: 1;
   opacity: 0;
   pointer-events: none;
+  transform: translateY(-50%);
   white-space: nowrap;
 }
 .heading-actions:hover .heading-copy-link,
