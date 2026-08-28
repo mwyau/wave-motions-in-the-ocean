@@ -461,7 +461,6 @@ a.reader-context-chapter:focus-visible {
   padding: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  scrollbar-gutter: stable;
   border: 1px solid var(--wave-rule);
   border-radius: .65rem;
   background: var(--wave-bg);
@@ -693,6 +692,10 @@ a.reader-context-chapter:focus-visible {
   pointer-events: none;
   transform: translateY(-50%);
   white-space: nowrap;
+}
+.heading-copy-link.is-left {
+  inset-inline-start: auto;
+  inset-inline-end: calc(100% + .38em);
 }
 .heading-actions:hover .heading-copy-link,
 .heading-actions:focus-within .heading-copy-link,

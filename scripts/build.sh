@@ -47,6 +47,8 @@ prepare_bibtex() {
 
 prepare_build_info() {
   "$PYTHON" "$ROOT/scripts/publication.py" build-info --tex "$BUILD/build-info.tex"
+  "$PYTHON" "$ROOT/scripts/publication.py" publication-images \
+    --output "$BUILD/publication-images"
 
   # CITATION.cff is the single maintained DOI source.
   local doi

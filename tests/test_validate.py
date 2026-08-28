@@ -3,10 +3,12 @@ from pathlib import Path
 import pytest
 
 from validate import (
+    GOOGLE_SCHOLAR_PDF_WARNING_BYTES,
     PUNCTUATION_ENTITY_RE,
     SMART_ANCHOR_RE,
     SMART_PUNCTUATION_RE,
     bare_named_functions,
+    check_modern_pdf_size,
     github_math_patterns,
     parse_facsimile_log,
     require_labels,
@@ -15,6 +17,28 @@ from validate import (
     validate_mathml_alignment,
     validate_offline_runtime,
 )
+
+
+def test_modern_pdf_size_warning_is_advisory(tmp_path: Path, capsys) -> None:
+    pdf = tmp_path / "wave-motions.pdf"
+    for size in (
+        GOOGLE_SCHOLAR_PDF_WARNING_BYTES - 1,
+        GOOGLE_SCHOLAR_PDF_WARNING_BYTES,
+    ):
+        pdf.write_bytes(b"x" * size)
+        assert check_modern_pdf_size(pdf) == size
+        assert capsys.readouterr().err == ""
+
+    warning_size = GOOGLE_SCHOLAR_PDF_WARNING_BYTES + 120_000
+    pdf.write_bytes(b"x" * warning_size)
+    assert check_modern_pdf_size(pdf) == warning_size
+    message = capsys.readouterr().err
+    assert "modern PDF is 5.12 MB" in message
+    assert (
+        "Google Scholar's webmaster guidance limits directly indexed files to 5 MB"
+        in message
+    )
+    assert "recommends Google Book Search for larger books" in message
 
 
 def test_strip_tex_comments_keeps_escaped_percent_signs() -> None:

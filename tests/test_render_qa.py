@@ -35,6 +35,7 @@ def write_publication(root: Path, *, include_boundary: bool = True) -> None:
         (root / name).write_text(
             "<!doctype html><html><head>"
             f'<title>{name}</title><meta name="viewport" content="width=device-width">'
+            '<link rel="canonical" href="https://example.test/book/">'
             "</head><body>" + math_pair(source, kind) + "</body></html>"
         )
 
@@ -145,15 +146,15 @@ def test_html_qa_leaves_publication_root_unchanged_on_success_and_failure(
     write_publication(dist)
     before = publication_tree(dist)
 
-    render_qa.html_qa(
-        dist,
-        render_qa.Report(str(dist), dist, tmp_path / "audit-success"),
-        browser=None,
-    )
+    success_report = render_qa.Report(str(dist), dist, tmp_path / "audit-success")
+    render_qa.html_qa(dist, success_report, browser=None)
     assert publication_tree(dist) == before
+    assert not any(
+        "external network resource" in finding.message
+        for finding in success_report.findings
+    )
 
     def failed_screenshot(*args, **kwargs):
-        args[2].parent.mkdir(parents=True, exist_ok=True)
         return False, "simulated browser failure"
 
     monkeypatch.setattr(render_qa, "browser_screenshot", failed_screenshot)

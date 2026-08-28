@@ -82,6 +82,7 @@
       if (action === "increase") button.disabled = textSizePercent >= textSizeMax;
     });
     if (textSizeValue) textSizeValue.textContent = `${textSizePercent}%`;
+    syncHeadingCopyPositions();
   };
 
   const visibleContentAnchor = () => {
@@ -97,6 +98,17 @@
   const restoreContentAnchor = (anchor) => {
     if (!anchor?.node.isConnected) return;
     scrollBy(0, anchor.node.getBoundingClientRect().top - anchor.top);
+  };
+
+  const syncHeadingCopyPositions = () => {
+    const boundary = document.documentElement.clientWidth;
+    document.querySelectorAll(".heading-copy-link").forEach((link) => {
+      link.classList.remove("is-left");
+      link.classList.toggle(
+        "is-left",
+        link.getBoundingClientRect().right > boundary + 1,
+      );
+    });
   };
 
   const figureKey = "wave-figure-view";
@@ -440,6 +452,7 @@
       actions.append(link, copy);
       heading.append(headingText, actions);
     });
+    syncHeadingCopyPositions();
   };
   installPermalinks();
 
@@ -475,6 +488,8 @@
 
   const tocPanel = document.querySelector("#book-contents");
   const tocToggle = document.querySelector("[data-toc-toggle]");
+  const settingsPanel = document.querySelector("#reader-settings");
+  const settingsToggle = document.querySelector("[aria-controls=reader-settings]");
   const tocRail = document.querySelector("[data-book-toc-rail]");
   const readerHeader = document.querySelector(".reader-header");
   const mainContent = document.querySelector("#main-content");
@@ -534,6 +549,46 @@
     tocPanel.style.setProperty("--book-contents-left", `${left}px`);
   };
 
+  let settingsPreferredWidth;
+  let settingsGutter;
+  const positionSettings = () => {
+    if (!settingsPanel || !settingsToggle) return;
+    const viewport = window.visualViewport;
+    const viewportLeft = viewport?.offsetLeft ?? 0;
+    const viewportWidth = viewport?.width ?? innerWidth;
+    if (!Number.isFinite(viewportWidth) || viewportWidth <= 0) return;
+    const viewportRight = viewportLeft + viewportWidth;
+    const style = getComputedStyle(settingsPanel);
+    if (!Number.isFinite(settingsPreferredWidth)) {
+      settingsPreferredWidth = Number.parseFloat(style.width);
+      if (!Number.isFinite(settingsPreferredWidth) || settingsPreferredWidth < 0) {
+        settingsPreferredWidth = 19 * (Number.parseFloat(style.fontSize) || 16);
+      }
+    }
+    if (!Number.isFinite(settingsGutter)) {
+      settingsGutter = Number.parseFloat(style.right);
+      if (!Number.isFinite(settingsGutter) || settingsGutter < 0) {
+        settingsGutter = 16;
+      }
+    }
+    const gutter = Math.min(settingsGutter, viewportWidth / 2);
+    const width = Math.min(
+      settingsPreferredWidth,
+      Math.max(0, viewportWidth - 2 * gutter),
+    );
+    const minLeft = viewportLeft + gutter;
+    const maxLeft = Math.max(minLeft, viewportRight - gutter - width);
+    const toggleRect = settingsToggle.getBoundingClientRect();
+    const desiredRight = Math.max(toggleRect.right, viewportRight - gutter);
+    const left = Math.min(
+      Math.max(desiredRight - width, minLeft),
+      maxLeft,
+    );
+    settingsPanel.style.width = `${width}px`;
+    settingsPanel.style.left = `${left}px`;
+    settingsPanel.style.right = "auto";
+  };
+
   if (tocPanel && tocToggle) {
     if (supportsPopover) {
       tocPanel.hidden = false;
@@ -558,6 +613,17 @@
     }
   }
 
+  if (settingsPanel && settingsToggle && supportsPopover) {
+    settingsPanel.addEventListener("beforetoggle", (event) => {
+      if (event.newState === "open") positionSettings();
+    });
+    settingsPanel.addEventListener("toggle", (event) => {
+      if (event.newState === "open") {
+        requestAnimationFrame(positionSettings);
+      }
+    });
+  }
+
   const updateContentsLayout = () => {
     updateMeasuredHeaderHeight();
     updateContentsTop();
@@ -566,8 +632,22 @@
   };
   updateContentsLayout();
   addEventListener("resize", updateContentsLayout, { passive: true });
+  const updateSettingsPosition = () => {
+    if (settingsPanel?.matches(":popover-open")) positionSettings();
+  };
+  addEventListener("resize", updateSettingsPosition, { passive: true });
+  window.visualViewport?.addEventListener("resize", updateSettingsPosition, {
+    passive: true,
+  });
+  window.visualViewport?.addEventListener("scroll", updateSettingsPosition, {
+    passive: true,
+  });
+  addEventListener("resize", syncHeadingCopyPositions, { passive: true });
   if (readerHeader && "ResizeObserver" in window) {
     new ResizeObserver(() => updateContentsLayout()).observe(readerHeader);
+  }
+  if (mainContent && "ResizeObserver" in window) {
+    new ResizeObserver(syncHeadingCopyPositions).observe(mainContent);
   }
 
   const fragmentTarget = () => {

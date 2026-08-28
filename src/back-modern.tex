@@ -2,6 +2,8 @@
 % Artwork: Utagawa Hiroshige, Naruto Whirlpool, Awa Province, The Met JP1198.
 % The committed JPEG is kept unchanged; the crop is applied only at render time.
 
+\providecommand{\WavePublicationImagePath}[1]{images/#1}
+
 \providecommand{\wavedoi}{}
 
 \NewDocumentCommand{\WaveModernBack}{}{%
@@ -15,7 +17,7 @@
 		\begin{scope}[shift={(current page.center)}]
 			\clip (-2.574584in,-3.893669in) rectangle (2.574584in,3.893669in);
 			\node[inner sep=0pt,anchor=center] at (-0.03in,0.116977in) {%
-				\includegraphics[width=5.86in]{images/naruto-whirlpool-met-jp1198.jpg}%
+				\includegraphics[width=5.86in]{\WavePublicationImagePath{naruto-whirlpool-met-jp1198.jpg}}%
 			};
 		\end{scope}
 		% Keep the framed artwork itself centered exactly on the physical page.

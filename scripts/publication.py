@@ -38,12 +38,43 @@ SOURCE_DIR = REFERENCES / "chapman-rizzoli-1989"
 FIGURES = SRC / "figures"
 IMAGE_DIRS = (FIGURES, SRC / "images")
 CACHE = Path(os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motions")))
+PUBLICATION_IMAGE_DIR = ROOT / "build" / "publication-images"
+PUBLICATION_IMAGE_DPI = 300
 SOURCE_PAGE_CACHE = CACHE / "source-pages"
 TIKZ_CACHE = CACHE / "tikz"
 SOURCE_RENDER_DPI = 170
 SOURCE_CROP_VERSION = "v1"
 TIKZ_CACHE_VERSION = "v3"
 FIGURE_ASSET_PREFIX = "assets/figures"
+
+
+@dataclass(frozen=True)
+class PublicationImageSpec:
+    """One artwork placement that needs a paged-publication raster."""
+
+    source_name: str
+    rendered_width_in: float
+
+    @property
+    def target_width(self) -> int:
+        return round(self.rendered_width_in * PUBLICATION_IMAGE_DPI)
+
+    def target_dimensions(self, source_size: tuple[int, int]) -> tuple[int, int]:
+        source_width, source_height = source_size
+        width = min(source_width, self.target_width)
+        if width == source_width:
+            return source_size
+        height = max(1, round(source_height * width / source_width))
+        return width, height
+
+
+# The modern trim is 7 x 10 in with 0.75 in side margins, so the cover's
+# ``0.965\\linewidth`` artwork is 5.3075 in wide. The back page explicitly
+# renders its source image at 5.86 in before clipping to the framed area.
+PUBLICATION_IMAGE_SPECS = (
+    PublicationImageSpec("great-wave-met-dp130155.jpg", 5.3075),
+    PublicationImageSpec("naruto-whirlpool-met-jp1198.jpg", 5.86),
+)
 
 
 def _citation_scalar(name: str) -> str:
@@ -69,6 +100,7 @@ PUBLICATION_TITLE = f"{BOOK_TITLE}: Myrl's View"
 AUTHORS = ("David C. Chapman", "Paola Malanotte-Rizzoli")
 EDITOR = "Albert M. W. Yau"
 PUBLICATION_YEAR = _citation_scalar("year")
+ONLINE_PUBLICATION_YEAR = "2026"
 DOI = _citation_scalar("doi")
 DOI_URL = f"https://doi.org/{DOI}"
 CONTACT_EMAIL = "albert.yau@stonybrook.edu"
@@ -1492,6 +1524,42 @@ def copy_raster_assets(
             )
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(raster, destination)
+
+
+def prepare_publication_images(
+    output_dir: Path = PUBLICATION_IMAGE_DIR,
+) -> tuple[Path, ...]:
+    """Create fixed-size, generated-only JPEGs for the paged editions."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    paths: list[Path] = []
+    for spec in PUBLICATION_IMAGE_SPECS:
+        source = SRC / "images" / spec.source_name
+        if not source.is_file():
+            raise FileNotFoundError(source)
+        destination = output_dir / spec.source_name
+        with Image.open(source) as image:
+            target_size = spec.target_dimensions(image.size)
+            if target_size == image.size:
+                # A smaller maintained master already has more than the
+                # requested resolution; keep its pixels and bytes intact.
+                shutil.copyfile(source, destination)
+            else:
+                image.resize(target_size, Image.Resampling.LANCZOS).convert("RGB").save(
+                    destination,
+                    format="JPEG",
+                    quality=90,
+                    subsampling=0,
+                    optimize=True,
+                    progressive=False,
+                )
+        paths.append(destination)
+        effective_dpi = target_size[0] / spec.rendered_width_in
+        print(
+            f"Publication image {spec.source_name}: "
+            f"{target_size[0]}x{target_size[1]} pixels, "
+            f"{effective_dpi:.1f} dpi, {destination.stat().st_size} bytes"
+        )
+    return tuple(paths)
 
 
 def copy_cc_assets(assets_root: Path) -> None:
@@ -3074,6 +3142,7 @@ def write_build_info_tex(path: Path, info: BuildInfo | None = None) -> None:
         f"\\providecommand{{\\wavebuildversion}}{{{_tex_escape(version)}}}\n"
         f"\\providecommand{{\\wavebuildlabel}}{{{_tex_escape(info.label)}}}\n"
         f"\\providecommand{{\\wavebuildurl}}{{{_tex_escape(info.commit_url)}}}\n"
+        "\\providecommand{\\WavePublicationImagePath}[1]{../build/publication-images/#1}\n"
     )
 
 
@@ -3102,6 +3171,14 @@ def _build_info_cli(argv: list[str] | None = None) -> int:
         print(info.commit_url)
     else:
         print(info.label)
+    return 0
+
+
+def _publication_images_cli(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="publication.py publication-images")
+    parser.add_argument("--output", type=Path, default=PUBLICATION_IMAGE_DIR)
+    args = parser.parse_args(argv)
+    prepare_publication_images(args.output)
     return 0
 
 
@@ -3365,6 +3442,9 @@ def main(argv: list[str] | None = None) -> int:
         "build-info", help="print or write the current build identity"
     )
     subparsers.add_parser(
+        "publication-images", help="create generated paged-publication artwork"
+    )
+    subparsers.add_parser(
         "equations", help="regenerate or check the equation review ledger"
     )
     subparsers.add_parser(
@@ -3380,6 +3460,8 @@ def main(argv: list[str] | None = None) -> int:
     args, remainder = parser.parse_known_args(argv)
     if args.command == "build-info":
         return _build_info_cli(remainder)
+    if args.command == "publication-images":
+        return _publication_images_cli(remainder)
     if args.command == "equations":
         return _equations_cli(remainder)
     if args.command == "figures":

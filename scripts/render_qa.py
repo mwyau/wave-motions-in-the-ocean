@@ -880,13 +880,11 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
         broken_all.extend(f"{name}: {ref}" for ref in broken)
         if 'name="viewport"' not in text and "name='viewport'" not in text:
             report.add("WARNING", "HTML", f"{name} has no viewport meta tag")
-        external_runtime.extend(
-            re.findall(
-                r'<(?:script|link)\b[^>]*(?:src|href)=["\'](https?://[^"\']+)["\'][^>]*>',
-                text,
-                flags=re.IGNORECASE,
-            )
-        )
+        for pattern in (
+            r'<script\b(?=[^>]*\bsrc=["\'](https?://[^"\']+)["\'])[^>]*>',
+            r'<link\b(?=[^>]*\brel=["\']stylesheet["\'])(?=[^>]*\bhref=["\'](https?://[^"\']+)["\'])[^>]*>',
+        ):
+            external_runtime.extend(re.findall(pattern, text, flags=re.IGNORECASE))
     if broken_all:
         report.add(
             "ERROR",
@@ -1034,6 +1032,7 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
                 jobs.extend(math_parity_jobs())
             failures = 0
             completed = 0
+            screenshots.mkdir(parents=True, exist_ok=True)
             for output_name, page_name, width, height, dark in jobs:
                 ok, detail = browser_screenshot(
                     browser,

@@ -2,6 +2,9 @@
 % The cover artwork is The Met Open Access image DP130155 / object JP1847.
 \definecolor{WaveCoverBlue}{HTML}{213E5E}
 \definecolor{WaveCoverPaper}{HTML}{FBF7EC}
+% Paged builds override this with a generated 300-dpi artwork directory;
+% direct TeX use continues to resolve the maintained source image.
+\providecommand{\WavePublicationImagePath}[1]{images/#1}
 
 \NewDocumentCommand{\WaveModernCover}{}{%
 	\thispagestyle{empty}%
@@ -17,7 +20,7 @@
 		\setlength{\fboxrule}{0.55pt}%
 		\setlength{\fboxsep}{2.5pt}%
 		{\color{WaveCoverBlue}%
-			\fbox{\includegraphics[width=0.965\linewidth]{images/great-wave-met-dp130155.jpg}}\par}
+			\fbox{\includegraphics[width=0.965\linewidth]{\WavePublicationImagePath{great-wave-met-dp130155.jpg}}}\par}
 		\vspace{0.14in}
 		{\color{WaveCoverBlue}\rmfamily\fontsize{16}{19}\selectfont\itshape Presented to Myrl C. Hendershott\par}
 		\vspace{0.12in}

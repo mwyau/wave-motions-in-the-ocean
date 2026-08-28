@@ -34,6 +34,7 @@ from publication import (
     LANGUAGE,
     LICENSE_URL,
     MATHJAX_URL,
+    ONLINE_PUBLICATION_YEAR,
     PUBLICATION_TITLE,
     PUBLICATION_YEAR,
     REPOSITORY_URL,
@@ -600,7 +601,7 @@ def page_metadata_record(path: Path) -> PageMetadata:
     display_title = reader_punctuation(PUBLICATION_TITLE)
     author_text = " and ".join(AUTHORS)
     page_title = (
-        BOOK_TITLE if path.name == "index.html" else f"{context} — {BOOK_TITLE}"
+        PUBLICATION_TITLE if path.name == "index.html" else f"{context} — {BOOK_TITLE}"
     )
     social_title = (
         display_title if path.name == "index.html" else f"{context} — {display_title}"
@@ -615,6 +616,7 @@ def page_metadata_record(path: Path) -> PageMetadata:
         structured_data: dict[str, object] = {
             "@context": "https://schema.org",
             "@type": "Book",
+            "@id": canonical_url,
             "name": PUBLICATION_TITLE,
             "author": [_schema_person(author) for author in AUTHORS],
             "editor": _schema_person(EDITOR),
@@ -628,13 +630,14 @@ def page_metadata_record(path: Path) -> PageMetadata:
             ("citation_title", PUBLICATION_TITLE),
             *(("citation_author", author) for author in AUTHORS),
             ("citation_publication_date", PUBLICATION_YEAR),
+            ("citation_online_date", ONLINE_PUBLICATION_YEAR),
             ("citation_pdf_url", f"{canonical_url}{MODERN_PDF_FILENAME}"),
         )
     else:
         chapter = chapter_for_page(path)
         if chapter is not None:
-            sections = "; ".join(chapter.sections)
-            description = f"{chapter.title}. Sections: {sections}."
+            topics = ", ".join(chapter.sections[:3])
+            description = f"{chapter.title}. Topics: {topics}."
             structured_data = {
                 "@context": "https://schema.org",
                 "@type": "Chapter",
@@ -931,12 +934,19 @@ def canonical_page_urls() -> tuple[str, ...]:
     return tuple(page_metadata_record(page).canonical_url for page in EXPECTED_PAGES)
 
 
+def sitemap_urls() -> tuple[str, ...]:
+    """Return the HTML inventory followed by the reader download resources."""
+    base = SITE_URL.rstrip("/")
+    resources = tuple(f"{base}/{filename}" for filename, _ in HTML_DOWNLOADS)
+    return (*canonical_page_urls(), *resources)
+
+
 def sitemap_text() -> str:
     lines = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         f'<urlset xmlns="{SITEMAP_NAMESPACE}">',
     ]
-    for url in canonical_page_urls():
+    for url in sitemap_urls():
         lines.extend(
             (
                 "  <url>",

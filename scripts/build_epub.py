@@ -21,6 +21,8 @@ import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 
+from PIL import Image
+
 from publication import (
     AUTHORS,
     EDITOR,
@@ -31,6 +33,7 @@ from publication import (
     current_build,
     prepare_assets,
     prepare_flowing_sources,
+    prepare_publication_images,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,6 +46,7 @@ EPUB = OUT / "wave-motions.epub"
 COVER_DIR = BUILD / "cover"
 COVER_PDF = COVER_DIR / "cover.pdf"
 COVER_PNG = COVER_DIR / "cover.png"
+COVER_IMAGE = COVER_DIR / "cover.jpg"
 
 OPF_NS = "http://www.idpf.org/2007/opf"
 DC_NS = "http://purl.org/dc/elements/1.1/"
@@ -122,6 +126,7 @@ def render_cover() -> None:
         r"""\documentclass[11pt,oneside]{report}
 \usepackage{layout/wave-modern}
 \begin{document}
+\providecommand{\WavePublicationImagePath}[1]{../../publication-images/#1}
 \input{cover-modern}
 \WaveModernCover
 \clearpage
@@ -164,6 +169,19 @@ def render_cover() -> None:
     )
     if not COVER_PNG.is_file() or COVER_PNG.stat().st_size == 0:
         raise SystemExit("EPUB cover rasterization failed")
+    # Keep the existing 7 x 10 in, 200-dpi device-scale raster, but use a
+    # high-quality JPEG so the cover does not dominate the reflowable EPUB.
+    with Image.open(COVER_PNG) as image:
+        image.convert("RGB").save(
+            COVER_IMAGE,
+            format="JPEG",
+            quality=92,
+            subsampling=0,
+            optimize=True,
+            progressive=False,
+        )
+    if not COVER_IMAGE.is_file() or COVER_IMAGE.stat().st_size == 0:
+        raise SystemExit("EPUB cover JPEG conversion failed")
 
 
 def write_metadata() -> Path:
@@ -214,7 +232,7 @@ def build_epub(inputs: list[Path], metadata: Path) -> None:
             "--css",
             str(CSS),
             "--epub-cover-image",
-            str(COVER_PNG),
+            str(COVER_IMAGE),
             "--resource-path",
             resource_path,
             "-o",
@@ -790,6 +808,7 @@ def main() -> int:
         raise SystemExit(f"missing EPUB stylesheet: {CSS}")
     shutil.rmtree(BUILD, ignore_errors=True)
     BUILD.mkdir(parents=True)
+    prepare_publication_images()
     prepare_assets(BUILD, BUILD)
     inputs = epub_inputs()
     render_cover()

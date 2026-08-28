@@ -82,50 +82,125 @@ def test_html_frontmatter_footer_starts_with_reader_link() -> None:
 
 
 def test_html_metadata_uses_actual_chapter_and_section_titles() -> None:
-    chapter = build_html.CHAPTERS[0]
-    metadata = build_html.page_metadata_record(
-        build_html.OUT / f"chapter{chapter.number}.html"
-    )
+    book_url = f"{publication.SITE_URL}/"
+    for chapter in build_html.CHAPTERS:
+        metadata = build_html.page_metadata_record(
+            build_html.OUT / f"chapter{chapter.number}.html"
+        )
 
-    assert metadata.description == (
-        f"{chapter.title}. Sections: {'; '.join(chapter.sections)}."
-    )
-    assert metadata.canonical_url == (
-        f"{publication.SITE_URL}/chapter{chapter.number}.html"
-    )
-    assert metadata.social_url == metadata.canonical_url
-    assert metadata.structured_data["@type"] == "Chapter"
-    assert metadata.structured_data["name"] == chapter.title
-    assert metadata.scholar_tags == ()
+        assert metadata.description == (
+            f"{chapter.title}. Topics: {', '.join(chapter.sections[:3])}."
+        )
+        assert metadata.canonical_url == (
+            f"{publication.SITE_URL}/chapter{chapter.number}.html"
+        )
+        assert metadata.social_url == metadata.canonical_url
+        assert metadata.structured_data["@type"] == "Chapter"
+        assert metadata.structured_data["name"] == chapter.title
+        assert metadata.structured_data["isPartOf"]["@id"] == book_url
+        assert metadata.scholar_tags == ()
 
 
 def test_html_book_metadata_has_book_level_scholar_fields() -> None:
     metadata = build_html.page_metadata_record(build_html.OUT / "index.html")
 
+    assert metadata.page_title == publication.PUBLICATION_TITLE
     assert metadata.structured_data["@type"] == "Book"
+    assert metadata.structured_data["@id"] == metadata.canonical_url
+    assert metadata.structured_data["url"] == metadata.canonical_url
     assert metadata.structured_data["identifier"] == publication.DOI_URL
     assert metadata.scholar_tags == (
         ("citation_title", publication.PUBLICATION_TITLE),
         ("citation_author", publication.AUTHORS[0]),
         ("citation_author", publication.AUTHORS[1]),
         ("citation_publication_date", publication.PUBLICATION_YEAR),
+        ("citation_online_date", publication.ONLINE_PUBLICATION_YEAR),
         (
             "citation_pdf_url",
             f"{publication.SITE_URL}/wave-motions.pdf",
         ),
     )
     assert "citation_doi" not in build_html.scholar_metadata_html(metadata.scholar_tags)
+    assert ("citation_author", publication.EDITOR) not in metadata.scholar_tags
+    assert publication.PUBLICATION_YEAR != publication.ONLINE_PUBLICATION_YEAR
 
 
-def test_html_sitemap_matches_the_canonical_page_inventory() -> None:
+def test_html_sitemap_contains_pages_and_reader_resources() -> None:
     root = ET.fromstring(build_html.sitemap_text())
     namespace = {"sitemap": build_html.SITEMAP_NAMESPACE}
     urls = [
         element.text for element in root.findall("sitemap:url/sitemap:loc", namespace)
     ]
 
-    assert len(urls) == 8
-    assert urls == list(build_html.canonical_page_urls())
+    assert len(urls) == 10
+    assert urls == list(build_html.sitemap_urls())
+    assert urls[:8] == list(build_html.canonical_page_urls())
+    assert urls[-2:] == [
+        f"{publication.SITE_URL}/wave-motions.pdf",
+        f"{publication.SITE_URL}/wave-motions.epub",
+    ]
+    assert set(urls[-2:]).isdisjoint(build_html.canonical_page_urls())
+
+
+def test_paged_artwork_derivatives_are_deterministic_and_keep_masters_unchanged(
+    tmp_path: Path,
+) -> None:
+    masters = {
+        spec.source_name: (publication.SRC / "images" / spec.source_name).read_bytes()
+        for spec in publication.PUBLICATION_IMAGE_SPECS
+    }
+    salmon = publication.SRC / "images" / "salmon-hendershott-como-1980.jpg"
+    salmon_master = salmon.read_bytes()
+    first = tmp_path / "first"
+    second = tmp_path / "second"
+
+    first_paths = publication.prepare_publication_images(first)
+    second_paths = publication.prepare_publication_images(second)
+
+    assert [path.name for path in first_paths] == [
+        spec.source_name for spec in publication.PUBLICATION_IMAGE_SPECS
+    ]
+    for spec, first_path, second_path in zip(
+        publication.PUBLICATION_IMAGE_SPECS, first_paths, second_paths, strict=True
+    ):
+        assert first_path.read_bytes() == second_path.read_bytes()
+        with (
+            Image.open(publication.SRC / "images" / spec.source_name) as master,
+            Image.open(first_path) as derivative,
+        ):
+            assert derivative.size == spec.target_dimensions(master.size)
+            assert derivative.size[0] / spec.rendered_width_in == pytest.approx(
+                publication.PUBLICATION_IMAGE_DPI, abs=0.1
+            )
+            assert "exif" not in derivative.info
+            assert "xmp" not in derivative.info
+        assert (
+            first_path.stat().st_size
+            < (publication.SRC / "images" / spec.source_name).stat().st_size
+        )
+        assert (publication.SRC / "images" / spec.source_name).read_bytes() == masters[
+            spec.source_name
+        ]
+
+    assert salmon.read_bytes() == salmon_master
+    assert not (first / salmon.name).exists()
+
+
+def test_html_raster_assets_copy_maintained_images_verbatim(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(publication, "IMAGE_DIRS", (publication.SRC / "images",))
+
+    publication.copy_raster_assets(tmp_path)
+
+    for name in (
+        "great-wave-met-dp130155.jpg",
+        "naruto-whirlpool-met-jp1198.jpg",
+        "salmon-hendershott-como-1980.jpg",
+    ):
+        assert (tmp_path / "assets" / "figures" / name).read_bytes() == (
+            publication.SRC / "images" / name
+        ).read_bytes()
 
 
 def test_html_structured_data_serializes_as_json() -> None:

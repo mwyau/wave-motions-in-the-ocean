@@ -38,7 +38,7 @@ from build_epub import (
     text_content,
     validate_structure,
 )
-from build_html import page_metadata_record
+from build_html import page_metadata_record, sitemap_urls
 from publication import (
     AUTHORS,
     DOWNLOADS,
@@ -80,6 +80,7 @@ FACSIMILE_EXPECTED_PAGES = 184
 FACSIMILE_FRONT_MATTER_PAGES = 10
 FACSIMILE_BODY_BOUNDARIES = 170
 FACSIMILE_HEADROOM_WARNING_PT = 10.0
+GOOGLE_SCHOLAR_PDF_WARNING_BYTES = 5_000_000
 FACSIMILE_BOUNDARY_RE = re.compile(
     r"^FACSIMILE_B n=(\d+) p=(\d+) s=(-?\d+(?:\.\d+)?)pt$"
 )
@@ -415,12 +416,35 @@ def html_source_url(path: Path, sha: str) -> str:
 
 def check_html_metadata() -> None:
     """Check generated discovery metadata without crawling the publication."""
-    expected_urls = tuple(
+    expected_page_urls = tuple(
         page_metadata_record(page).canonical_url for page in EXPECTED_HTML_PAGES
     )
     for page in EXPECTED_HTML_PAGES:
         metadata = page_metadata_record(page)
         text = page.read_text(errors="replace")
+
+        scalar_metadata = (
+            (r"<title>(.*?)</title>", metadata.page_title, "title"),
+            (
+                r'<meta\s+property="og:title"\s+content="([^"]*)">',
+                metadata.social_title,
+                "Open Graph title",
+            ),
+            (
+                r'<meta\s+property="og:image"\s+content="([^"]*)">',
+                metadata.social_image,
+                "Open Graph image",
+            ),
+            (
+                r'<meta\s+property="og:image:alt"\s+content="([^"]*)">',
+                metadata.social_image_alt,
+                "Open Graph image alternative",
+            ),
+        )
+        for pattern, expected, label in scalar_metadata:
+            values = [html.unescape(value) for value in re.findall(pattern, text)]
+            if values != [expected]:
+                fail(f"{page.name}: {label} is missing or inconsistent")
 
         canonical = re.findall(r'<link\s+rel="canonical"\s+href="([^"]+)">', text)
         social_urls = re.findall(
@@ -481,9 +505,14 @@ def check_html_metadata() -> None:
     if sitemap_root.tag != f"{namespace}urlset":
         fail("sitemap.xml has the wrong root element")
     url_elements = sitemap_root.findall(f"{namespace}url")
-    sitemap_urls = [element.findtext(f"{namespace}loc") for element in url_elements]
-    if sitemap_urls != list(expected_urls):
-        fail("sitemap.xml does not match the canonical HTML page inventory")
+    actual_sitemap_urls = [
+        element.findtext(f"{namespace}loc") for element in url_elements
+    ]
+    expected_sitemap_urls = sitemap_urls()
+    if tuple(
+        expected_sitemap_urls[: len(expected_page_urls)]
+    ) != expected_page_urls or actual_sitemap_urls != list(expected_sitemap_urls):
+        fail("sitemap.xml does not match the HTML/resource URL inventory")
 
 
 def _is_remote_reference(value: str) -> bool:
@@ -1732,6 +1761,19 @@ def facsimile_layout_diagnostics(*, strict: bool) -> None:
             print(summary)
 
 
+def check_modern_pdf_size(path: Path = MODERN_PDF) -> int:
+    """Warn when the modern PDF exceeds Google's decimal 5 MB guidance."""
+    size = path.stat().st_size
+    if size > GOOGLE_SCHOLAR_PDF_WARNING_BYTES:
+        warning(
+            "Google Scholar PDF size",
+            f"modern PDF is {size / 1_000_000:.2f} MB; Google Scholar's "
+            "webmaster guidance limits directly indexed files to 5 MB and "
+            "recommends Google Book Search for larger books.",
+        )
+    return size
+
+
 def check_pdf_integrity() -> None:
     require_command("pdfinfo")
     for path in (FACSIMILE_PDF, MODERN_PDF):
@@ -1756,7 +1798,11 @@ def check_pdf_integrity() -> None:
         )
     if mod_pages <= 0:
         fail("modern PDF has no pages")
-    print(f"PDF integrity OK: facsimile={fac_pages} pages, modern={mod_pages} pages")
+    modern_size = check_modern_pdf_size()
+    print(
+        f"PDF integrity OK: facsimile={fac_pages} pages, modern={mod_pages} pages, "
+        f"modern size={modern_size} bytes ({modern_size / 1_000_000:.2f} MB)"
+    )
 
 
 def check_pdf_destinations() -> None:
