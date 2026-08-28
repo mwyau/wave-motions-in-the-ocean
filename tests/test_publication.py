@@ -1,3 +1,4 @@
+import html
 import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -81,16 +82,31 @@ def test_html_frontmatter_footer_starts_with_reader_link() -> None:
     assert "wave-motions-facsimile.pdf" not in footer
 
 
-def test_html_metadata_uses_actual_chapter_and_section_titles() -> None:
+def test_html_metadata_uses_curated_chapter_descriptions() -> None:
     book_url = f"{publication.SITE_URL}/"
-    for chapter in build_html.CHAPTERS:
-        metadata = build_html.page_metadata_record(
-            build_html.OUT / f"chapter{chapter.number}.html"
+    assert len(build_html.CHAPTERS) == 6
+    template = build_html.HTML_TEMPLATE.read_text()
+    assert all(
+        template.count(tag) == 1
+        for tag in (
+            '<meta name="description" content="$description$">',
+            '<meta property="og:description" content="$description$">',
+            '<meta name="twitter:description" content="$description$">',
         )
+    )
 
-        assert metadata.description == (
+    for chapter in build_html.CHAPTERS:
+        page = build_html.OUT / f"chapter{chapter.number}.html"
+        metadata = build_html.page_metadata_record(page)
+        generated = build_html.page_metadata(page)
+
+        assert chapter.description.strip()
+        assert metadata.description == chapter.description
+        assert metadata.description != (
             f"{chapter.title}. Topics: {', '.join(chapter.sections[:3])}."
         )
+        assert "Topics:" not in metadata.description
+        assert generated["description"] == html.escape(chapter.description, quote=True)
         assert metadata.canonical_url == (
             f"{publication.SITE_URL}/chapter{chapter.number}.html"
         )

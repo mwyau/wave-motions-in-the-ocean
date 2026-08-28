@@ -636,8 +636,7 @@ def page_metadata_record(path: Path) -> PageMetadata:
     else:
         chapter = chapter_for_page(path)
         if chapter is not None:
-            topics = ", ".join(chapter.sections[:3])
-            description = f"{chapter.title}. Topics: {topics}."
+            description = chapter.description
             structured_data = {
                 "@context": "https://schema.org",
                 "@type": "Chapter",

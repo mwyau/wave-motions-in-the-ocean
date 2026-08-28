@@ -2995,6 +2995,7 @@ class Chapter:
     number: int
     title: str
     sections: tuple[str, ...]
+    description: str
 
 
 def _balanced_command_args(text: str, command: str) -> list[str]:
@@ -3053,6 +3054,14 @@ def section_slug(title: str) -> str:
 
 
 def book_structure() -> tuple[Chapter, ...]:
+    descriptions = (
+        "Plane waves, dispersion relations, linear superposition, group velocity, stationary phase, and ray theory for waves in homogeneous and slowly varying media.",
+        "Acoustic waves in compressible fluids, from plane-wave propagation and boundary reflection to channel waveguide modes, discontinuity scattering, and slowly varying sound speed.",
+        "Surface gravity waves in homogeneous and slowly varying media, including two-fluid interfacial waves, ship waves, energy propagation, and waves riding on a current.",
+        "Internal gravity waves in rotating, stratified fluids, including waveguide and evanescent modes, topographic generation, boundary reflection, and variable buoyancy frequency.",
+        "Shallow-water dynamics with rotation, covering Laplace's tidal equations, seiches, edge waves, Poincaré and Kelvin waves, Rossby and planetary waves, and equatorial waves.",
+        "Variable bottom topography and stratification shape topographic Rossby, bottom-trapped, continental shelf, and coastal-trapped waves, with wind-forced long-wave dynamics.",
+    )
     chapters: list[Chapter] = []
     for number in range(1, 7):
         path = SRC / f"chapter{number}.tex"
@@ -3068,6 +3077,7 @@ def book_structure() -> tuple[Chapter, ...]:
                 number=number,
                 title=tex_plain(chapter_titles[0]),
                 sections=tuple(tex_plain(section) for section in section_titles),
+                description=descriptions[number - 1],
             )
         )
     return tuple(chapters)
