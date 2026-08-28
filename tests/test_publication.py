@@ -1147,6 +1147,29 @@ def test_install_figure_markup_adds_one_switchable_image_and_local_action(
     assert ">Original</button>" in output
 
 
+def test_install_figure_markup_splits_image_after_paragraph_content(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    page = tmp_path / "chapter3.html"
+    page.write_text(
+        '<p><span class="math display">equation</span> '
+        '<img src="assets/figures/paired.svg" alt="existing alternative" /></p>'
+        '<div class="center"><p><span class="sans-serif">Figure 3.9</span>'
+        "</p></div>"
+    )
+    monkeypatch.setattr(
+        build_html, "page_switchable_figure_stems", lambda *_: ("paired",)
+    )
+
+    build_html.install_figure_markup(page, tmp_path)
+    output = page.read_text()
+
+    assert '</span></p>\n<figure class="wave-figure wave-figure-switchable"' in output
+    assert output.count('<figure class="wave-figure wave-figure-switchable"') == 1
+    assert output.count("<img") == 1
+    assert ">Original</button>" in output
+
+
 def test_install_figure_markup_leaves_source_art_without_switch_action(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

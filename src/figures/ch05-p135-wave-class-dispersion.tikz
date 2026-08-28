@@ -12,8 +12,9 @@
   \def\B{0.40}
   \def\sx{1.00}
   \def\slx{0.42}
-  \def\sly{0.24}
+  \def\sly{0.36}
   \def\so{3.05}
+  \def\sor{9.00}
 
   \draw[->,line width=0.8pt] (-5.25,0) -- (3.20,0) node[right] {$k$};
   \draw[->,line width=0.8pt] (0,0) -- (-2.05,-1.72) node[below left] {$-\ell$};
@@ -22,21 +23,21 @@
   \foreach \om in {0.075,0.105,0.135,0.165} {
     \pgfmathsetmacro{\kc}{-\B/(2*\om)}
     \pgfmathsetmacro{\rr}{sqrt((\B/(2*\om))^2-1)}
-    \draw[line width=0.55pt,samples=90,domain=0:360,variable=\t]
+      \draw[line width=0.55pt,samples=90,domain=0:360,variable=\t]
       plot ({\sx*(\kc+\rr*cos(\t))+\slx*(\rr*sin(\t))},
-            {\so*\om+\sly*(\rr*sin(\t))});
+            {\sor*\om+\sly*(\rr*sin(\t))});
   }
   \draw[line width=0.8pt,samples=80,domain=0.06:0.199,variable=\om]
-    plot ({\sx*(-\B/(2*\om)+sqrt((\B/(2*\om))^2-1))},{\so*\om});
+    plot ({\sx*(-\B/(2*\om)+sqrt((\B/(2*\om))^2-1))},{\sor*\om});
   \draw[line width=0.8pt,samples=80,domain=0.06:0.199,variable=\om]
-    plot ({\sx*(-\B/(2*\om)-sqrt((\B/(2*\om))^2-1))},{\so*\om});
-  \fill ({-\sx}, {\so*\B/2}) circle (1.2pt);
-  \node[anchor=west] at (0.18,{\so*\B/2+0.16})
+    plot ({\sx*(-\B/(2*\om)-sqrt((\B/(2*\om))^2-1))},{\sor*\om});
+  \fill ({-\sx}, {\sor*\B/2}) circle (1.2pt);
+  \node[anchor=west] at (0.18,{\sor*\B/2+0.16})
     {$\sigma=\dfrac{\beta\sqrt{gD}}{2f}$};
-  \node[anchor=east,align=right] at (-2.55,-0.88) {Rossby wave surface};
+  \node[anchor=east,align=right] at (-2.55,-0.88) {Rossby wave cone};
   \node[anchor=east] at (-2.48,-1.38)
     {$\sigma=-\dfrac{\beta k}{k^2+\ell^2+f^2/gD}$};
-  \fill ({\sx*(-\B/(2*0.105))},{\so*0.105}) circle (1.1pt) coordinate (Crep);
+  \fill ({\sx*(-\B/(2*0.105))},{\sor*0.105}) circle (1.1pt) coordinate (Crep);
   \node[anchor=east] at (-4.10,-0.18)
     {$C\!\left(-\dfrac{\beta}{2\sigma},0\right)$};
   \draw[->,line width=0.55pt] (-3.90,-0.10) -- (Crep);
@@ -50,7 +51,7 @@
   \draw[line width=0.65pt,samples=100,domain=0:360,variable=\t]
     plot ({\sx*\rg*cos(\t)+\slx*\rg*sin(\t)},
           {\so*\omtop+\sly*\rg*sin(\t)});
-  \node[anchor=west] at (1.10,4.35) {Gravity wave surface};
+  \node[anchor=west] at (1.10,4.35) {Gravity wave cone};
   \node[anchor=west] at (1.10,3.92)
     {$\sigma^2=f^2+gD(k^2+\ell^2)$};
   \node[anchor=west] at (0.10,{\so+0.02}) {$f$};

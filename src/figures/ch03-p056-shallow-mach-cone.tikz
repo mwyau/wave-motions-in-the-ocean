@@ -1,24 +1,31 @@
 % wave-source: pdf=ChapmanRizzoli3.pdf; page=21; trim=140bp 220bp 125bp 410bp
 % wave-source-mask: pdf=ChapmanRizzoli3.pdf; page=21; rect=140bp 220bp 500bp 236bp; origin=lower-left; reason=remove the following prose baseline while preserving the complete Mach-cone sketch
 % Source: Wave Motions in the Ocean, printed p.56 (physical p.21), lower figure.
-% Exact nondispersive Mach-cone geometry for the illustrative ratio c/V=0.4:
-% every wave circle has radius c|t| and center displacement V|t|, so the common
-% tangent half-angle is theta=asin(c/V)=23.578 deg. Ratio is display-only.
+% The circles have radius c|t| and centers displaced by V|t|.  The display
+% uses c/V=0.4, so both circles share the same tangent half-angle.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
   \coordinate (S) at (9.15,2.30);
+  \coordinate (B) at (2.75,2.30);
+  \coordinate (A) at (6.55,2.30);
+
   \draw[line width=0.72pt] (S) -- ++(156.422:8.20);
   \draw[line width=0.72pt] (S) -- ++(203.578:8.20);
-  \draw[line width=0.60pt] (6.15,2.30) circle (1.20);
-  \draw[line width=0.60pt] (3.65,2.30) circle (2.20);
+  \draw[line width=0.60pt] (B) circle (2.56);
+  \draw[line width=0.60pt] (A) circle (1.04);
+
   \draw[->,line width=0.90pt] (S) -- ++(1.00,0) node[right] {$V$};
   \node[below=2pt] at (S) {$t=0$};
-  \draw[line width=0.48pt] (6.15,2.30) -- ++(-68:1.20);
-  \node[anchor=west] at (6.00,1.55) {$c|t|$};
-  \draw[line width=0.48pt] (3.65,2.30) -- ++(-72:2.20);
-  \node[anchor=west] at (3.40,1.00) {$c|t|$};
-  \node[anchor=east] at (2.00,2.30) {Waves};
-  \node at (6.20,4.20) {Absolutely No Waves};
-  \node at (6.20,0.40) {Absolutely No Waves};
+  \node[anchor=east] at (1.95,2.30) {Waves};
+  \node at (6.10,4.92) {Absolutely No Waves};
+  \node at (6.10,-0.18) {Absolutely No Waves};
+
+  \draw[line width=0.48pt] (B) -- ++(-70:2.56);
+  \node[anchor=west] at (2.05,0.36) {$c|t|$};
+  \draw[line width=0.48pt] (A) -- ++(-70:1.04);
+  \node[anchor=west] at (6.05,1.04) {$c|t|$};
+
+  \draw[line width=0.40pt] ($(S)+(156.422:0.80)$) arc[start angle=156.422,end angle=180,radius=0.80];
   \draw[line width=0.40pt] ($(S)+(180:0.80)$) arc[start angle=180,end angle=203.578,radius=0.80];
-  \node at ($(S)+(191.8:1.12)$) {$\theta$};
+  \node at ($(S)+(168.2:1.10)$) {$\theta$};
+  \node at ($(S)+(191.8:1.10)$) {$\theta$};
 \end{tikzpicture}

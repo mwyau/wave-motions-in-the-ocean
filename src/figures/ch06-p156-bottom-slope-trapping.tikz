@@ -10,8 +10,8 @@
   % the bottom because omega<S.
   \begin{scope}[shift={(0,0)}]
     \draw[line width=0.75pt] (0,-0.2) -- (2.05,3.95);
-    \draw[line width=0.85pt,samples=110,domain=0.10:3.55,variable=\s]
-      plot ({0.42+0.43*sin(650*\s)+0.40*\s},{0.16+0.80*\s});
+    \draw[line width=0.85pt,samples=120,domain=0.05:3.70,variable=\s]
+      plot ({0.42+0.40*sin(300*\s)+0.40*\s},{0.16+0.82*\s});
     \node at (2.25,0.48) {$\omega<S$};
     \node at (2.62,3.30) {$\omega<S$};
   \end{scope}
@@ -21,9 +21,9 @@
   \begin{scope}[shift={(4.65,0)}]
     \draw[line width=0.75pt] (0,-0.2) -- (1.00,2.15) -- (3.12,3.12);
     \draw[line width=0.85pt,samples=80,domain=0.10:2.10,variable=\s]
-      plot ({0.42+0.39*sin(700*\s)+0.25*\s},{0.13+0.88*\s});
-    \draw[line width=0.85pt,samples=70,domain=0:1.85,variable=\s]
-      plot ({1.08+0.72*\s},{2.43+0.28*exp(-1.35*\s)});
+      plot ({0.42+0.39*sin(260*\s)+0.25*\s},{0.13+0.88*\s});
+    \draw[line width=0.85pt,samples=90,domain=0:1.10,variable=\s]
+      plot ({1.15+0.92*\s},{3.08+0.11*sin(420*\s)});
     \node at (1.55,0.80) {$\omega<S$};
     \node at (2.62,2.08) {$\omega>S$};
   \end{scope}
@@ -35,9 +35,9 @@
     \draw[line width=0.85pt,samples=65,domain=0:1.12,variable=\s]
       plot ({0.03+1.05*\s},{0.58+0.20*exp(-1.7*(1.12-\s))});
     \draw[line width=0.85pt,samples=100,domain=0.12:2.10,variable=\s]
-      plot ({1.42+0.34*sin(720*\s)+0.44*\s},{0.75+0.92*\s});
-    \draw[line width=0.85pt,samples=70,domain=0:1.55,variable=\s]
-      plot ({2.75+0.98*\s},{3.50+0.22*exp(-1.45*\s)});
+      plot ({1.42+0.34*sin(340*\s)+0.44*\s},{0.75+0.92*\s});
+    \draw[line width=0.85pt,samples=90,domain=0:1.15,variable=\s]
+      plot ({2.75+1.02*\s},{3.42+0.10*sin(420*\s)});
     \node at (0.85,0.10) {$\omega>S$};
     \node at (3.15,1.72) {$\omega<S$};
     \node at (3.82,2.82) {$\omega>S$};

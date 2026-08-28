@@ -176,7 +176,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 117
 - **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The display sets `ell=0`, `D_1/D_2=0.10`, and `k_1 L=6 pi`, so `k_2/k_1=sqrt(D_1/D_2)`; choosing `B=C=A/2` makes both elevation and `D eta_x` continuous at the shelf break.
+- **Scientific check:** The display sets `ell=0`, `D_1/D_2=0.35`, and `k_1 L=9 pi/2`, so `k_2/k_1=sqrt(D_1/D_2)`; the phase-matched shelf cosine and deep-ocean cosine preserve both elevation and `D eta_x` continuity at the shelf break.
 
 #### Figure 5.12 — coastal seiche modes
 
@@ -192,7 +192,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 118
 - **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** Both modes have the common shelf-break elevation node; the higher mode adds one shelf zero as required by the modal conditions.
+- **Scientific check:** The two displayed modes share the source's shelf-break elevation node; the higher mode adds one shelf zero as required by the modal conditions. No third `Sk` profile trace is implied.
 
 #### Figure 5.13 — particle motion
 
@@ -208,7 +208,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 119
 - **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** Phase planes are normal to `k`; no-rotation displacement is parallel to `k`, while rotating trajectories are clockwise ellipses checked against `u/v=i sigma/f`.
+- **Scientific check:** Phase planes are normal to `k`; no-rotation displacement is parallel to `k`, while rotating trajectories are clockwise ellipses checked against `u/v=i sigma/f`. The five phase fronts and arrowed particle paths follow the source topology.
 
 #### Figure 5.14 — waveguide channel
 
@@ -462,7 +462,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 145
 - **Representation:** vector
 - **Equation check:** n/a
-- **Scientific check:** Eastward equatorial Kelvin-wave path and boundary return circulation preserve the source closure; this is a directional schematic rather than an equation-defined plotted quantity.
+- **Scientific check:** Eastward equatorial Kelvin-wave paths and the connected western/eastern boundary return circulation preserve the source closure; this is a directional schematic rather than an equation-defined plotted quantity.
 
 #### Figure 5.30 — equatorial dispersion
 
@@ -494,4 +494,4 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 147
 - **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The source-defined sinusoidal ray and its extrema were checked against its turning-latitude construction. See `ERRATA.md`, printed pp.146--147, for the separate group-velocity ray-law issue.
+- **Scientific check:** The source-defined sinusoidal ray and its extrema were checked against its turning-latitude construction; the globe scale and latitude-band presentation follow the source trace. See `ERRATA.md`, printed pp.146--147, for the separate group-velocity ray-law issue.

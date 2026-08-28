@@ -14,11 +14,11 @@ The six chapter ledgers contain **104 scientific figure placements**.
 | --- | ---: | ---: | ---: |
 | Chapter 1 | 7 | 7 | 0 |
 | Chapter 2 | 10 | 10 | 0 |
-| Chapter 3 | 12 | 11 | 1 |
-| Chapter 4 | 30 | 28 | 2 |
+| Chapter 3 | 12 | 12 | 0 |
+| Chapter 4 | 30 | 29 | 1 |
 | Chapter 5 | 31 | 26 | 5 |
 | Chapter 6 | 14 | 12 | 2 |
-| **Total** | **104** | **94** | **10** |
+| **Total** | **104** | **96** | **8** |
 
 ## Chapters
 

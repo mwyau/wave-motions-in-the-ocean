@@ -1,0 +1,43 @@
+% wave-source: pdf=ChapmanRizzoli4.pdf; page=29; trim=85bp 335bp 90bp 238bp
+% Source: Wave Motions in the Ocean, printed p.92 (physical p.29).
+% These paths trace the printed typical profiles; they are not analytic fits.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round,line join=round]
+  % Typical density profile.
+  \draw[line width=.65pt] (.70,.52)--(.70,5.12);
+  \draw[line width=.65pt] (.70,5.12)--(4.20,5.12);
+  \node[above] at (2.45,5.12) {$\rho_0(z)$};
+  \node[rotate=90] at (.18,2.82) {Depth (m)};
+  \draw[line width=.80pt]
+    (1.08,5.12)
+      .. controls (1.08,4.82) and (1.20,4.76) .. (1.72,4.73)
+      .. controls (2.22,4.70) and (2.42,4.26) .. (2.72,3.75)
+      .. controls (3.02,3.26) and (3.42,3.30) .. (3.58,2.88)
+      .. controls (3.80,2.30) and (3.80,1.30) .. (3.82,.54);
+
+  % Typical buoyancy-frequency profile.
+  \draw[line width=.65pt] (5.30,.52)--(5.30,5.12);
+  \draw[line width=.65pt] (5.30,5.12)--(9.05,5.12);
+  \node[above] at (7.18,5.12) {$N(z)$};
+  \foreach \y in {4.34,3.58,2.82,2.06,.54}{
+    \draw[line width=.45pt] (5.22,\y)--(5.38,\y);
+  }
+  \node[anchor=east] at (5.16,3.58) {1000};
+  \node[anchor=east] at (5.16,2.06) {2000};
+  \node[anchor=east] at (5.16,.54) {3000};
+  \draw[line width=.80pt]
+    (5.72,5.12)
+      .. controls (5.92,4.95) and (6.38,4.96) .. (7.35,4.88)
+      .. controls (8.10,4.83) and (8.66,4.85) .. (8.60,4.68)
+      .. controls (8.53,4.48) and (7.12,4.38) .. (6.50,4.30)
+      .. controls (6.08,4.24) and (6.00,3.98) .. (6.20,3.77)
+      .. controls (6.52,3.52) and (7.36,3.74) .. (7.54,3.47)
+      .. controls (7.68,3.18) and (6.48,2.98) .. (6.10,2.64)
+      .. controls (5.80,2.30) and (5.65,1.45) .. (5.62,.54);
+
+  \draw[->,line width=.55pt] (8.60,4.14)--(8.60,4.66);
+  \node[anchor=west] at (8.14,4.03) {10 mins.};
+  \draw[->,line width=.55pt] (7.54,2.90)--(7.54,3.44);
+  \node[anchor=west] at (6.78,2.72) {20-30 mins.};
+  \draw[->,line width=.55pt] (6.78,.72)--(5.66,.72);
+  \node[anchor=west] at (6.98,.58) {2-3 hrs.};
+\end{tikzpicture}

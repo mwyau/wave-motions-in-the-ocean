@@ -2714,17 +2714,17 @@ $$
 
 ### p. 57 · display 9 · ch03-p057-e09
 
-Source: [chapter3.tex](../chapter3.tex):826 · display type: `align*`
+Source: [chapter3.tex](../chapter3.tex):821 · display type: `align*`
 
 #### Markdown math
 
 $$
 \begin{aligned}
-		\eta & =a\cos(kx-\sigma t),
-		     & \sigma^2                                                 & =gk\tanh kD, \\
-		\phi & =\frac{a\sigma}{k\sinh kD}\cosh k(z+D)\sin(kx-\sigma t),                \\
-		p    & =-g\rho z+\frac{\rho\sigma^2a}{k\sinh kD}
-		\cosh k(z+D)\cos(kx-\sigma t),
+	\eta & =a\cos(kx-\sigma t),
+	     & \sigma^2                                                 & =gk\tanh kD, \\
+	\phi & =\frac{a\sigma}{k\sinh kD}\cosh k(z+D)\sin(kx-\sigma t),                \\
+	p    & =-g\rho z+\frac{\rho\sigma^2a}{k\sinh kD}
+	\cosh k(z+D)\cos(kx-\sigma t),
 \end{aligned}
 $$
 
@@ -2732,13 +2732,13 @@ $$
 <summary>LaTeX source</summary>
 
 ```tex
-	\begin{align*}
-		\eta & =a\cos(kx-\sigma t),
-		     & \sigma^2                                                 & =gk\tanh kD, \\
-		\phi & =\frac{a\sigma}{k\sinh kD}\cosh k(z+D)\sin(kx-\sigma t),                \\
-		p    & =-g\rho z+\frac{\rho\sigma^2a}{k\sinh kD}
-		\cosh k(z+D)\cos(kx-\sigma t),
-	\end{align*}
+\begin{align*}
+	\eta & =a\cos(kx-\sigma t),
+	     & \sigma^2                                                 & =gk\tanh kD, \\
+	\phi & =\frac{a\sigma}{k\sinh kD}\cosh k(z+D)\sin(kx-\sigma t),                \\
+	p    & =-g\rho z+\frac{\rho\sigma^2a}{k\sinh kD}
+	\cosh k(z+D)\cos(kx-\sigma t),
+\end{align*}
 ```
 
 </details>
@@ -2749,7 +2749,7 @@ $$
 
 ### p. 58 · display 1 · ch03-p058-e01
 
-Source: [chapter3.tex](../chapter3.tex):848 · display type: `bracket`
+Source: [chapter3.tex](../chapter3.tex):836 · display type: `bracket`
 
 #### Markdown math
 
@@ -2774,7 +2774,7 @@ $$
 
 ### p. 58 · display 2 · ch03-p058-e02
 
-Source: [chapter3.tex](../chapter3.tex):853 · display type: `align*`
+Source: [chapter3.tex](../chapter3.tex):841 · display type: `align*`
 
 #### Markdown math
 
@@ -2813,7 +2813,7 @@ $$
 
 ### p. 58 · display 3 · ch03-p058-e03
 
-Source: [chapter3.tex](../chapter3.tex):863 · display type: `waveequation`
+Source: [chapter3.tex](../chapter3.tex):851 · display type: `waveequation`
 
 #### Markdown math
 
@@ -2838,7 +2838,7 @@ $$
 
 ### p. 58 · display 4 · ch03-p058-e04
 
-Source: [chapter3.tex](../chapter3.tex):867 · display type: `waveequation`
+Source: [chapter3.tex](../chapter3.tex):855 · display type: `waveequation`
 
 #### Markdown math
 
@@ -2863,7 +2863,7 @@ $$
 
 ### p. 59 · display 1 · ch03-p059-e01
 
-Source: [chapter3.tex](../chapter3.tex):890 · display type: `align*`
+Source: [chapter3.tex](../chapter3.tex):878 · display type: `align*`
 
 #### Markdown math
 
@@ -2898,7 +2898,7 @@ $$
 
 ### p. 59 · display 2 · ch03-p059-e02
 
-Source: [chapter3.tex](../chapter3.tex):899 · display type: `bracket`
+Source: [chapter3.tex](../chapter3.tex):887 · display type: `bracket`
 
 #### Markdown math
 
@@ -2923,7 +2923,7 @@ $$
 
 ### p. 59 · display 3 · ch03-p059-e03
 
-Source: [chapter3.tex](../chapter3.tex):905 · display type: `bracket`
+Source: [chapter3.tex](../chapter3.tex):893 · display type: `bracket`
 
 #### Markdown math
 
@@ -2952,7 +2952,7 @@ $$
 
 ### p. 59 · display 4 · ch03-p059-e04
 
-Source: [chapter3.tex](../chapter3.tex):912 · display type: `bracket`
+Source: [chapter3.tex](../chapter3.tex):900 · display type: `bracket`
 
 #### Markdown math
 
@@ -2977,7 +2977,7 @@ $$
 
 ### p. 59 · display 5 · ch03-p059-e05
 
-Source: [chapter3.tex](../chapter3.tex):917 · display type: `align*`
+Source: [chapter3.tex](../chapter3.tex):905 · display type: `align*`
 
 #### Markdown math
 
@@ -3008,7 +3008,7 @@ $$
 
 ### p. 60 · display 1 · ch03-p060-e01
 
-Source: [chapter3.tex](../chapter3.tex):931 · display type: `bracket`
+Source: [chapter3.tex](../chapter3.tex):919 · display type: `bracket`
 
 #### Markdown math
 
@@ -3033,7 +3033,7 @@ $$
 
 ### p. 60 · display 2 · ch03-p060-e02
 
-Source: [chapter3.tex](../chapter3.tex):936 · display type: `bracket`
+Source: [chapter3.tex](../chapter3.tex):924 · display type: `bracket`
 
 #### Markdown math
 
@@ -3060,7 +3060,7 @@ $$
 
 ### p. 60 · display 3 · ch03-p060-e03
 
-Source: [chapter3.tex](../chapter3.tex):946 · display type: `waveequation`
+Source: [chapter3.tex](../chapter3.tex):934 · display type: `waveequation`
 
 #### Markdown math
 
@@ -3087,7 +3087,7 @@ $$
 
 ### p. 60 · display 4 · ch03-p060-e04
 
-Source: [chapter3.tex](../chapter3.tex):953 · display type: `bracket`
+Source: [chapter3.tex](../chapter3.tex):941 · display type: `bracket`
 
 #### Markdown math
 
@@ -3116,7 +3116,7 @@ $$
 
 ### p. 60 · display 5 · ch03-p060-e05
 
-Source: [chapter3.tex](../chapter3.tex):959 · display type: `bracket`
+Source: [chapter3.tex](../chapter3.tex):947 · display type: `bracket`
 
 #### Markdown math
 
@@ -3147,7 +3147,7 @@ $$
 
 ### p. 60 · display 6 · ch03-p060-e06
 
-Source: [chapter3.tex](../chapter3.tex):965 · display type: `bracket`
+Source: [chapter3.tex](../chapter3.tex):953 · display type: `bracket`
 
 #### Markdown math
 
@@ -3178,7 +3178,7 @@ $$
 
 ### p. 61 · display 1 · ch03-p061-e01
 
-Source: [chapter3.tex](../chapter3.tex):984 · display type: `bracket`
+Source: [chapter3.tex](../chapter3.tex):972 · display type: `bracket`
 
 #### Markdown math
 
@@ -3203,7 +3203,7 @@ $$
 
 ### p. 61 · display 2 · ch03-p061-e02
 
-Source: [chapter3.tex](../chapter3.tex):988 · display type: `bracket`
+Source: [chapter3.tex](../chapter3.tex):976 · display type: `bracket`
 
 #### Markdown math
 
@@ -3228,7 +3228,7 @@ $$
 
 ### p. 61 · display 3 · ch03-p061-e03
 
-Source: [chapter3.tex](../chapter3.tex):994 · display type: `bracket`
+Source: [chapter3.tex](../chapter3.tex):982 · display type: `bracket`
 
 #### Markdown math
 
@@ -3253,7 +3253,7 @@ $$
 
 ### p. 63 · display 1 · ch03-p063-e01
 
-Source: [chapter3.tex](../chapter3.tex):1038 · display type: `bracket`
+Source: [chapter3.tex](../chapter3.tex):1026 · display type: `bracket`
 
 #### Markdown math
 
@@ -3278,7 +3278,7 @@ $$
 
 ### p. 63 · display 2 · ch03-p063-e02
 
-Source: [chapter3.tex](../chapter3.tex):1042 · display type: `align*`
+Source: [chapter3.tex](../chapter3.tex):1030 · display type: `align*`
 
 #### Markdown math
 
@@ -3309,7 +3309,7 @@ $$
 
 ### p. 63 · display 3 · ch03-p063-e03
 
-Source: [chapter3.tex](../chapter3.tex):1049 · display type: `bracket`
+Source: [chapter3.tex](../chapter3.tex):1037 · display type: `bracket`
 
 #### Markdown math
 
@@ -3334,7 +3334,7 @@ $$
 
 ### p. 63 · display 4 · ch03-p063-e04
 
-Source: [chapter3.tex](../chapter3.tex):1053 · display type: `bracket`
+Source: [chapter3.tex](../chapter3.tex):1041 · display type: `bracket`
 
 #### Markdown math
 
@@ -3359,7 +3359,7 @@ $$
 
 ### p. 63 · display 5 · ch03-p063-e05
 
-Source: [chapter3.tex](../chapter3.tex):1059 · display type: `bracket`
+Source: [chapter3.tex](../chapter3.tex):1047 · display type: `bracket`
 
 #### Markdown math
 
@@ -3384,7 +3384,7 @@ $$
 
 ### p. 63 · display 6 · ch03-p063-e06
 
-Source: [chapter3.tex](../chapter3.tex):1063 · display type: `bracket`
+Source: [chapter3.tex](../chapter3.tex):1051 · display type: `bracket`
 
 #### Markdown math
 
@@ -3409,7 +3409,7 @@ $$
 
 ### p. 63 · display 7 · ch03-p063-e07
 
-Source: [chapter3.tex](../chapter3.tex):1067 · display type: `bracket`
+Source: [chapter3.tex](../chapter3.tex):1055 · display type: `bracket`
 
 #### Markdown math
 
@@ -3438,7 +3438,7 @@ $$
 
 ### p. 63 · display 8 · ch03-p063-e08
 
-Source: [chapter3.tex](../chapter3.tex):1073 · display type: `bracket`
+Source: [chapter3.tex](../chapter3.tex):1061 · display type: `bracket`
 
 #### Markdown math
 

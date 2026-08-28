@@ -1,16 +1,16 @@
 % wave-source: pdf=ChapmanRizzoli5.pdf; page=22; trim=168.00bp 555.84bp 174.72bp 110.40bp
 % Source: Wave Motions in the Ocean, printed p.117 (physical p.22).
 % Equation-generated forced shelf/deep-ocean cross-shelf structure.
-% Display parameters choose ell=0, D_1/D_2=0.10 and k_1 L=6 pi. Then
-% k_2=k_1 sqrt(D_1/D_2), and the matching conditions at x=L are satisfied by
-% A=2C and B=C, so the deep field B exp(i k_2 X)+C exp(-i k_2 X)
-% is exactly A cos(k_2 X). Absolute amplitude and chosen mode number are illustrative.
+% Display parameters choose ell=0, D_1/D_2=0.35 and k_1 L=9 pi/2. The
+% shelf and deep curves are phase-matched at x=L; the ratio and phase are
+% display choices made to retain the several shelf oscillations and the visible
+% deep-ocean oscillation in the source sketch.
 \par\smallskip
 \begin{center}
 \begin{tikzpicture}[x=0.95cm,y=0.95cm,line cap=round,line join=round,font=\small]
-  \def\shelfL{3.25}
-  \def\depthratio{0.10}
-  \pgfmathsetmacro{\kone}{6*pi/\shelfL}
+  \def\shelfL{2.95}
+  \def\depthratio{0.35}
+  \pgfmathsetmacro{\kone}{4.5*pi/\shelfL}
   \pgfmathsetmacro{\ktwo}{\kone*sqrt(\depthratio)}
   \def\amp{0.40}
 
@@ -22,13 +22,18 @@
   \node at (1.55,0.84) {$D_1$};
   \node at (4.65,0.68) {$D_2$};
 
-  % Shelf: eta=A cos(k_1 x), with k_1 L=6 pi.
+  % The source uses a dense stipple to distinguish the solid bottom. A sparse
+  % regular field keeps that visual cue in the vector reconstruction.
+  \foreach \x/\y in {0.18/0.30,0.52/0.20,0.88/0.36,1.24/0.18,1.60/0.34,1.96/0.20,2.32/0.36,2.68/0.20,3.35/0.23,3.85/0.20,4.35/0.24,4.85/0.20,5.35/0.24,5.85/0.20}{\fill (\x,\y) circle (0.40pt);}
+
+  % Shelf: eta=A cos(k_1 x), with k_1 L=9 pi/2. The break value is zero,
+  % as in the source trace.
   \draw[line width=0.85pt,samples=180,domain=0:\shelfL,variable=\x]
     plot (\x,{1.48+\amp*cos(\kone*\x r)});
-  % Deep ocean: B=C=A/2 gives eta=A cos[k_2(x-L)]. At x=L both eta and
-  % D eta_x are continuous exactly; k_2/k_1=sqrt(D_1/D_2) for ell=0.
+  % Deep ocean: the amplitude is A sqrt(D_1/D_2) and the 90-degree phase
+  % makes both eta and D eta_x continuous at the shelf break for ell=0.
   \draw[line width=0.85pt,samples=150,domain=\shelfL:6.00,variable=\x]
-    plot (\x,{1.48+\amp*cos(\ktwo*(\x-\shelfL) r)});
+    plot (\x,{1.48+\amp*sqrt(\depthratio)*cos(\ktwo*(\x-\shelfL) r+90)});
 \end{tikzpicture}
 \end{center}
 \smallskip

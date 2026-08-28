@@ -8,26 +8,25 @@
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
   \def\xl{-2.75}
   \def\xr{2.75}
-  % North-south boundaries and equator.
-  \draw[line width=5pt,black!18] (\xl,-1.35) -- (\xl,1.35);
-  \draw[line width=0.75pt] (\xl,-1.35) -- (\xl,1.35);
-  \draw[line width=5pt,black!18] (\xr,-1.35) -- (\xr,1.35);
-  \draw[line width=0.75pt] (\xr,-1.35) -- (\xr,1.35);
+  % North-south boundaries and equator. The source uses stippled solid walls.
+  \filldraw[fill=black!12,draw=black,line width=0.75pt]
+    (\xl,-1.35) rectangle (\xl+0.28,1.35);
+  \filldraw[fill=black!12,draw=black,line width=0.75pt]
+    (\xr-0.28,-1.35) rectangle (\xr,1.35);
+  \foreach \x/\y in {\xl+0.07/-1.10,\xl+0.20/-0.72,\xl+0.07/-0.34,\xl+0.20/0.04,\xl+0.07/0.42,\xl+0.20/0.80,\xl+0.07/1.18,
+    \xr-0.20/-1.10,\xr-0.07/-0.72,\xr-0.20/-0.34,\xr-0.07/0.04,\xr-0.20/0.42,\xr-0.07/0.80,\xr-0.20/1.18}{\fill (\x,\y) circle (0.40pt);}
   \draw[line width=0.70pt] (-3.55,0) -- (3.70,0);
   \node[anchor=west] at (3.78,0) {$0$};
 
-  % Eastward equatorial Kelvin-wave arrows immediately above/below the equator.
-  \draw[->,line width=0.80pt] (-2.25,0.18) -- (2.15,0.18);
-  \draw[->,line width=0.80pt] (-2.15,-0.18) -- (2.25,-0.18);
+  % Eastward equatorial Kelvin-wave paths, joined to the boundary currents.
+  \draw[->,line width=0.80pt] (\xl+0.34,1.20) -- (\xl+0.34,0.42) -- (-2.10,0.42);
+  \draw[->,line width=0.80pt] (-2.10,0.42) -- (\xr-0.34,0.42);
+  \draw[->,line width=0.80pt] (\xr-0.34,0.42) -- (\xr-0.34,1.20);
+  \draw[->,line width=0.80pt] (\xl+0.34,-1.20) -- (\xl+0.34,-0.42) -- (-2.05,-0.42);
+  \draw[->,line width=0.80pt] (-2.05,-0.42) -- (\xr-0.34,-0.42);
+  \draw[->,line width=0.80pt] (\xr-0.34,-0.42) -- (\xr-0.34,-1.20);
   \node[anchor=south] at (0,0.40) {Equatorially Trapped};
   \node[anchor=north] at (0,-0.40) {Kelvin Waves};
-
-  % Boundary-current closure: western boundary toward the equator, eastern
-  % boundary away from it, matching the source sketch.
-  \draw[->,line width=0.78pt] (\xl+0.34,1.22) -- (\xl+0.34,0.35);
-  \draw[->,line width=0.78pt] (\xl+0.34,-1.22) -- (\xl+0.34,-0.35);
-  \draw[->,line width=0.78pt] (\xr-0.34,0.35) -- (\xr-0.34,1.22);
-  \draw[->,line width=0.78pt] (\xr-0.34,-0.35) -- (\xr-0.34,-1.22);
 \end{tikzpicture}
 \end{center}
 \smallskip

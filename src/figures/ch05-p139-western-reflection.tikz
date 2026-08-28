@@ -13,14 +13,14 @@
   \draw[->,line width=0.8pt] (0,-1.15) -- (0,1.25) node[above] {$\ell$};
   \draw[line width=0.7pt] (C) circle[radius=\r];
 
-  \draw[->,line width=0.75pt] (-0.47,-0.18) -- (-1.02,-0.18);
-  \node[anchor=west] at (-0.42,-0.44) {$\vec k_i$};
-  \draw[->,line width=0.75pt] (-1.85,0.50) -- (-2.42,0.50);
-  \node[anchor=west] at (-2.05,0.72) {$\vec k_r$};
+  \draw[->,line width=0.85pt] (-0.52,0) -- (-1.08,0);
+  \node[anchor=west] at (-0.40,-0.27) {$\vec k_i$};
+  \draw[->,line width=0.85pt] (-1.88,0.20) -- (-2.44,0.20);
+  \node[anchor=south] at (-2.16,0.28) {$\vec k_r$};
 
-  \draw[->,line width=0.7pt] (-1.16,-0.50) -- (-1.82,-0.50);
+  \draw[->,line width=0.80pt] (-1.16,-0.50) -- (-1.82,-0.50);
   \node[anchor=north] at (-1.49,-0.54) {$\vec c_{g i}$};
-  \draw[->,line width=0.7pt] (-2.46,-0.50) -- (-1.92,-0.50);
+  \draw[->,line width=0.80pt] (-2.46,-0.50) -- (-1.92,-0.50);
   \node[anchor=north] at (-2.19,-0.54) {$\vec c_{g r}$};
 \end{tikzpicture}
 \end{center}

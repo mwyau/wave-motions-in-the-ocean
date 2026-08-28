@@ -6,15 +6,15 @@
 \begin{tikzpicture}[x=0.78cm,y=0.78cm,>=stealth,line cap=round,line join=round,font=\small]
   % No rotation: particle displacement is along the propagation direction.
   \begin{scope}[shift={(0,0)}]
-    \node[font=\bfseries] at (2.75,4.75) {No Rotation};
-    \foreach \t in {1.65,2.25,2.85,3.45} {
+    \node[font=\bfseries\itshape] at (2.75,4.75) {No Rotation};
+    \foreach \t in {1.35,1.95,2.55,3.15,3.75} {
       \draw[line width=0.65pt] ({\t-0.95},{\t+0.95}) -- ({\t+0.95},{\t-0.95});
     }
     \draw[->,line width=0.9pt] (1.20,1.20) -- (4.20,4.20);
     % Local straight particle trajectories are parallel to k. Their overlap
     % with the propagation line is intentional, as in the source sketch.
     \foreach \t in {1.65,2.25,2.85} {
-      \draw[<->,line width=0.55pt] ({\t-0.24},{\t-0.24}) -- ({\t+0.24},{\t+0.24});
+      \draw[->,line width=0.55pt] ({\t-0.24},{\t-0.24}) -- ({\t+0.24},{\t+0.24});
     }
     \node[anchor=west] at (4.42,4.02) {$k,\ c,\ c_g$};
   \end{scope}
@@ -23,8 +23,8 @@
   % particle path is an ellipse whose major axis is along k. The arrowed arcs
   % show clockwise motion for the northern-hemisphere sign convention.
   \begin{scope}[shift={(6.70,0)}]
-    \node[font=\bfseries] at (2.75,4.75) {Rotation};
-    \foreach \t in {1.65,2.25,2.85,3.45} {
+    \node[font=\bfseries\itshape] at (2.75,4.75) {Rotation};
+    \foreach \t in {1.35,1.95,2.55,3.15,3.75} {
       \draw[line width=0.65pt] ({\t-0.95},{\t+0.95}) -- ({\t+0.95},{\t-0.95});
     }
     \draw[->,line width=0.9pt] (1.20,1.20) -- (4.20,4.20);

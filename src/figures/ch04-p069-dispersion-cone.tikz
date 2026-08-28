@@ -7,8 +7,8 @@
 \begin{center}
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
   \coordinate (O) at (0,0);
-  \def\topz{3.00}
-  \def\rad{0.95}
+  \def\topz{2.65}
+  \def\rad{1.00}
   \pgfmathsetmacro{\genang}{atan(\topz/\rad)}
 
   \draw[->,line width=0.80pt] (O) -- (0,3.75) node[above] {$m$};
@@ -18,8 +18,8 @@
   \draw[line width=0.80pt] (O) -- (-\rad,\topz);
   \draw[line width=0.80pt] (O) -- (\rad,\topz);
   \draw[line width=0.75pt] (0,\topz) ellipse[x radius=\rad,y radius=0.22];
-  \node[anchor=west] at (0.98,3.18) {$m/R$};
-  \draw[->,line width=0.55pt] (0.93,3.02) -- (0.72,3.01);
+  \draw[line width=0.60pt] (0,\topz) -- (\rad,\topz);
+  \node[anchor=south] at (0.52,\topz+0.08) {$m/R$};
 
   % theta is derived from the same displayed cone radius/height, not rounded independently.
   \draw[line width=0.55pt] (0,0.92) arc[start angle=90,end angle=\genang,radius=0.92];

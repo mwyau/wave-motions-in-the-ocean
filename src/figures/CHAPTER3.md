@@ -133,20 +133,22 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Equation check:** ai-checked
 - **Scientific check:** The wave circles expand at shallow-water speed `c` from successive source positions; their common envelope gives the Mach-cone geometry and the expected speed-angle relation.
 
-#### Figure 3.9 — source PDF crop, printed page 57
+#### Figure 3.9 — energy sketch
 
 <table>
-<tr><th>Original source</th></tr>
+<tr><th>Original</th><th>Vector</th></tr>
 <tr>
-  <td><img src="../figures/ch03-p057-energy-sketch.png" alt="Original source figure for Figure 3.9" width="390"></td>
+  <td><img src="../figures/ch03-p057-energy-sketch.png" alt="Original source figure for Figure 3.9 — energy sketch" width="390"></td>
+  <td><img src="../figures/ch03-p057-energy-sketch.svg" alt="Vector reconstruction for Figure 3.9 — energy sketch" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch03-p057-energy-sketch.png`
+- **Asset:** `ch03-p057-energy-sketch.tikz`
+- **Printed page:** 57
 - **Original source:** [ChapmanRizzoli3.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli3.pdf), physical page 22
-- **Representation:** source-pdf
+- **Representation:** vector
 - **Equation check:** n/a
-- **Scientific check:** Keep the PE/KE and energy-flux sketch as source art; its labels and source-specific perspective are retained beside the surrounding energy derivation without asserting a reconstructed quantitative geometry.
+- **Scientific check:** Source-traced vector redraw preserves the PE/KE and energy-flux labels, free-surface wave, and perspective control-volume sketch; no quantitative geometry is inferred.
 
 #### Figure 3.10 — following current dispersion
 

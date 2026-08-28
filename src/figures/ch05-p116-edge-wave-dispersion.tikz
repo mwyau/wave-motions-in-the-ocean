@@ -13,6 +13,8 @@
 
   % Sector bounded by the deep-water gravity-wave lines.
   \fill[black!14] (0,0) -- (2.24,4.56) -- (-2.24,4.56) -- cycle;
+  \foreach \x/\y in {-1.88/3.95,-1.52/3.78,-1.10/3.92,-0.62/4.08,-0.18/3.82,0.28/4.04,0.74/3.86,1.18/4.10,1.62/3.90,
+    -1.62/3.45,-1.18/3.28,-0.72/3.48,-0.26/3.34,0.22/3.50,0.68/3.30,1.12/3.48,1.56/3.32}{\fill (\x,\y) circle (0.38pt);}
 
   % Axes and limiting wave-speed lines.
   \draw[->,line width=0.85pt] (-5.05,0) -- (5.15,0) node[right] {$\ell$};

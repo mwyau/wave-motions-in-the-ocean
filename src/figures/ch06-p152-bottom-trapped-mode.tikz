@@ -1,16 +1,24 @@
 % wave-source: pdf=ChapmanRizzoli6.pdf; page=5; trim=175bp 155bp 185bp 490bp
 % Source: Wave Motions in the Ocean, printed p.152 (physical p.5).
-% The two displayed profiles are schematic limits of the chapter's cosh(mu z)
-% solution, both terminating on the sloping bottom z=-H+alpha y.
+% The source shows a three-profile family. The profiles share the bottom
+% trapping point while their offshore decay changes from large to small Sk.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round,line join=round]
   \draw[->] (1.0,0.65)--(1.0,4.85) node[above] {$z$};
   \draw[->] (1.0,4.35)--(7.45,4.35);
   \draw[line width=.85pt] (0.65,0.95)--(7.10,1.75);
   \node[anchor=west] at (2.10,0.62) {$z=-H+\alpha y$};
-  \draw[line width=.90pt,domain=0:1,samples=100,smooth,variable=\s]
-    plot ({1.0+2.05*cosh(2.6*(1-\s))/cosh(2.6)},{1.33+3.07*\s});
-  \draw[line width=.90pt,domain=0:1,samples=100,smooth,variable=\s]
-    plot ({1.0+4.45*cosh(0.65*(1-\s))/cosh(0.65)},{1.63+2.77*\s});
-  \node[anchor=east] at (2.05,1.95) {$Sk\ {\rm large}$};
-  \node[anchor=west] at (5.25,3.15) {$Sk\ {\rm small}$};
+  % Large Sk: the profile begins below the surface on the vertical axis and
+  % decays rapidly toward the common bottom point.
+  \draw[line width=.90pt]
+    (1.00,2.92) .. controls (1.08,2.30) and (1.45,1.72) .. (2.05,1.53)
+    .. controls (2.78,1.30) and (3.55,1.38) .. (4.18,1.46);
+  % Intermediate profile starts at the surface farther offshore.
+  \draw[line width=.90pt]
+    (2.05,4.35) .. controls (2.08,3.20) and (2.65,2.10) .. (3.28,1.68)
+    .. controls (3.63,1.49) and (3.95,1.45) .. (4.18,1.46);
+  % Small Sk: nearly vertical decay from the surface to the same bottom point.
+  \draw[line width=.90pt]
+    (4.00,4.35) .. controls (4.03,3.25) and (4.02,2.18) .. (4.18,1.46);
+  \node[anchor=east] at (2.05,1.95) {$Sk\ \mathit{large}$};
+  \node[anchor=west] at (4.36,3.15) {$Sk\ \mathit{small}$};
 \end{tikzpicture}

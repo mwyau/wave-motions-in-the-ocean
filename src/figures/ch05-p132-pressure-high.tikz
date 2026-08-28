@@ -7,17 +7,21 @@
 \begin{center}
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
   \coordinate (H) at (0,0);
-  \foreach \r in {0.55,0.95,1.35} {
+  \foreach \r in {0.40,0.70,1.00,1.30} {
     \draw[line width=0.65pt] (H) circle[radius=\r];
   }
-  \draw[->,line width=0.75pt] (110:1.35) arc[start angle=110,end angle=55,radius=1.35];
-  \draw[->,line width=0.75pt] (105:0.95) arc[start angle=105,end angle=45,radius=0.95];
-  \draw[->,line width=0.75pt] (290:1.35) arc[start angle=290,end angle=235,radius=1.35];
-  \draw[->,line width=0.75pt] (300:0.95) arc[start angle=300,end angle=240,radius=0.95];
+  \draw[->,line width=0.75pt] (112:1.30) arc[start angle=112,end angle=56,radius=1.30];
+  \draw[->,line width=0.75pt] (108:1.00) arc[start angle=108,end angle=50,radius=1.00];
+  \draw[->,line width=0.75pt] (104:0.70) arc[start angle=104,end angle=44,radius=0.70];
+  \draw[->,line width=0.75pt] (100:0.40) arc[start angle=100,end angle=38,radius=0.40];
+  \draw[->,line width=0.75pt] (292:1.30) arc[start angle=292,end angle=236,radius=1.30];
+  \draw[->,line width=0.75pt] (298:1.00) arc[start angle=298,end angle=242,radius=1.00];
+  \draw[->,line width=0.75pt] (304:0.70) arc[start angle=304,end angle=248,radius=0.70];
+  \draw[->,line width=0.75pt] (310:0.40) arc[start angle=310,end angle=254,radius=0.40];
 
   \node at (H) {$H$};
-  \node at (-1.72,0) {$A$};
-  \node at (1.72,0) {$B$};
+  \node at (-1.30,0) {$A$};
+  \node at (1.30,0) {$B$};
   \node[anchor=east,align=right] at (-2.05,0.18)
     {Convergence:\\Pressure rises\\at A};
   \node[anchor=west,align=left] at (2.05,0.18)

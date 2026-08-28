@@ -1,13 +1,13 @@
 % wave-source: pdf=ChapmanRizzoli6.pdf; page=18; trim=75bp 520bp 65bp 70bp
 % Source: Wave Motions in the Ocean, printed p.164 (physical p.18), upper figure.
 % General coastal-trapped-wave dispersion is not analytic for arbitrary D(x).
-% The vector therefore enforces only the properties derived in the text:
-% omega(ell=0)=0, discrete ordered modes, and a common short-wave limit
-% omega -> S max[D_x] as ell -> -infinity. Curvature is schematic.
+% The vector therefore enforces only the properties shown in the source:
+% omega(ell=0)=0, the ordered mode family, and the common short-wave limit
+% omega -> S max[D_x] as ell -> -infinity. Curvature remains schematic.
 \par\smallskip
 \begin{center}
 \begin{tikzpicture}[x=1.05cm,y=1.05cm,>=stealth,line cap=round,line join=round,font=\small]
-  \def\asym{1.12}
+  \def\asym{0.75}
   \draw[->,line width=0.8pt] (-5.15,0) -- (1.12,0) node[right] {$\ell$};
   \draw[->,line width=0.8pt] (0,-0.12) -- (0,3.45) node[above] {$\omega$};
 
@@ -17,25 +17,16 @@
 
   % q=-ell >=0. Each curve starts at zero, overshoots, and relaxes to the same
   % short-wave asymptote. Coefficients are display-only and preserve mode ordering.
-  \foreach \h in {1.85,1.36,1.02,0.72} {
+  \foreach \h in {2.40,1.85,1.45,1.05} {
     \draw[line width=0.78pt,samples=150,domain=0:4.75,variable=\q]
       plot ({-\q},{\asym*(1-exp(-1.35*\q))+\h*\q*exp(-0.78*\q)});
   }
 
-  % Keep mode labels at the common figure size. Leaders terminate on the
-  % corresponding schematic branches rather than shrinking labels onto curves.
-  \pgfmathsetmacro{\yone}{\asym*(1-exp(-1.35*2.55))+1.85*2.55*exp(-0.78*2.55)}
-  \pgfmathsetmacro{\ytwo}{\asym*(1-exp(-1.35*1.95))+1.36*1.95*exp(-0.78*1.95)}
-  \pgfmathsetmacro{\ythree}{\asym*(1-exp(-1.35*1.35))+1.02*1.35*exp(-0.78*1.35)}
-  \pgfmathsetmacro{\yfour}{\asym*(1-exp(-1.35*0.78))+0.72*0.78*exp(-0.78*0.78)}
-  \node[anchor=south] at (-2.82,2.42) {$n=1$};
-  \draw[->,line width=0.48pt] (-2.60,2.31) -- (-2.55,{\yone+0.04});
-  \node[anchor=south] at (-2.08,2.20) {$2$};
-  \draw[->,line width=0.48pt] (-2.02,2.09) -- (-1.95,{\ytwo+0.04});
-  \node[anchor=south] at (-1.43,1.92) {$3$};
-  \draw[->,line width=0.48pt] (-1.39,1.81) -- (-1.35,{\ythree+0.04});
-  \node[anchor=south] at (-0.82,1.60) {$4$};
-  \draw[->,line width=0.48pt] (-0.80,1.49) -- (-0.78,{\yfour+0.04});
+  % Mode labels sit directly beside the branches, as in the source sketch.
+  \node[anchor=south] at (-2.18,2.03) {$n=1$};
+  \node[anchor=south] at (-1.92,1.70) {$2$};
+  \node[anchor=south] at (-1.45,1.36) {$3$};
+  \node[anchor=south] at (-0.82,1.02) {$4$};
   \node at (-2.05,0.48) {$\vdots$};
 
   % Free-surface Kelvin branch shown in the source only for comparison.

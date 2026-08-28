@@ -1,21 +1,24 @@
 % wave-source: pdf=ChapmanRizzoli4.pdf; page=26; trim=75bp 540bp 55bp 65bp
 % Source: Wave Motions in the Ocean, printed p.89 (physical p.26), upper panel.
-% Energy follows the fixed characteristic slopes, while incident/reflected
-% wavevectors remain normal to their respective characteristic lines.
+% The two characteristic lines and the incident/reflected wavevectors are
+% traced from the source sketch; the adjacent text supplies the convention.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
-  \foreach \dx/\ref/\lab in {0/1/{$x+Rz=0$},4.25/-1/{$x-Rz=0$}}{
-    \begin{scope}[xshift=\dx cm]
-      \draw[->] (0.55,2.25)--(3.70,2.25) node[right] {$x$};
-      \draw[->] (1.95,0.40)--(1.95,4.20) node[above] {$z$};
-      \ifnum\ref=1
-        \draw[->,line width=.85pt] (0.90,3.45)--(1.95,2.25);
-        \draw[->,line width=.75pt] (1.95,2.25)--(3.05,3.55) node[midway,above right] {$\vec k_i$};
-        \draw[line width=.75pt] (0.75,3.65)--(3.25,0.80) node[below right] {\lab};
-        \node[anchor=west] at (2.15,3.70) {$m_i=Rk_i$};
-      \else
-        \draw[->,line width=.75pt] (1.95,2.25)--(3.10,1.05) node[midway,below right] {$\vec k_r$};
-        \draw[line width=.75pt] (0.75,0.80)--(3.25,3.65) node[above right] {\lab};
-      \fi
-    \end{scope}
-  }
+  % Incident panel.
+  \begin{scope}
+    \draw[->] (0.55,2.25)--(3.70,2.25) node[right] {$x$};
+    \draw[->] (1.95,0.40)--(1.95,4.20) node[above] {$z$};
+    \draw[->,line width=.85pt] (0.82,3.65)--(1.95,2.25);
+    \node[anchor=west] at (0.68,3.76) {$x+Rz=0$};
+    \draw[->,line width=.75pt] (1.95,2.25)--(3.05,3.55) node[midway,above right] {$\vec k_i$};
+    \node[anchor=west] at (2.20,3.72) {$m_i=Rk_i$};
+  \end{scope}
+
+  % Reflected panel.
+  \begin{scope}[xshift=4.25cm]
+    \draw[->] (0.55,2.25)--(3.70,2.25) node[right] {$x$};
+    \draw[->] (1.95,0.40)--(1.95,4.20) node[above] {$z$};
+    \draw[line width=.75pt] (1.95,2.25)--(3.10,3.80);
+    \node[anchor=west] at (2.35,3.82) {$x-Rz=0$};
+    \draw[->,line width=.75pt] (1.95,2.25)--(3.10,1.05) node[midway,below right] {$\vec k_r$};
+  \end{scope}
 \end{tikzpicture}

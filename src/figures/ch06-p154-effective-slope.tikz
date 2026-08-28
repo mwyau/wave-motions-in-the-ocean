@@ -10,5 +10,9 @@
   \node[align=center] at (1.58,1.65) {$z=\alpha x$\\$w=\alpha u$};
   \node[align=center] at (6.70,2.92) {$p_{xx}-\ell^2p+p_{z'z'}=0$};
   \node[anchor=west] at (6.00,1.60) {$z'=R\alpha x$};
-  \draw[->,line width=.9pt] (3.35,2.05)--(4.95,2.05);
+  % The source uses a large outlined transformation arrow between the two
+  % slope panels.
+  \draw[fill=white,line width=.75pt]
+    (3.45,2.22)--(4.35,2.22)--(4.35,2.52)--(5.00,2.05)--
+    (4.35,1.58)--(4.35,1.88)--(3.45,1.88)--cycle;
 \end{tikzpicture}

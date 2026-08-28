@@ -1,25 +1,36 @@
 % wave-source: pdf=ChapmanRizzoli4.pdf; page=27; trim=95bp 210bp 75bp 425bp
 % wave-source-mask: pdf=ChapmanRizzoli4.pdf; page=27; rect=95bp 361bp 205bp 367bp; origin=lower-left; reason=remove the overlapping prose baseline while preserving the complete z label
 % Source: Wave Motions in the Ocean, printed p.90 (physical p.27).
-% Exact subcritical velocity construction. With R=1.25 and a=0.32, incident and
-% reflected velocity directions follow the two characteristics dz/dx=-/+1/R.
-% Scaling the equal-base characteristic vectors by q=(1+aR)/(1-aR) makes
-% |v_r|/|v_i|=q and enforces n.(v_i+v_r)=0 exactly for n proportional to (-a,1).
-\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
-  \def\R{1.25}
-  \def\a{0.32}
-  \def\dx{1.15}
-  \pgfmathsetmacro{\dz}{\dx/\R}
-  \pgfmathsetmacro{\q}{(1+\a*\R)/(1-\a*\R)}
-  \coordinate (O) at (4.15,1.40);
+% Source-traced velocity-reflection construction. The source's pending signed
+% convention is left unchanged; this redraw only restores the vector geometry.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round,line join=round]
+  \coordinate (O) at (4.55,0.85);
 
-  \draw[line width=1pt] ($(O)+(-3.60,{-3.60*\a})$)--($(O)+(4.40,{4.40*\a})$) node[right] {$z=ax$};
-  \draw[densely dashed,->] (O)--++(-0.75,{0.75/\a}) node[above] {$\hat n$};
+  % Shallow reflecting wall and coordinate axes.
+  \path[fill=black!10] (0.85,0.38)--(8.20,1.18)--(8.20,1.30)--(0.85,0.50)--cycle;
+  \draw[line width=1.0pt] (0.85,0.44)--(8.20,1.24) node[right] {$z=ax$};
+  \draw[->,line width=.65pt] (O)--(7.90,0.85) node[right] {$x$};
+  \draw[->,line width=.72pt] (O)--(4.55,4.45) node[above] {$z$};
 
-  % Same unscaled characteristic length on both branches; only q changes magnitude.
-  \draw[->,line width=.9pt] ($(O)+(-\dx,\dz)$)--(O) node[midway,above left] {$\vec v_i$};
-  \draw[->,line width=.9pt] (O)--++({\q*\dx},{\q*\dz}) node[above right] {$\vec v_r$};
+  % The two characteristic directions are not specular to the sloping wall.
+  \draw[line width=.62pt] (2.15,3.92)--(O);
+  \node[anchor=west] at (1.45,4.02) {$x+Rz=0$};
+  \draw[line width=.62pt] (O)--(7.55,3.80);
+  \node[anchor=west] at (6.35,3.96) {$x-Rz=0$};
+  \draw[line width=.42pt] (2.70,3.37)--(7.55,3.80);
+  \draw[line width=.42pt] (4.15,4.45)--(O);
 
-  \node[align=center] at (4.20,0.20)
-    {$|v_r|/|v_i|=(1+aR)/(1-aR)$\quad$(aR<1)$\\$\hat n\cdot(\vec v_i+\vec v_r)=0$};
+  % Incident velocity points into the wall; reflected velocity leaves it.
+  \draw[->,line width=.92pt] (2.75,3.35)--(O) node[midway,left] {$v_i$};
+  \draw[->,line width=.92pt] (O)--(6.75,3.22) node[midway,below] {$v_r$};
+
+  % Source angle guides at the wall and at the characteristic directions.
+  \draw[line width=.42pt] (O) ++(0:0.78) arc[start angle=0,end angle=6.2,radius=.78];
+  \node[anchor=south] at (6.15,1.12) {$\tan^{-1}a$};
+  \draw[line width=.42pt] (O) ++(0:0.98) arc[start angle=0,end angle=42,radius=.98];
+  \node[anchor=west] at (5.25,2.52) {$\tan^{-1}R^{-1}$};
+  \draw[line width=.42pt] (O) ++(0:0.98) arc[start angle=0,end angle=137,radius=.98];
+  \node[anchor=east] at (3.55,2.62) {$\tan^{-1}R^{-1}$};
+  \draw[line width=.42pt] (O) ++(0:1.28) arc[start angle=0,end angle=6.2,radius=1.28];
+  \node[anchor=south] at (6.45,4.32) {$\tan^{-1}a$};
 \end{tikzpicture}

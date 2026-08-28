@@ -8,6 +8,10 @@
     (0,1.78) rectangle (9.3,1.92);
   \filldraw[fill=black!18,draw=black,line width=0.45pt]
     (0,0) rectangle (9.3,0.14);
+  \foreach \x in {0.35,0.85,1.35,1.85,2.35,2.85,3.35,3.85,4.35,4.85,5.35,5.85,6.35,6.85,7.35,7.85,8.35,8.85}{
+    \fill (\x,1.85) circle (0.38pt);
+    \fill (\x,0.07) circle (0.38pt);
+  }
   \node[below=2pt] at (4.65,1.78) {$v=0$};
   \node[above=2pt] at (4.65,0.14) {$v=0$};
   \node[anchor=west] at (9.52,1.85) {$y=a$};

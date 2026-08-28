@@ -14,7 +14,9 @@
   \begin{scope}
     \def\alphaA{19.2}
     \pgfmathsetmacro{\dyA}{2.30*tan(\alphaA)}
-    \draw[very thick] (0,-1.35)--(0,1.35);
+    \filldraw[fill=black!12,draw=black,line width=0.75pt]
+      (-0.10,-1.35) rectangle (0.10,1.35);
+    \foreach \y in {-1.10,-0.72,-0.34,0.04,0.42,0.80,1.18}{\fill (0.0,\y) circle (0.38pt);}
     \draw[dashed] (2.3,-1.35)--(2.3,1.35);
     % alpha_A > alpha_c=asin(sqrt(D_1/D_2)), so the shelf-edge reflection is total.
     \draw[->,thick] (0.35,{-0.98-0.35*tan(\alphaA)})--(0,-0.98);
@@ -31,7 +33,9 @@
     \pgfmathsetmacro{\alphaS}{asin(sqrt(\depthratio)*sin(\alphaI))}
     \pgfmathsetmacro{\dyS}{2.30*tan(\alphaS)}
     \pgfmathsetmacro{\dyD}{1.70*tan(\alphaI)}
-    \draw[very thick] (0,-1.35)--(0,1.35);
+    \filldraw[fill=black!12,draw=black,line width=0.75pt]
+      (-0.10,-1.35) rectangle (0.10,1.35);
+    \foreach \y in {-1.10,-0.72,-0.34,0.04,0.42,0.80,1.18}{\fill (0.0,\y) circle (0.38pt);}
     \draw[dashed] (2.3,-1.35)--(2.3,1.35);
     % Deep-ocean incidence refracts toward the normal on entering the shallower shelf.
     \draw[->,thick] (4.0,{-\dyS-\dyD})--(2.3,{-\dyS});

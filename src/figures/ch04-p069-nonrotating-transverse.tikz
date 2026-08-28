@@ -4,19 +4,21 @@
 \begin{center}
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
   \coordinate (O) at (0,0);
-  \def\kang{17}
+  \def\kang{20}
   \def\klen{3.0}
   \def\ulen{1.85}
+
   \draw (-0.60,0)--(3.25,0);
   \draw (0,-1.20)--(0,2.00);
   \draw[->,line width=0.8pt] (O)--({\klen*cos(\kang)},{\klen*sin(\kang)}) node[right] {$k$};
   \draw[->,line width=0.8pt] (O)--({\ulen*cos(\kang+90)},{\ulen*sin(\kang+90)}) node[left] {$u$};
-  \draw[dashed,->,line width=0.65pt] (O)--(0,1.95) node[above right] {$k\sin\theta$};
-  \draw ({0.55*cos(\kang)},{0.55*sin(\kang)})
-    arc[start angle=\kang,end angle=90,radius=0.55];
-  \node at (0.30,0.53) {$\theta$};
-  \draw[->,line width=0.7pt] (O)--(-0.35,-1.10);
-  \node[anchor=west] at (0.75,-0.48) {$w=u\sin\theta$};
+  \draw[dashed,line width=0.65pt] (0.82,0.30)--(-0.08,1.98)
+    node[above right] {$\hat k\sin\theta$};
+
+  \draw (0,0.62) arc[start angle=90,end angle=110,radius=0.62];
+  \node at (0.18,0.72) {$\theta$};
+  \draw[->,line width=0.7pt] (O)--(0.35,-1.10);
+  \node[anchor=west] at (0.78,-0.48) {$w=u\sin\theta$};
   \node at (1.40,-1.55) {$u_t=-gp\,\sin\theta/\rho_0$};
 \end{tikzpicture}
 \end{center}

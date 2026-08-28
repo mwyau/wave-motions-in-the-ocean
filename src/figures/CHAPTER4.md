@@ -419,7 +419,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 90
 - **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The revised subcritical velocity construction uses equal-base characteristic vectors and scales the reflected one by `q=(1+aR)/(1-aR)=2.333333`; the reflected-to-incident velocity-magnitude ratio is `q` and `n dot (v_i+v_r)=0`. See `ERRATA.md`, printed p.90, for the source formula issues.
+- **Scientific check:** The source-traced construction preserves `v_i`, `v_r`, the `x+Rz=0` and `x-Rz=0` characteristic lines, the sloping wall, the normal, angle marks, labels, and arrow directions. It does not replace the pending source convention with a derived formula; see `ERRATA.md`, printed p.90.
 
 #### Figure 4.27 — source PDF crop, printed page 91
 
@@ -436,20 +436,22 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Equation check:** partial
 - **Scientific check:** Keep the multi-slope reflection sketch because the signed-versus-magnitude convention remains ambiguous for the full displayed regime. See `ERRATA.md`, printed p.90.
 
-#### Figure 4.28 — source PDF crop, printed page 92
+#### Figure 4.28 — density profiles
 
 <table>
-<tr><th>Original source</th></tr>
+<tr><th>Original</th><th>Vector</th></tr>
 <tr>
-  <td><img src="../figures/ch04-p092-density-profiles-source.png" alt="Original source figure for Figure 4.28" width="390"></td>
+  <td><img src="../figures/ch04-p092-density-profiles.png" alt="Original source figure for Figure 4.28 — density profiles" width="390"></td>
+  <td><img src="../figures/ch04-p092-density-profiles.svg" alt="Vector reconstruction for Figure 4.28 — density profiles" width="390"></td>
 </tr>
 </table>
 
-- **Asset:** `ch04-p092-density-profiles-source.png`
+- **Asset:** `ch04-p092-density-profiles.tikz`
+- **Printed page:** 92
 - **Original source:** [ChapmanRizzoli4.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli4.pdf), physical page 29
-- **Representation:** source-pdf
+- **Representation:** vector
 - **Equation check:** n/a
-- **Scientific check:** Keep the source-specific typical density and `N^2(z)` profiles; smoothing or redrawing them would invent empirical profile detail not fixed by the chapter equations.
+- **Scientific check:** The source-traced empirical curves preserve the printed typical density and `N(z)` profiles, depth ticks, and the 10-minute, 20–30-minute, and 2–3-hour labels without inventing an analytic fit.
 
 #### Figure 4.29 — turning profile
 
@@ -465,7 +467,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 93
 - **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The equation-constrained sign topology has two turning levels, exponential outer regions, and an oscillating `R^2>0` interior; the vector preserves those source regions and labels.
+- **Scientific check:** The source-traced asymmetric curve preserves the two crossings, dashed turning-level guides, exponential outer regions, oscillating interior, signs, and source labels; it does not impose a symmetric parabola.
 
 #### Figure 4.30 — eigenvalue spectrum
 
@@ -481,4 +483,4 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 94
 - **Representation:** vector
 - **Equation check:** partial
-- **Scientific check:** The vector preserves the sign-changing `R^2(z)` profile and the source ordering of evanescent (`k^2<0`) and travelling (`k^2>0`) modes; the detailed eigenfunction curves remain schematic.
+- **Scientific check:** The source-traced panels preserve the sign-changing `R^2(z)` profile, turning-level guides, outer evanescent wiggles, broad evanescent mode, and multi-lobed travelling mode; the curves remain schematic rather than analytic fits.

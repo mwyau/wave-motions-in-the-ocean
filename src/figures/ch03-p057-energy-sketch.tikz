@@ -1,0 +1,33 @@
+% wave-source: pdf=ChapmanRizzoli3.pdf; page=22; trim=410bp 95bp 45bp 580bp
+% Source: Wave Motions in the Ocean, printed p.57 (physical p.22).
+% Source-traced vector redraw of the PE/KE and energy-flux sketch. The
+% perspective control volume is kept closed and the labels stay outside it.
+\begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
+  % Wavy free surface.
+  \draw[line width=0.68pt]
+    (0,3.12) .. controls (0.42,3.23) and (0.78,3.18) .. (1.18,3.12)
+    .. controls (1.58,3.07) and (1.92,3.09) .. (2.30,3.13)
+    .. controls (2.72,3.18) and (3.08,3.14) .. (3.48,3.10)
+    .. controls (3.90,3.06) and (4.30,3.09) .. (4.72,3.13);
+
+  % Closed perspective control volume below the free surface. The front face
+  % is rectangular; the rear face is displaced up and to the right.
+  \coordinate (F1) at (1.25,0.62);
+  \coordinate (F2) at (1.25,2.26);
+  \coordinate (F3) at (1.72,2.26);
+  \coordinate (F4) at (1.72,0.62);
+  \coordinate (B1) at (2.20,1.35);
+  \coordinate (B2) at (2.20,2.99);
+  \coordinate (B3) at (2.67,2.99);
+  \coordinate (B4) at (2.67,1.35);
+  \draw[line width=0.70pt] (F1)--(F2)--(F3)--(F4)--cycle;
+  \draw[line width=0.70pt] (B1)--(B2)--(B3)--(B4)--cycle;
+  \draw[line width=0.70pt] (F1)--(B1) (F2)--(B2) (F3)--(B3) (F4)--(B4);
+
+  \draw[->,line width=0.68pt] (3.20,3.36)
+    .. controls (2.92,3.52) and (2.67,3.38) .. (2.65,3.02);
+  \node[anchor=west] at (3.16,3.40) {PE, KE};
+
+  \draw[->,line width=0.80pt] (2.02,2.05) -- (3.48,2.05);
+  \node[anchor=west] at (3.54,2.05) {E flux};
+\end{tikzpicture}

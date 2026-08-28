@@ -1,23 +1,23 @@
 % wave-source: pdf=ChapmanRizzoli6.pdf; page=21; trim=105bp 370bp 90bp 294bp
 % wave-source-mask: pdf=ChapmanRizzoli6.pdf; page=21; rect=0bp 470bp 300bp 500bp; origin=lower-left; reason=remove the overlapping preceding prose while preserving the complete upper sigma label
 % Source: Wave Motions in the Ocean, printed p.167 (physical p.21).
-% Intentionally schematic family diagram. Exact constraints: ell<0 lies left of the
-% origin, sigma=f is horizontal, and the strong-stratification Kelvin limit is the
-% straight positive-frequency branch omega=-S ell/(n pi). CTW/CSW curve shapes are qualitative.
+% Intentionally schematic family diagram. Exact source constraints are kept:
+% ell<0 lies left of the origin and sigma=f is horizontal. The pending source
+% sign convention for the straight Kelvin comparison branch is preserved.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round,line join=round]
   \coordinate (O) at (8.0,0.75);
   \draw[->] (0.65,0.75)--(9.0,0.75) node[right] {$\ell$};
   \draw[->] (O)--(8.0,5.35) node[above] {$\sigma$};
   \draw[densely dashed] (1.0,4.55)--(8.0,4.55);
   \node[anchor=west] at (8.10,4.55) {$f$};
-  \draw[line width=.9pt] (1.55,1.22) .. controls (3.25,1.15) and (4.25,1.50) .. (5.05,2.10)
-       .. controls (6.05,2.65) and (7.20,2.15) .. (O);
-  \draw[line width=.9pt] (1.55,2.05) .. controls (3.15,2.00) and (4.15,2.32) .. (4.95,2.98)
-       .. controls (5.95,3.60) and (7.15,3.05) .. (O);
+  \draw[line width=.9pt] (1.45,1.12) .. controls (3.15,1.05) and (4.25,1.45) .. (5.05,1.98)
+       .. controls (6.05,2.45) and (7.25,1.95) .. (O);
+  \draw[line width=.9pt] (1.55,1.92) .. controls (3.20,1.88) and (4.20,2.22) .. (5.05,2.72)
+       .. controls (6.05,3.20) and (7.20,2.62) .. (O);
   \draw[line width=.8pt] (O)--(7.35,4.35);
-  \node[anchor=east] at (2.1,1.30) {Continental Shelf Wave};
-  \node[anchor=east] at (2.15,2.14) {Coastal-Trapped Wave};
-  \node[anchor=west,align=left] at (8.22,3.55) {Baroclinic\\Kelvin Wave};
+  \node[font=\itshape,anchor=east] at (2.0,1.18) {Continental Shelf Wave};
+  \node[font=\itshape,anchor=east] at (2.1,2.02) {Coastal-Trapped Wave};
+  \node[font=\itshape,anchor=west,align=left] at (8.22,3.55) {Baroclinic\\Kelvin Wave};
   \draw[->,line width=.5pt] (8.15,3.55)--(7.55,3.58);
   \node at (5.35,2.50) {$n=1$};
   \node at (5.28,3.38) {$n=1$};

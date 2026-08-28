@@ -1,20 +1,22 @@
 % wave-source: pdf=ChapmanRizzoli4.pdf; page=30; trim=170bp 430bp 180bp 220bp
 % Source: Wave Motions in the Ocean, printed p.93 (physical p.30).
-% Schematic R^2(z) profile with two turning levels and three regions; only
-% the sign/topology is constrained by the chapter, not a numerical profile.
+% The asymmetric curve and its two source turning levels are retained as a
+% schematic profile; no numerical R^2(z) law is implied.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
-  \draw[->] (3.00,0.45)--(3.00,5.05) node[above] {$z$};
-  \draw[->] (0.55,4.35)--(6.55,4.35) node[right] {$R^2(z)$};
-  \draw[line width=.85pt,domain=0.65:4.50,samples=120,smooth,variable=\z]
-    plot ({3.00-0.58*(\z-1.15)*(\z-3.55)},{\z});
-  \draw[densely dashed] (0.75,3.55)--(6.15,3.55);
-  \draw[densely dashed] (0.75,1.15)--(6.15,1.15);
-  \fill (3.00,3.55) circle (1.5pt);\fill (3.00,1.15) circle (1.5pt);
-  \node[anchor=west] at (3.20,3.90) {$R^2<0$};
-  \node[anchor=west] at (3.80,2.30) {$R^2>0$};
-  \node[anchor=west] at (3.20,0.82) {$R^2<0$};
-  \node[left] at (2.85,0.70) {$-D$};\node[left] at (2.85,4.70) {$0$};
-  \node[anchor=east] at (2.55,3.15) {exponential};
-  \node[anchor=east] at (2.55,2.25) {oscillating};
-  \node[anchor=east] at (2.55,0.92) {exponential};
+  \draw[->] (2.85,.42)--(2.85,4.82) node[above] {$z$};
+  \draw[->] (.48,4.10)--(6.30,4.10) node[right] {$R^2(z)$};
+  \draw[line width=.85pt]
+    (1.68,4.10)
+      .. controls (1.78,3.84) and (2.28,3.64) .. (2.85,3.45)
+      .. controls (3.42,3.24) and (4.13,2.94) .. (4.25,2.54)
+      .. controls (4.36,2.14) and (3.52,1.54) .. (2.85,1.04)
+      .. controls (2.33,.84) and (1.82,.68) .. (1.68,.43);
+  \draw[densely dashed] (.55,3.45)--(6.02,3.45);
+  \draw[densely dashed] (.55,1.04)--(6.02,1.04);
+  \node[anchor=west] at (4.55,3.76) {$R^2<0$};
+  \node[anchor=west] at (4.65,2.48) {$R^2>0$};
+  \node[anchor=west] at (4.55,.76) {$R^2<0$};
+  \node[anchor=east] at (2.38,3.77) {\textit{exponential}};
+  \node[anchor=east] at (2.38,2.46) {\textit{Oscillating}};
+  \node[anchor=east] at (2.38,.70) {\textit{exponential}};
 \end{tikzpicture}

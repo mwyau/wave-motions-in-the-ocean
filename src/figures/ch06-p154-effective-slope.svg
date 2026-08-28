@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- wave-generated-sha256: 7d520061a3837b86 -->
+<!-- wave-generated-sha256: acf5e1b5073a0101 -->
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="271.075pt" height="95.286pt" viewBox="0 0 271.075 95.286">
 <defs>
 <g>
@@ -226,6 +226,5 @@
 <use xlink:href="#glyph-0-11" x="226.08216" y="65.456519"/>
 <use xlink:href="#glyph-0-12" x="231.28848" y="65.456519"/>
 </g>
-<path fill="none" stroke-width="0.89664" stroke-linecap="round" stroke-linejoin="round" stroke="rgb(0%, 0%, 0%)" stroke-opacity="1" stroke-miterlimit="10" d="M 94.961977 58.110409 L 137.575792 58.110409 " transform="matrix(0.992563, 0, 0, -0.992563, 29.142741, 107.07665)"/>
-<path fill-rule="nonzero" fill="rgb(0%, 0%, 0%)" fill-opacity="1" d="M 168.414062 49.398438 L 164.0625 47.222656 L 165.695312 49.398438 L 164.0625 51.574219 "/>
+<path fill-rule="nonzero" fill="rgb(100%, 100%, 100%)" fill-opacity="1" stroke-width="0.74721" stroke-linecap="round" stroke-linejoin="round" stroke="rgb(0%, 0%, 0%)" stroke-opacity="1" stroke-miterlimit="10" d="M 97.795551 62.927486 L 123.305595 62.927486 L 123.305595 71.432145 L 141.731702 58.110409 L 123.305595 44.788672 L 123.305595 53.293332 L 97.795551 53.293332 Z M 97.795551 62.927486 " transform="matrix(0.992563, 0, 0, -0.992563, 29.142741, 107.07665)"/>
 </svg>

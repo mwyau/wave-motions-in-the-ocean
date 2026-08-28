@@ -6,8 +6,11 @@
 % reflection angles and displayed |k| are equal by construction.
 \begin{center}
 \begin{tikzpicture}[scale=1.30,>=stealth,line cap=round,line join=round,font=\small]
-  \draw[very thick] (0,-1.15)--(0,1.15);
-  \draw (0.06,-1.15)--(0.06,1.15);
+  \filldraw[fill=black!12,draw=black,line width=0.75pt]
+    (-0.10,-1.15) rectangle (0.10,1.15);
+  \foreach \x/\y in {-0.06/-0.95,0.05/-0.70,-0.06/-0.42,0.05/-0.14,-0.06/0.14,0.05/0.42,-0.06/0.70,0.05/0.95}{
+    \fill (\x,\y) circle (0.38pt);
+  }
   \draw[->] (0,0)--(1.45,0) node[right] {$x$};
   \draw[->] (0,0)--(0,1.45) node[above] {$y$};
   \draw[->,thick] (-1.55,-1.05)--(0,0);

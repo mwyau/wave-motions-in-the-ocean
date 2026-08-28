@@ -19,7 +19,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 151
 - **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The vector preserves the channel perspective, sidewalls `y=0,L`, rigid lid, axes, and planar bottom `z=-H+alpha y`.
+- **Scientific check:** The perspective redraw preserves the source's long channel, the `y=L` cross-section, coordinate axes, and planar bottom relation `z=-H+alpha y`, with the `y=0` and `y=L` sidewall contacts kept exact.
 
 #### Figure 6.2 — bottom-trapped mode
 
@@ -35,7 +35,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 152
 - **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The checked `cosh(mu z)` dependence gives paired large- and small-`Sk` bottom-trapped profiles that terminate at the sloping bottom.
+- **Scientific check:** The source's three large/intermediate/small-`Sk` bottom-trapped profile traces are retained, with all three terminating at the sloping bottom.
 
 #### Figure 6.3 — effective slope
 
@@ -67,7 +67,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 156
 - **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** From the checked dispersion relation, for `omega<1` the sign of `k^2` is the sign of `S^2-omega^2`: propagation requires `omega<S`, while `omega>S` is evanescent. The reflection/trapping panels encode those regimes.
+- **Scientific check:** From the checked dispersion relation, for `omega<1` the sign of `k^2` is the sign of `S^2-omega^2`: propagation requires `omega<S`, while `omega>S` is evanescent. The lower-frequency source-like oscillation counts and the reflection/trapping panels encode those regimes.
 
 #### Figure 6.5 — continental shelf
 
@@ -114,7 +114,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Original source:** [ChapmanRizzoli6.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli6.pdf), physical page 12
 - **Representation:** source-pdf
 - **Equation check:** ai-checked
-- **Scientific check:** Keep the source modal dispersion diagram. Along each matched mode `tan(kL)=k/(ell-b)`, `k=k_n(ell)`; independently solved maxima preserve one maximum per branch and decreasing peak frequency with mode number. See `ERRATA.md`, printed p.159, for the source extremum issue.
+- **Scientific check:** Retain the source PDF because the modal curves are a qualitative source-specific family rather than a uniquely replotted solution; tracing their individual envelopes would add interpretation. Along each matched mode `tan(kL)=k/(ell-b)`, `k=k_n(ell)`; independently solved maxima preserve one maximum per branch and decreasing peak frequency with mode number. See `ERRATA.md`, printed p.159, for the source extremum issue.
 
 #### Figure 6.8 — source PDF crop, printed page 161
 
@@ -129,7 +129,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Original source:** [ChapmanRizzoli6.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli6.pdf), physical page 15
 - **Representation:** source-pdf
 - **Equation check:** partial
-- **Scientific check:** Keep the information-dense full coastal spectrum. The family content (one Kelvin wave, discrete shelf/edge families, Poincaré continuum, no Yanai analogue) is checked, but every detailed branch/cutoff for general `D(x)` is not independently reconstructible from the notes.
+- **Scientific check:** Retain the source PDF for this information-dense full coastal spectrum. The family content (one Kelvin wave, discrete shelf/edge families, Poincaré continuum, no Yanai analogue) is checked, but every detailed branch/cutoff for general `D(x)` is not independently reconstructible from the notes; a vector redraw would add interpretation.
 
 #### Figure 6.9 — coastal geometry
 
@@ -145,7 +145,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 162
 - **Representation:** vector
 - **Equation check:** n/a
-- **Scientific check:** The vector preserves the three-dimensional coastal coordinate system, variable depth `D(x)`, shelf edge `x=L`, and stippled deep-ocean bottom.
+- **Scientific check:** The vector preserves the three-dimensional coastal coordinate system, variable depth `D(x)`, shelf edge `x=L`, and the clean deep-ocean bottom shown in this redraw.
 
 #### Figure 6.10 — ctw dispersion family
 
@@ -193,7 +193,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 165
 - **Representation:** vector
 - **Equation check:** partial
-- **Scientific check:** Weak-stratification panel has incident/reflected/transmitted branches and strong-stratification panel omits the reflected branch as required by the derived regime change; branch shapes remain schematic.
+- **Scientific check:** Weak-stratification panel has incident/reflected/transmitted branches and strong-stratification panel omits the reflected branch as required by the derived regime change; the stippled coast and italic directional labels follow the source, while branch shapes remain schematic.
 
 #### Figure 6.13 — mode transition
 
@@ -209,7 +209,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 167
 - **Representation:** vector
 - **Equation check:** partial
-- **Scientific check:** The source family layout is preserved with `ell<0` to the left, inertial line `sigma=f`, and strong-stratification Kelvin limit `omega=-S ell/(n pi)`. Intermediate coastal-trapped/shelf-wave branch shapes are schematic because no unique `D(x)` is specified. See `ERRATA.md`, printed p.167.
+- **Scientific check:** The source family layout is preserved with `ell<0` to the left, inertial line `sigma=f`, and the straight Kelvin comparison branch. Intermediate coastal-trapped/shelf-wave branch shapes are schematic because no unique `D(x)` is specified; source italic labeling and the pending p.167 sign convention are retained. See `ERRATA.md`, printed p.167.
 
 #### Figure 6.14 — wind-forced shelf
 
@@ -225,4 +225,4 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 168
 - **Representation:** vector
 - **Equation check:** n/a
-- **Scientific check:** The vector preserves the three-dimensional shelf/coast geometry, offshore and alongshore axes, shelf edge `x=L`, and restrained alongshelf wind-stress arrows based on the nearby `tau^y/D` forcing description.
+- **Scientific check:** The vector preserves the three-dimensional shelf/coast geometry, offshore and alongshore axes, and shelf edge `x=L`; no wind-stress arrows are added to the source geometry sketch.

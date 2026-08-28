@@ -975,6 +975,12 @@ FIGURE_IMAGE_RE = re.compile(
     r"(?P<label>Figure [1-6][.][0-9]+)</span></p>\s*</div>",
     re.DOTALL,
 )
+FIGURE_IMAGE_AFTER_CONTENT_RE = re.compile(
+    r"(?P<prefix><p>.+?)\s*(?P<img><img[^>]*>)\s*</p>\s*"
+    r'<div class="center">\s*<p><span class="sans-serif">'
+    r"(?P<label>Figure [1-6][.][0-9]+)</span></p>\s*</div>",
+    re.DOTALL,
+)
 FIGURE_LABEL_RE = re.compile(
     r'<span class="sans-serif">Figure [1-6][.][0-9]+</span>',
     re.DOTALL,
@@ -1042,6 +1048,14 @@ def install_figure_markup(page: Path, assets_root: Path = OUT) -> None:
     text = FIGURE_IMAGE_MARK_RE.sub(
         lambda match: _figure_markup(
             match.group("img"), match.group("label"), switchable
+        ),
+        text,
+    )
+    text = FIGURE_IMAGE_AFTER_CONTENT_RE.sub(
+        lambda match: (
+            match.group("prefix").rstrip()
+            + "</p>\n"
+            + _figure_markup(match.group("img"), match.group("label"), switchable)
         ),
         text,
     )

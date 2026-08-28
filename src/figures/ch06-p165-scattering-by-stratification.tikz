@@ -1,54 +1,57 @@
 % wave-source: pdf=ChapmanRizzoli6.pdf; page=19; trim=70bp 545bp 65bp 45bp
 % Source: Wave Motions in the Ocean, printed p.165 (physical p.19).
-% Weak stratification permits both transmitted and reflected energy because the
-% group velocity can change sign. Strong stratification gives only one energy-
-% propagation direction, so the same topographic bend has no reflected branch.
+% Source-traced comparison of weak and strong stratification. The deep-ocean
+% pressure traces, curved coast boundary, and energy arrows are independent in
+% the two panels, as in the source.
 \par\smallskip
 \begin{center}
 \begin{tikzpicture}[x=0.9cm,y=0.9cm,>=stealth,line cap=round,line join=round,font=\small]
-  % Reusable schematic coastline: deep ocean left, coast/right-hand boundary.
+  % Weak stratification: transmitted and reflected energy are both shown.
   \begin{scope}[shift={(0,0)}]
     \node[font=\bfseries] at (2.15,4.30) {$S$ small};
-    \fill[black!15] (3.10,0.20) -- (4.25,0.20) -- (4.25,4.00) -- (3.10,4.00)
-      .. controls (3.15,3.20) and (2.65,2.75) .. (2.45,2.30)
-      .. controls (2.15,1.75) and (2.70,1.28) .. (3.10,0.95) -- cycle;
-    \draw[line width=0.78pt] (3.10,0.20) -- (3.10,0.95)
-      .. controls (2.70,1.28) and (2.15,1.75) .. (2.45,2.30)
-      .. controls (2.65,2.75) and (3.15,3.20) .. (3.10,4.00);
-    \foreach \x in {0.55,1.05,1.55} {
-      \draw[line width=0.55pt] (\x,0.35) .. controls (\x-0.05,1.45) and (\x+0.10,2.65) .. (\x,3.85);
+    \path[fill=black!15]
+      (3.10,0.20)--(4.25,0.20)--(4.25,4.00)--(3.10,4.00)--(3.10,3.25)
+      .. controls (2.95,3.00) and (2.25,2.75) .. (2.35,2.25)
+      .. controls (2.43,1.78) and (2.92,1.55) .. (3.10,1.40)--cycle;
+    \draw[line width=.78pt]
+      (3.10,0.20)--(4.25,0.20)--(4.25,4.00)--(3.10,4.00)--(3.10,3.25)
+      .. controls (2.95,3.00) and (2.25,2.75) .. (2.35,2.25)
+      .. controls (2.43,1.78) and (2.92,1.55) .. (3.10,1.40)--(3.10,0.20);
+    \foreach \x in {0.55,1.08,1.61,2.14} {
+      \draw[line width=.55pt] (\x,0.35)
+        .. controls (\x-0.04,1.45) and (\x+0.08,2.65) .. (\x,3.85);
     }
-    \draw[line width=0.60pt] (2.05,0.35) .. controls (2.00,1.25) and (1.90,2.25) .. (2.10,3.85);
-    \node[anchor=east,align=center] at (0.20,2.10) {Deep\\Ocean};
-    \node at (3.55,2.65) {Coast};
-
-    \draw[->,line width=1.0pt] (2.05,0.55) -- (2.05,1.45);
-    \node[anchor=west] at (2.28,0.96) {$p_i$};
-    \draw[->,line width=1.0pt] (1.15,1.25) -- (1.15,0.45);
-    \node[anchor=east] at (0.35,0.58) {$p_R$};
-    \draw[->,line width=1.0pt] (1.48,3.05) -- (1.48,3.82);
-    \node[anchor=west] at (1.88,3.65) {$p_T$};
+    \node[font=\itshape,anchor=east,align=center] at (0.26,2.12) {Deep\\Ocean};
+    \node[font=\itshape] at (3.58,2.65) {Coast};
+    \draw[->,line width=1.0pt] (2.02,0.55)--(2.02,1.45);
+    \node[anchor=west] at (2.23,0.95) {$p_i$};
+    \draw[->,line width=1.0pt] (1.08,1.25)--(1.08,0.45);
+    \node[anchor=east] at (0.43,0.58) {$p_R$};
+    \draw[->,line width=1.0pt] (1.42,3.05)--(1.42,3.82);
+    \node[anchor=west] at (1.70,3.65) {$p_T$};
   \end{scope}
 
+  % Strong stratification: only the transmitted branch remains.
   \begin{scope}[shift={(6.15,0)}]
     \node[font=\bfseries] at (2.15,4.30) {$S$ large};
-    \fill[black!15] (3.10,0.20) -- (4.25,0.20) -- (4.25,4.00) -- (3.10,4.00)
-      .. controls (3.15,3.20) and (2.65,2.75) .. (2.45,2.30)
-      .. controls (2.15,1.75) and (2.70,1.28) .. (3.10,0.95) -- cycle;
-    \draw[line width=0.78pt] (3.10,0.20) -- (3.10,0.95)
-      .. controls (2.70,1.28) and (2.15,1.75) .. (2.45,2.30)
-      .. controls (2.65,2.75) and (3.15,3.20) .. (3.10,4.00);
-    \foreach \x in {0.55,1.05,1.55} {
-      \draw[line width=0.55pt] (\x,0.35) .. controls (\x-0.05,1.45) and (\x+0.10,2.65) .. (\x,3.85);
+    \path[fill=black!15]
+      (3.10,0.20)--(4.25,0.20)--(4.25,4.00)--(3.10,4.00)--(3.10,3.25)
+      .. controls (2.95,3.00) and (2.25,2.75) .. (2.35,2.25)
+      .. controls (2.43,1.78) and (2.92,1.55) .. (3.10,1.40)--cycle;
+    \draw[line width=.78pt]
+      (3.10,0.20)--(4.25,0.20)--(4.25,4.00)--(3.10,4.00)--(3.10,3.25)
+      .. controls (2.95,3.00) and (2.25,2.75) .. (2.35,2.25)
+      .. controls (2.43,1.78) and (2.92,1.55) .. (3.10,1.40)--(3.10,0.20);
+    \foreach \x in {0.55,1.08,1.61,2.14} {
+      \draw[line width=.55pt] (\x,0.35)
+        .. controls (\x-0.04,1.45) and (\x+0.08,2.65) .. (\x,3.85);
     }
-    \draw[line width=0.60pt] (2.05,0.35) .. controls (2.00,1.25) and (1.90,2.25) .. (2.10,3.85);
-    \node[anchor=east,align=center] at (0.20,2.10) {Deep\\Ocean};
-    \node at (3.55,2.65) {Coast};
-
-    \draw[->,line width=1.0pt] (2.05,0.55) -- (2.05,1.45);
-    \node[anchor=west] at (2.28,0.96) {$p_i$};
-    \draw[->,line width=1.0pt] (1.48,3.05) -- (1.48,3.82);
-    \node[anchor=west] at (1.88,3.65) {$p_T$};
+    \node[font=\itshape,anchor=east,align=center] at (0.26,2.12) {Deep\\Ocean};
+    \node[font=\itshape] at (3.58,2.65) {Coast};
+    \draw[->,line width=1.0pt] (2.02,0.55)--(2.02,1.45);
+    \node[anchor=west] at (2.23,0.95) {$p_i$};
+    \draw[->,line width=1.0pt] (1.42,3.05)--(1.42,3.82);
+    \node[anchor=west] at (1.70,3.65) {$p_T$};
   \end{scope}
 \end{tikzpicture}
 \end{center}

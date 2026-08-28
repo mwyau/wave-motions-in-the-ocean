@@ -8,10 +8,10 @@
 \par\smallskip
 \begin{center}
 \begin{tikzpicture}[x=1.05cm,y=1.05cm,>=stealth,line cap=round,line join=round,font=\small]
-  \draw[->,line width=0.8pt] (-4.80,0) -- (1.10,0) node[right] {$\ell$};
+  \draw[->,line width=0.8pt] (-6.20,0) -- (1.10,0) node[right] {$\ell$};
   \draw[->,line width=0.8pt] (0,-0.10) -- (0,2.85) node[above] {$\omega$};
   \def\omegaf{2.15}
-  \draw[dashed,line width=0.65pt] (-4.45,\omegaf) -- (0.30,\omegaf);
+  \draw[dashed,line width=0.65pt] (-5.85,\omegaf) -- (0.30,\omegaf);
   \node[anchor=west] at (0.36,\omegaf) {$1\ (\sigma=f)$};
 
   % Weak stratification: branch turns over and tends toward a low short-wave limit.
@@ -33,8 +33,8 @@
   \fill (-\qcut,\omegaf) circle (1.2pt);
   \node[anchor=south] at (-2.55,2.20) {$n=1\quad S>1$};
 
-  \draw[->,line width=0.70pt] (-4.25,0.72) -- (-4.25,1.50);
-  \node[rotate=90,anchor=south] at (-4.38,1.10) {$S$ increases};
+  \draw[->,line width=0.70pt] (-5.65,0.72) -- (-5.65,1.50);
+  \node[rotate=90,anchor=south] at (-5.78,1.10) {$S$ increases};
 \end{tikzpicture}
 \end{center}
 \smallskip

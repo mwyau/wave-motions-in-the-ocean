@@ -1,45 +1,51 @@
 % wave-source: pdf=ChapmanRizzoli4.pdf; page=31; trim=90bp 225bp 90bp 390bp
 % Source: Wave Motions in the Ocean, printed p.94 (physical p.31).
-% Generalized spectrum: a sign-changing R^2 profile with representative
-% evanescent and travelling eigenfunctions in the same vertical interval.
+% The eigenfunction curves are source-traced schematic modes, not analytic fits.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round,line join=round]
-  % R^2 profile panel
-  \draw[->] (0.55,0.60)--(0.55,3.65) node[above] {$z$};
-  \draw[->] (0.55,3.20)--(2.55,3.20) node[right] {$R^2(z)$};
+  % Sign-changing R^2 profile.
+  \draw[->] (1.15,.50)--(1.15,3.72) node[above] {$z$};
+  \draw[->] (.45,3.35)--(2.80,3.35) node[right] {$R^2(z)$};
   \draw[line width=.75pt]
-    (0.80,3.20)
-      .. controls (0.62,2.92) and (0.55,2.62) .. (0.55,2.35)
-      .. controls (0.82,2.08) and (1.72,2.00) .. (1.72,1.70)
-      .. controls (1.72,1.42) and (0.82,1.25) .. (0.55,1.15)
-      .. controls (0.48,0.95) and (0.40,0.76) .. (0.32,0.60);
-  \draw[densely dashed] (0.75,2.35)--(2.35,2.35);
-  \draw[densely dashed] (0.75,1.15)--(2.35,1.15);
-  \node at (1.95,2.75) {$<0$};\node at (1.95,1.75) {$>0$};\node at (1.95,0.90) {$<0$};
+    (.62,3.35)
+      .. controls (.78,3.00) and (.93,2.66) .. (1.15,2.35)
+      .. controls (1.53,2.08) and (2.00,1.86) .. (1.95,1.48)
+      .. controls (1.90,1.15) and (1.52,.84) .. (1.15,.62)
+      .. controls (.91,.42) and (.66,.30) .. (.60,.24);
+  \draw[densely dashed] (.48,2.35)--(2.68,2.35);
+  \draw[densely dashed] (.48,1.15)--(2.68,1.15);
+  \node[anchor=west] at (2.00,2.86) {$<0$};
+  \node[anchor=west] at (2.00,1.82) {$>0$};
+  \node[anchor=west] at (2.00,.86) {$<0$};
 
-  % Evanescent eigenfunctions: oscillatory in the outer regions and
-  % exponentially shaped through the sign-changing interior.
-  \draw[->] (3.15,0.60)--(3.15,3.65) node[above] {$z$};
-  \draw[->] (3.15,3.20)--(5.25,3.20) node[right] {$w(z)$};
-  \draw[densely dashed] (3.25,2.35)--(5.05,2.35);
-  \draw[densely dashed] (3.25,1.15)--(5.05,1.15);
+  % Evanescent modes: small outer wiggles and a broad interior mode.
+  \draw[->] (4.30,.50)--(4.30,3.72) node[above] {$z$};
+  \draw[->] (3.60,3.35)--(5.55,3.35) node[right] {$w(z)$};
+  \draw[densely dashed] (3.62,2.35)--(5.42,2.35);
+  \draw[densely dashed] (3.62,1.15)--(5.42,1.15);
   \draw[line width=.75pt]
-    (3.15,3.20)
-      .. controls (3.42,3.10) and (2.88,3.04) .. (3.15,2.94)
-      .. controls (3.40,2.84) and (2.90,2.75) .. (3.15,2.62)
-      .. controls (3.28,2.52) and (3.46,2.42) .. (3.68,2.34)
-      .. controls (4.15,2.16) and (4.25,1.50) .. (3.67,1.16)
-      .. controls (3.40,1.08) and (2.88,1.02) .. (3.15,0.91)
-      .. controls (3.42,0.82) and (2.90,0.76) .. (3.15,0.65);
-  \node[draw,inner sep=1pt] at (3.75,3.55) {$k^2<0$};
-  \node[align=center] at (4.15,0.75) {evanescent\\modes};
+    (4.30,3.35)
+      .. controls (4.65,3.25) and (3.95,3.17) .. (4.30,3.08)
+      .. controls (4.65,2.98) and (3.95,2.90) .. (4.30,2.82)
+      .. controls (4.65,2.72) and (3.95,2.64) .. (4.30,2.55)
+      .. controls (4.45,2.44) and (4.82,2.05) .. (4.90,1.65)
+      .. controls (4.92,1.30) and (4.55,1.08) .. (4.30,1.15)
+      .. controls (4.65,1.06) and (3.95,.98) .. (4.30,.90)
+      .. controls (4.65,.82) and (3.95,.74) .. (4.30,.62);
+  \node[draw,inner sep=1.5pt] at (4.30,3.63) {$k^2<0$};
+  \node[align=center,anchor=east] at (4.12,1.72) {\textit{evanescent}\\\textit{ modes}};
 
-  % Travelling eigenfunctions oscillate across the full interval.
-  \draw[->] (5.85,0.60)--(5.85,3.65) node[above] {$z$};
-  \draw[->] (5.85,3.20)--(7.95,3.20) node[right] {$w(z)$};
-  \draw[densely dashed] (5.95,2.35)--(7.75,2.35);
-  \draw[densely dashed] (5.95,1.15)--(7.75,1.15);
-  \draw[line width=.75pt,domain=0.65:3.20,samples=150,smooth,variable=\s]
-    plot ({5.85+0.60*sin(720*\s)},{\s});
-  \node[draw,inner sep=1pt] at (6.50,3.55) {$k^2>0$};
-  \node[align=center] at (7.0,0.75) {travelling\\modes};
+  % Travelling modes: several broad lobes across the full interval.
+  \draw[->] (6.95,.50)--(6.95,3.72) node[above] {$z$};
+  \draw[->] (6.25,3.35)--(8.20,3.35) node[right] {$w(z)$};
+  \draw[densely dashed] (6.27,2.35)--(8.07,2.35);
+  \draw[densely dashed] (6.27,1.15)--(8.07,1.15);
+  \draw[line width=.75pt]
+    (6.95,3.35)
+      .. controls (7.38,3.14) and (7.44,2.84) .. (6.95,2.65)
+      .. controls (6.55,2.48) and (6.47,2.30) .. (6.95,2.14)
+      .. controls (7.38,1.98) and (7.44,1.72) .. (6.95,1.54)
+      .. controls (6.56,1.38) and (6.47,1.20) .. (6.95,1.04)
+      .. controls (7.34,.88) and (7.36,.65) .. (6.95,.55);
+  \node[draw,inner sep=1.5pt] at (6.95,3.63) {$k^2>0$};
+  \node[align=left,anchor=west] at (7.60,1.78) {\textit{travelling}\\\textit{ modes}};
 \end{tikzpicture}
