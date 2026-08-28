@@ -104,7 +104,7 @@
   const switchableFigures = Array.from(
     document.querySelectorAll("figure.wave-figure-switchable"),
   );
-  let figureBaseline = "vector";
+  let figureBaseline = "original";
 
   const figureImage = (figure) => figure.querySelector("img[data-vector-src]");
 

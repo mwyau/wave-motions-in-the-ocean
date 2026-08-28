@@ -1140,11 +1140,12 @@ def test_install_figure_markup_adds_one_switchable_image_and_local_action(
 
     assert output.count('<figure class="wave-figure wave-figure-switchable"') == 1
     assert output.count("<img") == 1
-    assert 'src="assets/figures/paired.svg"' in output
+    assert 'src="assets/figures/paired.png"' in output
     assert 'data-vector-src="assets/figures/paired.svg"' in output
     assert 'data-original-src="assets/figures/paired.png"' in output
-    assert 'aria-label="Show original source figure"' in output
-    assert ">Original</button>" in output
+    assert 'aria-label="Show reconstructed vector figure"' in output
+    assert 'data-figure-view="original"' in output
+    assert ">Vector</button>" in output
 
 
 def test_install_figure_markup_splits_image_after_paragraph_content(
@@ -1167,7 +1168,7 @@ def test_install_figure_markup_splits_image_after_paragraph_content(
     assert '</span></p>\n<figure class="wave-figure wave-figure-switchable"' in output
     assert output.count('<figure class="wave-figure wave-figure-switchable"') == 1
     assert output.count("<img") == 1
-    assert ">Original</button>" in output
+    assert ">Vector</button>" in output
 
 
 def test_install_figure_markup_leaves_source_art_without_switch_action(

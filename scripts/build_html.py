@@ -999,10 +999,11 @@ def _switchable_image_tag(image_tag: str, stem: str) -> str:
     src = _figure_image_src(image_tag)
     if "data-vector-src=" in image_tag or "data-original-src=" in image_tag:
         raise SystemExit(f"HTML figure image already contains switch metadata: {src}")
+    original = f"assets/figures/{stem}.png"
     replacement = (
-        f'src="{html.escape(src, quote=True)}" '
+        f'src="{html.escape(original, quote=True)}" '
         f'data-vector-src="{html.escape(src, quote=True)}" '
-        f'data-original-src="assets/figures/{html.escape(stem, quote=True)}.png"'
+        f'data-original-src="{html.escape(original, quote=True)}"'
     )
     updated, count = re.subn(
         r'\bsrc="[^"]+"', replacement, image_tag, count=1, flags=re.IGNORECASE
@@ -1026,11 +1027,11 @@ def _figure_markup(image_tag: str, label: str, switchable: set[str]) -> str:
     if is_switchable:
         action = (
             '<button type="button" class="figure-view-toggle js-only" '
-            'data-figure-toggle aria-label="Show original source figure">Original</button>'
+            'data-figure-toggle aria-label="Show reconstructed vector figure">Vector</button>'
         )
     return (
         f'<figure class="{class_name}"'
-        + (' data-figure-view="vector"' if is_switchable else "")
+        + (' data-figure-view="original"' if is_switchable else "")
         + ">\n"
         + image_tag
         + f'\n<figcaption><span class="figure-label">{html.escape(label)}</span>'
@@ -1131,9 +1132,11 @@ def validate_figure_markup() -> None:
                 raise SystemExit(
                     f"{page.name}: switchable figure is missing paired image URLs"
                 )
-            if src.group(1) != vector.group(1) or not vector.group(1).endswith(".svg"):
+            if src.group(1) != original.group(1) or not original.group(1).endswith(
+                ".png"
+            ):
                 raise SystemExit(
-                    f"{page.name}: switchable figure must default to its SVG"
+                    f"{page.name}: switchable figure must default to its original PNG"
                 )
             vector_stem = Path(vector.group(1)).stem
             expected_original = f"assets/figures/{vector_stem}.png"
@@ -1154,7 +1157,7 @@ def validate_figure_markup() -> None:
                 )
             if (
                 block.count("data-figure-toggle") != 1
-                or ">Original</button>" not in block
+                or ">Vector</button>" not in block
             ):
                 raise SystemExit(
                     f"{page.name}: switchable figure is missing its local action"

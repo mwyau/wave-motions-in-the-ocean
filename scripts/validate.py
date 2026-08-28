@@ -698,8 +698,12 @@ def check_html_figures() -> None:
             src = re.search(r'\bsrc="([^"]+)"', image)
             if not vector or not original or not src:
                 fail(f"{page.name}: switchable figure is missing paired image URLs")
-            if src.group(1) != vector.group(1) or not vector.group(1).endswith(".svg"):
-                fail(f"{page.name}: switchable figure does not default to SVG")
+            if src.group(1) != original.group(1) or not original.group(1).endswith(
+                ".png"
+            ):
+                fail(
+                    f"{page.name}: switchable figure does not default to its original PNG"
+                )
             stem = Path(vector.group(1)).stem
             if original.group(1) != f"assets/figures/{stem}.png":
                 fail(f"{page.name}: switchable figure changes its asset stem")
@@ -712,7 +716,7 @@ def check_html_figures() -> None:
                 fail(f"{page.name}: switchable figure asset is missing")
             if (
                 block.count("data-figure-toggle") != 1
-                or ">Original</button>" not in block
+                or ">Vector</button>" not in block
             ):
                 fail(f"{page.name}: switchable figure is missing its local action")
 

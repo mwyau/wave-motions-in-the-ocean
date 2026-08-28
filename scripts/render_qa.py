@@ -329,13 +329,13 @@ def figure_html_qa(dist: Path, report: Report, lines: list[str]) -> None:
                     f"{name}: switchable figure is missing its single paired image",
                 )
                 continue
-            if source.group(1) != vector.group(1) or not vector.group(1).endswith(
-                ".svg"
+            if source.group(1) != original.group(1) or not original.group(1).endswith(
+                ".png"
             ):
                 report.add(
                     "ERROR",
                     "HTML",
-                    f"{name}: switchable figure does not default to SVG",
+                    f"{name}: switchable figure does not default to its original PNG",
                 )
             if Path(vector.group(1)).stem != Path(original.group(1)).stem:
                 report.add(
