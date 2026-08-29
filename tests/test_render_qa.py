@@ -1,4 +1,5 @@
 import html
+import sys
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -117,6 +118,91 @@ def test_math_parity_jobs_cover_widths_and_reader_zooms() -> None:
         urllib.parse.parse_qs(urllib.parse.urlsplit(job[1]).query)["zoom"][0]
         for job in jobs
     } == set(render_qa.MATH_PARITY_ZOOMS)
+
+
+def test_visual_flag_defaults_to_fast_mode(monkeypatch) -> None:
+    monkeypatch.setattr(sys, "argv", ["render_qa.py", "release", "--strict"])
+    assert render_qa.parse_args().visual is False
+
+    monkeypatch.setattr(
+        sys, "argv", ["render_qa.py", "release", "--strict", "--visual"]
+    )
+    assert render_qa.parse_args().visual is True
+
+
+def test_html_qa_only_runs_full_visual_jobs_when_requested(
+    tmp_path: Path, monkeypatch
+) -> None:
+    dist = tmp_path / "publication"
+    write_publication(dist)
+    screenshot_names: list[str] = []
+    visual_calls: list[bool] = []
+
+    def screenshot(_browser, _url, destination, *_args, **_kwargs):
+        screenshot_names.append(destination.name)
+        return True, ""
+
+    def dump_dom(*_args, **_kwargs):
+        return (
+            True,
+            (
+                '<html><pre id="reader-regression-results" '
+                'data-qa-status="pass">passed</pre></html>'
+            ),
+        )
+
+    monkeypatch.setattr(render_qa, "browser_screenshot", screenshot)
+    monkeypatch.setattr(render_qa, "browser_dump_dom", dump_dom)
+    monkeypatch.setattr(
+        render_qa,
+        "browser_reader_visual_jobs",
+        lambda *_args: visual_calls.append(True),
+    )
+
+    fast_report = render_qa.Report("publication", dist, tmp_path / "fast-audit")
+    render_qa.html_qa(dist, fast_report, browser="fake-browser")
+
+    assert visual_calls == []
+    assert screenshot_names == [
+        "smoke-index-desktop.png",
+        "smoke-chapter4-mobile.png",
+        "smoke-toolbar-320-chapter2.png",
+        "smoke-dark-chapter4.png",
+    ]
+
+    screenshot_names.clear()
+    visual_report = render_qa.Report("publication", dist, tmp_path / "visual-audit")
+    render_qa.html_qa(dist, visual_report, browser="fake-browser", visual=True)
+
+    assert visual_calls == [True]
+    assert "desktop-index.png" in screenshot_names
+    assert any(name.startswith("math-parity-") for name in screenshot_names)
+    assert not any(name.startswith("smoke-") for name in screenshot_names)
+
+
+def test_pdf_qa_fast_mode_skips_contact_sheets(tmp_path: Path, monkeypatch) -> None:
+    dist = tmp_path / "publication"
+    dist.mkdir()
+    (dist / "wave-motions.pdf").write_bytes(b"modern")
+    (dist / "wave-motions-facsimile.pdf").write_bytes(b"facsimile")
+    report = render_qa.Report("publication", dist, tmp_path / "audit")
+
+    monkeypatch.setattr(render_qa, "need", lambda _command: "available")
+    monkeypatch.setattr(
+        render_qa,
+        "pdf_page_count",
+        lambda pdf: 184 if pdf.name.endswith("facsimile.pdf") else 154,
+    )
+
+    def unexpected_render(*_args, **_kwargs):
+        raise AssertionError("fast PDF QA rendered the full page matrix")
+
+    monkeypatch.setattr(render_qa, "render_pdf_pages", unexpected_render)
+    render_qa.pdf_qa(dist, report, 72)
+
+    title, lines = report.sections[0]
+    assert title == "PDF render audit"
+    assert "skipped" in lines[0]
 
 
 def test_reader_visual_jobs_include_narrow_phone_states(tmp_path: Path) -> None:

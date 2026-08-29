@@ -3,9 +3,10 @@
 
 The script supports local review and, with ``--strict``, the reader regression
 release check used in publication CI. It can inspect a built ``release/``
-publication root or an artifact ZIP, render both PDFs into contact sheets,
-perform static/optional-browser HTML checks, unpack and inspect EPUB structure,
-and write a single Markdown report under ``audit/render-qa``.
+publication root or an artifact ZIP, perform static/optional-browser HTML
+checks, unpack and inspect EPUB structure, and write a single Markdown report
+under ``audit/render-qa``. Pass ``--visual`` for full PDF contact sheets and
+the complete browser screenshot matrices.
 """
 
 from __future__ import annotations
@@ -212,11 +213,25 @@ def make_contact_sheets(
     return sheets
 
 
-def pdf_qa(dist: Path, report: Report, dpi: int) -> None:
-    if not need("pdfinfo") or not need("pdftoppm"):
-        report.add("ERROR", "PDF", "pdfinfo/pdftoppm are required for render QA")
+def pdf_qa(dist: Path, report: Report, dpi: int, *, visual: bool = False) -> None:
+    required_tools = ["pdfinfo"]
+    if visual:
+        required_tools.append("pdftoppm")
+    missing_tools = [tool for tool in required_tools if not need(tool)]
+    if missing_tools:
+        report.add(
+            "ERROR",
+            "PDF",
+            "missing required render-QA tool(s) for the selected mode: "
+            + ", ".join(missing_tools),
+        )
         return
     lines: list[str] = []
+    if not visual:
+        lines.append(
+            "- Full PDF contact sheets and ink-coverage scan skipped; "
+            "run with `--visual` for the complete PDF visual pass"
+        )
     for kind, filename in (
         ("modern", "wave-motions.pdf"),
         ("facsimile", "wave-motions-facsimile.pdf"),
@@ -237,6 +252,8 @@ def pdf_qa(dist: Path, report: Report, dpi: int) -> None:
                 f"facsimile is {pages} pages; expected {FACSIMILE_EXPECTED_PAGES}. "
                 "This is release-blocking even though active-development CI treats it as a warning.",
             )
+        if not visual:
+            continue
         renders = render_pdf_pages(pdf, report.out / "pdf" / kind / "pages", dpi)
         sheets = make_contact_sheets(
             renders, report.out / "pdf" / kind / "contact-sheets"
@@ -859,7 +876,19 @@ def mathml_comparison_specimen(
     return page, [label for label, _ in selected]
 
 
-def html_qa(dist: Path, report: Report, browser: str | None) -> None:
+def browser_smoke_jobs() -> list[tuple[str, str, int, int, bool]]:
+    """Return a small browser screenshot set for the fast QA mode."""
+    return [
+        ("smoke-index-desktop.png", "index.html", 1440, 1000, False),
+        ("smoke-chapter4-mobile.png", "chapter4.html", 390, 844, False),
+        ("smoke-toolbar-320-chapter2.png", "chapter2.html", 320, 844, False),
+        ("smoke-dark-chapter4.png", "chapter4.html", 390, 844, True),
+    ]
+
+
+def html_qa(
+    dist: Path, report: Report, browser: str | None, *, visual: bool = False
+) -> None:
     lines: list[str] = []
     missing = [name for name in EXPECTED_HTML if not (dist / name).is_file()]
     if missing:
@@ -966,10 +995,11 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
             "- MathJax/native MathML comparison specimen: "
             f"`{specimen_rel}` ({', '.join(specimen_labels)})"
         )
-        lines.append(
-            "- Math parity screenshot matrix: 320px, 390px, 768px, and 1440px at "
-            "50%/100%/200% text size (12 jobs)"
-        )
+        if visual:
+            lines.append(
+                "- Math parity screenshot matrix: 320px, 390px, 768px, and 1440px at "
+                "50%/100%/200% text size (12 jobs)"
+            )
 
     if browser:
         lines.append(f"- Headless browser detected: `{browser}`")
@@ -981,7 +1011,8 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
         )
         qa_pages[READER_REGRESSION_ROUTE] = reader_regression_specimen(report)
         jobs = []
-        browser_reader_visual_jobs(report, qa_pages, jobs)
+        if visual:
+            browser_reader_visual_jobs(report, qa_pages, jobs)
         fragment_case = first_section_case(dist / "chapter4.html")
         if fragment_case is not None:
             section_id, _section_title = fragment_case
@@ -996,41 +1027,50 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
             )
             qa_pages["/__render-qa__/fragment-chapter4.html"] = fragment_wrapper
         with local_server(dist, qa_pages=qa_pages) as base:
-            for name in EXPECTED_HTML:
-                jobs.append((f"desktop-{Path(name).stem}.png", name, 1440, 1000, False))
-                jobs.append((f"mobile-{Path(name).stem}.png", name, 390, 844, False))
-            jobs.append(("toolbar-320-chapter2.png", "chapter2.html", 320, 844, False))
-            jobs.append(("dark-chapter4.png", "chapter4.html", 390, 844, True))
-            if fragment_case is not None:
-                for width, height in (
-                    (360, 844),
-                    (390, 844),
-                    (430, 900),
-                    (768, 1000),
-                    (1440, 1000),
-                ):
+            if visual:
+                for name in EXPECTED_HTML:
                     jobs.append(
-                        (
-                            f"fragment-chapter4-{width}.png",
-                            "__render-qa__/fragment-chapter4.html",
-                            width,
-                            height,
-                            False,
-                        )
+                        (f"desktop-{Path(name).stem}.png", name, 1440, 1000, False)
                     )
-                for width, height in ((360, 844), (390, 844), (430, 900)):
-                    for mode in ("mathml", "mathjax"):
+                    jobs.append(
+                        (f"mobile-{Path(name).stem}.png", name, 390, 844, False)
+                    )
+                jobs.append(
+                    ("toolbar-320-chapter2.png", "chapter2.html", 320, 844, False)
+                )
+                jobs.append(("dark-chapter4.png", "chapter4.html", 390, 844, True))
+                if fragment_case is not None:
+                    for width, height in (
+                        (360, 844),
+                        (390, 844),
+                        (430, 900),
+                        (768, 1000),
+                        (1440, 1000),
+                    ):
                         jobs.append(
                             (
-                                f"renderer-{mode}-{width}.png",
-                                f"chapter4.html?math={mode}",
+                                f"fragment-chapter4-{width}.png",
+                                "__render-qa__/fragment-chapter4.html",
                                 width,
                                 height,
                                 False,
                             )
                         )
-            if specimen_page is not None:
-                jobs.extend(math_parity_jobs())
+                    for width, height in ((360, 844), (390, 844), (430, 900)):
+                        for mode in ("mathml", "mathjax"):
+                            jobs.append(
+                                (
+                                    f"renderer-{mode}-{width}.png",
+                                    f"chapter4.html?math={mode}",
+                                    width,
+                                    height,
+                                    False,
+                                )
+                            )
+                if specimen_page is not None:
+                    jobs.extend(math_parity_jobs())
+            else:
+                jobs.extend(browser_smoke_jobs())
             failures = 0
             completed = 0
             screenshots.mkdir(parents=True, exist_ok=True)
@@ -1062,10 +1102,15 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
                     f"- Browser screenshots: `{screenshots.relative_to(report.out)}/` "
                     f"({len(jobs)} cases)"
                 )
-                lines.append(
-                    "- Reader visual screenshot matrix: 320px, 390px, 768px, and 1440px "
-                    "at 50%/100%/200% in light mode plus 100% in dark mode"
-                )
+                if visual:
+                    lines.append(
+                        "- Reader visual screenshot matrix: 320px, 390px, 768px, and 1440px "
+                        "at 50%/100%/200% in light mode plus 100% in dark mode"
+                    )
+                else:
+                    lines.append(
+                        "- Fast browser smoke set: desktop, mobile, narrow toolbar, and dark theme"
+                    )
 
             if fragment_case is None:
                 report.add(
@@ -1330,7 +1375,7 @@ def artifact_inventory(dist: Path, report: Report) -> None:
     report.section("Artifact inventory", lines)
 
 
-def write_report(report: Report) -> Path:
+def write_report(report: Report, *, visual: bool = False) -> Path:
     counts = {
         level: sum(1 for finding in report.findings if finding.level == level)
         for level in ("ERROR", "WARNING", "INFO")
@@ -1354,11 +1399,17 @@ def write_report(report: Report) -> Path:
         lines.append("")
     for title, section_lines in report.sections:
         lines.extend([f"## {title}", "", *section_lines, ""])
+    lines.extend(["## Manual final-pass checklist", ""])
+    if visual:
+        lines.append(
+            "- Review every PDF contact sheet for unexpected blank pages, large whitespace changes, clipping, undersized figures, and abrupt pagination changes."
+        )
+    else:
+        lines.append(
+            "- Fast mode skipped the full PDF contact sheets and browser screenshot matrices; run `uv run --frozen python scripts/render_qa.py release --strict --visual` before release."
+        )
     lines.extend(
         [
-            "## Manual final-pass checklist",
-            "",
-            "- Review every PDF contact sheet for unexpected blank pages, large whitespace changes, clipping, undersized figures, and abrupt pagination changes.",
             "- Inspect modern PDF pages 1–12 at full size (front cover, half-title, frontispiece, title/edition notice, Contents, prefaces/editor note) plus every chapter opener and figure-dense page.",
             "- For facsimile, verify the exact 184-page physical structure before release and compare any suspicious blank/sparse pages to the source-page edition.",
             "- Open HTML in a real desktop browser and a phone/narrow viewport; test top/bottom navigation, URL-backed System/Light/Dark theme and 50%–200% zoom choices, direct section permalinks, heading permalink/copy-link reveal and focus, scrolling active-section updates, back/forward fragment navigation, wide Contents rail, no-JS/native and scripted narrow Contents behavior, static MathML first paint, MathJax atomic swap/fallback, normalized reader URLs and query-page noindex behavior, per-figure vector/source switching, wide math/tables, image scaling, and the explicit 320px toolbar screenshot.",
@@ -1404,6 +1455,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="exit nonzero when QA records an ERROR",
     )
+    parser.add_argument(
+        "--visual",
+        action="store_true",
+        help="run full PDF contact-sheet and browser screenshot matrices",
+    )
     return parser.parse_args()
 
 
@@ -1417,11 +1473,11 @@ def main() -> int:
     report = Report(str(source), dist, out)
     artifact_inventory(dist, report)
     build_identity_qa(dist, report)
-    pdf_qa(dist, report, args.pdf_dpi)
+    pdf_qa(dist, report, args.pdf_dpi, visual=args.visual)
     browser = None if args.no_browser else detect_browser(args.browser)
-    html_qa(dist, report, browser)
+    html_qa(dist, report, browser, visual=args.visual)
     epub_qa(dist, report)
-    path = write_report(report)
+    path = write_report(report, visual=args.visual)
     print(f"Render QA report: {path}")
     for finding in report.findings:
         print(f"{finding.level}: [{finding.area}] {finding.message}")

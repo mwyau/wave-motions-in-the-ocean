@@ -27,6 +27,7 @@ from PIL import Image
 from publication import (
     AUTHORS,
     BOOK_TITLE,
+    CACHE,
     CONTACT_EMAIL,
     DOI_URL,
     DOWNLOADS,
@@ -69,7 +70,7 @@ SRC = ROOT / "src"
 BUILD = ROOT / "build" / "html-pandoc"
 OUT = ROOT / "release"
 ASSETS = OUT / "assets"
-VENDOR_CACHE = ROOT / "build" / "html-vendor"
+VENDOR_CACHE = CACHE / "html-vendor"
 HTML_TEMPLATE = SRC / "layout" / "wave-html.html"
 AMS_CSL = SRC / "layout" / "wave-ams.csl"
 SOCIAL_PREVIEW_TEMPLATE = SRC / "layout" / "social-preview.tex"
@@ -201,7 +202,7 @@ def cached_vendor_archive(name: str, url: str) -> Path:
     except OSError as exc:
         temporary.unlink(missing_ok=True)
         raise SystemExit(
-            f"cannot fetch {name}; reuse build/html-vendor from a previous build "
+            f"cannot fetch {name}; reuse {VENDOR_CACHE} from a previous build "
             f"for an offline rebuild: {exc}"
         ) from exc
     if not temporary.is_file() or temporary.stat().st_size == 0:

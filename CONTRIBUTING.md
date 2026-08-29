@@ -97,6 +97,14 @@ uv run --frozen pytest -q
 uv run --frozen prek run --all-files
 ```
 
+For a focused edit loop, run the smallest relevant checks first, then run the
+full commands above before handing off the change. For example:
+
+```bash
+uv run --frozen pytest -q tests/test_render_qa.py
+uv run --frozen ruff check scripts/render_qa.py tests/test_render_qa.py
+```
+
 For the HTML JavaScript syntax check, after installing Node.js:
 
 ```bash
@@ -148,11 +156,19 @@ After `make all`, run the render QA described in
 `skills/render-qa/SKILL.md`:
 
 ```bash
-uv run --frozen python scripts/render_qa.py release
+uv run --frozen python scripts/render_qa.py release --strict
+```
+
+The default strict pass uses a small browser screenshot smoke set and skips
+full PDF contact sheets. Add `--visual` for the complete PDF and browser
+screenshot matrices:
+
+```bash
+uv run --frozen python scripts/render_qa.py release --strict --visual
 ```
 
 The browser pass includes the narrow direct-fragment check when Chromium is
-available.
+available. Set `WAVE_CHROMIUM` when the executable is not on `PATH`.
 
 ## Manual web-app checks
 

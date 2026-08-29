@@ -50,6 +50,16 @@ def test_pdf_builder_checks_the_pdfinfo_page_count(
     assert calls == [["pdfinfo", str(pdf)]]
 
 
+def test_generated_text_is_not_rewritten_when_unchanged(tmp_path: Path) -> None:
+    path = tmp_path / "build-info.tex"
+    path.write_text("generated\n")
+    before = path.stat().st_mtime_ns
+
+    build_pdf.write_if_changed(path, "generated\n")
+
+    assert path.stat().st_mtime_ns == before
+
+
 def test_removed_build_controls_are_absent_from_repository_text() -> None:
     removed_builder_name = "build" + ".sh"
     removed_validation_flag = "WAVE_SKIP_" + "VALIDATION"

@@ -100,18 +100,44 @@ jobs:
         run: |
           sudo apt-get update
           sudo -E apt-get install -y --no-install-recommends \
-            chromium qpdf poppler-utils pandoc unzip xz-utils
+            qpdf poppler-utils pandoc
+
+      - name: Select runner browser
+        shell: bash
+        run: |
+          set -euo pipefail
+          browser=""
+          for candidate in google-chrome google-chrome-stable chromium chromium-browser; do
+            if command -v "$candidate" >/dev/null 2>&1; then
+              browser=$(command -v "$candidate")
+              break
+            fi
+          done
+          if [[ -z "$browser" ]]; then
+            echo "Chromium reader QA requires a runner-provided Chrome or Chromium executable." >&2
+            exit 1
+          fi
+          "$browser" --version
+          echo "WAVE_CHROMIUM=$browser" >> "$GITHUB_ENV"
 
       - name: Check JavaScript sources
         run: |
           node --check src/layout/wave-html.js
           node --check src/layout/wave-service-worker.js
 
+      - name: Cache prek environments
+        uses: actions/cache@v6.1.0
+        with:
+          path: ~/.cache/prek
+          key: wave-motions-prek-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml', 'pyproject.toml', 'uv.lock') }}
+          restore-keys: |
+            wave-motions-prek-${{ runner.os }}-
+
       - name: Check source quality
         run: |
           set -euo pipefail
           uv run --frozen python scripts/publication.py audit-check --all
-          uv run --frozen prek run --all-files
+          uv run --frozen prek run --all-files --skip audit-freshness
           if ! git diff --quiet; then
             echo "::warning title=Source quality::Quality hooks changed tracked files; commit their fixes."
             git --no-pager diff
@@ -195,7 +221,12 @@ jobs:
         run: uv run --frozen python scripts/validate.py all --require-epubcheck
 
       - name: Run Chromium reader QA
+        if: "!startsWith(github.ref, 'refs/tags/v')"
         run: uv run --frozen python scripts/render_qa.py release --strict
+
+      - name: Run full Chromium visual QA
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: uv run --frozen python scripts/render_qa.py release --strict --visual
 
       - name: Check release gate
         if: startsWith(github.ref, 'refs/tags/v')

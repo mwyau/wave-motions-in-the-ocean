@@ -8,12 +8,27 @@ Build first, then inspect the exact generated publication root:
 
 ```bash
 make all
-uv run --frozen python scripts/render_qa.py release
+uv run --frozen python scripts/render_qa.py release --strict
+```
+
+The default strict pass is the fast development mode: it keeps static checks,
+browser DOM/runtime assertions, direct-fragment checks, and a small browser
+screenshot smoke set, while skipping full PDF contact sheets and the complete
+browser screenshot matrices. Use the full visual mode before release review:
+
+```bash
+uv run --frozen python scripts/render_qa.py release --strict --visual
 ```
 
 If a downloaded `wave-motions-publication` Actions artifact is being reviewed, extract its `artifact.tar` first and point the QA script at that extracted publication directory.
 
-Output goes under `audit/render-qa/` and is intentionally ignored. The report includes artifact/build identity, PDF page counts and contact sheets, static HTML checks plus optional Chrome/Chromium desktop/mobile screenshots and browser regressions, an unpacked EPUB and metadata/MathML summary, optional EPUBCheck output, and the manual EPUB reader acceptance matrix. This audit material survives publication builds; `build/` remains disposable build intermediates.
+Output goes under `audit/render-qa/` and is intentionally ignored. The report
+includes artifact/build identity and PDF page counts; `--visual` adds PDF
+contact sheets and the full Chrome/Chromium desktop/mobile screenshot matrix.
+Both modes include static HTML checks, browser regressions, an unpacked EPUB
+and metadata/MathML summary, optional EPUBCheck output, and the manual EPUB
+reader acceptance matrix. This audit material survives publication builds;
+`build/` remains disposable build intermediates.
 
 Useful options:
 
@@ -21,6 +36,7 @@ Useful options:
 uv run --frozen python scripts/render_qa.py release --pdf-dpi 90
 uv run --frozen python scripts/render_qa.py release --no-browser
 uv run --frozen python scripts/render_qa.py release --browser /path/to/chromium
+uv run --frozen python scripts/render_qa.py release --strict --visual
 EPUBCHECK_JAR=/path/to/epubcheck.jar uv run --frozen python scripts/render_qa.py release
 ```
 
