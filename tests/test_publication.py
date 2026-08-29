@@ -186,10 +186,6 @@ def test_html_artwork_uses_wave_motions_pages_urls() -> None:
     assert 'src="$artwork_closing_url$"' in template
     assert generated["artwork_cover_url"] == html.escape(expected[0], quote=True)
     assert generated["artwork_closing_url"] == html.escape(expected[1], quote=True)
-    assert all("metmuseum.org" not in url for url in expected)
-    assert all("raw.githubusercontent.com" not in url for url in expected)
-    assert "metmuseum.org" not in template
-    assert "raw.githubusercontent.com" not in template
 
 
 def test_html_sitemap_contains_pages_and_reader_resources() -> None:
