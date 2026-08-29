@@ -204,6 +204,11 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         run: uv run --frozen python scripts/validate.py release
 
+      - name: Create HTML archive
+        run: >-
+          uv run --frozen python scripts/release.py archive
+          --root release --output wave-motions-html.zip
+
       - name: Configure GitHub Pages
         if: github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v6.0.0
@@ -213,6 +218,30 @@ jobs:
         with:
           name: wave-motions-publication
           path: release/
+          retention-days: 14
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          path: release/wave-motions.pdf
+          archive: false
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload EPUB artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          path: release/wave-motions.epub
+          archive: false
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload HTML artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          path: wave-motions-html.zip
+          archive: false
+          if-no-files-found: error
           retention-days: 14
 
   pages:
@@ -247,38 +276,34 @@ jobs:
       actions: read
       contents: write
     steps:
-      - name: Check out release source
-        uses: actions/checkout@v7.0.1
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v10.0.1
-        with:
-          version: "0.12.1"
-          enable-cache: true
-          cache-dependency-glob: |
-            pyproject.toml
-            uv.lock
-
-      - name: Set up Python environment
-        run: uv sync --frozen
-
-      - name: Download validated publication
+      - name: Download PDF artifact
         uses: actions/download-artifact@v8.0.1
         with:
-          name: wave-motions-publication
+          name: wave-motions.pdf
           path: artifact
+          skip-decompress: true
 
-      - name: Extract validated publication
+      - name: Download EPUB artifact
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: wave-motions.epub
+          path: artifact
+          skip-decompress: true
+
+      - name: Download HTML artifact
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: wave-motions-html.zip
+          path: artifact
+          skip-decompress: true
+
+      - name: Verify release assets
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p artifact/publication
-          tar -xf artifact/artifact.tar -C artifact/publication
-
-      - name: Create tagged publication archive
-        run: >-
-          uv run --frozen python scripts/release.py archive
-          --root artifact/publication --output artifact/wave-motions-html.zip
+          test -s artifact/wave-motions.pdf
+          test -s artifact/wave-motions.epub
+          test -s artifact/wave-motions-html.zip
 
       - name: Publish GitHub release
         env:
@@ -288,6 +313,6 @@ jobs:
           set -euo pipefail
           gh release create "$GITHUB_REF_NAME" \
             artifact/wave-motions-html.zip \
-            artifact/publication/wave-motions.pdf \
-            artifact/publication/wave-motions.epub \
+            artifact/wave-motions.pdf \
+            artifact/wave-motions.epub \
             --verify-tag --generate-notes

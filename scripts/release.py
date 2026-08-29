@@ -19,6 +19,7 @@ DEFAULT_FILES = (
 QA_ONLY_FILES = ("wave-motions-facsimile.pdf",)
 MANIFEST = "SHA256SUMS"
 HTML_ARCHIVE = "wave-motions-html.zip"
+HTML_ARCHIVE_EXCLUDED = frozenset((*DEFAULT_FILES, *QA_ONLY_FILES))
 CHECKSUM_ASSETS = DEFAULT_FILES
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
@@ -58,14 +59,26 @@ def publication_files(root: Path) -> tuple[str, ...]:
     )
 
 
-def write_manifest(root: Path, names: tuple[str, ...] | list[str]) -> Path:
+def html_archive_files(root: Path) -> tuple[str, ...]:
+    """Return the files that make up the standalone HTML reader archive."""
+    return tuple(
+        name for name in publication_files(root) if name not in HTML_ARCHIVE_EXCLUDED
+    )
+
+
+def _manifest_text(root: Path, names: Iterable[str]) -> str:
     root = root.resolve()
     checked = _checked_names(names)
     missing = [name for name in checked if not (root / name).is_file()]
     if missing:
         raise FileNotFoundError(f"missing checksum inputs: {', '.join(missing)}")
+    return "".join(f"{sha256(root / name)}  {name}\n" for name in checked)
+
+
+def write_manifest(root: Path, names: tuple[str, ...] | list[str]) -> Path:
+    root = root.resolve()
     manifest = root / MANIFEST
-    manifest.write_text("".join(f"{sha256(root / name)}  {name}\n" for name in checked))
+    manifest.write_text(_manifest_text(root, names))
     return manifest
 
 
@@ -137,24 +150,32 @@ def archive_publication(root: Path, output: Path) -> None:
         raise FileNotFoundError(f"publication root is not finalized: {root / MANIFEST}")
     verify_manifest(root, publication_files(root))
 
+    names = html_archive_files(root)
+    if "index.html" not in names:
+        raise ValueError("HTML archive is missing: index.html")
+
     output.parent.mkdir(parents=True, exist_ok=True)
     output.unlink(missing_ok=True)
-    included: list[str] = []
     with zipfile.ZipFile(
         output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9
     ) as archive:
-        for path in sorted(root.rglob("*")):
-            if not path.is_file():
-                continue
-            relative = path.relative_to(root)
-            archive.write(path, relative)
-            included.append(str(relative))
+        for name in names:
+            archive.write(root / name, name)
+        archive.writestr(MANIFEST, _manifest_text(root, names))
 
-    required = {"index.html", *DEFAULT_FILES, *QA_ONLY_FILES, MANIFEST}
-    missing = sorted(required - set(included))
-    if missing:
-        raise ValueError("tagged publication archive is missing: " + ", ".join(missing))
-    print(f"Tagged publication archive ready: {output}")
+    with zipfile.ZipFile(output) as archive:
+        included = set(archive.namelist())
+    required = {"index.html", MANIFEST}
+    missing = sorted(required - included)
+    unexpected = sorted(HTML_ARCHIVE_EXCLUDED & included)
+    if missing or unexpected:
+        details: list[str] = []
+        if missing:
+            details.append("missing: " + ", ".join(missing))
+        if unexpected:
+            details.append("unexpected: " + ", ".join(unexpected))
+        raise ValueError("tagged HTML archive is invalid (" + "; ".join(details) + ")")
+    print(f"Tagged HTML archive ready: {output}")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -167,7 +188,7 @@ def main(argv: list[str] | None = None) -> int:
     finalize.add_argument("--root", type=Path, default=DEFAULT_ROOT)
 
     archive = subparsers.add_parser(
-        "archive", help="archive the complete publication root for a tagged release"
+        "archive", help="archive the standalone HTML edition for a tagged release"
     )
     archive.add_argument("--root", type=Path, default=DEFAULT_ROOT)
     archive.add_argument("--output", type=Path, default=Path(HTML_ARCHIVE))
