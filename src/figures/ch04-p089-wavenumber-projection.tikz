@@ -12,7 +12,6 @@
   \path[fill=black!10] (0.78,1.46)--(7.65,2.30)--(7.65,2.43)--(0.78,1.59)--cycle;
   \draw[line width=1.0pt] (0.78,1.52)--(7.65,2.36) node[right] {$z=ax$};
 
-  % Characteristic lines and the two energy directions.
   \draw[line width=.62pt] (1.35,4.12)--(O);
   \node[anchor=west] at (1.04,4.20) {$x+Rz=0$};
   \draw[line width=.62pt] (O)--(7.18,3.36);
@@ -20,7 +19,6 @@
   \draw[->,line width=.85pt] (2.00,4.02)--(O) node[midway,left] {energy$_i$};
   \draw[->,line width=.85pt] (O)--(5.45,4.12) node[midway,right] {energy$_r$};
 
-  % Incident and reflected wavenumbers.
   \draw[->,line width=.88pt] (O)--(5.38,2.92) node[above right] {$\vec k_i$};
   \draw[->,line width=.88pt] (O)--(5.38,1.25) node[below right] {$\vec k_r$};
 

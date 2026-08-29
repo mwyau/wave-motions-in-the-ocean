@@ -2,7 +2,6 @@
 % Source: Wave Motions in the Ocean, printed p.92 (physical p.29).
 % These paths trace the printed typical profiles; they are not analytic fits.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round,line join=round]
-  % Typical density profile.
   \draw[line width=.65pt] (.70,.52)--(.70,5.12);
   \draw[line width=.65pt] (.70,5.12)--(4.20,5.12);
   \node[above] at (2.45,5.12) {$\rho_0(z)$};
@@ -14,7 +13,6 @@
       .. controls (3.02,3.26) and (3.42,3.30) .. (3.58,2.88)
       .. controls (3.80,2.30) and (3.80,1.30) .. (3.82,.54);
 
-  % Typical buoyancy-frequency profile.
   \draw[line width=.65pt] (5.30,.52)--(5.30,5.12);
   \draw[line width=.65pt] (5.30,5.12)--(9.05,5.12);
   \node[above] at (7.18,5.12) {$N(z)$};

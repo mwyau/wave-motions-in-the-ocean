@@ -18,14 +18,12 @@
   \node[anchor=east] at (-0.18,2.95) {$a(x,0)$};
   \node[anchor=east] at (-0.18,0.70) {$k(x,0)$};
 
-  % The carrier periods are exactly lambda_1 and lambda_2, matching the markers.
+  % Carrier periods and wavelength markers use the same exact lambda_1/lambda_2.
   \draw[line width=0.82pt,samples=420,smooth,domain=0.05:4.05,variable=\x]
     plot (\x,{5.15+0.46*exp(-0.72*(\x-2.02)*(\x-2.02))*cos(360*(\x-2.02)/\lamone)});
   \draw[line width=0.82pt,samples=460,smooth,domain=4.55:8.55,variable=\x]
     plot (\x,{5.15+0.70*exp(-0.72*(\x-6.55)*(\x-6.55))*cos(360*(\x-6.55)/\lamtwo)});
 
-  % Wavelength markers measure from the center crest to its immediately adjacent
-  % crest on the left, using the same exact display wavelengths as the carriers.
   \draw[line width=0.48pt] ({2.02-\lamone},5.78) -- ({2.02-\lamone},5.38);
   \draw[line width=0.48pt] (2.02,5.78) -- (2.02,5.38);
   \draw[<->,line width=0.52pt] ({2.02-\lamone},5.67) -- (2.02,5.67);

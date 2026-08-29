@@ -1,7 +1,7 @@
 % wave-source: pdf=ChapmanRizzoli6.pdf; page=18; trim=75bp 520bp 65bp 70bp
 % Source: Wave Motions in the Ocean, printed p.164 (physical p.18), upper figure.
 % General coastal-trapped-wave dispersion is not analytic for arbitrary D(x).
-% The vector therefore enforces only the properties shown in the source:
+% The vector shows only the properties present in the source:
 % omega(ell=0)=0, the ordered mode family, and the common short-wave limit
 % omega -> S max[D_x] as ell -> -infinity. Curvature remains schematic.
 \par\smallskip

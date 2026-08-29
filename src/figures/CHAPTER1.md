@@ -67,7 +67,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 10
 - **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The displayed phase is quadratic in `k-k_0`; its derivative vanishes only at `k_0`, so oscillation spacing is broad there and tightens symmetrically with `\lvert k-k_0\rvert`. The modest central envelope is an explicit schematic/source-fidelity amplitude cue, not a consequence of stationary phase or the narrow-band `A(k)` example.
+- **Scientific check:** The displayed phase is quadratic in `k-k_0`; its derivative vanishes only at `k_0`, so oscillation spacing is broad there and tightens symmetrically with `\lvert k-k_0\rvert`. The central envelope follows the source and is schematic; it is not implied by stationary phase or the narrow-band `A(k)` example.
 
 #### Figure 1.5 — wave crest path
 
@@ -83,7 +83,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 12
 - **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** Rechecked against the crest-count/circulation argument: crest segments extend left as in the source and cross the A-to-B region rather than terminating within it, so both boundary paths encounter the same continuous crest family.
+- **Scientific check:** Crest segments extend left as in the source and cross the A-to-B region rather than terminating within it, so both boundary paths encounter the same continuous crest family.
 
 #### Figure 1.6 — initial wave groups
 

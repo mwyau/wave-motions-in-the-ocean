@@ -6,7 +6,6 @@
 % Reflection is the exact mirror alpha_R=alpha_I. Ray lengths are display-only.
 \begin{center}
 \begin{tikzpicture}[x=0.78cm,y=0.78cm,>=stealth,line cap=round,line join=round,font=\small]
-  % Depth-step cross section.
   \draw[line width=0.65pt] (-0.15,2.05) -- (4.35,2.05);
   \filldraw[fill=black!15,draw=black,line width=0.75pt]
     (0,-0.15) -- (0,0.82) -- (2.05,0.82) -- (2.05,0.05) -- (4.30,0.05)
@@ -19,7 +18,6 @@
   \node at (1.02,1.27) {$D_1$};
   \node at (3.12,1.06) {$D_2$};
 
-  % Incident, reflected, and transmitted rays at the vertical step.
   \begin{scope}[shift={(8.15,0.75)}]
     \def\depthratio{0.60}
     \pgfmathsetmacro{\alphaI}{atan(0.95/1.62)}

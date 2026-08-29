@@ -5,7 +5,6 @@
 \par\smallskip
 \begin{center}
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
-  % Free surface and flat bottom.
   \draw[line width=0.75pt,samples=80,domain=0:6.2,variable=\x]
     plot (\x,{2.85+0.035*sin(420*\x)+0.02*sin(760*\x)});
   \draw[line width=0.75pt] (0,0.25) -- (6.20,0.25);

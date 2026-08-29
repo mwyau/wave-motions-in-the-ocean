@@ -104,8 +104,8 @@ FACSIMILE_BOUNDARY_RE = re.compile(
 )
 FACSIMILE_SHIPOUT_RE = re.compile(r"^FACSIMILE_P n=(\d+) p=(\d+)$")
 
-# Paola's preface is a compact cross-format sentinel because it intentionally
-# distinguishes ordinary prose from mathematical variable glyphs.
+# Paola's preface is a compact cross-format sentinel for ordinary prose and
+# mathematical variable glyphs.
 PAOLA_SOURCE_SENTINELS = (
     r"put $\ell$ ($x$ wavenumber) before $k$ ($y$ wavenumber)",
     r"letters $j,k,x,y,w$ do not exist",

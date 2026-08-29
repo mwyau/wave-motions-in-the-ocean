@@ -4,7 +4,6 @@
 \begin{tikzpicture}[x=0.82cm,y=0.82cm,>=stealth,line cap=round,line join=round,font=\small]
   \def\kzero{3.80}
 
-  % Axes.
   \draw[line width=0.58pt] (0,-1.12) -- (0,1.36);
   \draw[->,line width=0.58pt] (-0.18,0) -- (7.55,0) node[right] {$k$};
 
@@ -15,10 +14,8 @@
   \draw[line width=0.82pt,samples=420,smooth,domain=0.03:7.18,variable=\x]
     plot (\x,{0.58*(1+0.42*exp(-0.65*(\x-\kzero)*(\x-\kzero)))*cos(180*(\x-\kzero)*(\x-\kzero))});
 
-  % Stationary point.
   \draw[line width=0.48pt] (\kzero,0.10) -- (\kzero,-0.18);
   \node[below] at (\kzero,-0.12) {$k_0$};
 
-  % Source label sits to the left of the vertical axis.
   \node[anchor=east] at (-0.20,0.02) {$A(k)e^{it\Theta(k;x,t)}$};
 \end{tikzpicture}

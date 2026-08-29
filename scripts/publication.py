@@ -1215,8 +1215,8 @@ def figure_ledger_text(
         "",
         (
             "The chapter ledgers show each placement in printed-page and visual order. "
-            "The committed 1989 PDFs are the reference for source fidelity and scientific "
-            "review."
+            "The committed 1989 PDFs provide the source-fidelity reference; the chapter "
+            "ledgers record independent scientific checks."
         ),
         "",
         "## Summary",
@@ -1959,10 +1959,9 @@ def equation_markdown_math(display: EquationDisplay) -> str:
     if display.display_type in {"gather", "gather*"}:
         return f"$$\n\\begin{{gathered}}\n{body}\n\\end{{gathered}}\n$$"
     if display.display_type in {"multline", "multline*"}:
-        # MathJax's AMS package supports multline and preserves its deliberately
-        # asymmetric first/intermediate/last-line layout.  Do not turn it into
-        # aligned: that would add alignment points and change the real Chapter 5
-        # display's rendering semantics.
+        # MathJax's AMS package preserves multline's asymmetric
+        # first/intermediate/last-line layout. Do not turn it into aligned: that
+        # would add alignment points and change Chapter 5's rendering semantics.
         return f"$$\n\\begin{{{display.display_type}}}\n{body}\n\\end{{{display.display_type}}}\n$$"
     raise ValueError(f"unsupported equation display type: {display.display_type}")
 
@@ -2787,13 +2786,13 @@ def equation_ledger_texts(
         "",
         (
             "This audit covers the display equations in the six maintained chapter TeX "
-            "files. The chapter ledgers are the detailed review surface; the mathematical "
-            "source of truth remains the chapter TeX."
+            "files. The chapter TeX remains the mathematical source; the chapter ledgers "
+            "provide the detailed review surface."
         ),
         "",
         (
             "Each chapter entry pairs the exact extracted display with its source-page "
-            "crop, MathJax rendering, and native MathML rendering."
+            "crop and two rendered views: MathJax and native MathML."
         ),
         "",
         f"The six chapters contain **{len(displays)} display equations**.",
@@ -2818,7 +2817,7 @@ def equation_ledger_texts(
             "",
             "## Review states",
             "",
-            "Each entry includes three independent review renderings:",
+            "Each entry includes three review views:",
             "",
             "- `source` — a crop of the corresponding source-PDF page.",
             "- `mathjax` — the rendered Markdown equation.",

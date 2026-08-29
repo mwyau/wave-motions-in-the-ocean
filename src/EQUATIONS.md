@@ -2,9 +2,9 @@
 
 <!-- Generated from src/chapter1.tex through src/chapter6.tex. -->
 
-This audit covers the display equations in the six maintained chapter TeX files. The chapter ledgers are the detailed review surface; the mathematical source of truth remains the chapter TeX.
+This audit covers the display equations in the six maintained chapter TeX files. The chapter TeX remains the mathematical source; the chapter ledgers provide the detailed review surface.
 
-Each chapter entry pairs the exact extracted display with its source-page crop, MathJax rendering, and native MathML rendering.
+Each chapter entry pairs the exact extracted display with its source-page crop and two rendered views: MathJax and native MathML.
 
 The six chapters contain **617 display equations**.
 
@@ -30,7 +30,7 @@ The six chapters contain **617 display equations**.
 
 ## Review states
 
-Each entry includes three independent review renderings:
+Each entry includes three review views:
 
 - `source` — a crop of the corresponding source-PDF page.
 - `mathjax` — the rendered Markdown equation.

@@ -2,7 +2,6 @@
 % Source: Wave Motions in the Ocean, printed p.81 (physical p.18).
 % Exact n=1 vertical factors: w~sin(pi(z+D)/D), u~cos(pi(z+D)/D).
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
-  % w panel
   \draw[->] (0.90,0.55)--(0.90,4.25) node[above] {$z$};
   \draw[->] (0.90,3.75)--(3.50,3.75) node[right] {$w$};
   \draw (0.78,3.75)--(1.02,3.75) node[left=3pt] {$z=0$};
@@ -11,7 +10,6 @@
   \draw[line width=.85pt,domain=0:1,samples=100,smooth,variable=\s]
     plot ({0.90+1.95*sin(180*\s)},{0.85+2.90*\s});
   \node[anchor=west] at (2.20,3.98) {$w_0$};
-  % u panel
   \draw[->] (5.00,0.55)--(5.00,4.25) node[above] {$z$};
   \draw[->] (3.75,3.75)--(7.45,3.75) node[right] {$u$};
   \draw (3.75,3.75)--(5.12,3.75);

@@ -16,7 +16,6 @@
   \foreach \x/\y in {-1.88/3.95,-1.52/3.78,-1.10/3.92,-0.62/4.08,-0.18/3.82,0.28/4.04,0.74/3.86,1.18/4.10,1.62/3.90,
     -1.62/3.45,-1.18/3.28,-0.72/3.48,-0.26/3.34,0.22/3.50,0.68/3.30,1.12/3.48,1.56/3.32}{\fill (\x,\y) circle (0.38pt);}
 
-  % Axes and limiting wave-speed lines.
   \draw[->,line width=0.85pt] (-5.05,0) -- (5.15,0) node[right] {$\ell$};
   \draw[->,line width=0.85pt] (0,-0.22) -- (0,4.92) node[above] {$\sigma$};
   \draw[line width=0.70pt] (0,0) -- (2.24,4.56);
@@ -47,8 +46,7 @@
   \node at (-1.26,1.55) {$2$};
   \node at (-1.24,2.12) {$3$};
 
-  % Keep all ray labels at the common figure size and move them clear of the
-  % limiting lines rather than shrinking their type.
+  % Ray labels use the common figure size and stay clear of the limiting lines.
   \node[rotate=64,inner sep=0.4pt] at (1.12,3.17)
     {$\sigma=\sqrt{gD_2}\,\ell$};
   \node[rotate=-64,inner sep=0.4pt] at (-1.12,3.17)

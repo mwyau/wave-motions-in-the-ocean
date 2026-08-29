@@ -35,7 +35,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 22
 - **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The wall normal is perpendicular to the boundary and the incident/reflected vectors are constructed at equal and opposite angles about it with equal magnitudes, enforcing the corrected tangential-wavenumber relation.
+- **Scientific check:** Equal-angle specular geometry was independently checked. The source's printed tangential-wavenumber expression remains unchanged pending erratum approval; see `ERRATA.md`, printed p.22.
 
 #### Figure 2.3 — waveguide boundary problem
 

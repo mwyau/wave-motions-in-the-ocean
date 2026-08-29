@@ -3,7 +3,6 @@
 % For normalized g=D=sigma=1, roots satisfy sqrt(k tanh k)=1-Uk.
 % The upper wave uses the same locally solved k(U(x)), so wavelength increases as U rises.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
-  % Current profile and the changing wavelength above the dispersion graph.
   \draw[->,line width=0.55pt] (5.0,6.05) -- (9.65,6.05) node[right] {$x$};
   \draw[line width=0.72pt,domain=0:8,samples=80,variable=\x]
     plot ({5.10+0.53*\x},{6.12+0.72/(1+exp(-1.5*(\x-4)))});
@@ -13,7 +12,6 @@
     plot ({5.10+0.53*\x},{4.52+0.18*sin(deg(54*(1-exp(-0.30*\x))))});
   \node[left] at (4.95,4.52) {$\eta$};
 
-  % Normalized dispersion graph; the stars remain at the equation-defined roots.
   \draw[->,line width=0.60pt] (0.75,0.65) -- (5.20,0.65) node[right] {$k$};
   \draw[->,line width=0.60pt] (1.05,0.40) -- (1.05,3.95) node[above] {$f(k)$};
   \draw[line width=0.82pt,domain=0:3.3,samples=100,smooth,variable=\x]
@@ -30,6 +28,7 @@
   \draw[->,line width=0.40pt] (3.58,3.03) -- (3.32,2.76);
   \node[anchor=west] at (4.06,1.16) {$U$ increases};
   \draw[->,line width=0.40pt] (4.58,1.72) .. controls (4.86,1.48) and (4.82,1.10) .. (4.54,0.96);
+  % Root markers are calculated from the dispersion relation.
   \node at (2.4656,2.0000) {$\ast$};
   \node at (2.1585,1.7717) {$\ast$};
   \node at (1.9846,1.6258) {$\ast$};

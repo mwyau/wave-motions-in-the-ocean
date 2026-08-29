@@ -2,15 +2,15 @@
 
 The 1989 PDFs under `../references/chapman-rizzoli-1989/` control the reconstruction. The chapter text follows the source unless a deviation is either an unambiguous minor mechanical correction or an explicitly human-approved substantive erratum.
 
-Agents may identify and analyze possible errors, but agents can never approve an erratum. Scientific or mathematical correctness by itself is not approval. An agent may change an entry to `human-approved` only when the owner directly instructs that approval in the current chat. Until then, the source reading remains in the reconstruction.
+Possible source problems are recorded here as proposed changes. Scientific or mathematical support does not by itself authorize a substantive change; pending entries leave the source reading in the reconstruction.
 
 Statuses:
 
 - `pending-human-approval` — substantive source issue or proposed correction; the reconstruction follows the source until the owner directly approves the deviation.
 - `minor-correction` — small, unambiguous spelling, grammar, transcription, or punctuation correction with no plausible scientific, mathematical, bibliographic, or substantive editorial change in meaning. These may be corrected without separate errata approval and need not be recorded here unless keeping the record is useful.
-- `human-approved` — substantive deviation approved directly by the owner. Agents may assign this status only when instructed in the current chat.
+- `human-approved` — substantive deviation explicitly approved by the owner for this entry.
 
-Entries are ordered by chapter, then printed page, then item on the same page. Substantive entries use `Category`, `Status`, `Location`, `Source`, `Proposed correction`, and `Reason/evidence`. False-positive audit findings that were shown to match the source are omitted rather than kept as errata history. Figure source info and scientific/equation checks belong in `FIGURES.md`; figure entries should cross-reference an erratum rather than duplicate it.
+Entries are ordered by chapter, then printed page, then item on the same page. Substantive entries use `Category`, `Status`, `Location`, `Source`, `Proposed correction`, and `Reason/evidence`. False-positive audit findings that were shown to match the source are omitted rather than kept as errata history. Figure source information and scientific/equation checks belong in `FIGURES.md`; figure entries should cross-reference an erratum rather than duplicate it.
 
 ## Chapter 1
 

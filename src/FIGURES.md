@@ -4,7 +4,7 @@
 
 This audit covers scientific and technical figures in Chapters 1–6. Cover art, photographs, and other editorial images are outside it.
 
-The chapter ledgers show each placement in printed-page and visual order. The committed 1989 PDFs are the reference for source fidelity and scientific review.
+The chapter ledgers show each placement in printed-page and visual order. The committed 1989 PDFs provide the source-fidelity reference; the chapter ledgers record independent scientific checks.
 
 ## Summary
 

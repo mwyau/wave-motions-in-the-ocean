@@ -18,7 +18,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Original source:** [ChapmanRizzoli5.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli5.pdf), physical page 2
 - **Representation:** source-pdf
 - **Equation check:** n/a
-- **Scientific check:** Deliberately kept after full-page review. The local `u/v/z` tangencies, latitude/longitude construction, point `P`, rotation axis, and `theta/phi` geometry are meaningful, but the viewing projection and hidden-line construction are not specified by the notes.
+- **Scientific check:** The local `u/v/z` tangencies, latitude/longitude construction, point `P`, rotation axis, and `theta/phi` geometry are meaningful, but the viewing projection and hidden-line construction are not specified in the notes; the source PDF is retained.
 
 #### Figure 5.2 — wall reflection
 
@@ -81,7 +81,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Original source:** [ChapmanRizzoli5.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli5.pdf), physical page 18
 - **Representation:** source-pdf
 - **Equation check:** ai-checked
-- **Scientific check:** Keep the source labels because the disagreement with the nearby equations has been checked and is intentionally preserved as source evidence. See `ERRATA.md`, printed p.113.
+- **Scientific check:** The source labels disagree with the nearby equations and are retained as source evidence; see `ERRATA.md`, printed p.113.
 
 #### Figure 5.6 — source PDF crop, printed page 113
 
@@ -96,7 +96,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Original source:** [ChapmanRizzoli5.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli5.pdf), physical page 18
 - **Representation:** source-pdf
 - **Equation check:** ai-checked
-- **Scientific check:** Same disposition: the checked mismatch is documented rather than silently corrected in source art. See `ERRATA.md`, printed p.113.
++ **Scientific check:** The checked mismatch is documented in `ERRATA.md`, printed p.113; the source art remains unchanged.
 
 #### Figure 5.7 — step shelf
 
@@ -270,7 +270,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Original source:** [ChapmanRizzoli5.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli5.pdf), physical page 31
 - **Representation:** source-pdf
 - **Equation check:** partial
-- **Scientific check:** Far-field Kelvin directions and the no-normal-flow requirement are checked. The detailed near-corner field requires an infinite Poincaré-mode matching solution and is retained as source art.
++ **Scientific check:** Far-field Kelvin directions and the no-normal-flow condition were independently checked. The detailed near-corner field requires an infinite Poincaré-mode matching solution, so the source art is retained.
 
 #### Figure 5.18 — rossby dispersion
 

@@ -15,7 +15,7 @@
   \foreach \x/\y in {1.25/0.35,1.25/0.63,1.25/0.91,1.25/1.19}
     \draw[line width=0.52pt] (\x,\y) -- (8.00,{\y+0.18*(8.00-\x)});
 
-  % Five curved crest traces on each side of the wake.
+  % Five curved crest traces on each side of the wake are retained from the source.
   \draw[line width=0.52pt] (1.68,0.02) .. controls (2.25,1.25) and (2.25,3.68) .. (1.68,4.88);
   \draw[line width=0.52pt] (2.78,0.34) .. controls (3.25,1.50) and (3.25,3.43) .. (2.78,4.56);
   \draw[line width=0.52pt] (3.82,0.67) .. controls (4.20,1.58) and (4.20,3.28) .. (3.82,4.23);

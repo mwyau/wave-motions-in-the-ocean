@@ -131,7 +131,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 56
 - **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** The wave circles expand at shallow-water speed `c` from successive source positions; their common envelope gives the Mach-cone geometry and the expected speed-angle relation.
+- **Scientific check:** The wave circles expand at shallow-water speed `c` from successive source positions; their common envelope gives the Mach-cone geometry and the speed-angle relation.
 
 #### Figure 3.9 — energy sketch
 
@@ -196,4 +196,4 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 63
 - **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** Deep-water ray is integrated from the absolute group velocity while enforcing constant `sigma` and `ell`, `k^2=(sigma-ell V)^4/g^2-ell^2`, and `ell=K sin(theta)`. The component triangle terminates at the wavevector tip; the chosen smooth `V(x)` profile is illustrative.
+- **Scientific check:** Deep-water ray is integrated from the absolute group velocity with constant `sigma` and `ell`, `k^2=(sigma-ell V)^4/g^2-ell^2`, and `ell=K sin(theta)`. The component triangle terminates at the wavevector tip; the chosen smooth `V(x)` profile is illustrative.

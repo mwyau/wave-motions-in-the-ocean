@@ -2,9 +2,9 @@
 % Source: Wave Motions in the Ocean, printed p.117 (physical p.22).
 % Equation-generated forced shelf/deep-ocean cross-shelf structure.
 % Display parameters choose ell=0, D_1/D_2=0.35 and k_1 L=9 pi/2. The
-% shelf and deep curves are phase-matched at x=L; the ratio and phase are
-% display choices made to retain the several shelf oscillations and the visible
-% deep-ocean oscillation in the source sketch.
+% shelf and deep curves are phase-matched at x=L; the ratio and phase retain
+% several shelf oscillations and the visible deep-ocean oscillation in the
+% source sketch.
 \par\smallskip
 \begin{center}
 \begin{tikzpicture}[x=0.95cm,y=0.95cm,line cap=round,line join=round,font=\small]

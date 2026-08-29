@@ -3,30 +3,25 @@
 % Vector redraw of the modulated plane-wave packet on printed page 8.
 % Source: ChapmanRizzoli0_2.pdf, physical page 18.
 \begin{tikzpicture}[x=0.82cm,y=0.82cm,>=stealth,line cap=round,line join=round,font=\small]
-  % Horizontal coordinate axis.
   \draw[->,line width=0.55pt] (-6.1,0) -- (6.35,0) node[right] {$x$};
 
-  % Slowly varying envelope a(x), drawn symmetrically about the axis.
   \draw[line width=0.72pt,samples=121,smooth,domain=-5.7:5.7]
     plot (\x,{1.63*exp(-0.095*\x*\x)});
   \draw[line width=0.72pt,samples=121,smooth,domain=-5.7:5.7]
     plot (\x,{-1.63*exp(-0.095*\x*\x)});
   \node[above right=-1pt] at (2.05,1.22) {$a(x)$};
 
-  % Carrier oscillation, with the same Gaussian envelope.
   \draw[line width=0.72pt,samples=260,smooth,domain=-5.55:5.55]
     plot (\x,{1.63*exp(-0.095*\x*\x)*cos(250*\x)});
 
   % Central reference line as in the source sketch.
   \draw[line width=0.45pt] (0,-1.95) -- (0,2.00);
 
-  % One wavelength indicator under the positive-x carrier.
   \draw[line width=0.45pt] (2.18,-1.58) -- (2.18,-2.17);
   \draw[line width=0.45pt] (3.62,-0.86) -- (3.62,-2.17);
   \draw[<->,line width=0.55pt] (2.18,-1.99) -- (3.62,-1.99);
   \node[anchor=west] at (3.78,-1.99) {$2\pi/k_0$};
 
-  % Packet-width brace and labels.
   \draw[decorate,decoration={brace,amplitude=5pt,mirror},line width=0.50pt]
     (-5.70,-2.33) -- (5.70,-2.33);
   \node at (0,-2.84) {$\Delta x$};

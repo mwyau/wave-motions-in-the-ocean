@@ -30,14 +30,12 @@
   \node[anchor=east] at (-0.18,\ylater) {$\phi(x,t)$};
   \node[anchor=east] at (-0.18,\yzero) {$\phi(x,0)$};
 
-  % The homogeneous-medium packets preserve their display carrier wavelengths.
   \draw[line width=0.82pt,samples=420,smooth,domain=0.05:3.55,variable=\x]
     plot (\x,{\yzero+0.34*exp(-0.80*(\x-\xonezero)*(\x-\xonezero))*cos(360*(\x-\xonezero)/\lamone)});
   \draw[line width=0.82pt,samples=460,smooth,domain=4.30:7.80,variable=\x]
     plot (\x,{\yzero+0.57*exp(-0.74*(\x-\xtwozero)*(\x-\xtwozero))*cos(360*(\x-\xtwozero)/\lamtwo)});
 
-  % Later packet centers are computed from the two straight rays, rather than
-  % positioned independently, so each group center lies exactly on its ray.
+  % Later packet centers are calculated from the two rays.
   \draw[line width=0.82pt,samples=420,smooth,domain={\xonelater-1.75}:{\xonelater+1.75},variable=\x]
     plot (\x,{\ylater+0.34*exp(-0.80*(\x-\xonelater)*(\x-\xonelater))*cos(360*(\x-\xonelater)/\lamone)});
   \draw[line width=0.82pt,samples=460,smooth,domain={\xtwolater-1.75}:{\xtwolater+1.75},variable=\x]

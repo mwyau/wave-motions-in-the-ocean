@@ -8,7 +8,6 @@
 \begin{tikzpicture}[x=1cm,y=1cm,line cap=round,line join=round,font=\small]
   \path[use as bounding box] (0,0) rectangle (8,6);
 
-  % Source axes and displayed tick marks.
   \draw[line width=0.55pt] (1.25,0.62) -- (1.25,5.15);
   \draw[line width=0.55pt] (1.25,5.15) -- (6.85,5.15);
   \draw[line width=0.55pt] (2.65,5.15) -- +(0,-0.18);

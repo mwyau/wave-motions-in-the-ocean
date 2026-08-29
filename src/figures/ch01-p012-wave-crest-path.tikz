@@ -2,7 +2,6 @@
 % Source: Wave Motions in the Ocean, printed p.12 (physical p.22).
 % Vector redraw of the path Gamma crossing a slowly varying train of wave crests.
 \begin{tikzpicture}[x=0.82cm,y=0.82cm,line cap=round,line join=round,font=\small]
-  % Two sides of the slowly varying wave group/path region.
   \draw[line width=0.82pt]
     (0.35,0.15)
     .. controls (0.20,1.05) and (0.55,1.72) .. (1.35,2.15)
@@ -22,7 +21,6 @@
     \draw[line width=0.55pt] (\x-1.05,\y+0.70) -- (\x+1.40,\y-1.40);
   }
 
-  % End points and labels.
   \fill (0.35,0.15) circle[radius=2.1pt];
   \fill (5.55,4.22) circle[radius=2.1pt];
   \node[below left=-1pt] at (0.35,0.15) {$A$};

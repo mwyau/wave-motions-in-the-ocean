@@ -1,7 +1,7 @@
 % wave-source: pdf=ChapmanRizzoli6.pdf; page=21; trim=105bp 370bp 90bp 294bp
 % wave-source-mask: pdf=ChapmanRizzoli6.pdf; page=21; rect=0bp 470bp 300bp 500bp; origin=lower-left; reason=remove the overlapping preceding prose while preserving the complete upper sigma label
 % Source: Wave Motions in the Ocean, printed p.167 (physical p.21).
-% Intentionally schematic family diagram. Exact source constraints are kept:
+% Schematic family diagram. Exact source constraints are:
 % ell<0 lies left of the origin and sigma=f is horizontal. The pending source
 % sign convention for the straight Kelvin comparison branch is preserved.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round,line join=round]

@@ -15,7 +15,7 @@
   \node[anchor=west] at (2.34,1.54) {$c$};
   \node at (0.83,1.55) {$\theta$};
 
-  % First decomposition: unit base, a lower component, and R-a above it.
+  % First decomposition uses a unit base and segments a and R-a.
   \coordinate (D) at (3.55,0.55);
   \coordinate (E) at (6.72,0.55);
   \coordinate (F) at (6.72,1.55);
@@ -33,7 +33,7 @@
   \draw[decorate,decoration={brace,amplitude=4pt}] (7.38,0.55) -- (7.38,2.95)
     node[midway,right=5pt] {$R$};
 
-  % Second decomposition with the unit middle segment.
+  % Second decomposition keeps the unit middle segment.
   \coordinate (H) at (8.35,1.55);
   \coordinate (I) at (11.52,0.55);
   \coordinate (J) at (11.52,1.55);

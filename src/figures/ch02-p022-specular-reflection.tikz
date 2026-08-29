@@ -11,17 +11,15 @@
   \pgfmathsetmacro{\reflang}{\normalang-\incang}
   \coordinate (O) at (4.55,0.78);
 
-  % Horizontal reference and tilted solid boundary z=alpha x.
   \draw[line width=0.55pt] (0.50,0.78) -- (8.62,0.78);
   \draw[line width=1.15pt] ($(O)+(190:4.10)$) -- ($(O)+(10:4.10)$);
   \draw[line width=0.40pt] ($(O)+(190:4.08)+(0,-0.10)$) -- ($(O)+(10:4.08)+(0,-0.10)$);
   \node[anchor=west] at ($(O)+(10:4.18)+(0,0.12)$) {$z=\alpha x$};
 
-  % Exact normal to the wall.
   \draw[dashed,line width=0.58pt] (O) -- ($(O)+(\normalang:3.65)$);
   \node[anchor=south] at ($(O)+(\normalang:3.72)+(-0.28,0)$) {normal};
 
-  % Equal-magnitude incident/reflected directions symmetric about the normal.
+  % Equal-magnitude incident/reflected directions are symmetric about the wall normal.
   \coordinate (I) at ($(O)+(\incaway:4.15)$);
   \coordinate (R) at ($(O)+(\reflang:4.15)$);
   \draw[->,line width=0.78pt] (I) -- (O);

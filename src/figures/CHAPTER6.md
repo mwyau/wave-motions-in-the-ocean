@@ -114,7 +114,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Original source:** [ChapmanRizzoli6.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli6.pdf), physical page 12
 - **Representation:** source-pdf
 - **Equation check:** ai-checked
-- **Scientific check:** Retain the source PDF because the modal curves are a qualitative source-specific family rather than a uniquely replotted solution; tracing their individual envelopes would add interpretation. Along each matched mode `tan(kL)=k/(ell-b)`, `k=k_n(ell)`; independently solved maxima preserve one maximum per branch and decreasing peak frequency with mode number. See `ERRATA.md`, printed p.159, for the source extremum issue.
+- **Scientific check:** The source PDF is retained because the modal curves are a qualitative source-specific family rather than a uniquely replotted solution; tracing their individual envelopes would add interpretation. Along each matched mode `tan(kL)=k/(ell-b)`, `k=k_n(ell)`; independently solved maxima preserve one maximum per branch and decreasing peak frequency with mode number. See `ERRATA.md`, printed p.159, for the source extremum issue.
 
 #### Figure 6.8 — source PDF crop, printed page 161
 
@@ -129,7 +129,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Original source:** [ChapmanRizzoli6.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli6.pdf), physical page 15
 - **Representation:** source-pdf
 - **Equation check:** partial
-- **Scientific check:** Retain the source PDF for this information-dense full coastal spectrum. The family content (one Kelvin wave, discrete shelf/edge families, Poincaré continuum, no Yanai analogue) is checked, but every detailed branch/cutoff for general `D(x)` is not independently reconstructible from the notes; a vector redraw would add interpretation.
+- **Scientific check:** The source PDF is retained for this information-dense full coastal spectrum. The family content (one Kelvin wave, discrete shelf/edge families, Poincaré continuum, no Yanai analogue) is checked, but every detailed branch/cutoff for general `D(x)` is not independently reconstructible from the notes; a vector redraw would add interpretation.
 
 #### Figure 6.9 — coastal geometry
 
@@ -161,7 +161,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 164
 - **Representation:** vector
 - **Equation check:** partial
-- **Scientific check:** Schematic branches obey checked origin, ordering, and common short-wave asymptote constraints, but the full branch shapes are intentionally schematic rather than independently replotted solutions.
+- **Scientific check:** Schematic branches obey the checked origin, ordering, and common short-wave asymptote constraints, but the full branch shapes are schematic rather than independently replotted solutions.
 
 #### Figure 6.11 — stratification effect
 

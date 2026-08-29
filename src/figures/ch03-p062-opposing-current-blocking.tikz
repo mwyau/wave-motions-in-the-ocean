@@ -4,7 +4,6 @@
 % The critical tangency independently solves f(k)-k f'(k)=1: k=4.0426,
 % |U|=f'(k)=0.2498. The upper wave uses the small-k root as |U| increases.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,line cap=round,line join=round,font=\small]
-  % Opposing current: the profile lies below the horizontal x axis.
   \draw[->,line width=0.55pt] (5.0,6.05) -- (9.65,6.05) node[right] {$x$};
   \draw[line width=0.72pt,domain=0:8,samples=80,variable=\x]
     plot ({5.10+0.53*\x},{6.00-0.72/(1+exp(-1.5*(\x-4)))});
@@ -14,7 +13,6 @@
     plot ({5.10+0.53*\x},{4.52+0.18*sin(deg(6.5*\x+0.35*\x*\x))});
   \node[left] at (4.95,4.52) {$\eta$};
 
-  % The dispersion curve and the three positive-slope current lines.
   \draw[->,line width=0.60pt] (0.75,0.65) -- (5.25,0.65) node[right] {$k$};
   \draw[->,line width=0.60pt] (1.05,0.40) -- (1.05,4.00) node[above] {$f(k)$};
   \draw[line width=0.82pt,domain=0:4.3,samples=120,smooth,variable=\x]

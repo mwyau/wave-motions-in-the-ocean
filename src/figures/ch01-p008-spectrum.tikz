@@ -2,16 +2,14 @@
 % Vector redraw of the narrow-band spectrum on printed page 8.
 % Source: ChapmanRizzoli0_2.pdf, physical page 18.
 \begin{tikzpicture}[x=0.82cm,y=0.82cm,>=stealth,line cap=round,line join=round,font=\small]
-  % Axes as in the original sketch; the vertical axis extends slightly below k=0.
+  % The vertical axis extends slightly below k=0 as in the source sketch.
   \draw[line width=0.58pt] (-0.18,0) -- (6.10,0);
   \draw[line width=0.58pt] (0,-0.62) -- (0,4.65);
   \node[anchor=east] at (-0.28,2.05) {$A(k)$};
 
-  % Narrow-band spectral amplitude centered on k_0.
   \draw[line width=0.78pt,samples=140,smooth,domain=0:5.65]
     plot (\x,{0.10 + 3.52*exp(-0.72*(\x-2.95)*(\x-2.95))});
 
-  % k_0 marker.
   \draw[line width=0.48pt] (2.95,0) -- (2.95,-0.55);
   \node[below] at (2.95,-0.50) {$k_0$};
 \end{tikzpicture}

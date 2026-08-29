@@ -13,7 +13,6 @@
   \coordinate (K) at ({\kend*cos(\ang)},{\kend*sin(\ang)});
   \coordinate (Kx) at ({\kend*cos(\ang)},0);
 
-  % Cartesian axes and wavevector components.
   \draw[->,line width=0.78pt] (O) -- (8.25,0) node[right] {$x$};
   \draw[->,line width=0.78pt] (O) -- (0,5.55) node[above] {$y$};
   \draw[->,line width=1.02pt] (O) -- (K);

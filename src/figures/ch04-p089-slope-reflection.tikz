@@ -3,7 +3,6 @@
 % The two characteristic lines and the incident/reflected wavevectors are
 % traced from the source sketch; the adjacent text supplies the convention.
 \begin{tikzpicture}[x=1cm,y=1cm,>=stealth,font=\small,line cap=round]
-  % Incident panel.
   \begin{scope}
     \draw[->] (0.55,2.25)--(3.70,2.25) node[right] {$x$};
     \draw[->] (1.95,0.40)--(1.95,4.20) node[above] {$z$};
@@ -13,7 +12,6 @@
     \node[anchor=west] at (2.20,3.72) {$m_i=Rk_i$};
   \end{scope}
 
-  % Reflected panel.
   \begin{scope}[xshift=4.25cm]
     \draw[->] (0.55,2.25)--(3.70,2.25) node[right] {$x$};
     \draw[->] (1.95,0.40)--(1.95,4.20) node[above] {$z$};

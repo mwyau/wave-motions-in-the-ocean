@@ -15,9 +15,8 @@
   \draw[dashed,line width=.60pt]
     (2.02,1.92) .. controls (3.10,1.62) and (5.00,1.62) .. (6.08,1.92);
 
-  % A single source-like sinusoidal ray is continuously refracted between the
-  % two trapping latitudes. It is intentionally one trace, not a globe-scale
-  % family of separately scaled waves.
+% A single source-like sinusoidal ray is continuously refracted between the
+% two trapping latitudes, not a globe-scale family of separately scaled waves.
   \draw[line width=1.05pt,samples=180,domain=0:1,variable=\t]
     plot ({2.08+3.94*\t},{2.55+0.34*sin(720*\t+40)-0.04*\t});
 
