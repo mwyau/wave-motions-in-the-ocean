@@ -108,9 +108,6 @@ jobs:
           node --check src/layout/wave-service-worker.js
 
       - name: Check source quality
-        shell: bash
-        env:
-          WAVE_AUDIT_CHECK_ONLY: "1"
         run: |
           set -euo pipefail
           uv run --frozen python scripts/publication.py audit-check --all
@@ -134,9 +131,9 @@ jobs:
         uses: actions/cache@v6.1.0
         with:
           path: .cache/wave-motions
-          key: wave-motions-build-v2-${{ runner.os }}-${{ github.sha }}
+          key: wave-motions-build-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
-            wave-motions-build-v2-${{ runner.os }}-
+            wave-motions-build-${{ runner.os }}-
 
       - name: Detect restored TinyTeX
         id: tinytex-state

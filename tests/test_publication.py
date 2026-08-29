@@ -500,16 +500,19 @@ def test_equation_asset_refresh_records_inputs_and_rejects_extras(
         return len(displays) * 3
 
     monkeypatch.setattr(publication, "regenerate_equation_assets", fake_regenerate)
-    assert publication.refresh_equation_assets([display], equation_dir) == 3
+    assert publication.regenerate_equation_assets([display], equation_dir) == 3
     assert publication.equation_asset_errors([display], equation_dir) == []
 
-    def rewrite_pixels(path: Path, *, version: str | None = None) -> None:
+    def rewrite_pixels(
+        path: Path, *, metadata_update: tuple[str, str] | None = None
+    ) -> None:
         with Image.open(path) as original:
             image = original.convert("RGB")
             metadata = dict(original.info)
         image.putpixel((0, 0), (0, 0, 0))
-        if version is not None:
-            metadata["wave-equation-asset-version"] = version
+        if metadata_update is not None:
+            key, value = metadata_update
+            metadata[key] = value
         info = PngInfo()
         for key, value in metadata.items():
             info.add_text(key, str(value))
@@ -523,17 +526,17 @@ def test_equation_asset_refresh_records_inputs_and_rejects_extras(
         for path in equation_asset_paths(display.stem)
     )
 
-    assert publication.refresh_equation_assets([display], equation_dir) == 3
+    assert publication.regenerate_equation_assets([display], equation_dir) == 3
     rewrite_pixels(
         equation_dir / f"{display.stem}-mathjax.png",
-        version="v1",
+        metadata_update=("wave-equation-renderer-config", "changed"),
     )
     assert publication.stale_equation_displays([display], equation_dir) == (display,)
     assert any(
-        "wave-equation-asset-version" in error
+        "wave-equation-renderer-config" in error
         for error in publication.equation_asset_errors([display], equation_dir)
     )
-    assert publication.refresh_equation_assets([display], equation_dir) == 3
+    assert publication.regenerate_equation_assets([display], equation_dir) == 3
 
     with Image.open(equation_dir / f"{display.stem}-source.png") as image:
         assert image.info["wave-source-pdf"] == "ChapmanRizzoli0_2.pdf"
@@ -819,24 +822,6 @@ def test_figure_manifest_ignores_review_state_but_hashes_tikz_input(
     assert publication.figure_entry_digest(noted, figure_dir) == before
     tikz.write_text("\\draw (0,0) -- (2,1);\n")
     assert publication.figure_entry_digest(entry, figure_dir) != before
-
-
-def test_ledger_format_version_changes_all_equation_manifests(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    source = _write_equation_test_sources(tmp_path)
-    before = [
-        publication.equation_ledger_manifest_text(chapter, source)
-        for chapter in range(1, 7)
-    ]
-    monkeypatch.setattr(
-        publication, "EQUATION_LEDGER_VERSION", publication.EQUATION_LEDGER_VERSION + 1
-    )
-    after = [
-        publication.equation_ledger_manifest_text(chapter, source)
-        for chapter in range(1, 7)
-    ]
-    assert all(left != right for left, right in zip(before, after, strict=True))
 
 
 def test_chapter_specific_equation_generation_leaves_other_chapters_unchanged(

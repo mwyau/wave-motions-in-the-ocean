@@ -256,7 +256,7 @@ def check_equation_ledger() -> None:
         )
     print(
         "Equation ledgers and SHA manifests are current; all equation PNG assets "
-        "are regenerated v2 assets with matching pixels, renderer, and source-page metadata"
+        "match their source, renderer configuration, pixels, and source-page metadata"
     )
 
 
