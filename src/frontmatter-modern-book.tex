@@ -1,5 +1,5 @@
 % PDF-only book front matter for the modern edition.
-% The exterior cover is followed by the usual interior opening pages:
+% The front cover is followed by the usual interior opening pages:
 % half-title, frontispiece, full title, edition notice, then contents.
 
 % Flag the paged modern edition so the shared source can omit the duplicate
@@ -7,7 +7,7 @@
 \NewDocumentCommand{\WaveModernBookFrontMatter}{}{}
 \NewCommandCopy{\WaveModernOriginalTableOfContents}{\tableofcontents}
 
-% Exterior cover. It is intentionally outside the Roman-numbered preliminaries.
+% Front cover. It is intentionally outside the Roman-numbered preliminaries.
 \WaveModernCover
 \clearpage
 \nopagecolor
@@ -32,9 +32,12 @@
 	\vspace*{0.62in}
 	\includegraphics[width=0.68\linewidth]{images/salmon-hendershott-como-1980.jpg}
 	\par\smallskip
-	{\small Rick Salmon (left) and Myrl Hendershott at Villa Carlotta, Lake Como,
-		during the International School of Physics ``Enrico Fermi,'' Course LXXX,
-		\textit{Topics in Ocean Physics}, July 1980.\par}
+	\begin{minipage}{0.68\linewidth}
+		\centering
+		{\small Rick Salmon (left) and Myrl Hendershott at Villa Carlotta, Lake Como,
+			during the International School of Physics ``Enrico Fermi,'' Course LXXX,
+			\textit{Topics in Ocean Physics}, July 1980.\par}
+	\end{minipage}
 \end{center}
 \clearpage
 
@@ -80,7 +83,7 @@
 	for release under the Creative Commons Attribution-NonCommercial-ShareAlike
 	4.0 International license (CC BY-NC-SA 4.0).\par
 	\medskip
-	\noindent The original source scan was preserved on James Pringle's website.\par
+	\noindent The original source scan is preserved on James Pringle's website.\par
 }
 \wavecovercredit
 \clearpage

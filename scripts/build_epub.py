@@ -77,7 +77,7 @@ FRONTISPIECE_ALTERNATIVE = (
     "Topics in Ocean Physics, July 1980."
 )
 COVER_ALTERNATIVE = (
-    f"Cover of {PUBLICATION_TITLE}, featuring Katsushika "
+    f"Front cover of {PUBLICATION_TITLE}, featuring Katsushika "
     "Hokusai's Under the Wave off Kanagawa (The Great Wave)."
 )
 BUILD_STAMP_RE = re.compile(rb'<p class="build-info">.*?</p>\s*', re.DOTALL)

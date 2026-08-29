@@ -68,8 +68,8 @@ class PublicationImageSpec:
         return width, height
 
 
-# The modern trim is 7 x 10 in with 0.75 in side margins, so the cover's
-# ``0.965\\linewidth`` artwork is 5.3075 in wide. The back page explicitly
+# The modern trim is 7 x 10 in with 0.75 in side margins, so the front cover's
+# ``0.965\\linewidth`` artwork is 5.3075 in wide. The back cover explicitly
 # renders its source image at 5.86 in before clipping to the framed area.
 PUBLICATION_IMAGE_SPECS = (
     PublicationImageSpec("great-wave-met-dp130155.jpg", 5.3075),

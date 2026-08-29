@@ -3,6 +3,8 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+import pytest
+
 import render_qa
 
 BOUNDARY_SOURCE = r"""\begin{aligned}
@@ -169,3 +171,66 @@ def test_html_qa_leaves_publication_root_unchanged_on_success_and_failure(
     assert publication_tree(dist) == before
     assert not (dist / "mathml-mathjax-comparison.html").exists()
     assert any(finding.level == "WARNING" for finding in failed_report.findings)
+    assert any(
+        finding.level == "ERROR"
+        and "headless DOM dump failed at 390px; reader behavior regression assertions skipped"
+        in finding.message
+        for finding in failed_report.findings
+    )
+    assert any(
+        finding.level == "ERROR"
+        and "headless DOM dump failed at 320px; reader behavior regression assertions skipped"
+        in finding.message
+        for finding in failed_report.findings
+    )
+
+
+@pytest.mark.parametrize(
+    ("browser_result", "expected"),
+    [
+        (
+            (False, "simulated browser failure"),
+            "headless DOM dump failed at 390px; reader behavior regression assertions skipped",
+        ),
+        (
+            (True, "<html></html>"),
+            "reader behavior regression assertions did not report a result at 390px",
+        ),
+        (
+            (
+                True,
+                (
+                    '<html><pre id="reader-regression-results" '
+                    'data-qa-status="fail">failed check</pre></html>'
+                ),
+            ),
+            "reader behavior regression assertions failed at 390px",
+        ),
+    ],
+)
+def test_reader_regressions_fail_closed(
+    monkeypatch, browser_result: tuple[bool, str], expected: str
+) -> None:
+    def dump_dom(*args, **kwargs):
+        if kwargs.get("width") == 390:
+            return browser_result
+        return (
+            True,
+            (
+                '<html><pre id="reader-regression-results" '
+                'data-qa-status="pass">passed</pre></html>'
+            ),
+        )
+
+    monkeypatch.setattr(render_qa, "browser_dump_dom", dump_dom)
+    report = render_qa.Report("publication", Path("publication"), Path("audit"))
+    lines: list[str] = []
+
+    render_qa.browser_reader_regressions(
+        "fake-browser", "http://example.test", report, lines
+    )
+
+    assert any(
+        finding.level == "ERROR" and expected in finding.message
+        for finding in report.findings
+    )

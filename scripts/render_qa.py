@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Generate local visual/render QA artifacts for the published book outputs.
 
-The script is intentionally a developer aid rather than a release gate. It can
-inspect a built ``release/`` publication root or an artifact ZIP, render both PDFs
-into contact sheets, perform static/optional-browser HTML checks, unpack and inspect
-EPUB structure, and write a single Markdown report under ``audit/render-qa``.
+The script supports local review and, with ``--strict``, the reader regression
+release check used in publication CI. It can inspect a built ``release/``
+publication root or an artifact ZIP, render both PDFs into contact sheets,
+perform static/optional-browser HTML checks, unpack and inspect EPUB structure,
+and write a single Markdown report under ``audit/render-qa``.
 """
 
 from __future__ import annotations
@@ -1252,7 +1253,7 @@ def epub_qa(dist: Path, report: Report) -> None:
     reader_lines = [
         "Use at least two independent EPUB3 readers. Recommended minimum: **Thorium (Readium)** and **Calibre ebook-viewer**; add Apple Books/Kobo if those are release targets.",
         "For each reader record app/version and check:",
-        "- cover and title/front matter; Contents navigation and chapter transitions;",
+        "- front cover and title/front matter; Contents navigation and chapter transitions;",
         "- inline variables in the Paola preface (ℓ, x, k, y, j/k/x/y/w), Greek symbols, named operators, vectors, subscripts/superscripts/fractions, and `p_atmosphere`;",
         "- representative aligned/display equations and chapter-based equation numbers;",
         "- long-equation behavior at narrow portrait width and at large font size;",
@@ -1358,7 +1359,7 @@ def write_report(report: Report) -> Path:
             "## Manual final-pass checklist",
             "",
             "- Review every PDF contact sheet for unexpected blank pages, large whitespace changes, clipping, undersized figures, and abrupt pagination changes.",
-            "- Inspect modern PDF pages 1–12 at full size (cover, half-title, frontispiece, title/edition notice, Contents, prefaces/editor note) plus every chapter opener and figure-dense page.",
+            "- Inspect modern PDF pages 1–12 at full size (front cover, half-title, frontispiece, title/edition notice, Contents, prefaces/editor note) plus every chapter opener and figure-dense page.",
             "- For facsimile, verify the exact 184-page physical structure before release and compare any suspicious blank/sparse pages to the source-page edition.",
             "- Open HTML in a real desktop browser and a phone/narrow viewport; test top/bottom navigation, Appearance theme/text-size choices, direct section permalinks, heading permalink/copy-link reveal and focus, scrolling active-section updates, back/forward fragment navigation, wide Contents rail, no-JS/native and scripted narrow Contents behavior, static MathML first paint, MathJax atomic swap/fallback, the non-persistent math URL override, per-figure vector/source switching, wide math/tables, image scaling, and the explicit 320px toolbar screenshot.",
             "- Complete the EPUB reader matrix above in real reading systems; structural/browser inspection alone is insufficient.",
@@ -1889,7 +1890,7 @@ def browser_reader_regressions(
         )
         if not ok:
             report.add(
-                "WARNING",
+                "ERROR",
                 "HTML",
                 f"headless DOM dump failed at {width}px; reader behavior regression "
                 "assertions skipped",
