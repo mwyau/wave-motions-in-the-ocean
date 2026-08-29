@@ -353,7 +353,7 @@
   };
 
   const installPermalinks = () => {
-    document.querySelectorAll("main h1[id], main h2[id]").forEach((heading) => {
+    document.querySelectorAll("main h1[id], main h2[id], main h3[id]").forEach((heading) => {
       if (heading.querySelector(":scope > .heading-actions")) return;
       heading.dataset.readerTitle = heading.textContent.trim();
       const headingText = document.createElement("span");

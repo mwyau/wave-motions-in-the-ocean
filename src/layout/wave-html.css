@@ -992,6 +992,7 @@ a:visited { color: var(--wave-visited); }
   .book-contents-rail,
   .book-contents-popover,
   .build-info,
+  .figure-view-toggle,
   .heading-actions {
     display: none !important;
   }
