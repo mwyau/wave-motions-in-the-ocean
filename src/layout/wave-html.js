@@ -863,3 +863,13 @@
     { passive: true },
   );
 })();
+
+if (
+  window.isSecureContext &&
+  (location.protocol === "http:" || location.protocol === "https:") &&
+  "serviceWorker" in navigator
+) {
+  navigator.serviceWorker
+    .register("./service-worker.js", { scope: "./" })
+    .catch(() => {});
+}

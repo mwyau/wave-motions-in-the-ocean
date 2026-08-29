@@ -183,7 +183,22 @@ def read_download_markdown() -> str:
         if filename == "wave-motions-facsimile.pdf":
             continue
         lines.append(f"- [{label}]({SITE_URL}/{filename})")
-    lines.extend(["", f"Contact: [{CONTACT_EMAIL}](mailto:{CONTACT_EMAIL})"])
+    lines.extend(
+        [
+            "",
+            f"Contact: [{CONTACT_EMAIL}](mailto:{CONTACT_EMAIL})",
+            "",
+            "## Install the web edition",
+            "",
+            "**Android / ChromeOS.** Use Chrome's Install app or Add to Home Screen action.",
+            "",
+            "**iPhone / iPad.** Open the site in Safari and choose Share → Add to Home Screen.",
+            "",
+            "**macOS Safari.** Use File → Add to Dock.",
+            "",
+            "After the web edition has cached its reading assets, the HTML book can be read offline.",
+        ]
+    )
     return "\n".join(lines)
 
 

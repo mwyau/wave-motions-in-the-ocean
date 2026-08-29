@@ -236,6 +236,9 @@ def test_application_icons_are_pinned_deterministic_rgb_pngs(
     assert [path.name for path in first_paths] == [
         name for name, _size in publication.ICON_OUTPUTS
     ]
+    assert {path.name for path in first.iterdir()} == {
+        name for name, _size in publication.ICON_OUTPUTS
+    }
     for (name, size), first_path, second_path in zip(
         publication.ICON_OUTPUTS, first_paths, second_paths, strict=True
     ):

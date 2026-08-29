@@ -25,6 +25,7 @@ from xml.sax.saxutils import escape as xml_escape
 from PIL import Image
 
 from publication import (
+    APPLE_TOUCH_ICON_PATH,
     AUTHORS,
     BOOK_TITLE,
     CONTACT_EMAIL,
@@ -38,17 +39,25 @@ from publication import (
     PUBLICATION_TITLE,
     PUBLICATION_YEAR,
     REPOSITORY_URL,
+    SERVICE_WORKER_FILENAME,
     SITE_URL,
+    WEB_MANIFEST_FILENAME,
     book_structure,
     current_build,
     html_license,
+    offline_reader_resource_stats,
+    offline_reader_resources,
     page_switchable_figure_stems,
     prepare_application_icons,
     prepare_assets,
     prepare_flowing_sources,
     reader_punctuation,
     section_slug,
+    service_worker_text,
     validate_application_icons,
+    web_app_manifest,
+    write_service_worker,
+    write_web_app_manifest,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -63,6 +72,8 @@ SOCIAL_PREVIEW_TEMPLATE = SRC / "layout" / "social-preview.tex"
 COVER_SOURCE = SRC / "cover-modern.tex"
 SOCIAL_PREVIEW = ASSETS / "social-preview.png"
 SITEMAP = OUT / "sitemap.xml"
+WEB_MANIFEST = OUT / WEB_MANIFEST_FILENAME
+SERVICE_WORKER = OUT / SERVICE_WORKER_FILENAME
 SITEMAP_NAMESPACE = "http://www.sitemaps.org/schemas/sitemap/0.9"
 LOCAL_MATHJAX_URL = "assets/mathjax/tex-chtml-full.js"
 VENDOR_ARCHIVES = {
@@ -897,6 +908,8 @@ def page_metadata(path: Path) -> dict[str, str]:
         "social_image_alt": html.escape(metadata.social_image_alt, quote=True),
         "mathjax_upstream": html.escape(MATHJAX_URL, quote=True),
         "mathjax_url": html.escape(LOCAL_MATHJAX_URL, quote=True),
+        "manifest_url": html.escape(WEB_MANIFEST_FILENAME, quote=True),
+        "apple_touch_icon_url": html.escape(APPLE_TOUCH_ICON_PATH, quote=True),
         "scholar_metadata": scholar_metadata_html(metadata.scholar_tags),
         "structured_data": structured_data_json(metadata.structured_data),
     }
@@ -961,6 +974,20 @@ def sitemap_text() -> str:
 
 def write_sitemap() -> None:
     SITEMAP.write_text(sitemap_text(), encoding="utf-8")
+
+
+def write_pwa_files() -> None:
+    """Write the manifest and complete offline-reader service worker."""
+    write_web_app_manifest(OUT)
+    resources = offline_reader_resources(OUT)
+    write_service_worker(OUT, current_build())
+    total_bytes, largest = offline_reader_resource_stats(OUT, resources)
+    print(
+        f"Offline reader precache: {len(resources)} files, "
+        f"{total_bytes} uncompressed bytes"
+    )
+    for name, size in largest[:10]:
+        print(f"  {name}: {size} bytes")
 
 
 READER_CONTEXT_RE = re.compile(
@@ -1421,6 +1448,24 @@ def build_references(source_dir: Path) -> None:
     )
 
 
+def validate_pwa_files() -> None:
+    """Check that generated PWA files match the current publication output."""
+    if not WEB_MANIFEST.is_file() or WEB_MANIFEST.stat().st_size == 0:
+        raise SystemExit("missing generated web app manifest")
+    try:
+        actual_manifest = json.loads(WEB_MANIFEST.read_text())
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"generated web app manifest is invalid JSON: {exc}") from exc
+    if actual_manifest != web_app_manifest():
+        raise SystemExit("generated web app manifest is not current")
+
+    if not SERVICE_WORKER.is_file() or SERVICE_WORKER.stat().st_size == 0:
+        raise SystemExit("missing generated service worker")
+    expected_worker = service_worker_text(OUT, current_build())
+    if SERVICE_WORKER.read_text() != expected_worker:
+        raise SystemExit("generated service worker is not current")
+
+
 def validate() -> None:
     missing = [
         path.name
@@ -1468,6 +1513,7 @@ def validate() -> None:
         validate_application_icons(ASSETS / "icons")
     except ValueError as exc:
         raise SystemExit(str(exc)) from exc
+    validate_pwa_files()
 
     for page in EXPECTED_PAGES:
         text = page.read_text(errors="replace")
@@ -1568,6 +1614,7 @@ def main() -> int:
     build_references(source_dir)
     install_stable_section_ids()
     write_sitemap()
+    write_pwa_files()
     validate()
     print(
         f"HTML build OK: front matter + {len(CHAPTERS)} chapters + "

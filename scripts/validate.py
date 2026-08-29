@@ -40,22 +40,29 @@ from build_epub import (
 )
 from build_html import page_metadata_record, sitemap_urls
 from publication import (
+    APPLE_TOUCH_ICON_PATH,
     AUTHORS,
     DOWNLOADS,
     EDITOR,
+    ICON_ASSET_PREFIX,
     LANGUAGE,
+    MANIFEST_ICON_OUTPUTS,
     REPOSITORY_URL,
+    SERVICE_WORKER_FILENAME,
     SITE_URL,
+    WEB_MANIFEST_FILENAME,
     application_icon_errors,
     book_structure,
     current_build,
     equation_asset_errors,
     equation_ledger_errors,
     figure_ledger_errors,
+    offline_reader_resources,
     page_switchable_figure_stems,
     section_slug,
     summarize_equation_asset_errors,
     validate_maintained_figure_assets,
+    web_app_manifest,
 )
 from publication import (
     MATHJAX_URL as MATHJAX_PINNED,
@@ -594,6 +601,289 @@ def validate_offline_runtime(root: Path) -> None:
     )
 
 
+def pwa_errors(root: Path = PUBLICATION) -> list[str]:
+    """Return structural errors for the generated manifest and service worker."""
+    root = Path(root).resolve()
+    errors: list[str] = []
+    manifest_path = root / WEB_MANIFEST_FILENAME
+    manifest_files = sorted(root.rglob("*.webmanifest"))
+    if manifest_files != [manifest_path]:
+        names = ", ".join(str(path.relative_to(root)) for path in manifest_files)
+        errors.append(
+            "expected exactly one root web manifest; found " + (names or "none")
+        )
+
+    manifest: dict[str, object] | None = None
+    if not manifest_path.is_file() or manifest_path.stat().st_size == 0:
+        errors.append(f"missing web app manifest: {manifest_path}")
+    else:
+        try:
+            parsed_manifest = json.loads(manifest_path.read_text())
+        except json.JSONDecodeError as exc:
+            errors.append(f"web app manifest is invalid JSON: {exc}")
+        else:
+            if not isinstance(parsed_manifest, dict):
+                errors.append("web app manifest must contain a JSON object")
+            else:
+                manifest = parsed_manifest
+
+    expected_manifest: dict[str, object] | None = None
+    try:
+        expected_manifest = web_app_manifest()
+    except (OSError, ValueError) as exc:
+        errors.append(f"cannot derive expected web app manifest: {exc}")
+
+    if manifest is not None and expected_manifest is not None:
+        for key in (
+            "name",
+            "short_name",
+            "id",
+            "start_url",
+            "scope",
+            "display",
+            "lang",
+            "theme_color",
+            "background_color",
+        ):
+            if manifest.get(key) != expected_manifest[key]:
+                errors.append(
+                    f"web app manifest {key!r} is {manifest.get(key)!r}; "
+                    f"expected {expected_manifest[key]!r}"
+                )
+        if manifest.get("short_name") == "":
+            errors.append("web app manifest short_name is empty")
+        if manifest.get("prefer_related_applications") is True:
+            errors.append("web app manifest must not prefer related applications")
+
+        icons = manifest.get("icons")
+        expected_icons = expected_manifest["icons"]
+        if not isinstance(icons, list):
+            errors.append("web app manifest icons must be an array")
+            icons = []
+        if icons != expected_icons:
+            errors.append("web app manifest icons are not the coherent Stage-1 set")
+
+        expected_icon_paths = {
+            f"{ICON_ASSET_PREFIX}/{name}": size for name, size in MANIFEST_ICON_OUTPUTS
+        }
+        for item in icons:
+            if not isinstance(item, dict):
+                errors.append("web app manifest contains a non-object icon entry")
+                continue
+            src = item.get("src")
+            if not isinstance(src, str):
+                errors.append("web app manifest icon src is missing")
+                continue
+            expected_size = expected_icon_paths.get(src)
+            if expected_size is None:
+                errors.append(f"web app manifest has an unexpected icon path: {src}")
+            expected_entry = {
+                "src": src,
+                "sizes": f"{expected_size}x{expected_size}"
+                if expected_size is not None
+                else item.get("sizes"),
+                "type": "image/png",
+                "purpose": "any maskable",
+            }
+            for key, expected in expected_entry.items():
+                if item.get(key) != expected:
+                    errors.append(
+                        f"web app manifest icon {src!r} {key!r} is "
+                        f"{item.get(key)!r}; expected {expected!r}"
+                    )
+            parsed = urllib.parse.urlsplit(src)
+            if (
+                parsed.scheme
+                or parsed.netloc
+                or parsed.query
+                or parsed.fragment
+                or src.startswith("/")
+                or "\\" in src
+                or ".." in Path(parsed.path).parts
+            ):
+                errors.append(
+                    f"web app manifest icon path is not publication-relative: {src}"
+                )
+            else:
+                target = (root / urllib.parse.unquote(parsed.path)).resolve()
+                if not target.is_relative_to(root) or not target.is_file():
+                    errors.append(f"web app manifest icon is missing: {src}")
+
+    icon_errors = application_icon_errors(root / ICON_ASSET_PREFIX)
+    errors.extend(f"application icon: {error}" for error in icon_errors)
+
+    pages = sorted(root.glob("*.html"))
+    if not pages:
+        errors.append("PWA validation found no HTML reader pages")
+    for page in pages:
+        tags = re.findall(
+            r"<link\b[^>]*>", page.read_text(errors="replace"), re.IGNORECASE
+        )
+        manifest_links = [
+            tag
+            for tag in tags
+            if "manifest" in (_attribute(tag, "rel") or "").lower().split()
+        ]
+        if len(manifest_links) != 1:
+            errors.append(
+                f"{page.name}: expected exactly one rel=manifest link; "
+                f"found {len(manifest_links)}"
+            )
+        elif _attribute(manifest_links[0], "href") != WEB_MANIFEST_FILENAME:
+            errors.append(f"{page.name}: manifest link has the wrong href")
+
+        apple_links = [
+            tag
+            for tag in tags
+            if "apple-touch-icon" in (_attribute(tag, "rel") or "").lower().split()
+        ]
+        if len(apple_links) != 1:
+            errors.append(
+                f"{page.name}: expected exactly one rel=apple-touch-icon link; "
+                f"found {len(apple_links)}"
+            )
+        else:
+            if _attribute(apple_links[0], "href") != APPLE_TOUCH_ICON_PATH:
+                errors.append(f"{page.name}: Apple touch icon link has the wrong href")
+            if _attribute(apple_links[0], "sizes") != "180x180":
+                errors.append(f"{page.name}: Apple touch icon must declare 180x180")
+
+    worker_path = root / SERVICE_WORKER_FILENAME
+    worker_files = sorted(root.rglob(SERVICE_WORKER_FILENAME))
+    if worker_files != [worker_path]:
+        names = ", ".join(str(path.relative_to(root)) for path in worker_files)
+        errors.append(
+            "expected exactly one root service worker; found " + (names or "none")
+        )
+
+    precache: list[str] | None = None
+    worker_text = ""
+    if not worker_path.is_file() or worker_path.stat().st_size == 0:
+        errors.append(f"missing root service worker: {worker_path}")
+    else:
+        worker_text = worker_path.read_text(errors="replace")
+        info = current_build()
+        expected_cache_name = f"wave-motions-{info.short_sha}"
+        if f"const CACHE_NAME = {json.dumps(expected_cache_name)};" not in worker_text:
+            errors.append(
+                "service worker cache name does not contain current build identity"
+            )
+        if 'const CACHE_PREFIX = "wave-motions-";' not in worker_text:
+            errors.append("service worker cache namespace is missing")
+        if "key.startsWith(CACHE_PREFIX)" not in worker_text:
+            errors.append("service worker cleanup is not limited to this app namespace")
+        if "caches.delete(key)" not in worker_text:
+            errors.append("service worker does not clean up old app caches")
+        for forbidden in ("skipWaiting", "clients.claim"):
+            if forbidden in worker_text:
+                errors.append(
+                    f"service worker must not force lifecycle takeover: {forbidden}"
+                )
+        for required in (
+            'request.method !== "GET"',
+            "url.origin !== scopeUrl.origin",
+            "url.pathname.startsWith(scopeUrl.pathname)",
+            "ignoreSearch: true",
+            'url.searchParams.toString() === "math=mathjax"',
+        ):
+            if required not in worker_text:
+                errors.append(
+                    f"service worker is missing boundary or cache rule: {required}"
+                )
+        if any(
+            marker and marker in worker_text
+            for marker in (str(root), str(ROOT.resolve()))
+        ):
+            errors.append("service worker contains an absolute local filesystem path")
+
+        match = re.search(
+            r"const\s+PRECACHE_URLS\s*=\s*(?P<array>\[.*?\]);",
+            worker_text,
+            flags=re.DOTALL,
+        )
+        if match is None:
+            errors.append("service worker precache list is missing")
+        else:
+            try:
+                parsed_precache = json.loads(match.group("array"))
+            except json.JSONDecodeError as exc:
+                errors.append(f"service worker precache list is not JSON: {exc}")
+            else:
+                if not isinstance(parsed_precache, list) or not all(
+                    isinstance(item, str) for item in parsed_precache
+                ):
+                    errors.append(
+                        "service worker precache list must contain only strings"
+                    )
+                else:
+                    precache = parsed_precache
+
+    if precache is not None:
+        expected_resources = offline_reader_resources(root)
+        if tuple(precache) != expected_resources:
+            errors.append(
+                "service worker precache does not match the generated reader resource set"
+            )
+        if precache != sorted(precache):
+            errors.append("service worker precache entries are not sorted")
+        if len(precache) != len(set(precache)):
+            errors.append("service worker precache contains duplicate entries")
+
+        excluded_suffixes = {".epub", ".pdf", ".zip"}
+        for entry in precache:
+            parsed = urllib.parse.urlsplit(entry)
+            path = Path(parsed.path)
+            if (
+                parsed.scheme
+                or parsed.netloc
+                or parsed.query
+                or parsed.fragment
+                or entry.startswith("/")
+                or "\\" in entry
+                or ".." in path.parts
+            ):
+                errors.append(f"service worker precache path is not relative: {entry}")
+                continue
+            if path.name in {"SHA256SUMS", "wave-motions-html.zip"}:
+                errors.append(f"service worker precaches release bookkeeping: {entry}")
+                continue
+            if path.suffix.lower() in excluded_suffixes:
+                errors.append(f"service worker precaches a download artifact: {entry}")
+                continue
+            target = (root / urllib.parse.unquote(parsed.path)).resolve()
+            if not target.is_relative_to(root) or not target.is_file():
+                errors.append(f"service worker precache resource is missing: {entry}")
+
+        asset_files = {
+            path.relative_to(root).as_posix()
+            for path in (root / "assets").rglob("*")
+            if path.is_file()
+        }
+        missing_assets = sorted(asset_files - set(precache))
+        if missing_assets:
+            errors.append(
+                "service worker omits local reader assets: "
+                + ", ".join(missing_assets[:20])
+                + (" ..." if len(missing_assets) > 20 else "")
+            )
+
+    if worker_path.is_file() and shutil.which("node"):
+        result = subprocess.run(
+            ["node", "--check", str(worker_path)],
+            capture_output=True,
+            check=False,
+            text=True,
+        )
+        if result.returncode != 0:
+            detail = (result.stderr or result.stdout).strip().splitlines()
+            errors.append(
+                "generated service worker fails node --check"
+                + (f": {detail[-1]}" if detail else "")
+            )
+
+    return errors
+
+
 def validate_mathml_alignment(
     text: str, *, require_aligned: bool = False
 ) -> tuple[int, int]:
@@ -865,10 +1155,18 @@ def check_application_icons() -> None:
         fail("application icon validation failed:\n- " + "\n- ".join(errors))
 
 
+def check_pwa() -> None:
+    errors = pwa_errors(PUBLICATION)
+    if errors:
+        fail("PWA validation failed:\n- " + "\n- ".join(errors))
+    print("PWA manifest, service worker, and offline resource checks OK")
+
+
 def check_html() -> None:
     for page in EXPECTED_HTML_PAGES:
         require_file(page)
     check_application_icons()
+    check_pwa()
     check_html_metadata()
     check_html_figures()
     css = PUBLICATION / "assets" / "wave.css"
@@ -1013,6 +1311,8 @@ def check_html() -> None:
             'name="viewport"',
             'rel="icon"',
             "🌊",
+            'rel="manifest"',
+            'rel="apple-touch-icon"',
             '<main id="main-content">',
             'class="skip-link"',
             'class="reader-header page-shell"',
@@ -1960,6 +2260,7 @@ def check_release_gate() -> None:
             f"expected exactly {FACSIMILE_EXPECTED_PAGES}"
         )
     facsimile_layout_diagnostics(strict=True)
+    check_pwa()
     try:
         validate_offline_runtime(PUBLICATION)
     except ValueError as exc:

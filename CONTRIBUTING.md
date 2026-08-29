@@ -152,6 +152,24 @@ uv run --frozen python scripts/render_qa.py release
 The browser pass includes the narrow direct-fragment check when Chromium is
 available.
 
+## Manual web-app checks
+
+For a deployed HTTPS build, visit the complete HTML edition once before taking
+it offline. Verify the following platform flows when the devices are available:
+
+- Android and ChromeOS: use Chrome's Install app or Add to Home Screen action,
+  launch the standalone app, then test offline chapter navigation, math, and
+  Vector/Original figure switching.
+- iPhone and iPad: in Safari use Share → Add to Home Screen, launch from the
+  Home Screen, and test the icon, standalone view, offline reading, math, and
+  figure switching. On iPad, test both portrait and landscape.
+- macOS Safari: use File → Add to Dock, check the shared 512px maskable-safe
+  icon and standalone window, then test offline reading.
+
+The service worker is an enhancement around the static reader. An extracted
+HTML archive remains readable from local files, where service workers do not
+run.
+
 ## Source files
 
 - `src/chapter1.tex` through `src/chapter6.tex` — reconstructed chapters

@@ -16,6 +16,7 @@ import base64
 import hashlib
 import html
 import io
+import json
 import os
 import re
 import shutil
@@ -53,7 +54,6 @@ ICON_PROFILE: dict[str, float | int] = {
     "unsharp_threshold": 3,
 }
 ICON_OUTPUTS = (
-    ("icon-1024.png", 1024),
     ("icon-512.png", 512),
     ("icon-192.png", 192),
     ("apple-touch-icon.png", 180),
@@ -61,6 +61,16 @@ ICON_OUTPUTS = (
 ICON_OUTPUT_DIR = ROOT / "release" / "assets" / "icons"
 ICON_PREVIEW_PATH = ROOT / "build" / "icon-preview.html"
 ICON_PREVIEW_SIZES = (180, 96, 64, 48, 32)
+ICON_ASSET_PREFIX = "assets/icons"
+APPLE_TOUCH_ICON_PATH = f"{ICON_ASSET_PREFIX}/apple-touch-icon.png"
+WEB_MANIFEST_FILENAME = "app.webmanifest"
+SERVICE_WORKER_FILENAME = "service-worker.js"
+WEB_APP_SHORT_NAME = "Wave Motions"
+WEB_APP_RELATIVE_URL = "./"
+MANIFEST_ICON_OUTPUTS = (
+    ("icon-192.png", 192),
+    ("icon-512.png", 512),
+)
 SOURCE_PAGE_CACHE = CACHE / "source-pages"
 TIKZ_CACHE = CACHE / "tikz"
 SOURCE_RENDER_DPI = 170
@@ -1601,7 +1611,7 @@ def _save_application_icon(image: Image.Image, destination: Path | io.BytesIO) -
     image.convert("RGB").save(
         destination,
         format="PNG",
-        optimize=False,
+        optimize=True,
         compress_level=9,
     )
 
@@ -1645,7 +1655,17 @@ def generate_application_icons(
 
 def application_icon_errors(output_dir: Path = ICON_OUTPUT_DIR) -> list[str]:
     """Return structural errors for generated application icons."""
+    output_dir = Path(output_dir)
     errors: list[str] = []
+    expected_names = {name for name, _size in ICON_OUTPUTS}
+    if output_dir.is_dir():
+        actual_names = {path.name for path in output_dir.iterdir() if path.is_file()}
+        unexpected_names = sorted(actual_names - expected_names)
+        if unexpected_names:
+            errors.append(
+                f"{output_dir} contains unsupported application icon outputs: "
+                + ", ".join(unexpected_names)
+            )
     for path, (_name, size) in zip(
         application_icon_paths(output_dir), ICON_OUTPUTS, strict=True
     ):
@@ -1826,6 +1846,197 @@ def prepare_application_icons(assets_root: Path) -> tuple[Path, ...]:
     paths = generate_application_icons(output_dir)
     validate_application_icons(output_dir)
     return paths
+
+
+def reader_palette() -> tuple[str, str]:
+    """Return the normal reader background and heading colors from its CSS."""
+    stylesheet = SRC / "layout" / "wave-html.css"
+    text = stylesheet.read_text()
+
+    def color(variable: str) -> str:
+        match = re.search(
+            rf"(?m)^\s*{re.escape(variable)}\s*:\s*(#[0-9A-Fa-f]{{6}})\s*;",
+            text,
+        )
+        if match is None:
+            raise ValueError(f"reader color {variable} is missing from {stylesheet}")
+        return match.group(1)
+
+    return color("--wave-bg"), color("--wave-heading")
+
+
+def web_app_manifest() -> dict[str, object]:
+    """Return the deterministic manifest for the single HTML edition."""
+    background_color, theme_color = reader_palette()
+    return {
+        "id": WEB_APP_RELATIVE_URL,
+        "name": PUBLICATION_TITLE,
+        "short_name": WEB_APP_SHORT_NAME,
+        "start_url": WEB_APP_RELATIVE_URL,
+        "scope": WEB_APP_RELATIVE_URL,
+        "display": "standalone",
+        "icons": [
+            {
+                "src": f"{ICON_ASSET_PREFIX}/{name}",
+                "sizes": f"{size}x{size}",
+                "type": "image/png",
+                "purpose": "any maskable",
+            }
+            for name, size in MANIFEST_ICON_OUTPUTS
+        ],
+        "lang": LANGUAGE,
+        "theme_color": theme_color,
+        "background_color": background_color,
+    }
+
+
+def web_app_manifest_text() -> str:
+    """Serialize the web-app manifest with stable formatting."""
+    return json.dumps(web_app_manifest(), ensure_ascii=False, indent=2) + "\n"
+
+
+def write_web_app_manifest(root: Path) -> Path:
+    """Write the manifest at the root of one generated HTML publication."""
+    path = Path(root) / WEB_MANIFEST_FILENAME
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(web_app_manifest_text(), encoding="utf-8")
+    return path
+
+
+def offline_reader_resources(root: Path) -> tuple[str, ...]:
+    """Return the sorted local files needed by the HTML reader offline.
+
+    The complete generated asset tree is included so MathJax, fonts, figures,
+    and both sides of every figure toggle remain available without a network.
+    Publication downloads and release bookkeeping are deliberately excluded.
+    """
+    root = Path(root).resolve()
+    candidates = list(root.glob("*.html"))
+    candidates.append(root / WEB_MANIFEST_FILENAME)
+    assets = root / "assets"
+    if assets.is_dir():
+        candidates.extend(assets.rglob("*"))
+
+    excluded_names = {
+        SERVICE_WORKER_FILENAME,
+        "SHA256SUMS",
+        "wave-motions-html.zip",
+    }
+    excluded_suffixes = {".epub", ".pdf", ".zip"}
+    resources: list[str] = []
+    for path in candidates:
+        if not path.is_file():
+            continue
+        relative = path.relative_to(root).as_posix()
+        if relative in excluded_names or path.suffix.lower() in excluded_suffixes:
+            continue
+        resources.append(relative)
+    return tuple(sorted(set(resources)))
+
+
+def offline_reader_resource_stats(
+    root: Path, resources: Iterable[str] | None = None
+) -> tuple[int, tuple[tuple[str, int], ...]]:
+    """Return total bytes and descending file sizes for an offline resource set."""
+    root = Path(root)
+    selected = (
+        tuple(resources) if resources is not None else offline_reader_resources(root)
+    )
+    sizes = tuple(
+        sorted(
+            ((name, (root / name).stat().st_size) for name in selected),
+            key=lambda item: (-item[1], item[0]),
+        )
+    )
+    return sum(size for _name, size in sizes), sizes
+
+
+def service_worker_text(root: Path, info: BuildInfo | None = None) -> str:
+    """Return the small versioned worker for one generated publication root."""
+    info = info or current_build()
+    cache_name = f"wave-motions-{info.short_sha}"
+    resources = offline_reader_resources(root)
+    precache = json.dumps(list(resources), ensure_ascii=False, indent=2)
+    return f"""const CACHE_NAME = {json.dumps(cache_name)};
+const CACHE_PREFIX = "wave-motions-";
+const PRECACHE_URLS = {precache};
+
+self.addEventListener("install", (event) => {{
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS)),
+  );
+}});
+
+self.addEventListener("activate", (event) => {{
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
+          .map((key) => caches.delete(key)),
+      ),
+    ),
+  );
+}});
+
+const scopeUrl = new URL(self.registration.scope);
+const assetRootPath = new URL("assets/", scopeUrl).pathname;
+const readerPageQuery = (url) =>
+  url.searchParams.toString() === "math=mathjax" ||
+  url.searchParams.toString() === "math=mathml";
+
+const cachedRequest = (cache, request, url) => {{
+  if (url.pathname.startsWith(assetRootPath)) {{
+    // Build identity is the only query used for reader assets.
+    return cache.match(request, {{ ignoreSearch: true }});
+  }}
+
+  if (
+    url.pathname === scopeUrl.pathname &&
+    (!url.search || readerPageQuery(url))
+  ) {{
+    const indexUrl = new URL(url);
+    indexUrl.pathname = scopeUrl.pathname + "index.html";
+    indexUrl.search = "";
+    return cache.match(indexUrl.href);
+  }}
+
+  if (readerPageQuery(url)) {{
+    const pageUrl = new URL(url);
+    pageUrl.search = "";
+    return cache.match(pageUrl.href);
+  }}
+
+  return cache.match(request);
+}};
+
+self.addEventListener("fetch", (event) => {{
+  const request = event.request;
+  if (request.method !== "GET") return;
+
+  const url = new URL(request.url);
+  if (
+    url.origin !== scopeUrl.origin ||
+    !url.pathname.startsWith(scopeUrl.pathname)
+  ) return;
+
+  event.respondWith(
+    caches.open(CACHE_NAME).then((cache) =>
+      cachedRequest(cache, request, url).then(
+        (cached) => cached || fetch(request),
+      ),
+    ),
+  );
+}});
+"""
+
+
+def write_service_worker(root: Path, info: BuildInfo | None = None) -> Path:
+    """Write the generated service worker at the HTML publication root."""
+    path = Path(root) / SERVICE_WORKER_FILENAME
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(service_worker_text(root, info), encoding="utf-8")
+    return path
 
 
 def prepare_publication_images(

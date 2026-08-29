@@ -113,6 +113,8 @@ The current reader also preserves these navigation behaviors: the sticky context
 
 The finished HTML reader is self-contained for runtime assets. It includes pinned MathJax, MathJax fonts, Source Serif, and Source Sans under local `assets/`; a clean build may fetch the pinned vendor archives into the build cache, but the generated HTML and tagged release ZIP must not require third-party network resources to render text or mathematics.
 
+The HTML build also emits one root `app.webmanifest` and one root `service-worker.js`. The manifest consumes the deterministic Stage-1 icons, and the worker precaches the complete local HTML reader with a build-identity cache; PDF, EPUB, and archive downloads stay outside that offline set. Reading and local-file behavior must remain functional without service-worker support.
+
 Do not dark-mode invert/filter the front-matter photograph. Generated black-on-white scientific diagrams may be theme-adjusted for legibility without changing their content.
 
 ## EPUB
