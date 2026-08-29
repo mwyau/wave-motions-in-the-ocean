@@ -96,7 +96,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Original source:** [ChapmanRizzoli5.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli5.pdf), physical page 18
 - **Representation:** source-pdf
 - **Equation check:** ai-checked
-+ **Scientific check:** The checked mismatch is documented in `ERRATA.md`, printed p.113; the source art remains unchanged.
+- **Scientific check:** The checked mismatch is documented in `ERRATA.md`, printed p.113; the source art remains unchanged.
 
 #### Figure 5.7 — step shelf
 
@@ -270,7 +270,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Original source:** [ChapmanRizzoli5.pdf](../../references/chapman-rizzoli-1989/ChapmanRizzoli5.pdf), physical page 31
 - **Representation:** source-pdf
 - **Equation check:** partial
-+ **Scientific check:** Far-field Kelvin directions and the no-normal-flow condition were independently checked. The detailed near-corner field requires an infinite Poincaré-mode matching solution, so the source art is retained.
+- **Scientific check:** Far-field Kelvin directions and the no-normal-flow condition were independently checked. The detailed near-corner field requires an infinite Poincaré-mode matching solution, so the source art is retained.
 
 #### Figure 5.18 — rossby dispersion
 

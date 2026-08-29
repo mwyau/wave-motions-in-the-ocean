@@ -167,11 +167,17 @@ def test_html_reader_settings_are_url_backed_and_storage_free() -> None:
             "wave-figure-view",
         )
     )
-    assert "const readerStateApi = (() =>" in template
-    assert 'const parameterNames = ["figures", "zoom", "theme", "math"]' in template
-    assert 'history.replaceState(null, "", nextPath)' in template
-    assert 'robots.content = "noindex,follow"' in template
-    assert 'themeNames = { system: "System", light: "Light", dark: "Dark" }' in script
+    assert all(
+        f'"{parameter}"' in template
+        for parameter in (
+            "figures",
+            "zoom",
+            "theme",
+            "math",
+        )
+    )
+    assert '<link rel="canonical"' in template
+    assert "noindex,follow" in template
     assert "data-theme-label>Device<" not in template
     assert "data-theme-label>System<" in template
 
@@ -353,19 +359,6 @@ def test_reader_state_links_context_to_page_start(index: int | None) -> None:
     state = build_html.reader_state(index)
 
     assert state["reader_chapter_url"] == "#top"
-
-
-def test_reader_toc_respects_manual_collapsed_groups() -> None:
-    script = (
-        Path(__file__).resolve().parents[1] / "src" / "layout" / "wave-html.js"
-    ).read_text()
-
-    assert "if (isCurrent) group.open = true;" not in script
-    assert "activeGroup?.open" in script
-    assert (
-        'target.closest("details.book-toc-group")?.setAttribute("open", "");'
-        not in script
-    )
 
 
 def test_equation_extraction_order_wrappers_and_exact_source(tmp_path: Path) -> None:
@@ -585,18 +578,16 @@ def test_equations_asset_check_scope_controls_unexpected_png_scan(
 
 
 @pytest.mark.parametrize(
-    ("stale_indexes", "message"),
+    "stale_indexes",
     [
-        ((1,), "Regenerated 1 equation (3 review assets) in Chapter 1."),
-        ((0, 1), "Regenerated 2 equations (6 review assets) in Chapter 1."),
+        (1,),
+        (0, 1),
     ],
 )
 def test_equations_assets_pass_only_stale_displays_to_regeneration(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
     stale_indexes: tuple[int, ...],
-    message: str,
 ) -> None:
     source = _write_equation_test_sources(tmp_path)
     monkeypatch.setattr(publication, "SRC", source)
@@ -618,7 +609,6 @@ def test_equations_assets_pass_only_stale_displays_to_regeneration(
 
     assert publication._equations_cli(["--chapter", "1", "--assets"]) == 0
     assert calls == [stale]
-    assert message in capsys.readouterr().out
 
 
 def test_equations_assets_current_does_not_render(

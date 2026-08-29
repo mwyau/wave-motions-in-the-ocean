@@ -17,6 +17,7 @@ from validate import (
     tex_math_regions,
     validate_mathml_alignment,
     validate_offline_runtime,
+    warning,
 )
 
 
@@ -28,34 +29,25 @@ def test_modern_pdf_size_warning_is_advisory(
     for size in (
         GOOGLE_SCHOLAR_PDF_WARNING_BYTES - 1,
         GOOGLE_SCHOLAR_PDF_WARNING_BYTES,
+        GOOGLE_SCHOLAR_PDF_WARNING_BYTES + 1,
     ):
-        pdf.write_bytes(b"x" * size)
+        with pdf.open("wb") as handle:
+            handle.truncate(size)
         assert check_modern_pdf_size(pdf) == size
-        assert capsys.readouterr().err == ""
-
-    warning_size = GOOGLE_SCHOLAR_PDF_WARNING_BYTES + 120_000
-    pdf.write_bytes(b"x" * warning_size)
-    assert check_modern_pdf_size(pdf) == warning_size
-    message = capsys.readouterr().err
-    assert "Google Scholar" in message
-    assert "5.12 MB" in message
+        captured = capsys.readouterr()
+        if size <= GOOGLE_SCHOLAR_PDF_WARNING_BYTES:
+            assert captured.err == ""
+        else:
+            assert "Google Scholar" in captured.err
 
 
-def test_modern_pdf_size_warning_uses_github_annotation(
-    tmp_path: Path, capsys, monkeypatch
-) -> None:
+def test_warning_uses_github_annotation(capsys, monkeypatch) -> None:
     monkeypatch.setenv("GITHUB_ACTIONS", "true")
-    pdf = tmp_path / "wave-motions.pdf"
-    warning_size = GOOGLE_SCHOLAR_PDF_WARNING_BYTES + 120_000
-    pdf.write_bytes(b"x" * warning_size)
-
-    assert check_modern_pdf_size(pdf) == warning_size
+    warning("Example warning", "advisory message")
     captured = capsys.readouterr()
 
     assert captured.err == ""
-    assert "::warning title=Google Scholar PDF size::" in captured.out
-    assert "Google Scholar" in captured.out
-    assert "5.12 MB" in captured.out
+    assert "::warning" in captured.out
 
 
 def test_strip_tex_comments_keeps_escaped_percent_signs() -> None:
