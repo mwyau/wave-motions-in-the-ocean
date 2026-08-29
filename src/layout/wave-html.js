@@ -6,6 +6,39 @@
   readerStateApi.current = readerState;
   const readerPagePattern = /^(?:index|chapter\d+|references)\.html$/;
 
+  // Keep the sticky reader bar at one visual height from page start onward.
+  document.body.style.paddingTop = "0";
+  document.querySelector(".reader-header")?.style.setProperty(
+    "padding-top",
+    "env(safe-area-inset-top, 0px)",
+  );
+
+  document.querySelectorAll(".reader-nav-slot .reader-arrow").forEach((arrow) => {
+    const previous = Boolean(arrow.closest(".previous-link"));
+    const points = previous ? "13 2 3 12 13 22" : "3 2 13 12 3 22";
+    arrow.textContent = "";
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 16 24");
+    svg.setAttribute("width", "14");
+    svg.setAttribute("height", "22");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    svg.style.display = "block";
+    svg.style.overflow = "visible";
+    const polyline = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "polyline",
+    );
+    polyline.setAttribute("points", points);
+    polyline.setAttribute("fill", "none");
+    polyline.setAttribute("stroke", "currentColor");
+    polyline.setAttribute("stroke-width", "2.5");
+    polyline.setAttribute("stroke-linecap", "square");
+    polyline.setAttribute("stroke-linejoin", "miter");
+    svg.append(polyline);
+    arrow.append(svg);
+  });
+
   const updateReaderLinks = () => {
     document.querySelectorAll("a[href]").forEach((link) => {
       const raw = link.getAttribute("href");
@@ -602,9 +635,15 @@
   const alignFragmentTarget = () => {
     const target = fragmentTarget();
     if (!target || !/^H[1-3]$/.test(target.tagName)) return;
+    const chapterBlock =
+      target.matches('h1[id^="chapter-"]') &&
+      target.previousElementSibling?.matches(".chapter-title-block")
+        ? target.previousElementSibling
+        : null;
+    const anchor = chapterBlock || target;
     const offset = Number.parseFloat(getComputedStyle(target).scrollMarginTop);
     if (!Number.isFinite(offset)) return;
-    const delta = target.getBoundingClientRect().top - offset;
+    const delta = anchor.getBoundingClientRect().top - offset;
     if (Math.abs(delta) > 1) scrollBy(0, delta);
   };
 

@@ -178,7 +178,7 @@ def frontmatter_markdown(text: str) -> str:
 
 
 def read_download_markdown() -> str:
-    lines = ["## Read and download", "", f"- [HTML]({SITE_URL}/)"]
+    lines = ["## Read and download", "", f"- [HTML (installable)]({SITE_URL}/)"]
     for filename, label in DOWNLOADS:
         if filename == "wave-motions-facsimile.pdf":
             continue
@@ -186,17 +186,7 @@ def read_download_markdown() -> str:
     lines.extend(
         [
             "",
-            f"Contact: [{CONTACT_EMAIL}](mailto:{CONTACT_EMAIL})",
-            "",
-            "## Install the web edition",
-            "",
-            "**Android / ChromeOS.** Use Chrome's Install app or Add to Home Screen action.",
-            "",
-            "**iPhone / iPad.** Open the site in Safari and choose Share → Add to Home Screen.",
-            "",
-            "**macOS Safari.** Use File → Add to Dock.",
-            "",
-            "After the web edition has cached its reading assets, the HTML book can be read offline.",
+            f"**Corrections and comments:** [{CONTACT_EMAIL}](mailto:{CONTACT_EMAIL})",
         ]
     )
     return "\n".join(lines)

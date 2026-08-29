@@ -207,10 +207,10 @@ The build checks and copies the committed files into `release/assets/figures/`.
 
 Application icons are deterministic derivatives of
 `src/images/great-wave-met-dp130155.jpg`. They use the fixed crop
-`(0.06, 0.00, 0.92, 0.86)` and the `crisp_vivid` profile; every icon uses the
-same maskable-safe composition. Processing is ordered as crop, centered
-Lanczos square fit, contrast, saturation, sharpness, and UnsharpMask. Generate
-or check them with:
+`(0.06, 0.00, 0.92, 0.86)` and the pinned enhancement settings in
+`scripts/webapp.py`; every icon uses the same maskable-safe composition.
+Processing is ordered as crop, centered Lanczos square fit, contrast,
+saturation, sharpness, and UnsharpMask. Generate or check them with:
 
 ```bash
 uv run --frozen python scripts/webapp.py icons

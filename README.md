@@ -118,20 +118,10 @@ during the International School of Physics “Enrico Fermi,” Course LXXX,
 
 ## Read and download
 
-- [HTML](https://mwyau.github.io/wave-motions-in-the-ocean/)
+- [HTML (installable)](https://mwyau.github.io/wave-motions-in-the-ocean/)
 - [PDF](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.pdf)
 - [EPUB](https://mwyau.github.io/wave-motions-in-the-ocean/wave-motions.epub)
 
-Contact: [albert.yau@stonybrook.edu](mailto:albert.yau@stonybrook.edu)
-
-## Install the web edition
-
-**Android / ChromeOS.** Use Chrome's Install app or Add to Home Screen action.
-
-**iPhone / iPad.** Open the site in Safari and choose Share → Add to Home Screen.
-
-**macOS Safari.** Use File → Add to Dock.
-
-After the web edition has cached its reading assets, the HTML book can be read offline.
+**Corrections and comments:** [albert.yau@stonybrook.edu](mailto:albert.yau@stonybrook.edu)
 
 This work is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" width="16" height="16"> <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" width="16" height="16"> <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" width="16" height="16"> <img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" width="16" height="16">

@@ -323,7 +323,7 @@ def test_application_icon_preview_is_self_contained_and_shows_safe_zone(
     text = preview.read_text()
     assert "src/images/great-wave-met-dp130155.jpg" in text
     assert "(0.06, 0.0, 0.92, 0.86)" in text
-    assert "crisp_vivid" in text
+    assert "Enhancement settings:" in text
     assert "radius 40%" in text
     assert text.count("data:image/png;base64,") == 25
     for size in webapp.ICON_PREVIEW_SIZES:

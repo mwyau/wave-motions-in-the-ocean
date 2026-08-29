@@ -322,7 +322,7 @@ def write_application_icon_preview(
   <h1>Final application icon preview</h1>
   <p class="details">Source: <code>{source_label}</code><br>
   Crop: <code>{crop_label}</code><br>
-  Profile: <code>crisp_vivid</code> ({profile_label})<br>
+  Enhancement settings: <code>{profile_label}</code><br>
   Every preview uses the same composition. The dashed circle is the intended
   maskable safe zone: radius 40% of the icon side, with a 10% inset.</p>
   {"".join(sections)}
