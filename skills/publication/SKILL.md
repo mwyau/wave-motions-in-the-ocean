@@ -90,7 +90,7 @@ The facsimile build logs machine-readable source-boundary headroom and physical/
 
 ## README and HTML synchronization
 
-`scripts/publication.py` derives shared titles, section headings, reader links, license presentation, flowing sources, figure assets, and build identity. `scripts/build_html.py` consumes that model while generating the final HTML edition; `scripts/sync_readme.py` owns README synchronization/checking only.
+`scripts/publication.py` derives shared titles, section headings, reader links, license presentation, flowing sources, figure assets, and build identity. `scripts/webapp.py` owns the HTML web-app manifest, icons, offline resource set, and service-worker generation from `src/layout/wave-service-worker.js`. `scripts/build_html.py` consumes those models while generating the final HTML edition; `scripts/sync_readme.py` owns README synchronization/checking only.
 
 README and HTML must remain substantively synchronized, with format-specific differences such as absolute/relative URLs, README badges, and HTML reader controls.
 
@@ -139,7 +139,7 @@ Do not use numbering changes as an opportunity to alter source equations.
 
 ## Build interface and outputs
 
-Python tooling uses uv as the only supported development and CI environment. `pyproject.toml` owns the dependency declarations and `uv.lock` is the exact reference lock. Set up with `uv sync --frozen`; run Python tools with `uv run --frozen`. Make targets enter the uv environment themselves, and the direct all-editions command is `uv run --frozen ./scripts/build.sh all`.
+Python tooling uses uv as the only supported development and CI environment. `pyproject.toml` owns the dependency declarations and `uv.lock` is the exact reference lock. Set up with `uv sync --frozen`; run Python tools with `uv run --frozen`. Make targets enter the uv environment themselves. The Makefile orchestrates the three direct builders: `build_pdf.py`, `build_html.py`, and `build_epub.py`.
 
 Use:
 
@@ -150,7 +150,7 @@ make epub
 make all
 ```
 
-For a direct script invocation, use `uv run --frozen ./scripts/build.sh all`.
+For an individual direct builder, use `uv run --frozen python scripts/build_pdf.py`, `scripts/build_html.py`, or `scripts/build_epub.py` as appropriate.
 
 `build/` and `release/` are generated and untracked. `audit/` is the persistent-but-ignored workspace for temporary review artifacts and must survive publication builds. The flat `release/` root is the complete validated publication tree: HTML, assets, the modern PDF, QA facsimile PDF, EPUB, and `SHA256SUMS`. Normal builds do not create `wave-motions-html.zip`.
 
@@ -164,7 +164,7 @@ After any reconstruction `.tex` change:
 uv run --frozen python scripts/sync_readme.py
 ```
 
-Include resulting README synchronization in the same commit. A coherent local validation is `./scripts/build.sh all`.
+Include resulting README synchronization in the same commit. A coherent local build is `make all`.
 
 ## Publish workflow
 

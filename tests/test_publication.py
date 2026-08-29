@@ -9,6 +9,7 @@ from PIL.PngImagePlugin import PngInfo
 
 import build_html
 import publication
+import webapp
 from publication import (
     BuildInfo,
     EquationDisplay,
@@ -16,20 +17,15 @@ from publication import (
     _crop_source_image,
     _mask_box_pixels,
     _validate_mask_boxes,
-    application_icon_check_errors,
-    application_icon_errors,
     collect_equation_displays,
     equation_asset_paths,
     equation_ledger_text,
     equation_markdown_math,
     expected_source_png_metadata,
     figure_asset_paths,
-    generate_application_icons,
-    icon_crop_pixels,
     maintained_figure_asset_errors,
     parse_mask,
     parse_trim,
-    prepare_application_icons,
     prepare_assets,
     prepare_original_assets,
     prepare_vector_assets,
@@ -42,6 +38,13 @@ from publication import (
     tikz_source_metadata,
     transform_tex,
     validate_maintained_figure_assets,
+)
+from webapp import (
+    application_icon_check_errors,
+    application_icon_errors,
+    generate_application_icons,
+    icon_crop_pixels,
+    prepare_application_icons,
     write_application_icon_preview,
 )
 
@@ -179,7 +182,7 @@ def test_html_artwork_uses_wave_motions_pages_urls() -> None:
     generated = build_html.page_metadata(build_html.OUT / "references.html")
     expected = tuple(
         f"{publication.SITE_URL.rstrip('/')}/{path}"
-        for path in publication.ARTWORK_ASSET_PATHS
+        for path in webapp.ARTWORK_ASSET_PATHS
     )
 
     assert 'src="$artwork_cover_url$"' in template
@@ -253,13 +256,13 @@ def test_paged_artwork_derivatives_are_deterministic_and_keep_masters_unchanged(
 def test_application_icons_are_pinned_deterministic_rgb_pngs(
     tmp_path: Path,
 ) -> None:
-    source = publication.ICON_SOURCE
+    source = webapp.ICON_SOURCE
     source_bytes = source.read_bytes()
     with Image.open(source) as image:
         source_size = image.size
 
-    assert publication.ICON_CROP == (0.06, 0.00, 0.92, 0.86)
-    assert publication.ICON_PROFILE == {
+    assert webapp.ICON_CROP == (0.06, 0.00, 0.92, 0.86)
+    assert webapp.ICON_PROFILE == {
         "contrast": 1.06,
         "saturation": 1.06,
         "sharpness": 1.12,
@@ -276,13 +279,13 @@ def test_application_icons_are_pinned_deterministic_rgb_pngs(
     second_paths = generate_application_icons(second)
 
     assert [path.name for path in first_paths] == [
-        name for name, _size in publication.ICON_OUTPUTS
+        name for name, _size in webapp.ICON_OUTPUTS
     ]
     assert {path.name for path in first.iterdir()} == {
-        name for name, _size in publication.ICON_OUTPUTS
+        name for name, _size in webapp.ICON_OUTPUTS
     }
     for (name, size), first_path, second_path in zip(
-        publication.ICON_OUTPUTS, first_paths, second_paths, strict=True
+        webapp.ICON_OUTPUTS, first_paths, second_paths, strict=True
     ):
         assert first_path.read_bytes() == second_path.read_bytes()
         with Image.open(first_path) as image:
@@ -323,7 +326,7 @@ def test_application_icon_preview_is_self_contained_and_shows_safe_zone(
     assert "crisp_vivid" in text
     assert "radius 40%" in text
     assert text.count("data:image/png;base64,") == 25
-    for size in publication.ICON_PREVIEW_SIZES:
+    for size in webapp.ICON_PREVIEW_SIZES:
         assert f"{size} × {size}" in text
     for label in (
         "Square",

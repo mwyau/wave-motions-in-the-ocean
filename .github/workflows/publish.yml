@@ -17,6 +17,7 @@ on:
       - "references/mit-ocw-2008/**"
       - "scripts/**"
       - "tests/**"
+      - "Makefile"
       - ".python-version"
       - ".pre-commit-config.yaml"
       - "CITATION.cff"
@@ -174,9 +175,7 @@ jobs:
         run: uv run --frozen python -m pytest -q tests/test_reference_style.py
 
       - name: Build publication
-        env:
-          WAVE_SKIP_VALIDATION: "1"
-        run: uv run --frozen ./scripts/build.sh all
+        run: make all
 
       - name: Install EPUBCheck
         shell: bash

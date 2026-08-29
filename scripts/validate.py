@@ -40,39 +40,41 @@ from build_epub import (
 )
 from build_html import page_metadata_record, sitemap_urls
 from publication import (
-    APPLE_TOUCH_ICON_PATH,
-    ARTWORK_ASSET_PATHS,
     AUTHORS,
     DOWNLOADS,
     EDITOR,
-    ICON_ASSET_PREFIX,
     LANGUAGE,
-    MANIFEST_ICON_OUTPUTS,
-    OFFLINE_OPTIONAL_ARTWORK_ASSETS,
     REPOSITORY_URL,
-    SERVICE_WORKER_FILENAME,
     SITE_URL,
-    WEB_APP_NAME,
-    WEB_APP_SHORT_NAME,
-    WEB_MANIFEST_FILENAME,
-    application_icon_errors,
     book_structure,
     current_build,
     equation_asset_errors,
     equation_ledger_errors,
     figure_ledger_errors,
-    offline_reader_resources,
     page_switchable_figure_stems,
     section_slug,
     summarize_equation_asset_errors,
     validate_maintained_figure_assets,
-    web_app_manifest,
 )
 from publication import (
     MATHJAX_URL as MATHJAX_PINNED,
 )
 from publication import PUBLICATION_TITLE as TITLE
 from release import publication_files, verify_manifest
+from webapp import (
+    APPLE_TOUCH_ICON_PATH,
+    ARTWORK_ASSET_PATHS,
+    ICON_ASSET_PREFIX,
+    MANIFEST_ICON_OUTPUTS,
+    OFFLINE_OPTIONAL_ARTWORK_ASSETS,
+    SERVICE_WORKER_FILENAME,
+    WEB_APP_NAME,
+    WEB_APP_SHORT_NAME,
+    WEB_MANIFEST_FILENAME,
+    application_icon_errors,
+    offline_reader_resources,
+    web_app_manifest,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
@@ -553,6 +555,25 @@ def _attribute(tag: str, name: str) -> str | None:
     return match.group(2) if match else None
 
 
+def _js_string_constant(source: str, name: str) -> str | None:
+    """Return one double-quoted JavaScript constant when it is unambiguous."""
+    matches = list(
+        re.finditer(
+            rf"\b(?:const|let|var)\s+{re.escape(name)}\s*=\s*"
+            r'(?P<value>"(?:\\.|[^"\\])*")\s*;',
+            source,
+        )
+    )
+    if len(matches) != 1:
+        return None
+    match = matches[0]
+    try:
+        value = json.loads(match.group("value"))
+    except json.JSONDecodeError:
+        return None
+    return value if isinstance(value, str) else None
+
+
 def validate_offline_runtime(root: Path) -> None:
     root = root.resolve()
     pages = sorted(root.glob("*.html"))
@@ -800,32 +821,40 @@ def pwa_errors(root: Path = PUBLICATION) -> list[str]:
         worker_text = worker_path.read_text(errors="replace")
         info = current_build()
         expected_cache_name = f"wave-motions-{info.short_sha}"
-        if f"const CACHE_NAME = {json.dumps(expected_cache_name)};" not in worker_text:
+        if _js_string_constant(worker_text, "CACHE_NAME") != expected_cache_name:
             errors.append(
-                "service worker cache name does not contain current build identity"
+                "service worker cache name does not match current build identity"
             )
-        if 'const CACHE_PREFIX = "wave-motions-";' not in worker_text:
+        if _js_string_constant(worker_text, "CACHE_PREFIX") != "wave-motions-":
             errors.append("service worker cache namespace is missing")
-        if "key.startsWith(CACHE_PREFIX)" not in worker_text:
+        if not re.search(r"\.startsWith\(\s*CACHE_PREFIX\s*\)", worker_text):
             errors.append("service worker cleanup is not limited to this app namespace")
-        if "caches.delete(key)" not in worker_text:
+        if not re.search(r"\bcaches\.delete\s*\(", worker_text):
             errors.append("service worker does not clean up old app caches")
-        for forbidden in ("skipWaiting", "clients.claim"):
-            if forbidden in worker_text:
+        for forbidden in (r"\bskipWaiting\s*\(", r"\bclients\.claim\s*\("):
+            if re.search(forbidden, worker_text):
                 errors.append(
-                    f"service worker must not force lifecycle takeover: {forbidden}"
+                    "service worker must not force lifecycle takeover: "
+                    + forbidden.replace(r"\s*", "")
                 )
-        for required in (
-            'request.method !== "GET"',
-            "url.origin !== scopeUrl.origin",
-            "url.pathname.startsWith(scopeUrl.pathname)",
-            "ignoreSearch: true",
-            "const readerPagePattern",
-            "Boolean(url.search)",
-        ):
-            if required not in worker_text:
+        required_rules = (
+            (r"request\.method\s*!==\s*[\"']GET[\"']", "GET-only requests"),
+            (r"url\.origin\s*!==\s*scopeUrl\.origin", "same-origin boundary"),
+            (
+                r"url\.pathname\.startsWith\(\s*scopeUrl\.pathname\s*\)",
+                "scope path boundary",
+            ),
+            (
+                r"cache\.match\(\s*request\s*,\s*\{\s*ignoreSearch\s*:\s*true",
+                "query-insensitive asset lookup",
+            ),
+            (r"\b(?:const|let|var)\s+readerPagePattern\s*=", "reader URL pattern"),
+            (r"Boolean\(\s*url\.search\s*\)", "reader query handling"),
+        )
+        for pattern, description in required_rules:
+            if not re.search(pattern, worker_text, flags=re.DOTALL):
                 errors.append(
-                    f"service worker is missing boundary or cache rule: {required}"
+                    "service worker is missing boundary or cache rule: " + description
                 )
         if any(
             marker and marker in worker_text

@@ -151,7 +151,7 @@ After source changes, run the relevant build. For a coherent repository batch us
 
 ```bash
 uv run --frozen python scripts/sync_readme.py
-./scripts/build.sh all
+make all
 ```
 
 If the audit affects a figure, also follow `skills/figure-audit/SKILL.md`.

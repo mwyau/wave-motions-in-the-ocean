@@ -111,10 +111,12 @@ Build all editions with the repository's normal command:
 make all
 ```
 
-The direct equivalent is:
+The individual builders can also be run directly:
 
 ```bash
-uv run --frozen ./scripts/build.sh all
+uv run --frozen python scripts/build_pdf.py
+uv run --frozen python scripts/build_epub.py
+uv run --frozen python scripts/build_html.py
 ```
 
 After installing EPUBCheck, run strict full validation:
@@ -195,9 +197,9 @@ Lanczos square fit, contrast, saturation, sharpness, and UnsharpMask. Generate
 or check them with:
 
 ```bash
-uv run --frozen python scripts/publication.py icons
-uv run --frozen python scripts/publication.py icons --check
-uv run --frozen python scripts/publication.py icons --preview
+uv run --frozen python scripts/webapp.py icons
+uv run --frozen python scripts/webapp.py icons --check
+uv run --frozen python scripts/webapp.py icons --preview
 ```
 
 The normal HTML/all publication build writes them to

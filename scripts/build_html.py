@@ -25,8 +25,6 @@ from xml.sax.saxutils import escape as xml_escape
 from PIL import Image
 
 from publication import (
-    APPLE_TOUCH_ICON_PATH,
-    ARTWORK_ASSET_PATHS,
     AUTHORS,
     BOOK_TITLE,
     CONTACT_EMAIL,
@@ -40,20 +38,24 @@ from publication import (
     PUBLICATION_TITLE,
     PUBLICATION_YEAR,
     REPOSITORY_URL,
-    SERVICE_WORKER_FILENAME,
     SITE_URL,
-    WEB_MANIFEST_FILENAME,
     book_structure,
     current_build,
     html_license,
-    offline_reader_resource_stats,
-    offline_reader_resources,
     page_switchable_figure_stems,
-    prepare_application_icons,
     prepare_assets,
     prepare_flowing_sources,
     reader_punctuation,
     section_slug,
+)
+from webapp import (
+    APPLE_TOUCH_ICON_PATH,
+    ARTWORK_ASSET_PATHS,
+    SERVICE_WORKER_FILENAME,
+    WEB_MANIFEST_FILENAME,
+    offline_reader_resource_stats,
+    offline_reader_resources,
+    prepare_application_icons,
     service_worker_text,
     validate_application_icons,
     web_app_manifest,

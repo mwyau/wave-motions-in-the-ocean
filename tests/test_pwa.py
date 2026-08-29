@@ -4,19 +4,16 @@ import urllib.parse
 from pathlib import Path
 
 import validate
-from publication import (
+from publication import BOOK_TITLE, PUBLICATION_TITLE, SITE_URL, SRC, BuildInfo
+from webapp import (
     APPLE_TOUCH_ICON_PATH,
     ARTWORK_ASSET_PATHS,
-    BOOK_TITLE,
     MANIFEST_ICON_OUTPUTS,
     OFFLINE_OPTIONAL_ARTWORK_ASSETS,
-    PUBLICATION_TITLE,
     SERVICE_WORKER_FILENAME,
-    SITE_URL,
     WEB_APP_NAME,
     WEB_APP_SHORT_NAME,
     WEB_MANIFEST_FILENAME,
-    BuildInfo,
     generate_application_icons,
     offline_reader_resources,
     reader_palette,
@@ -67,6 +64,19 @@ def test_web_app_manifest_is_deterministic_and_pages_safe() -> None:
         )
         for entry in manifest["icons"]
     )
+
+
+def test_service_worker_registration_is_guarded_and_repository_safe() -> None:
+    source = (SRC / "layout" / "wave-html.js").read_text()
+
+    assert '"serviceWorker" in navigator' in source
+    assert (
+        'navigator.serviceWorker\n    .register("./service-worker.js", { scope: "./" })'
+        in source
+    )
+    assert "window.isSecureContext" in source
+    assert 'location.protocol === "http:"' in source
+    assert 'location.protocol === "https:"' in source
 
 
 def test_service_worker_has_sorted_complete_precache_and_versioned_lifecycle(

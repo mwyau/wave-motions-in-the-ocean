@@ -170,7 +170,7 @@ Run this check even when equations were independently verified, tests pass, the 
 
 ## Completion
 
-After figure work, run the relevant comparison plus the publication build containing the figure. For a coherent batch, finish with `./scripts/build.sh all`.
+After figure work, run the relevant comparison plus the publication build containing the figure. For a coherent batch, finish with `make all`.
 
 Before considering a figure audit complete, confirm that every figure/direct
 source crop has an explicit representation and equation-check state, every
