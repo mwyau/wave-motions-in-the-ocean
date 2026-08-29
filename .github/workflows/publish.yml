@@ -45,6 +45,10 @@ jobs:
     env:
       TINYTEX_VERSION: "2026.08"
       EPUBCHECK_VERSION: "5.3.0"
+    outputs:
+      pdf_artifact_id: ${{ steps.pdf_artifact.outputs.artifact-id }}
+      epub_artifact_id: ${{ steps.epub_artifact.outputs.artifact-id }}
+      html_artifact_id: ${{ steps.html_artifact.outputs.artifact-id }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v7.0.1
@@ -53,25 +57,18 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
-        shell: bash
         run: |
-          set -euo pipefail
           tag="$GITHUB_REF_NAME"
           if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Release blocked: tag must be a stable semantic version such as v1.0.0; got $tag." >&2
             exit 1
           fi
-
           status=$(gh api "repos/$GITHUB_REPOSITORY/compare/$GITHUB_SHA...main" --jq .status)
-          case "$status" in
-            identical|ahead)
-              echo "Release tag $tag points to a commit reachable from main ($status)."
-              ;;
-            *)
-              echo "Release blocked: tag commit $GITHUB_SHA is not reachable from main (compare status: $status)." >&2
-              exit 1
-              ;;
-          esac
+          if [[ "$status" != "identical" && "$status" != "ahead" ]]; then
+            echo "Release blocked: tag commit $GITHUB_SHA is not reachable from main (compare status: $status)." >&2
+            exit 1
+          fi
+          echo "Release tag $tag points to a commit reachable from main ($status)."
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v10.0.1
@@ -82,49 +79,6 @@ jobs:
             pyproject.toml
             uv.lock
 
-      - name: Set up Python environment
-        shell: bash
-        run: |
-          set -euo pipefail
-          uv sync --frozen
-
-      - name: Check Python syntax
-        run: uv run --frozen python -m compileall -q scripts tests
-
-      - name: Run unit tests
-        run: uv run --frozen python -m pytest -q
-
-      - name: Install system tools
-        env:
-          NEEDRESTART_MODE: a
-        run: |
-          sudo apt-get update
-          sudo -E apt-get install -y --no-install-recommends \
-            qpdf poppler-utils pandoc
-
-      - name: Select runner browser
-        shell: bash
-        run: |
-          set -euo pipefail
-          browser=""
-          for candidate in google-chrome google-chrome-stable chromium chromium-browser; do
-            if command -v "$candidate" >/dev/null 2>&1; then
-              browser=$(command -v "$candidate")
-              break
-            fi
-          done
-          if [[ -z "$browser" ]]; then
-            echo "Chromium reader QA requires a runner-provided Chrome or Chromium executable." >&2
-            exit 1
-          fi
-          "$browser" --version
-          echo "WAVE_CHROMIUM=$browser" >> "$GITHUB_ENV"
-
-      - name: Check JavaScript sources
-        run: |
-          node --check src/layout/wave-html.js
-          node --check src/layout/wave-service-worker.js
-
       - name: Cache prek environments
         uses: actions/cache@v6.1.0
         with:
@@ -133,25 +87,44 @@ jobs:
           restore-keys: |
             wave-motions-prek-${{ runner.os }}-
 
-      - name: Check source quality
+      - name: Check sources and tests
         run: |
-          set -euo pipefail
-          uv run --frozen python scripts/publication.py audit-check --all
-          uv run --frozen prek run --all-files --skip audit-freshness
-          if ! git diff --quiet; then
-            echo "::warning title=Source quality::Quality hooks changed tracked files; commit their fixes."
-            git --no-pager diff
-            exit 1
-          fi
+          uv sync --frozen
+          make check
+
+      - name: Install publication tools
+        env:
+          NEEDRESTART_MODE: a
+        run: |
+          sudo apt-get update
+          sudo -E apt-get install -y --no-install-recommends qpdf poppler-utils pandoc
+          curl -fL "https://github.com/w3c/epubcheck/releases/download/v${EPUBCHECK_VERSION}/epubcheck-${EPUBCHECK_VERSION}.zip" -o "$RUNNER_TEMP/epubcheck.zip"
+          unzip -q "$RUNNER_TEMP/epubcheck.zip" -d "$RUNNER_TEMP"
+          EPUBCHECK_JAR="$RUNNER_TEMP/epubcheck-${EPUBCHECK_VERSION}/epubcheck.jar"
+          test -s "$EPUBCHECK_JAR"
+          echo "EPUBCHECK_JAR=$EPUBCHECK_JAR" >> "$GITHUB_ENV"
+          java -jar "$EPUBCHECK_JAR" --version
 
       - name: Cache TinyTeX
-        id: tinytex-cache
+        id: tinytex_cache
         uses: actions/cache@v6.1.0
         with:
           path: ~/.TinyTeX
-          key: wave-motions-tinytex-2026.08-${{ runner.os }}-${{ hashFiles('tex-packages.txt') }}
-          restore-keys: |
-            wave-motions-tinytex-2026.08-${{ runner.os }}-
+          key: wave-motions-tinytex-${{ env.TINYTEX_VERSION }}-${{ runner.os }}-${{ hashFiles('tex-packages.txt') }}
+
+      - name: Install TinyTeX
+        if: steps.tinytex_cache.outputs.cache-hit != 'true'
+        uses: r-lib/actions/setup-tinytex@v2.13.0
+
+      - name: Configure TinyTeX
+        run: |
+          TEXBIN=$(find "$HOME/.TinyTeX/bin" -mindepth 1 -maxdepth 1 -type d | head -n 1)
+          test -n "$TEXBIN"
+          echo "$TEXBIN" >> "$GITHUB_PATH"
+          if [[ "${{ steps.tinytex_cache.outputs.cache-hit }}" != "true" ]]; then
+            "$TEXBIN/tlmgr" update --self
+            grep -Ev '^\s*(#|$)' tex-packages.txt | xargs "$TEXBIN/tlmgr" install
+          fi
 
       - name: Cache build intermediates
         uses: actions/cache@v6.1.0
@@ -161,39 +134,6 @@ jobs:
           restore-keys: |
             wave-motions-build-${{ runner.os }}-
 
-      - name: Detect restored TinyTeX
-        id: tinytex-state
-        shell: bash
-        run: |
-          if [ -d "$HOME/.TinyTeX/bin" ] && find "$HOME/.TinyTeX/bin" -mindepth 1 -maxdepth 1 -type d | grep -q .; then
-            echo "installed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "installed=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Install TinyTeX if absent
-        if: steps.tinytex-state.outputs.installed != 'true'
-        uses: r-lib/actions/setup-tinytex@v2.12.1
-
-      - name: Add TinyTeX to PATH
-        shell: bash
-        run: |
-          set -euo pipefail
-          TEXBIN=$(find "$HOME/.TinyTeX/bin" -mindepth 1 -maxdepth 1 -type d | head -n 1)
-          test -n "$TEXBIN"
-          echo "$TEXBIN" >> "$GITHUB_PATH"
-          echo "TEXBIN=$TEXBIN" >> "$GITHUB_ENV"
-
-      - name: Install TeX dependencies
-        if: steps.tinytex-cache.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          export PATH="$TEXBIN:$PATH"
-          tlmgr update --self
-          mapfile -t PACKAGES < <(grep -Ev '^\s*(#|$)' tex-packages.txt)
-          tlmgr install "${PACKAGES[@]}"
-
       - name: Run reference-style integration tests
         env:
           WAVE_REQUIRE_REFERENCE_TOOLS: "1"
@@ -202,44 +142,18 @@ jobs:
       - name: Build publication
         run: make all
 
-      - name: Install EPUBCheck
-        shell: bash
-        run: |
-          set -euo pipefail
-          command -v java >/dev/null
-          command -v curl >/dev/null
-          curl -fL \
-            "https://github.com/w3c/epubcheck/releases/download/v${EPUBCHECK_VERSION}/epubcheck-${EPUBCHECK_VERSION}.zip" \
-            -o "$RUNNER_TEMP/epubcheck.zip"
-          unzip -q "$RUNNER_TEMP/epubcheck.zip" -d "$RUNNER_TEMP"
-          EPUBCHECK_JAR="$RUNNER_TEMP/epubcheck-${EPUBCHECK_VERSION}/epubcheck.jar"
-          test -s "$EPUBCHECK_JAR"
-          echo "EPUBCHECK_JAR=$EPUBCHECK_JAR" >> "$GITHUB_ENV"
-          java -jar "$EPUBCHECK_JAR" --version
-
       - name: Validate publication
         run: uv run --frozen python scripts/validate.py all --require-epubcheck
 
-      - name: Run Chromium reader QA
-        if: "!startsWith(github.ref, 'refs/tags/v')"
-        run: uv run --frozen python scripts/render_qa.py release --strict
-
-      - name: Run full Chromium visual QA
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: uv run --frozen python scripts/render_qa.py release --strict --visual
-
-      - name: Check release gate
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: uv run --frozen python scripts/validate.py release
+      - name: Run publication QA
+        env:
+          QA_TARGET: ${{ startsWith(github.ref, 'refs/tags/v') && 'qa-release' || 'qa' }}
+        run: make "$QA_TARGET"
 
       - name: Create HTML archive
         run: >-
           uv run --frozen python scripts/release.py archive
           --root release --output wave-motions-html.zip
-
-      - name: Configure GitHub Pages
-        if: github.ref == 'refs/heads/main'
-        uses: actions/configure-pages@v6.0.0
 
       - name: Upload publication artifact
         uses: actions/upload-pages-artifact@v5.0.0
@@ -249,6 +163,7 @@ jobs:
           retention-days: 14
 
       - name: Upload PDF artifact
+        id: pdf_artifact
         uses: actions/upload-artifact@v7.0.1
         with:
           path: release/wave-motions.pdf
@@ -257,6 +172,7 @@ jobs:
           retention-days: 14
 
       - name: Upload EPUB artifact
+        id: epub_artifact
         uses: actions/upload-artifact@v7.0.1
         with:
           path: release/wave-motions.epub
@@ -265,6 +181,7 @@ jobs:
           retention-days: 14
 
       - name: Upload HTML artifact
+        id: html_artifact
         uses: actions/upload-artifact@v7.0.1
         with:
           path: wave-motions-html.zip
@@ -287,6 +204,9 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6.0.0
+
       - name: Deploy GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5.0.0
@@ -304,41 +224,21 @@ jobs:
       actions: read
       contents: write
     steps:
-      - name: Download PDF artifact
+      - name: Download release artifacts
         uses: actions/download-artifact@v8.0.1
         with:
-          name: wave-motions.pdf
+          artifact-ids: ${{ needs.build.outputs.pdf_artifact_id }},${{ needs.build.outputs.epub_artifact_id }},${{ needs.build.outputs.html_artifact_id }}
           path: artifact
+          merge-multiple: true
           skip-decompress: true
-
-      - name: Download EPUB artifact
-        uses: actions/download-artifact@v8.0.1
-        with:
-          name: wave-motions.epub
-          path: artifact
-          skip-decompress: true
-
-      - name: Download HTML artifact
-        uses: actions/download-artifact@v8.0.1
-        with:
-          name: wave-motions-html.zip
-          path: artifact
-          skip-decompress: true
-
-      - name: Verify release assets
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -s artifact/wave-motions.pdf
-          test -s artifact/wave-motions.epub
-          test -s artifact/wave-motions-html.zip
 
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        shell: bash
         run: |
-          set -euo pipefail
+          test -s artifact/wave-motions.pdf
+          test -s artifact/wave-motions.epub
+          test -s artifact/wave-motions-html.zip
           gh release create "$GITHUB_REF_NAME" \
             artifact/wave-motions-html.zip \
             artifact/wave-motions.pdf \
