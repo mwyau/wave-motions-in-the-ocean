@@ -52,7 +52,7 @@ MATHML_ANNOTATION_RE = re.compile(
 )
 MATHML_NS = "http://www.w3.org/1998/Math/MathML"
 MATH_PARITY_ZOOMS = ("0.5", "1.0", "2.0")
-MATH_PARITY_VIEWPORTS = ((390, 844), (768, 1000), (1440, 1200))
+MATH_PARITY_VIEWPORTS = ((320, 844), (390, 844), (768, 1000), (1440, 1200))
 MATHML_COMPARISON_ROUTE = "/__render-qa__/mathml-mathjax-comparison.html"
 READER_REGRESSION_ROUTE = "/__render-qa__/reader-regressions.html"
 READER_VISUAL_ROUTE = "/__render-qa__/reader-visual.html"
@@ -533,6 +533,7 @@ def browser_dump_dom(
         "--run-all-compositor-stages-before-draw",
         "--virtual-time-budget=3500",
         f"--window-size={width},{height}",
+        "--hide-scrollbars",
         "--dump-dom",
     ]
     if os.name != "nt" and hasattr(os, "geteuid") and os.geteuid() == 0:
@@ -966,8 +967,8 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
             f"`{specimen_rel}` ({', '.join(specimen_labels)})"
         )
         lines.append(
-            "- Math parity screenshot matrix: 390px, 768px, and 1440px at "
-            "50%/100%/200% text size (9 jobs)"
+            "- Math parity screenshot matrix: 320px, 390px, 768px, and 1440px at "
+            "50%/100%/200% text size (12 jobs)"
         )
 
     if browser:
@@ -1062,7 +1063,7 @@ def html_qa(dist: Path, report: Report, browser: str | None) -> None:
                     f"({len(jobs)} cases)"
                 )
                 lines.append(
-                    "- Reader visual screenshot matrix: 390px, 768px, and 1440px "
+                    "- Reader visual screenshot matrix: 320px, 390px, 768px, and 1440px "
                     "at 50%/100%/200% in light mode plus 100% in dark mode"
                 )
 
@@ -1452,6 +1453,13 @@ def reader_regression_specimen(report: Report) -> Path:
     (() => {
       const frame = document.querySelector("#reader-regression-frame");
       const output = document.querySelector("#reader-regression-results");
+      const requestedWidth = Number.parseFloat(
+        new URLSearchParams(location.search).get("viewport"),
+      );
+      if (Number.isFinite(requestedWidth) && requestedWidth > 0) {
+        frame.style.width = `${requestedWidth}px`;
+        frame.style.right = "auto";
+      }
       const checks = [];
       const wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
       const check = (condition, message) => {
@@ -1479,6 +1487,55 @@ def reader_regression_specimen(report: Report) -> Path:
           return;
         }
         await wait(300);
+        const documentHasNoHorizontalOverflow = () => {
+          const documentElement = doc.documentElement;
+          return documentElement.scrollWidth <= documentElement.clientWidth + 1 &&
+            doc.body.scrollWidth <= doc.body.clientWidth + 1;
+        };
+        const viewportBounds = () => {
+          const viewport = frame.contentWindow.visualViewport;
+          const left = viewport?.offsetLeft ?? 0;
+          const width = viewport?.width ?? doc.documentElement.clientWidth;
+          return { left, right: left + width, bottom: frame.contentWindow.innerHeight };
+        };
+        const rectIsInViewport = (node) => {
+          if (!node) return false;
+          const rect = node.getBoundingClientRect();
+          const bounds = viewportBounds();
+          return rect.left >= bounds.left - 1 &&
+            rect.right <= bounds.right + 1 &&
+            rect.top >= -1 &&
+            rect.bottom <= bounds.bottom + 1;
+        };
+        check(
+          documentHasNoHorizontalOverflow(),
+          "document has no horizontal overflow at the initial narrow-phone state",
+        );
+        const initialHeader = doc.querySelector(".book-nav");
+        const initialContext = doc.querySelector(".reader-context");
+        check(
+          Boolean(initialHeader && initialContext &&
+            doc.querySelector(".toc-toggle") &&
+            doc.querySelector(".previous-link") &&
+            doc.querySelector(".next-link") &&
+            doc.querySelector(".reader-settings-toggle")),
+          "narrow reader header exposes Contents, arrows, context, and Settings",
+        );
+        check(
+          (initialHeader && Number.parseFloat(getComputedStyle(initialHeader).fontSize) >= 15) &&
+            (initialContext && Number.parseFloat(getComputedStyle(initialContext).fontSize) >= 16),
+          "narrow reader header keeps its normal readable font sizing",
+        );
+        check(
+          [
+            doc.querySelector(".toc-toggle"),
+            doc.querySelector(".previous-link"),
+            initialContext,
+            doc.querySelector(".next-link"),
+            doc.querySelector(".reader-settings-toggle"),
+          ].every(rectIsInViewport),
+          "narrow reader header controls remain inside the viewport",
+        );
         const figures = Array.from(doc.querySelectorAll("figure.wave-figure-switchable"));
         check(figures.length >= 2, "page has at least two switchable figures");
         const parts = figures.slice(0, 2).map((figure) => ({
@@ -1593,6 +1650,10 @@ def reader_regression_specimen(report: Report) -> Path:
           finish();
           return;
         }
+        check(
+          documentHasNoHorizontalOverflow(),
+          "document has no horizontal overflow at the full-state narrow-phone state",
+        );
         check(frame.contentWindow.location.search === stateQuery, "full reader state keeps its canonical query order");
         check(frame.contentWindow.location.hash === "#the-internal-wave-equation", "reader state keeps the current hash");
         check(stateMatches(fullState), "full URL initializes Vector, 200%, Light, and MathML");
@@ -1611,6 +1672,95 @@ def reader_regression_specimen(report: Report) -> Path:
             doc.querySelector('span[data-math-renderer="mathjax"]')?.hidden === true,
           "full URL selects native MathML",
         );
+        const contextTitle = doc.querySelector(".reader-context-title");
+        if (contextTitle) {
+          const originalContextTitle = contextTitle.textContent;
+          contextTitle.textContent = "A very long current section title for narrow phones ".repeat(4);
+          const contextStyle = getComputedStyle(contextTitle);
+          const contextRect = contextTitle.getBoundingClientRect();
+          check(
+            contextStyle.overflow === "hidden" &&
+              contextStyle.textOverflow === "ellipsis" &&
+              contextStyle.whiteSpace === "nowrap" &&
+              contextRect.width > 0 &&
+              contextTitle.scrollWidth > contextTitle.clientWidth,
+            "long narrow reader context ellipsizes inside its slot",
+          );
+          contextTitle.textContent = originalContextTitle;
+        } else {
+          check(false, "long narrow reader context ellipsizes inside its slot");
+        }
+        check(
+          [
+            doc.querySelector(".toc-toggle"),
+            doc.querySelector(".previous-link"),
+            doc.querySelector(".reader-context"),
+            doc.querySelector(".next-link"),
+            doc.querySelector(".reader-settings-toggle"),
+          ].every(rectIsInViewport),
+          "full-state reader header controls remain inside the narrow viewport",
+        );
+        const fullDisplayMath = doc.querySelector(".math.display");
+        check(
+          Boolean(
+            fullDisplayMath &&
+              getComputedStyle(fullDisplayMath).overflowX === "auto" &&
+              getComputedStyle(fullDisplayMath).maxWidth === "100%",
+          ),
+          "wide display math has a bounded horizontal scroll wrapper",
+        );
+        const fullCaptionLayout = fullFigures.every((figure) => {
+          const caption = figure.querySelector("figcaption");
+          const label = figure.querySelector(".figure-label");
+          const action = figure.querySelector("[data-figure-toggle]");
+          if (!caption || !label || !action) return false;
+          const labelRect = label.getBoundingClientRect();
+          const actionRect = action.getBoundingClientRect();
+          const captionRect = caption.getBoundingClientRect();
+          const actionStyle = getComputedStyle(action);
+          return actionRect.top >= labelRect.bottom - 1 &&
+            actionRect.height >= 43 &&
+            actionRect.left >= captionRect.left - 1 &&
+            actionRect.right <= captionRect.right + 1 &&
+            actionStyle.display !== "none" &&
+            actionStyle.visibility !== "hidden";
+        });
+        check(
+          fullCaptionLayout,
+          "narrow figure captions give the switch action its own visible touch row",
+        );
+        const contentsPanel = doc.querySelector("#book-contents");
+        const contentsButton = doc.querySelector("[data-toc-toggle]");
+        const contentsOpen = () => {
+          try {
+            return contentsPanel?.matches(":popover-open") || false;
+          } catch (_) {
+            return false;
+          }
+        };
+        check(Boolean(contentsPanel && contentsButton), "Contents exposes its narrow popover");
+        if (contentsPanel && contentsButton) {
+          contentsButton.click();
+          await wait(50);
+          check(contentsOpen(), "Contents opens at narrow width");
+          check(
+            rectIsInViewport(contentsPanel) &&
+              contentsPanel.scrollWidth <= contentsPanel.clientWidth,
+            "Contents popover stays inside the narrow viewport without horizontal overflow",
+          );
+          check(
+            Boolean(
+              contentsPanel.querySelector(
+                'a[data-section-link="the-internal-wave-equation"][aria-current="location"]',
+              ),
+            ),
+            "Contents keeps the direct-fragment section active at narrow width",
+          );
+          if (contentsOpen() && typeof contentsPanel.hidePopover === "function") {
+            contentsPanel.hidePopover();
+            await wait(20);
+          }
+        }
         check(
           doc.querySelector('meta[name="robots"]')?.content === "noindex,follow",
           "query-string URL receives noindex,follow",
@@ -1784,6 +1934,21 @@ def reader_regression_specimen(report: Report) -> Path:
             panel && panel.scrollWidth <= panel.clientWidth,
             "Settings has no horizontal overflow at " + percent + "% text size",
           );
+          check(
+            documentHasNoHorizontalOverflow(),
+            "document has no horizontal overflow at " + percent + "% text size",
+          );
+          check(
+            panel && rectIsInViewport(panel),
+            "Settings stays inside the visible viewport at " + percent + "% text size",
+          );
+          if (percent === 50 || percent === 200) {
+            const action = percent === 50 ? decrease : increase;
+            check(
+              action?.disabled === true,
+              "Settings disables the " + (percent === 50 ? "decrease" : "increase") + " action at " + percent + "%",
+            );
+          }
         };
         check(Boolean(panel && settingsButton && reset && decrease && increase), "Settings exposes its expected controls");
         if (panel && settingsButton && reset && decrease && increase) {
@@ -1889,10 +2054,18 @@ def reader_visual_specimen(report: Report) -> Path:
         "chapter6.html",
       ]);
       const settingsOpen = params.get("settings") === "1";
+      const contentsOpen = params.get("contents") === "1";
       const frame = document.querySelector("#reader-visual-frame");
+      const requestedWidth = Number.parseFloat(params.get("viewport"));
+      if (Number.isFinite(requestedWidth) && requestedWidth > 0) {
+        frame.style.width = `${requestedWidth}px`;
+      }
       frame.addEventListener("load", () => {
         if (settingsOpen) {
           frame.contentDocument.querySelector("[aria-controls=reader-settings]")?.click();
+        }
+        if (contentsOpen) {
+          frame.contentDocument.querySelector("[data-toc-toggle]")?.click();
         }
         document.documentElement.dataset.qaReady = "";
       }, { once: true });
@@ -1918,13 +2091,14 @@ def browser_reader_visual_jobs(
 ) -> None:
     visual_page = reader_visual_specimen(report)
     qa_pages[READER_VISUAL_ROUTE] = visual_page
-    for width, height in ((390, 844), (768, 1000), (1440, 1200)):
+    for width, height in ((320, 844), (390, 844), (768, 1000), (1440, 1200)):
         for zoom in MATH_PARITY_ZOOMS:
             query = urllib.parse.urlencode(
                 {
                     "page": "chapter1.html",
                     "zoom": zoom,
                     "theme": "light",
+                    "viewport": width,
                 }
             )
             jobs.append(
@@ -1937,7 +2111,12 @@ def browser_reader_visual_jobs(
                 )
             )
         query = urllib.parse.urlencode(
-            {"page": "chapter1.html", "zoom": "1.0", "theme": "dark"}
+            {
+                "page": "chapter1.html",
+                "zoom": "1.0",
+                "theme": "dark",
+                "viewport": width,
+            }
         )
         jobs.append(
             (
@@ -1958,15 +2137,16 @@ def browser_reader_visual_jobs(
             "settings": "1",
         }
     )
-    jobs.append(
-        (
-            "reader-full-state-390.png",
-            f"{READER_VISUAL_ROUTE}?{full_state_query}",
-            390,
-            844,
-            False,
+    for width, height in ((320, 844), (390, 844)):
+        jobs.append(
+            (
+                f"reader-full-state-{width}.png",
+                f"{READER_VISUAL_ROUTE}?{full_state_query}&viewport={width}",
+                width,
+                height,
+                False,
+            )
         )
-    )
     settings_query = urllib.parse.urlencode(
         {
             "page": "chapter1.html",
@@ -1975,11 +2155,28 @@ def browser_reader_visual_jobs(
             "settings": "1",
         }
     )
+    for width, height in ((320, 844), (390, 844)):
+        jobs.append(
+            (
+                f"reader-settings-{width}.png",
+                f"{READER_VISUAL_ROUTE}?{settings_query}&viewport={width}",
+                width,
+                height,
+                False,
+            )
+        )
+    contents_query = urllib.parse.urlencode(
+        {
+            "page": "chapter4.html",
+            "theme": "light",
+            "contents": "1",
+        }
+    )
     jobs.append(
         (
-            "reader-settings-390.png",
-            f"{READER_VISUAL_ROUTE}?{settings_query}",
-            390,
+            "reader-contents-320.png",
+            f"{READER_VISUAL_ROUTE}?{contents_query}&viewport=320",
+            320,
             844,
             False,
         )
@@ -1996,7 +2193,7 @@ def browser_reader_regressions(
     for width, height in ((390, 844), (320, 844)):
         ok, dom = browser_dump_dom(
             browser,
-            f"{base}{READER_REGRESSION_ROUTE}",
+            f"{base}{READER_REGRESSION_ROUTE}?viewport={width}",
             width=width,
             height=height,
         )
@@ -2042,10 +2239,11 @@ def browser_reader_regressions(
     if passed:
         lines.append(
             "- Chromium reader regression assertions: PASS at 320px and 390px "
-            "(URL-backed global settings, transient per-figure switching, Settings layout, "
-            "heading permalink actions, narrow heading wrapping, visible-viewport "
-            "copy-link containment, overflow at 50%/100%/200%, and inline "
-            "MathJax/MathML overflow)"
+            "(header controls, Contents, URL-backed global settings, transient "
+            "per-figure switching, stacked captions, Settings layout and containment, "
+            "wide display math, heading permalink actions, narrow heading wrapping, "
+            "visible-viewport copy-link containment, document overflow at "
+            "50%/100%/200%, and inline MathJax/MathML overflow)"
         )
 
 

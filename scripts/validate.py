@@ -72,6 +72,7 @@ from webapp import (
     WEB_APP_SHORT_NAME,
     WEB_MANIFEST_FILENAME,
     application_icon_errors,
+    is_runtime_figure_asset,
     offline_reader_resources,
     web_app_manifest,
 )
@@ -850,6 +851,10 @@ def pwa_errors(root: Path = PUBLICATION) -> list[str]:
             ),
             (r"\b(?:const|let|var)\s+readerPagePattern\s*=", "reader URL pattern"),
             (r"Boolean\(\s*url\.search\s*\)", "reader query handling"),
+            (r"\b(?:const|let|var)\s+figureAssetPath\s*=", "figure asset path"),
+            (r"\b(?:const|let|var)\s+isRuntimeFigure\s*=", "runtime figure boundary"),
+            (r"\bcache\.put\s*\(\s*request", "runtime figure cache write"),
+            (r"\bresponse\.ok\b", "successful response guard"),
         )
         for pattern, description in required_rules:
             if not re.search(pattern, worker_text, flags=re.DOTALL):
@@ -936,8 +941,20 @@ def pwa_errors(root: Path = PUBLICATION) -> list[str]:
             for path in (root / "assets").rglob("*")
             if path.is_file()
         }
+        runtime_figure_assets = {
+            relative for relative in asset_files if is_runtime_figure_asset(relative)
+        }
+        precached_runtime_figures = runtime_figure_assets.intersection(precache)
+        if precached_runtime_figures:
+            errors.append(
+                "service worker precaches runtime figure assets: "
+                + ", ".join(sorted(precached_runtime_figures)[:20])
+            )
         missing_assets = sorted(
-            asset_files - set(precache) - set(OFFLINE_OPTIONAL_ARTWORK_ASSETS)
+            asset_files
+            - set(precache)
+            - runtime_figure_assets
+            - set(OFFLINE_OPTIONAL_ARTWORK_ASSETS)
         )
         if missing_assets:
             errors.append(

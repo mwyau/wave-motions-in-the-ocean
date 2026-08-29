@@ -53,6 +53,7 @@ from webapp import (
     ARTWORK_ASSET_PATHS,
     SERVICE_WORKER_FILENAME,
     WEB_MANIFEST_FILENAME,
+    all_reader_resources,
     offline_reader_resource_stats,
     offline_reader_resources,
     prepare_application_icons,
@@ -991,14 +992,11 @@ def write_pwa_files() -> None:
     resources = offline_reader_resources(OUT)
     write_service_worker(OUT, current_build())
     total_bytes, largest = offline_reader_resource_stats(OUT, resources)
-    optional_artwork = tuple(
-        path for path in ARTWORK_ASSET_PATHS if (OUT / path).is_file()
+    previous_total_bytes, _ = offline_reader_resource_stats(
+        OUT, all_reader_resources(OUT)
     )
-    optional_bytes, _ = offline_reader_resource_stats(OUT, optional_artwork)
-    previous_total_bytes = total_bytes + optional_bytes
-    reduction = (
-        optional_bytes / previous_total_bytes * 100 if previous_total_bytes else 0
-    )
+    saved_bytes = max(previous_total_bytes - total_bytes, 0)
+    reduction = saved_bytes / previous_total_bytes * 100 if previous_total_bytes else 0
     print(
         f"Offline reader precache: {len(resources)} files, "
         f"{total_bytes} uncompressed bytes"
@@ -1006,7 +1004,7 @@ def write_pwa_files() -> None:
     print(
         "Offline reader precache policy: "
         f"previous full-asset total={previous_total_bytes} bytes; "
-        f"current={total_bytes} bytes; saved={optional_bytes} bytes "
+        f"current={total_bytes} bytes; saved={saved_bytes} bytes "
         f"({reduction:.2f}%)"
     )
     for name, size in largest[:10]:

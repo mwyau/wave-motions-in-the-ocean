@@ -104,7 +104,9 @@ def test_math_specimen_uses_audit_page_and_virtual_arbitrary_root(
 def test_math_parity_jobs_cover_widths_and_reader_zooms() -> None:
     jobs = render_qa.math_parity_jobs()
 
-    assert len(jobs) == 9
+    assert len(jobs) == len(render_qa.MATH_PARITY_VIEWPORTS) * len(
+        render_qa.MATH_PARITY_ZOOMS
+    )
     assert [job[0] for job in jobs] == [
         f"math-parity-{width}-{round(float(zoom) * 100)}.png"
         for width, _height in render_qa.MATH_PARITY_VIEWPORTS
@@ -115,6 +117,24 @@ def test_math_parity_jobs_cover_widths_and_reader_zooms() -> None:
         urllib.parse.parse_qs(urllib.parse.urlsplit(job[1]).query)["zoom"][0]
         for job in jobs
     } == set(render_qa.MATH_PARITY_ZOOMS)
+
+
+def test_reader_visual_jobs_include_narrow_phone_states(tmp_path: Path) -> None:
+    report = render_qa.Report("publication", tmp_path, tmp_path / "audit")
+    jobs: list[tuple[str, str, int, int, bool]] = []
+
+    render_qa.browser_reader_visual_jobs(report, {}, jobs)
+
+    narrow_jobs = [
+        (name, url) for name, url, width, _height, _dark in jobs if width == 320
+    ]
+    assert narrow_jobs
+    assert all(
+        urllib.parse.parse_qs(urllib.parse.urlsplit(url).query)["viewport"] == ["320"]
+        for _name, url in narrow_jobs
+    )
+    assert any("reader-full-state-320.png" == name for name, *_rest in jobs)
+    assert any("reader-settings-320.png" == name for name, *_rest in jobs)
 
 
 def test_detect_browser_honors_wave_chromium(monkeypatch, tmp_path: Path) -> None:

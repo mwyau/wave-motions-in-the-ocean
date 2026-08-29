@@ -115,7 +115,7 @@ Reader preferences are URL state: non-default Figures, zoom, theme, and math val
 
 The finished HTML reader keeps required runtime assets local: pinned MathJax, MathJax fonts, Source Serif, and Source Sans are under local `assets/`. The two large decorative cover/back-cover artwork images use stable Wave Motions Pages URLs and are optional to reading; a clean build may fetch the pinned vendor archives into the build cache, but the generated HTML and tagged release ZIP must not require third-party network resources to render text or mathematics.
 
-The HTML build also emits one root `app.webmanifest` and one root `service-worker.js`. The manifest consumes the deterministic Stage-1 icons, and the worker precaches the complete reading content and required local reader assets with a build-identity cache; PDF, EPUB, archive downloads, and the two large decorative artwork images stay outside that offline set. Reading and local-file behavior must remain functional without service-worker support.
+The HTML build also emits one root `app.webmanifest` and one root `service-worker.js`. The manifest consumes the deterministic Stage-1 icons, and the worker precaches the complete text-reading content and required local reader assets with a build-identity cache; scientific PNG/SVG figures are cached only after a successful same-origin request, while PDF, EPUB, archive downloads, and the two large decorative artwork images stay outside the offline set. Reading and local-file behavior must remain functional without service-worker support.
 
 Do not dark-mode invert/filter the front-matter photograph. Generated black-on-white scientific diagrams may be theme-adjusted for legibility without changing their content.
 

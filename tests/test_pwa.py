@@ -14,7 +14,9 @@ from webapp import (
     WEB_APP_NAME,
     WEB_APP_SHORT_NAME,
     WEB_MANIFEST_FILENAME,
+    all_reader_resources,
     generate_application_icons,
+    is_runtime_figure_asset,
     offline_reader_resources,
     reader_palette,
     service_worker_text,
@@ -122,29 +124,42 @@ def test_service_worker_has_sorted_complete_precache_and_versioned_lifecycle(
 
     assert entries == list(offline_reader_resources(root))
     assert entries == sorted(entries)
+    assert len(entries) < len(all_reader_resources(root))
+    runtime_figures = {
+        entry for entry in all_reader_resources(root) if is_runtime_figure_asset(entry)
+    }
+    assert runtime_figures
+    assert runtime_figures.isdisjoint(entries)
     assert set(ARTWORK_ASSET_PATHS) == set(OFFLINE_OPTIONAL_ARTWORK_ASSETS)
     assert set(ARTWORK_ASSET_PATHS).isdisjoint(entries)
     assert "assets/figures/salmon-hendershott-como-1980.jpg" in entries
+    assert all(not is_runtime_figure_asset(entry) for entry in entries)
     assert {
         "assets/wave.css",
         "assets/wave.js",
         "assets/fonts/reader.woff2",
         "assets/mathjax/tex-chtml-full.js",
         "assets/mathjax/output/chtml/fonts/woff-v2/MathJax_Main-Regular.woff",
-        "assets/figures/scientific-vector.svg",
-        "assets/figures/scientific-original.png",
         "assets/figures/salmon-hendershott-como-1980.jpg",
         "assets/icons/icon-192.png",
         "assets/icons/icon-512.png",
         "assets/icons/apple-touch-icon.png",
     } <= set(entries)
+    assert {
+        "assets/figures/scientific-vector.svg",
+        "assets/figures/scientific-original.png",
+    }.isdisjoint(entries)
     assert all(
         not entry.lower().endswith((".pdf", ".epub", ".zip")) for entry in entries
     )
     assert "SHA256SUMS" not in entries
     assert SERVICE_WORKER_FILENAME not in entries
     assert set(ARTWORK_ASSET_PATHS).isdisjoint(precache_entries(worker))
-    assert "cache.put" not in worker
+    assert "cache.put(request, response.clone())" in worker
+    assert "if (!response.ok) return response;" in worker
+    assert "runtimeFigureRequest" in worker
+    assert "figureAssetPath" in worker
+    assert "url.origin === scopeUrl.origin" in worker
     assert 'const CACHE_NAME = "wave-motions-abcdef0";' in worker
     assert 'const CACHE_PREFIX = "wave-motions-";' in worker
     assert "key.startsWith(CACHE_PREFIX)" in worker

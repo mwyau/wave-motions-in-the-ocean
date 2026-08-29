@@ -52,7 +52,7 @@ html {
 body {
   margin: 0;
   max-width: none;
-  padding: 1.5rem 2rem 4rem;
+  padding: 1.5rem 2rem calc(4rem + env(safe-area-inset-bottom, 0px));
   background: var(--wave-bg);
   color: var(--wave-text);
   font-size: var(--wave-reader-base-size);
@@ -459,7 +459,10 @@ a.reader-context-chapter:focus-visible {
   left: auto;
   z-index: 50;
   width: min(19rem, calc(100vw - 1.5rem));
-  max-height: calc(100dvh - var(--book-contents-top, 4.25rem) - 1rem);
+  max-height: calc(
+    100dvh - var(--book-contents-top, 4.25rem) - 1rem
+    - env(safe-area-inset-bottom, 0px)
+  );
   margin: 0;
   padding: 0;
   overflow: auto;
@@ -514,7 +517,10 @@ a.reader-context-chapter:focus-visible {
   left: 1rem;
   z-index: 20;
   width: 20rem;
-  max-height: calc(100dvh - var(--book-contents-top, 4.25rem) - 1rem);
+  max-height: calc(
+    100dvh - var(--book-contents-top, 4.25rem) - 1rem
+    - env(safe-area-inset-bottom, 0px)
+  );
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
@@ -529,13 +535,16 @@ a.reader-context-chapter:focus-visible {
   bottom: auto;
   left: var(--book-contents-left, 1rem);
   width: min(22rem, calc(100vw - 2rem));
-  max-height: calc(100dvh - var(--book-contents-top, 4.25rem) - 1rem);
+  max-height: calc(
+    100dvh - var(--book-contents-top, 4.25rem) - 1rem
+    - env(safe-area-inset-bottom, 0px)
+  );
   margin: 0;
   padding: 0;
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
-  scroll-padding-block: .75rem;
+  scroll-padding-block: .75rem calc(.75rem + env(safe-area-inset-bottom, 0px));
   border: 1px solid var(--wave-rule);
   border-radius: .65rem;
   background: var(--wave-bg);
@@ -841,10 +850,8 @@ a:visited { color: var(--wave-visited); }
   }
 }
 @container (max-width: 36rem) {
-  .book-nav { font-size: .8rem; }
   .book-nav > .reader-context {
     padding: 0 .1rem;
-    font-size: .8rem;
   }
   .book-nav a,
   .toc-toggle,
@@ -854,13 +861,27 @@ a:visited { color: var(--wave-visited); }
   }
 }
 @media (max-width: 36rem) {
+  .wave-figure figcaption {
+    grid-template-columns: minmax(0, 1fr);
+    gap: .35rem;
+  }
+  .wave-figure .figure-label,
+  .wave-figure .figure-view-toggle {
+    grid-column: 1;
+  }
+  .wave-figure .figure-view-toggle {
+    justify-self: end;
+  }
   .reader-settings-popover {
     top: var(--book-contents-top, 4.25rem);
     right: max(.75rem, env(safe-area-inset-right));
     bottom: auto;
     left: auto;
     width: min(19rem, calc(100vw - 1.5rem));
-    max-height: calc(100dvh - var(--book-contents-top, 4.25rem) - .75rem);
+    max-height: calc(
+      100dvh - var(--book-contents-top, 4.25rem) - .75rem
+      - env(safe-area-inset-bottom, 0px)
+    );
   }
   .book-contents-popover {
     top: var(--book-contents-top, 4.25rem);
@@ -868,7 +889,10 @@ a:visited { color: var(--wave-visited); }
     bottom: auto;
     left: max(.75rem, env(safe-area-inset-left));
     width: auto;
-    max-height: calc(100dvh - var(--book-contents-top, 4.25rem) - .75rem);
+    max-height: calc(
+      100dvh - var(--book-contents-top, 4.25rem) - .75rem
+      - env(safe-area-inset-bottom, 0px)
+    );
     font-size: 1rem;
   }
   .book-contents-popover .book-contents-inner { padding: 1rem; }
@@ -905,9 +929,10 @@ a:visited { color: var(--wave-visited); }
 }
 @media (max-width: 700px) {
   body {
-    padding: max(.9rem, env(safe-area-inset-top)) max(.9rem, env(safe-area-inset-right)) 3rem max(.9rem, env(safe-area-inset-left));
+    padding: max(.9rem, env(safe-area-inset-top)) max(.9rem, env(safe-area-inset-right)) calc(3rem + env(safe-area-inset-bottom, 0px)) max(.9rem, env(safe-area-inset-left));
     line-height: 1.54;
   }
+  main { overflow-x: clip; }
   h1 {
     font-size: clamp(
       calc(1.65rem * var(--wave-text-scale)),
