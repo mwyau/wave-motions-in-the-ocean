@@ -16,15 +16,20 @@ from publication import (
     _crop_source_image,
     _mask_box_pixels,
     _validate_mask_boxes,
+    application_icon_check_errors,
+    application_icon_errors,
     collect_equation_displays,
     equation_asset_paths,
     equation_ledger_text,
     equation_markdown_math,
     expected_source_png_metadata,
     figure_asset_paths,
+    generate_application_icons,
+    icon_crop_pixels,
     maintained_figure_asset_errors,
     parse_mask,
     parse_trim,
+    prepare_application_icons,
     prepare_assets,
     prepare_original_assets,
     prepare_vector_assets,
@@ -37,6 +42,7 @@ from publication import (
     tikz_source_metadata,
     transform_tex,
     validate_maintained_figure_assets,
+    write_application_icon_preview,
 )
 
 
@@ -200,6 +206,99 @@ def test_paged_artwork_derivatives_are_deterministic_and_keep_masters_unchanged(
 
     assert salmon.read_bytes() == salmon_master
     assert not (first / salmon.name).exists()
+
+
+def test_application_icons_are_pinned_deterministic_rgb_pngs(
+    tmp_path: Path,
+) -> None:
+    source = publication.ICON_SOURCE
+    source_bytes = source.read_bytes()
+    with Image.open(source) as image:
+        source_size = image.size
+
+    assert publication.ICON_CROP == (0.06, 0.00, 0.92, 0.86)
+    assert publication.ICON_PROFILE == {
+        "contrast": 1.06,
+        "saturation": 1.06,
+        "sharpness": 1.12,
+        "unsharp_percent": 85,
+        "unsharp_radius": 0.9,
+        "unsharp_threshold": 3,
+    }
+    assert source_size == (3859, 2594)
+    assert icon_crop_pixels(source_size) == (232, 0, 3550, 2231)
+
+    first = tmp_path / "first"
+    second = tmp_path / "second"
+    first_paths = generate_application_icons(first)
+    second_paths = generate_application_icons(second)
+
+    assert [path.name for path in first_paths] == [
+        name for name, _size in publication.ICON_OUTPUTS
+    ]
+    for (name, size), first_path, second_path in zip(
+        publication.ICON_OUTPUTS, first_paths, second_paths, strict=True
+    ):
+        assert first_path.read_bytes() == second_path.read_bytes()
+        with Image.open(first_path) as image:
+            assert image.format == "PNG"
+            assert image.size == (size, size)
+            assert image.mode == "RGB"
+            assert image.info == {}
+        assert first_path.name == name
+
+    assert application_icon_errors(first) == []
+    assert application_icon_check_errors(first) == []
+    assert source.read_bytes() == source_bytes
+
+
+def test_application_icon_check_detects_modified_pixels(tmp_path: Path) -> None:
+    output = tmp_path / "icons"
+    generate_application_icons(output)
+    path = output / "icon-192.png"
+    with Image.open(path) as image:
+        modified = image.copy()
+    pixel = modified.getpixel((0, 0))
+    modified.putpixel((0, 0), tuple(255 - value for value in pixel))
+    modified.save(path, format="PNG", optimize=False, compress_level=9)
+
+    errors = application_icon_check_errors(output)
+
+    assert any("icon-192.png pixels differ" in error for error in errors)
+
+
+def test_application_icon_preview_is_self_contained_and_shows_safe_zone(
+    tmp_path: Path,
+) -> None:
+    preview = write_application_icon_preview(tmp_path / "preview.html")
+
+    text = preview.read_text()
+    assert "src/images/great-wave-met-dp130155.jpg" in text
+    assert "(0.06, 0.0, 0.92, 0.86)" in text
+    assert "crisp_vivid" in text
+    assert "radius 40%" in text
+    assert text.count("data:image/png;base64,") == 25
+    for size in publication.ICON_PREVIEW_SIZES:
+        assert f"{size} × {size}" in text
+    for label in (
+        "Square",
+        "Rounded square",
+        "Circle",
+        "Squircle",
+        "Maskable safe-zone overlay",
+    ):
+        assert label in text
+
+
+def test_prepare_application_icons_uses_publication_asset_location(
+    tmp_path: Path,
+) -> None:
+    paths = prepare_application_icons(tmp_path / "release")
+
+    assert all(
+        path.parent == tmp_path / "release" / "assets" / "icons" for path in paths
+    )
+    assert application_icon_errors(tmp_path / "release" / "assets" / "icons") == []
 
 
 def test_html_raster_assets_copy_maintained_images_verbatim(

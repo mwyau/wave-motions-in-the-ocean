@@ -12,8 +12,10 @@ here is a maintained source of book text: inputs always come from
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import html
+import io
 import os
 import re
 import shutil
@@ -27,7 +29,7 @@ from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 
-from PIL import Image, ImageChops, ImageDraw
+from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter, ImageOps
 from PIL.PngImagePlugin import PngInfo
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,6 +42,25 @@ IMAGE_DIRS = (FIGURES, SRC / "images")
 CACHE = Path(os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motions")))
 PUBLICATION_IMAGE_DIR = ROOT / "build" / "publication-images"
 PUBLICATION_IMAGE_DPI = 300
+ICON_SOURCE = SRC / "images" / "great-wave-met-dp130155.jpg"
+ICON_CROP = (0.06, 0.00, 0.92, 0.86)
+ICON_PROFILE: dict[str, float | int] = {
+    "contrast": 1.06,
+    "saturation": 1.06,
+    "sharpness": 1.12,
+    "unsharp_percent": 85,
+    "unsharp_radius": 0.9,
+    "unsharp_threshold": 3,
+}
+ICON_OUTPUTS = (
+    ("icon-1024.png", 1024),
+    ("icon-512.png", 512),
+    ("icon-192.png", 192),
+    ("apple-touch-icon.png", 180),
+)
+ICON_OUTPUT_DIR = ROOT / "release" / "assets" / "icons"
+ICON_PREVIEW_PATH = ROOT / "build" / "icon-preview.html"
+ICON_PREVIEW_SIZES = (180, 96, 64, 48, 32)
 SOURCE_PAGE_CACHE = CACHE / "source-pages"
 TIKZ_CACHE = CACHE / "tikz"
 SOURCE_RENDER_DPI = 170
@@ -1533,6 +1554,278 @@ def copy_raster_assets(
             )
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(raster, destination)
+
+
+def icon_crop_pixels(source_size: tuple[int, int]) -> tuple[int, int, int, int]:
+    """Return the exact pixel crop selected for the application icons."""
+    source_width, source_height = source_size
+    left = round(ICON_CROP[0] * source_width)
+    top = round(ICON_CROP[1] * source_height)
+    right = round(ICON_CROP[2] * source_width)
+    bottom = round(ICON_CROP[3] * source_height)
+    crop = (left, top, right, bottom)
+    if not (0 <= left < right <= source_width and 0 <= top < bottom <= source_height):
+        raise ValueError(f"invalid application icon crop for source size {source_size}")
+    return crop
+
+
+def _render_application_icon(master: Image.Image, size: int) -> Image.Image:
+    """Render one RGB icon in the pinned crop, fit, and enhancement order."""
+    if size <= 0:
+        raise ValueError(f"application icon size must be positive, got {size}")
+
+    cropped = master.crop(icon_crop_pixels(master.size))
+    image = ImageOps.fit(
+        cropped,
+        (size, size),
+        method=Image.Resampling.LANCZOS,
+        centering=(0.5, 0.5),
+    )
+    image = ImageEnhance.Contrast(image).enhance(float(ICON_PROFILE["contrast"]))
+    image = ImageEnhance.Color(image).enhance(float(ICON_PROFILE["saturation"]))
+    image = ImageEnhance.Sharpness(image).enhance(float(ICON_PROFILE["sharpness"]))
+    image = image.filter(
+        ImageFilter.UnsharpMask(
+            radius=float(ICON_PROFILE["unsharp_radius"]),
+            percent=int(ICON_PROFILE["unsharp_percent"]),
+            threshold=int(ICON_PROFILE["unsharp_threshold"]),
+        )
+    )
+    return image.convert("RGB")
+
+
+def _save_application_icon(image: Image.Image, destination: Path | io.BytesIO) -> None:
+    """Write a plain, metadata-free RGB PNG with pinned encoder settings."""
+    if isinstance(destination, Path):
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    image.convert("RGB").save(
+        destination,
+        format="PNG",
+        optimize=False,
+        compress_level=9,
+    )
+
+
+def application_icon_paths(
+    output_dir: Path = ICON_OUTPUT_DIR,
+) -> tuple[Path, ...]:
+    """Return canonical application-icon paths below an output directory."""
+    output_dir = Path(output_dir)
+    return tuple(output_dir / name for name, _size in ICON_OUTPUTS)
+
+
+def generate_application_icons(
+    output_dir: Path = ICON_OUTPUT_DIR,
+    source_path: Path = ICON_SOURCE,
+    *,
+    announce: bool = True,
+) -> tuple[Path, ...]:
+    """Generate all canonical application icons from the maintained artwork."""
+    output_dir = Path(output_dir)
+    source_path = Path(source_path)
+    with Image.open(source_path) as source:
+        master = source.convert("RGB")
+    crop = icon_crop_pixels(master.size)
+    if announce:
+        print(
+            f"Application icon source {source_path}: "
+            f"{master.width}x{master.height}; crop={crop} "
+            f"({crop[2] - crop[0]}x{crop[3] - crop[1]})"
+        )
+
+    paths: list[Path] = []
+    for name, size in ICON_OUTPUTS:
+        destination = output_dir / name
+        _save_application_icon(_render_application_icon(master, size), destination)
+        paths.append(destination)
+        if announce:
+            print(f"Application icon {name}: {size}x{size} pixels")
+    return tuple(paths)
+
+
+def application_icon_errors(output_dir: Path = ICON_OUTPUT_DIR) -> list[str]:
+    """Return structural errors for generated application icons."""
+    errors: list[str] = []
+    for path, (_name, size) in zip(
+        application_icon_paths(output_dir), ICON_OUTPUTS, strict=True
+    ):
+        if not path.is_file() or path.stat().st_size == 0:
+            errors.append(f"{path} is missing or empty")
+            continue
+        try:
+            with Image.open(path) as image:
+                if image.format != "PNG":
+                    errors.append(f"{path} is {image.format or 'not'} a PNG")
+                image.load()
+                if image.size != (size, size):
+                    errors.append(
+                        f"{path} is {image.width}x{image.height}; "
+                        f"expected {size}x{size}"
+                    )
+                if image.mode != "RGB":
+                    errors.append(f"{path} uses {image.mode} mode; expected RGB")
+                if image.info:
+                    errors.append(
+                        f"{path} contains unexpected PNG metadata: "
+                        + ", ".join(sorted(image.info))
+                    )
+        except (OSError, ValueError) as exc:
+            errors.append(f"cannot read application icon {path}: {exc}")
+    return errors
+
+
+def application_icon_check_errors(output_dir: Path = ICON_OUTPUT_DIR) -> list[str]:
+    """Return structural or decoded-pixel freshness errors for the icon set."""
+    output_dir = Path(output_dir)
+    errors = application_icon_errors(output_dir)
+    if errors:
+        return errors
+
+    with tempfile.TemporaryDirectory(prefix="wave-application-icons-") as temporary:
+        expected_paths = generate_application_icons(
+            Path(temporary),
+            announce=False,
+        )
+        for actual_path, expected_path in zip(
+            application_icon_paths(output_dir), expected_paths, strict=True
+        ):
+            with (
+                Image.open(actual_path) as actual,
+                Image.open(expected_path) as expected,
+            ):
+                if actual.size != expected.size or actual.mode != expected.mode:
+                    errors.append(
+                        f"{actual_path} dimensions or mode differ from fresh output"
+                    )
+                elif actual.tobytes() != expected.tobytes():
+                    errors.append(f"{actual_path} pixels differ from fresh output")
+    return errors
+
+
+def validate_application_icons(output_dir: Path = ICON_OUTPUT_DIR) -> None:
+    """Raise when a generated icon set is missing or structurally invalid."""
+    errors = application_icon_errors(output_dir)
+    if errors:
+        raise ValueError(
+            "application icon validation failed:\n- " + "\n- ".join(errors)
+        )
+
+
+def _application_icon_data_uri(image: Image.Image) -> str:
+    payload = io.BytesIO()
+    _save_application_icon(image, payload)
+    return "data:image/png;base64," + base64.b64encode(payload.getvalue()).decode(
+        "ascii"
+    )
+
+
+def write_application_icon_preview(
+    output_path: Path = ICON_PREVIEW_PATH,
+    source_path: Path = ICON_SOURCE,
+) -> Path:
+    """Write a self-contained preview of the pinned icon at launcher sizes."""
+    output_path = Path(output_path)
+    source_path = Path(source_path)
+    with Image.open(source_path) as source:
+        master = source.convert("RGB")
+
+    preview_images = {
+        size: _application_icon_data_uri(_render_application_icon(master, size))
+        for size in ICON_PREVIEW_SIZES
+    }
+    profile = ", ".join(f"{key}={value}" for key, value in ICON_PROFILE.items())
+    try:
+        source_label = str(source_path.relative_to(ROOT))
+    except ValueError:
+        source_label = str(source_path)
+    source_label = html.escape(source_label)
+    crop_label = html.escape(str(ICON_CROP))
+    profile_label = html.escape(profile)
+    variants = (
+        ("square", "Square"),
+        ("rounded", "Rounded square"),
+        ("circle", "Circle"),
+        ("squircle", "Squircle"),
+        ("safe", "Maskable safe-zone overlay"),
+    )
+
+    sections: list[str] = []
+    for size in ICON_PREVIEW_SIZES:
+        samples = []
+        for variant, label in variants:
+            samples.append(
+                f'''<figure class="sample">
+  <div class="icon-frame icon-frame--{variant}" style="--size: {size}px">
+    <img src="{preview_images[size]}" alt="{label} preview at {size} pixels">
+  </div>
+  <figcaption>{label}</figcaption>
+</figure>'''
+            )
+        sections.append(
+            f'<section class="size-group"><h2>{size} × {size}</h2>'
+            f'<div class="samples">{"".join(samples)}</div></section>'
+        )
+
+    document = f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wave Motions application icon preview</title>
+  <style>
+    :root {{ color-scheme: light dark; font-family: system-ui, sans-serif; }}
+    body {{ margin: 2rem auto; max-width: 72rem; padding: 0 1rem; }}
+    h1 {{ margin-bottom: .4rem; }}
+    .details {{ line-height: 1.5; }}
+    .size-group {{ border-top: 1px solid #8888; margin-top: 2rem; padding-top: 1rem; }}
+    .samples {{ align-items: end; display: flex; flex-wrap: wrap; gap: 1.5rem; }}
+    .sample {{ margin: 0; text-align: center; }}
+    .icon-frame {{
+      aspect-ratio: 1;
+      max-width: 100%;
+      position: relative;
+      width: var(--size);
+    }}
+    .icon-frame img {{ display: block; height: 100%; width: 100%; }}
+    .icon-frame--rounded img {{ border-radius: 20%; }}
+    .icon-frame--circle img {{ border-radius: 50%; }}
+    .icon-frame--squircle img {{ border-radius: 28%; }}
+    .icon-frame--safe::after {{
+      border: 2px dashed #fff;
+      border-radius: 50%;
+      box-sizing: border-box;
+      box-shadow: 0 0 0 1px #000;
+      content: "";
+      inset: 10%;
+      pointer-events: none;
+      position: absolute;
+    }}
+    figcaption {{ font-size: .85rem; margin-top: .45rem; max-width: 12rem; }}
+    code {{ overflow-wrap: anywhere; }}
+  </style>
+</head>
+<body>
+  <h1>Final application icon preview</h1>
+  <p class="details">Source: <code>{source_label}</code><br>
+  Crop: <code>{crop_label}</code><br>
+  Profile: <code>crisp_vivid</code> ({profile_label})<br>
+  Every preview uses the same composition. The dashed circle is the intended
+  maskable safe zone: radius 40% of the icon side, with a 10% inset.</p>
+  {"".join(sections)}
+</body>
+</html>
+"""
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(document, encoding="utf-8")
+    return output_path
+
+
+def prepare_application_icons(assets_root: Path) -> tuple[Path, ...]:
+    """Generate application icons below a publication root's assets folder."""
+    output_dir = Path(assets_root) / "assets" / "icons"
+    paths = generate_application_icons(output_dir)
+    validate_application_icons(output_dir)
+    return paths
 
 
 def prepare_publication_images(
@@ -3224,6 +3517,42 @@ def _publication_images_cli(argv: list[str] | None = None) -> int:
     return 0
 
 
+def _icons_cli(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="publication.py icons")
+    parser.add_argument("--output", type=Path, default=ICON_OUTPUT_DIR)
+    action = parser.add_mutually_exclusive_group()
+    action.add_argument(
+        "--check",
+        action="store_true",
+        help="compare generated icons with fresh decoded pixels without writing",
+    )
+    action.add_argument(
+        "--preview",
+        nargs="?",
+        const=ICON_PREVIEW_PATH,
+        type=Path,
+        metavar="PATH",
+        help="write a self-contained pinned-design preview (default: build/icon-preview.html)",
+    )
+    args = parser.parse_args(argv)
+    if args.preview is not None:
+        path = write_application_icon_preview(args.preview)
+        print(f"Application icon preview written: {path}")
+        return 0
+    if args.check:
+        errors = application_icon_check_errors(args.output)
+        if errors:
+            print(
+                "application icon check failed:\n- " + "\n- ".join(errors),
+                file=sys.stderr,
+            )
+            return 1
+        print(f"Application icons are current: {args.output}")
+        return 0
+    generate_application_icons(args.output)
+    return 0
+
+
 def _equations_cli(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="publication.py equations")
     parser.add_argument(
@@ -3487,6 +3816,9 @@ def main(argv: list[str] | None = None) -> int:
         "publication-images", help="create generated paged-publication artwork"
     )
     subparsers.add_parser(
+        "icons", help="generate, check, or preview application icons", add_help=False
+    )
+    subparsers.add_parser(
         "equations", help="regenerate or check the equation review ledger"
     )
     subparsers.add_parser(
@@ -3504,6 +3836,8 @@ def main(argv: list[str] | None = None) -> int:
         return _build_info_cli(remainder)
     if args.command == "publication-images":
         return _publication_images_cli(remainder)
+    if args.command == "icons":
+        return _icons_cli(remainder)
     if args.command == "equations":
         return _equations_cli(remainder)
     if args.command == "figures":

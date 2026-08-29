@@ -169,6 +169,24 @@ uv run --frozen python scripts/compare_figures.py <figure-stem>
 The SVG and PNG are derived review assets, not independently edited source.
 The build checks and copies the committed files into `release/assets/figures/`.
 
+Application icons are deterministic derivatives of
+`src/images/great-wave-met-dp130155.jpg`. They use the fixed crop
+`(0.06, 0.00, 0.92, 0.86)` and the `crisp_vivid` profile; every icon uses the
+same maskable-safe composition. Processing is ordered as crop, centered
+Lanczos square fit, contrast, saturation, sharpness, and UnsharpMask. Generate
+or check them with:
+
+```bash
+uv run --frozen python scripts/publication.py icons
+uv run --frozen python scripts/publication.py icons --check
+uv run --frozen python scripts/publication.py icons --preview
+```
+
+The normal HTML/all publication build writes them to
+`release/assets/icons/`. No generative AI is used, and the maintained source
+artwork remains unchanged. Its existing Met Open Access attribution is kept in
+`THIRD_PARTY.md`.
+
 Generated files under `build/`, `release/`, and `audit/` are not committed.
 
 ## Before committing

@@ -46,6 +46,7 @@ from publication import (
     LANGUAGE,
     REPOSITORY_URL,
     SITE_URL,
+    application_icon_errors,
     book_structure,
     current_build,
     equation_asset_errors,
@@ -858,9 +859,16 @@ def check_html_figures() -> None:
                 )
 
 
+def check_application_icons() -> None:
+    errors = application_icon_errors(PUBLICATION / "assets" / "icons")
+    if errors:
+        fail("application icon validation failed:\n- " + "\n- ".join(errors))
+
+
 def check_html() -> None:
     for page in EXPECTED_HTML_PAGES:
         require_file(page)
+    check_application_icons()
     check_html_metadata()
     check_html_figures()
     css = PUBLICATION / "assets" / "wave.css"
@@ -1874,6 +1882,7 @@ def check_publish_root() -> None:
     )
     for path in expected:
         require_file(path)
+    check_application_icons()
     index = (PUBLICATION / "index.html").read_text(errors="replace")
     for name in ("wave-motions.pdf", "wave-motions.epub"):
         if name not in index:

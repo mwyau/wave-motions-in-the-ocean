@@ -43,10 +43,12 @@ from publication import (
     current_build,
     html_license,
     page_switchable_figure_stems,
+    prepare_application_icons,
     prepare_assets,
     prepare_flowing_sources,
     reader_punctuation,
     section_slug,
+    validate_application_icons,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -1462,6 +1464,10 @@ def validate() -> None:
             raise SystemExit(
                 f"social preview is {image.size[0]}x{image.size[1]}, expected 1200x630"
             )
+    try:
+        validate_application_icons(ASSETS / "icons")
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
 
     for page in EXPECTED_PAGES:
         text = page.read_text(errors="replace")
@@ -1538,6 +1544,7 @@ def main() -> int:
     BUILD.mkdir(parents=True)
     ASSETS.mkdir(parents=True)
     prepare_assets(OUT, BUILD, include_originals=True)
+    prepare_application_icons(OUT)
     install_html_vendor_assets()
     source_dir = BUILD / "source"
     prepare_flowing_sources(source_dir, OUT)
