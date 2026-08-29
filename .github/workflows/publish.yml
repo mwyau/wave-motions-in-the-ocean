@@ -171,6 +171,14 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Upload proofread artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          path: release/wave-motions-facsimile.pdf
+          archive: false
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Upload EPUB artifact
         id: epub_artifact
         uses: actions/upload-artifact@v7.0.1
