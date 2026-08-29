@@ -148,6 +148,7 @@ jobs:
       - name: Run publication QA
         env:
           QA_TARGET: ${{ startsWith(github.ref, 'refs/tags/v') && 'qa-release' || 'qa' }}
+          WAVE_CHROMIUM: google-chrome
         run: make "$QA_TARGET"
 
       - name: Create HTML archive
