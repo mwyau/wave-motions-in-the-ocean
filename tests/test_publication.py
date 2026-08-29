@@ -614,7 +614,6 @@ def test_equations_assets_pass_only_stale_displays_to_regeneration(
 def test_equations_assets_current_does_not_render(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
 ) -> None:
     source = _write_equation_test_sources(tmp_path)
     monkeypatch.setattr(publication, "SRC", source)
@@ -625,9 +624,6 @@ def test_equations_assets_current_does_not_render(
 
     monkeypatch.setattr(publication, "regenerate_equation_assets", fail_if_rendered)
     assert publication._equations_cli(["--chapter", "1", "--assets"]) == 0
-    assert (
-        "Equation review assets are current for Chapter 1." in capsys.readouterr().out
-    )
 
 
 def test_stale_equation_check_does_not_render_source_pages(

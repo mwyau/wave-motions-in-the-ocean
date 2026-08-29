@@ -1862,7 +1862,7 @@ $$
 
 ### p. 35 · display 1 · ch02-p035-e01
 
-Source: [chapter2.tex](../chapter2.tex):638 · display type: `bracket`
+Source: [chapter2.tex](../chapter2.tex):637 · display type: `bracket`
 
 #### Markdown math
 
@@ -1887,7 +1887,7 @@ $$
 
 ### p. 35 · display 2 · ch02-p035-e02
 
-Source: [chapter2.tex](../chapter2.tex):644 · display type: `align*`
+Source: [chapter2.tex](../chapter2.tex):643 · display type: `align*`
 
 #### Markdown math
 
@@ -1918,7 +1918,7 @@ $$
 
 ### p. 36 · display 1 · ch02-p036-e01
 
-Source: [chapter2.tex](../chapter2.tex):662 · display type: `waveequation`
+Source: [chapter2.tex](../chapter2.tex):661 · display type: `waveequation`
 
 #### Markdown math
 
@@ -1943,7 +1943,7 @@ $$
 
 ### p. 36 · display 2 · ch02-p036-e02
 
-Source: [chapter2.tex](../chapter2.tex):666 · display type: `bracket`
+Source: [chapter2.tex](../chapter2.tex):665 · display type: `bracket`
 
 #### Markdown math
 
@@ -1968,7 +1968,7 @@ $$
 
 ### p. 36 · display 3 · ch02-p036-e03
 
-Source: [chapter2.tex](../chapter2.tex):687 · display type: `bracket`
+Source: [chapter2.tex](../chapter2.tex):686 · display type: `bracket`
 
 #### Markdown math
 
@@ -1999,7 +1999,7 @@ $$
 
 ### p. 37 · display 1 · ch02-p037-e01
 
-Source: [chapter2.tex](../chapter2.tex):701 · display type: `bracket`
+Source: [chapter2.tex](../chapter2.tex):700 · display type: `bracket`
 
 #### Markdown math
 
@@ -2030,7 +2030,7 @@ $$
 
 ### p. 37 · display 2 · ch02-p037-e02
 
-Source: [chapter2.tex](../chapter2.tex):708 · display type: `bracket`
+Source: [chapter2.tex](../chapter2.tex):707 · display type: `bracket`
 
 #### Markdown math
 
