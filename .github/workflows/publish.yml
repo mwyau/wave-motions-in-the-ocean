@@ -87,11 +87,6 @@ jobs:
           restore-keys: |
             wave-motions-prek-${{ runner.os }}-
 
-      - name: Check sources and tests
-        run: |
-          uv sync --frozen
-          make check
-
       - name: Install publication tools
         env:
           NEEDRESTART_MODE: a
@@ -104,6 +99,11 @@ jobs:
           test -s "$EPUBCHECK_JAR"
           echo "EPUBCHECK_JAR=$EPUBCHECK_JAR" >> "$GITHUB_ENV"
           java -jar "$EPUBCHECK_JAR" --version
+
+      - name: Check sources and tests
+        run: |
+          uv sync --frozen
+          make check
 
       - name: Cache TinyTeX
         id: tinytex_cache
