@@ -102,8 +102,10 @@ jobs:
           sudo -E apt-get install -y --no-install-recommends \
             chromium qpdf poppler-utils pandoc unzip xz-utils
 
-      - name: Check HTML JavaScript
-        run: node --check src/layout/wave-html.js
+      - name: Check JavaScript sources
+        run: |
+          node --check src/layout/wave-html.js
+          node --check src/layout/wave-service-worker.js
 
       - name: Check source quality
         shell: bash

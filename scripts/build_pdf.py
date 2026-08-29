@@ -54,7 +54,7 @@ def prepare_build_info() -> None:
     prepare_publication_images(BUILD / "publication-images")
 
 
-def _latexmk(main: str, output: Path) -> subprocess.CompletedProcess[str]:
+def _latexmk(main: str, output: Path) -> subprocess.CompletedProcess[bytes]:
     return subprocess.run(
         [
             "latexmk",
@@ -66,9 +66,6 @@ def _latexmk(main: str, output: Path) -> subprocess.CompletedProcess[str]:
         ],
         cwd=SRC,
         check=False,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.PIPE,
-        text=True,
     )
 
 
@@ -82,8 +79,6 @@ def run_latexmk_cached(main: str, kind: str) -> None:
     result = _latexmk(main, output)
     if result.returncode == 0:
         return
-    if result.stderr:
-        sys.stderr.write(result.stderr[-12000:])
     if not had_state:
         raise SystemExit(result.returncode)
 
@@ -92,8 +87,6 @@ def run_latexmk_cached(main: str, kind: str) -> None:
     output.mkdir(parents=True, exist_ok=True)
     result = _latexmk(main, output)
     if result.returncode != 0:
-        if result.stderr:
-            sys.stderr.write(result.stderr[-12000:])
         raise SystemExit(result.returncode)
 
 
