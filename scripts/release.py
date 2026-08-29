@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Finalize and verify the publication root."""
 
 from __future__ import annotations
