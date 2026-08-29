@@ -45,7 +45,6 @@ from webapp import (
     generate_application_icons,
     icon_crop_pixels,
     prepare_application_icons,
-    write_application_icon_preview,
 )
 
 
@@ -313,29 +312,6 @@ def test_application_icon_check_detects_modified_pixels(tmp_path: Path) -> None:
     errors = application_icon_check_errors(output)
 
     assert any("icon-192.png pixels differ" in error for error in errors)
-
-
-def test_application_icon_preview_is_self_contained_and_shows_safe_zone(
-    tmp_path: Path,
-) -> None:
-    preview = write_application_icon_preview(tmp_path / "preview.html")
-
-    text = preview.read_text()
-    assert "src/images/great-wave-met-dp130155.jpg" in text
-    assert "(0.06, 0.0, 0.92, 0.86)" in text
-    assert "Enhancement settings:" in text
-    assert "radius 40%" in text
-    assert text.count("data:image/png;base64,") == 25
-    for size in webapp.ICON_PREVIEW_SIZES:
-        assert f"{size} × {size}" in text
-    for label in (
-        "Square",
-        "Rounded square",
-        "Circle",
-        "Squircle",
-        "Maskable safe-zone overlay",
-    ):
-        assert label in text
 
 
 def test_prepare_application_icons_uses_publication_asset_location(

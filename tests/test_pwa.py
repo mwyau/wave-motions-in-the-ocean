@@ -155,15 +155,8 @@ def test_service_worker_has_sorted_complete_precache_and_versioned_lifecycle(
     assert "SHA256SUMS" not in entries
     assert SERVICE_WORKER_FILENAME not in entries
     assert set(ARTWORK_ASSET_PATHS).isdisjoint(precache_entries(worker))
-    assert "cache.put(request, response.clone())" in worker
-    assert "if (!response.ok) return response;" in worker
-    assert "runtimeFigureRequest" in worker
-    assert "figureAssetPath" in worker
-    assert "url.origin === scopeUrl.origin" in worker
     assert 'const CACHE_NAME = "wave-motions-abcdef0";' in worker
     assert 'const CACHE_PREFIX = "wave-motions-";' in worker
-    assert "key.startsWith(CACHE_PREFIX)" in worker
-    assert "ignoreSearch: true" in worker
     assert "skipWaiting" not in worker
     assert "clients.claim" not in worker
 

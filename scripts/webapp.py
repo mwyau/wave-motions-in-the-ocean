@@ -4,9 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import base64
-import html
-import io
 import json
 import re
 import sys
@@ -34,8 +31,6 @@ ICON_OUTPUTS = (
     ("apple-touch-icon.png", 180),
 )
 ICON_OUTPUT_DIR = ROOT / "release" / "assets" / "icons"
-ICON_PREVIEW_PATH = ROOT / "build" / "icon-preview.html"
-ICON_PREVIEW_SIZES = (180, 96, 64, 48, 32)
 ICON_ASSET_PREFIX = "assets/icons"
 APPLE_TOUCH_ICON_PATH = f"{ICON_ASSET_PREFIX}/apple-touch-icon.png"
 WEB_MANIFEST_FILENAME = "app.webmanifest"
@@ -98,10 +93,9 @@ def _render_application_icon(master: Image.Image, size: int) -> Image.Image:
     return image.convert("RGB")
 
 
-def _save_application_icon(image: Image.Image, destination: Path | io.BytesIO) -> None:
+def _save_application_icon(image: Image.Image, destination: Path) -> None:
     """Write a plain, metadata-free RGB PNG with pinned encoder settings."""
-    if isinstance(destination, Path):
-        destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.parent.mkdir(parents=True, exist_ok=True)
     image.convert("RGB").save(
         destination,
         format="PNG",
@@ -223,115 +217,6 @@ def validate_application_icons(output_dir: Path = ICON_OUTPUT_DIR) -> None:
         raise ValueError(
             "application icon validation failed:\n- " + "\n- ".join(errors)
         )
-
-
-def _application_icon_data_uri(image: Image.Image) -> str:
-    payload = io.BytesIO()
-    _save_application_icon(image, payload)
-    return "data:image/png;base64," + base64.b64encode(payload.getvalue()).decode(
-        "ascii"
-    )
-
-
-def write_application_icon_preview(
-    output_path: Path = ICON_PREVIEW_PATH,
-    source_path: Path = ICON_SOURCE,
-) -> Path:
-    """Write a self-contained preview of the pinned icon at launcher sizes."""
-    output_path = Path(output_path)
-    source_path = Path(source_path)
-    with Image.open(source_path) as source:
-        master = source.convert("RGB")
-
-    preview_images = {
-        size: _application_icon_data_uri(_render_application_icon(master, size))
-        for size in ICON_PREVIEW_SIZES
-    }
-    profile = ", ".join(f"{key}={value}" for key, value in ICON_PROFILE.items())
-    try:
-        source_label = str(source_path.relative_to(ROOT))
-    except ValueError:
-        source_label = str(source_path)
-    source_label = html.escape(source_label)
-    crop_label = html.escape(str(ICON_CROP))
-    profile_label = html.escape(profile)
-    variants = (
-        ("square", "Square"),
-        ("rounded", "Rounded square"),
-        ("circle", "Circle"),
-        ("squircle", "Squircle"),
-        ("safe", "Maskable safe-zone overlay"),
-    )
-
-    sections: list[str] = []
-    for size in ICON_PREVIEW_SIZES:
-        samples = []
-        for variant, label in variants:
-            samples.append(
-                f'''<figure class="sample">
-  <div class="icon-frame icon-frame--{variant}" style="--size: {size}px">
-    <img src="{preview_images[size]}" alt="{label} preview at {size} pixels">
-  </div>
-  <figcaption>{label}</figcaption>
-</figure>'''
-            )
-        sections.append(
-            f'<section class="size-group"><h2>{size} × {size}</h2>'
-            f'<div class="samples">{"".join(samples)}</div></section>'
-        )
-
-    document = f"""<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Wave Motions application icon preview</title>
-  <style>
-    :root {{ color-scheme: light dark; font-family: system-ui, sans-serif; }}
-    body {{ margin: 2rem auto; max-width: 72rem; padding: 0 1rem; }}
-    h1 {{ margin-bottom: .4rem; }}
-    .details {{ line-height: 1.5; }}
-    .size-group {{ border-top: 1px solid #8888; margin-top: 2rem; padding-top: 1rem; }}
-    .samples {{ align-items: end; display: flex; flex-wrap: wrap; gap: 1.5rem; }}
-    .sample {{ margin: 0; text-align: center; }}
-    .icon-frame {{
-      aspect-ratio: 1;
-      max-width: 100%;
-      position: relative;
-      width: var(--size);
-    }}
-    .icon-frame img {{ display: block; height: 100%; width: 100%; }}
-    .icon-frame--rounded img {{ border-radius: 20%; }}
-    .icon-frame--circle img {{ border-radius: 50%; }}
-    .icon-frame--squircle img {{ border-radius: 28%; }}
-    .icon-frame--safe::after {{
-      border: 2px dashed #fff;
-      border-radius: 50%;
-      box-sizing: border-box;
-      box-shadow: 0 0 0 1px #000;
-      content: "";
-      inset: 10%;
-      pointer-events: none;
-      position: absolute;
-    }}
-    figcaption {{ font-size: .85rem; margin-top: .45rem; max-width: 12rem; }}
-    code {{ overflow-wrap: anywhere; }}
-  </style>
-</head>
-<body>
-  <h1>Final application icon preview</h1>
-  <p class="details">Source: <code>{source_label}</code><br>
-  Crop: <code>{crop_label}</code><br>
-  Enhancement settings: <code>{profile_label}</code><br>
-  Every preview uses the same composition. The dashed circle is the intended
-  maskable safe zone: radius 40% of the icon side, with a 10% inset.</p>
-  {"".join(sections)}
-</body>
-</html>
-"""
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(document, encoding="utf-8")
-    return output_path
 
 
 def prepare_application_icons(assets_root: Path) -> tuple[Path, ...]:
@@ -510,19 +395,7 @@ def _icons_cli(argv: list[str] | None = None) -> int:
         action="store_true",
         help="compare generated icons with fresh decoded pixels without writing",
     )
-    action.add_argument(
-        "--preview",
-        nargs="?",
-        const=ICON_PREVIEW_PATH,
-        type=Path,
-        metavar="PATH",
-        help="write a self-contained pinned-design preview (default: build/icon-preview.html)",
-    )
     args = parser.parse_args(argv)
-    if args.preview is not None:
-        path = write_application_icon_preview(args.preview)
-        print(f"Application icon preview written: {path}")
-        return 0
     if args.check:
         errors = application_icon_check_errors(args.output)
         if errors:
@@ -540,7 +413,7 @@ def _icons_cli(argv: list[str] | None = None) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Web-app generation utilities")
     subparsers = parser.add_subparsers(dest="command", required=True)
-    subparsers.add_parser("icons", help="generate, check, or preview application icons")
+    subparsers.add_parser("icons", help="generate or check application icons")
     args, remainder = parser.parse_known_args(argv)
     if args.command == "icons":
         return _icons_cli(remainder)

@@ -215,7 +215,6 @@ saturation, sharpness, and UnsharpMask. Generate or check them with:
 ```bash
 uv run --frozen python scripts/webapp.py icons
 uv run --frozen python scripts/webapp.py icons --check
-uv run --frozen python scripts/webapp.py icons --preview
 ```
 
 The normal HTML/all publication build writes them to

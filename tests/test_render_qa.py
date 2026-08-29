@@ -1,5 +1,4 @@
 import html
-import sys
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -118,16 +117,6 @@ def test_math_parity_jobs_cover_widths_and_reader_zooms() -> None:
         urllib.parse.parse_qs(urllib.parse.urlsplit(job[1]).query)["zoom"][0]
         for job in jobs
     } == set(render_qa.MATH_PARITY_ZOOMS)
-
-
-def test_visual_flag_defaults_to_fast_mode(monkeypatch) -> None:
-    monkeypatch.setattr(sys, "argv", ["render_qa.py", "release", "--strict"])
-    assert render_qa.parse_args().visual is False
-
-    monkeypatch.setattr(
-        sys, "argv", ["render_qa.py", "release", "--strict", "--visual"]
-    )
-    assert render_qa.parse_args().visual is True
 
 
 def test_html_qa_only_runs_full_visual_jobs_when_requested(

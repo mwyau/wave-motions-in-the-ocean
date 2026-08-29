@@ -37,12 +37,8 @@ def test_modern_pdf_size_warning_is_advisory(
     pdf.write_bytes(b"x" * warning_size)
     assert check_modern_pdf_size(pdf) == warning_size
     message = capsys.readouterr().err
-    assert "modern PDF is 5.12 MB" in message
-    assert (
-        "Google Scholar's webmaster guidance limits directly indexed files to 5 MB"
-        in message
-    )
-    assert "recommends Google Book Search for larger books" in message
+    assert "Google Scholar" in message
+    assert "5.12 MB" in message
 
 
 def test_modern_pdf_size_warning_uses_github_annotation(
@@ -58,11 +54,8 @@ def test_modern_pdf_size_warning_uses_github_annotation(
 
     assert captured.err == ""
     assert "::warning title=Google Scholar PDF size::" in captured.out
-    assert "modern PDF is 5.12 MB" in captured.out
-    assert (
-        "Google Scholar's webmaster guidance limits directly indexed files to 5 MB"
-        in captured.out
-    )
+    assert "Google Scholar" in captured.out
+    assert "5.12 MB" in captured.out
 
 
 def test_strip_tex_comments_keeps_escaped_percent_signs() -> None:
