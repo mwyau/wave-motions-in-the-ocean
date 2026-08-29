@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Build the modern and facsimile PDF editions."""
 
 from __future__ import annotations
