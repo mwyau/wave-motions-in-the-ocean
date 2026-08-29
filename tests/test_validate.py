@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from validate import (
+    ALLOWED_REMOTE_HTML_REFERENCES,
     GOOGLE_SCHOLAR_PDF_WARNING_BYTES,
     PUNCTUATION_ENTITY_RE,
     SMART_ANCHOR_RE,
@@ -150,6 +151,13 @@ def test_offline_runtime_accepts_local_html_and_css(tmp_path: Path) -> None:
     (tmp_path / "assets/site.css").write_text(
         '@import "local.css"; .page { background: url("../paper.png"); }'
     )
+
+    validate_offline_runtime(tmp_path)
+
+
+def test_offline_runtime_allows_only_pages_artwork_references(tmp_path: Path) -> None:
+    artwork_url = min(ALLOWED_REMOTE_HTML_REFERENCES)
+    (tmp_path / "index.html").write_text(f'<img src="{artwork_url}">')
 
     validate_offline_runtime(tmp_path)
 

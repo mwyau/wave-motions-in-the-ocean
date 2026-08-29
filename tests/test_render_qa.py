@@ -82,8 +82,8 @@ def test_math_specimen_uses_audit_page_and_virtual_arbitrary_root(
     assert 'src="/assets/mathjax/tex-chtml-full.js"' in specimen
     assert '<main id="main-content">' in specimen
     assert "--wave-text-scale" in specimen
-    for text_size in render_qa.MATH_PARITY_TEXT_SIZES:
-        assert f"'{text_size}'" in specimen
+    for zoom in render_qa.MATH_PARITY_ZOOMS:
+        assert f"'{zoom}'" in specimen
     assert "../../../release/" not in specimen
 
     (dist / "assets" / "wave.css").write_text("publication CSS")
@@ -91,7 +91,7 @@ def test_math_specimen_uses_audit_page_and_virtual_arbitrary_root(
         dist, qa_pages={render_qa.MATHML_COMPARISON_ROUTE: page}
     ) as base:
         with urllib.request.urlopen(
-            f"{base}{render_qa.MATHML_COMPARISON_ROUTE}?text-size=200%25"
+            f"{base}{render_qa.MATHML_COMPARISON_ROUTE}?zoom=2.0"
         ) as response:
             served_specimen = response.read().decode()
         with urllib.request.urlopen(f"{base}/assets/wave.css") as response:
@@ -101,20 +101,20 @@ def test_math_specimen_uses_audit_page_and_virtual_arbitrary_root(
     assert served_css == "publication CSS"
 
 
-def test_math_parity_jobs_cover_widths_and_reader_text_sizes() -> None:
+def test_math_parity_jobs_cover_widths_and_reader_zooms() -> None:
     jobs = render_qa.math_parity_jobs()
 
     assert len(jobs) == 9
     assert [job[0] for job in jobs] == [
-        f"math-parity-{width}-{text_size.replace('%', '')}.png"
+        f"math-parity-{width}-{round(float(zoom) * 100)}.png"
         for width, _height in render_qa.MATH_PARITY_VIEWPORTS
-        for text_size in render_qa.MATH_PARITY_TEXT_SIZES
+        for zoom in render_qa.MATH_PARITY_ZOOMS
     ]
     assert {(job[2], job[3]) for job in jobs} == set(render_qa.MATH_PARITY_VIEWPORTS)
     assert {
-        urllib.parse.parse_qs(urllib.parse.urlsplit(job[1]).query)["text-size"][0]
+        urllib.parse.parse_qs(urllib.parse.urlsplit(job[1]).query)["zoom"][0]
         for job in jobs
-    } == set(render_qa.MATH_PARITY_TEXT_SIZES)
+    } == set(render_qa.MATH_PARITY_ZOOMS)
 
 
 def test_detect_browser_honors_wave_chromium(monkeypatch, tmp_path: Path) -> None:

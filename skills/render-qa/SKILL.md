@@ -51,7 +51,7 @@ The finished HTML reader is expected to be self-contained at runtime. MathJax Ja
 A real-browser pass should exercise:
 
 - top and bottom navigation;
-- Auto/Light/Dark cycling;
+- System/Light/Dark cycling;
 - direct section permalinks, including correct current-section context and active Contents state immediately after load;
 - scrolling between sections and active-section/context updates;
 - browser back/forward and fragment navigation;

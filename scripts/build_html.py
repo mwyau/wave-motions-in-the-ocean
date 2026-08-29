@@ -26,6 +26,7 @@ from PIL import Image
 
 from publication import (
     APPLE_TOUCH_ICON_PATH,
+    ARTWORK_ASSET_PATHS,
     AUTHORS,
     BOOK_TITLE,
     CONTACT_EMAIL,
@@ -910,6 +911,12 @@ def page_metadata(path: Path) -> dict[str, str]:
         "mathjax_url": html.escape(LOCAL_MATHJAX_URL, quote=True),
         "manifest_url": html.escape(WEB_MANIFEST_FILENAME, quote=True),
         "apple_touch_icon_url": html.escape(APPLE_TOUCH_ICON_PATH, quote=True),
+        "artwork_cover_url": html.escape(
+            f"{SITE_URL.rstrip('/')}/{ARTWORK_ASSET_PATHS[0]}", quote=True
+        ),
+        "artwork_closing_url": html.escape(
+            f"{SITE_URL.rstrip('/')}/{ARTWORK_ASSET_PATHS[1]}", quote=True
+        ),
         "scholar_metadata": scholar_metadata_html(metadata.scholar_tags),
         "structured_data": structured_data_json(metadata.structured_data),
     }
@@ -977,14 +984,28 @@ def write_sitemap() -> None:
 
 
 def write_pwa_files() -> None:
-    """Write the manifest and complete offline-reader service worker."""
+    """Write the manifest and offline-reader service worker."""
     write_web_app_manifest(OUT)
     resources = offline_reader_resources(OUT)
     write_service_worker(OUT, current_build())
     total_bytes, largest = offline_reader_resource_stats(OUT, resources)
+    optional_artwork = tuple(
+        path for path in ARTWORK_ASSET_PATHS if (OUT / path).is_file()
+    )
+    optional_bytes, _ = offline_reader_resource_stats(OUT, optional_artwork)
+    previous_total_bytes = total_bytes + optional_bytes
+    reduction = (
+        optional_bytes / previous_total_bytes * 100 if previous_total_bytes else 0
+    )
     print(
         f"Offline reader precache: {len(resources)} files, "
         f"{total_bytes} uncompressed bytes"
+    )
+    print(
+        "Offline reader precache policy: "
+        f"previous full-asset total={previous_total_bytes} bytes; "
+        f"current={total_bytes} bytes; saved={optional_bytes} bytes "
+        f"({reduction:.2f}%)"
     )
     for name, size in largest[:10]:
         print(f"  {name}: {size} bytes")

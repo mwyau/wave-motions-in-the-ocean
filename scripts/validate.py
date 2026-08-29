@@ -41,15 +41,19 @@ from build_epub import (
 from build_html import page_metadata_record, sitemap_urls
 from publication import (
     APPLE_TOUCH_ICON_PATH,
+    ARTWORK_ASSET_PATHS,
     AUTHORS,
     DOWNLOADS,
     EDITOR,
     ICON_ASSET_PREFIX,
     LANGUAGE,
     MANIFEST_ICON_OUTPUTS,
+    OFFLINE_OPTIONAL_ARTWORK_ASSETS,
     REPOSITORY_URL,
     SERVICE_WORKER_FILENAME,
     SITE_URL,
+    WEB_APP_NAME,
+    WEB_APP_SHORT_NAME,
     WEB_MANIFEST_FILENAME,
     application_icon_errors,
     book_structure,
@@ -79,6 +83,9 @@ EPUB = PUBLICATION / "wave-motions.epub"
 MODERN_PDF = PUBLICATION / "wave-motions.pdf"
 FACSIMILE_PDF = PUBLICATION / "wave-motions-facsimile.pdf"
 SITEMAP = PUBLICATION / "sitemap.xml"
+ALLOWED_REMOTE_HTML_REFERENCES = frozenset(
+    f"{SITE_URL.rstrip('/')}/{path}" for path in ARTWORK_ASSET_PATHS
+)
 LATEX_CACHE = (
     Path(os.environ.get("WAVE_CACHE_DIR", str(ROOT / ".cache" / "wave-motions")))
     / "latex"
@@ -462,6 +469,10 @@ def check_html_metadata() -> None:
             fail(f"{page.name}: canonical URL is missing or duplicated")
         if social_urls != [metadata.social_url]:
             fail(f"{page.name}: Open Graph URL does not match canonical")
+        if re.search(r'<meta\s+name="robots"\b', text, flags=re.IGNORECASE):
+            fail(
+                f"{page.name}: clean publication HTML must not contain a static robots directive"
+            )
 
         descriptions = (
             re.findall(r'<meta\s+name="description"\s+content="([^"]*)">', text),
@@ -521,6 +532,8 @@ def check_html_metadata() -> None:
         expected_sitemap_urls[: len(expected_page_urls)]
     ) != expected_page_urls or actual_sitemap_urls != list(expected_sitemap_urls):
         fail("sitemap.xml does not match the HTML/resource URL inventory")
+    if any("?" in url for url in actual_sitemap_urls if url):
+        fail("sitemap.xml must contain only parameter-free canonical/resource URLs")
 
 
 def _is_remote_reference(value: str) -> bool:
@@ -552,13 +565,23 @@ def validate_offline_runtime(root: Path) -> None:
         for tag in re.findall(r"<[^>]+>", text, flags=re.DOTALL):
             for attr in ("src", "poster", "data"):
                 value = _attribute(tag, attr)
-                if value and _is_remote_reference(value):
+                if (
+                    value
+                    and _is_remote_reference(value)
+                    and html.unescape(value.strip())
+                    not in ALLOWED_REMOTE_HTML_REFERENCES
+                ):
                     remote.append(f"{page.name}: {attr}={value}")
             srcset = _attribute(tag, "srcset")
             if srcset:
                 for candidate in srcset.split(","):
                     value = candidate.strip().split(maxsplit=1)[0]
-                    if value and _is_remote_reference(value):
+                    if (
+                        value
+                        and _is_remote_reference(value)
+                        and html.unescape(value.strip())
+                        not in ALLOWED_REMOTE_HTML_REFERENCES
+                    ):
                         remote.append(f"{page.name}: srcset={value}")
             if tag.lower().startswith("<link"):
                 href = _attribute(tag, "href")
@@ -567,6 +590,8 @@ def validate_offline_runtime(root: Path) -> None:
                     href
                     and FETCHING_LINK_RELS.intersection(rel)
                     and _is_remote_reference(href)
+                    and html.unescape(href.strip())
+                    not in ALLOWED_REMOTE_HTML_REFERENCES
                 ):
                     remote.append(f"{page.name}: link href={href}")
 
@@ -650,6 +675,17 @@ def pwa_errors(root: Path = PUBLICATION) -> list[str]:
                     f"web app manifest {key!r} is {manifest.get(key)!r}; "
                     f"expected {expected_manifest[key]!r}"
                 )
+        if manifest.get("name") != WEB_APP_NAME:
+            errors.append(f"web app manifest name must be {WEB_APP_NAME!r}")
+        if manifest.get("short_name") != WEB_APP_SHORT_NAME:
+            errors.append(f"web app manifest short_name must be {WEB_APP_SHORT_NAME!r}")
+        if manifest.get("name") == manifest.get("short_name"):
+            errors.append("web app manifest name and short_name must remain distinct")
+        if any(
+            isinstance(manifest.get(key), str) and "Myrl's View" in manifest[key]
+            for key in ("name", "short_name")
+        ):
+            errors.append("web app manifest app names must not include the subtitle")
         if manifest.get("short_name") == "":
             errors.append("web app manifest short_name is empty")
         if manifest.get("prefer_related_applications") is True:
@@ -784,7 +820,8 @@ def pwa_errors(root: Path = PUBLICATION) -> list[str]:
             "url.origin !== scopeUrl.origin",
             "url.pathname.startsWith(scopeUrl.pathname)",
             "ignoreSearch: true",
-            'url.searchParams.toString() === "math=mathjax"',
+            "const readerPagePattern",
+            "Boolean(url.search)",
         ):
             if required not in worker_text:
                 errors.append(
@@ -829,6 +866,17 @@ def pwa_errors(root: Path = PUBLICATION) -> list[str]:
         if len(precache) != len(set(precache)):
             errors.append("service worker precache contains duplicate entries")
 
+        for artwork in sorted(OFFLINE_OPTIONAL_ARTWORK_ASSETS):
+            target = root / artwork
+            if not target.is_file():
+                errors.append(
+                    f"optional artwork is missing from the publication: {artwork}"
+                )
+            elif artwork in precache:
+                errors.append(
+                    f"optional artwork must remain outside the precache: {artwork}"
+                )
+
         excluded_suffixes = {".epub", ".pdf", ".zip"}
         for entry in precache:
             parsed = urllib.parse.urlsplit(entry)
@@ -859,7 +907,9 @@ def pwa_errors(root: Path = PUBLICATION) -> list[str]:
             for path in (root / "assets").rglob("*")
             if path.is_file()
         }
-        missing_assets = sorted(asset_files - set(precache))
+        missing_assets = sorted(
+            asset_files - set(precache) - set(OFFLINE_OPTIONAL_ARTWORK_ASSETS)
+        )
         if missing_assets:
             errors.append(
                 "service worker omits local reader assets: "
@@ -1169,11 +1219,49 @@ def check_html() -> None:
     check_pwa()
     check_html_metadata()
     check_html_figures()
+    references_text = (PUBLICATION / "references.html").read_text(errors="replace")
+    for artwork in ARTWORK_ASSET_PATHS:
+        expected_url = f"{SITE_URL.rstrip('/')}/{artwork}"
+        if f'src="{expected_url}"' not in references_text:
+            fail(
+                f"references.html must use the Wave Motions Pages artwork URL: {expected_url}"
+            )
+    for forbidden in ("metmuseum.org", "raw.githubusercontent.com"):
+        if forbidden in references_text:
+            fail(f"references.html contains a direct external artwork URL: {forbidden}")
     css = PUBLICATION / "assets" / "wave.css"
     require_file(css)
     css_text = css.read_text(errors="replace")
     template_text = (SRC / "layout" / "wave-html.html").read_text(errors="replace")
     script_text = (SRC / "layout" / "wave-html.js").read_text(errors="replace")
+    reader_source = f"{template_text}\n{script_text}"
+    for forbidden in ("localStorage", "sessionStorage", "indexedDB"):
+        if forbidden in reader_source:
+            fail(f"HTML reader source must not use browser storage: {forbidden}")
+    for stale_key in (
+        "wave-theme",
+        "wave-text-size",
+        "wave-math-renderer",
+        "wave-figure-view",
+    ):
+        if stale_key in reader_source:
+            fail(f"HTML reader source retains obsolete storage key: {stale_key}")
+    for required in (
+        "const readerStateApi",
+        "figures",
+        "zoom",
+        "theme",
+        "math",
+        "history.replaceState",
+        "noindex,follow",
+    ):
+        if required not in reader_source:
+            fail(f"HTML reader URL-state invariant is missing: {required}")
+    if (
+        'themeNames = { system: "System", light: "Light", dark: "Dark" }'
+        not in script_text
+    ):
+        fail("HTML reader theme names must be System, Light, and Dark")
     html_opening = re.search(r"<html\b[^>]*>", template_text, flags=re.IGNORECASE)
     if html_opening is None or re.search(r"\bdata-theme=", html_opening.group(0)):
         fail("HTML template must leave the no-JS root theme unset")
@@ -1356,6 +1444,12 @@ def check_html() -> None:
         ):
             if required not in text:
                 fail(f"HTML requirement {required!r} is missing from {page.name}")
+        if "data-theme-label>Device<" in text:
+            fail(
+                f"HTML reader still exposes the obsolete Device theme label in {page.name}"
+            )
+        if "data-theme-label>System<" not in text:
+            fail(f"HTML reader System theme label is missing from {page.name}")
         if text.count("data-theme-cycle") != 1:
             fail(f"HTML Appearance control count is not one in {page.name}")
         if text.count("data-theme-label") != 1 or text.count("data-math-label") != 1:

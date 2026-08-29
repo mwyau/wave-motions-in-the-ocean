@@ -147,6 +147,51 @@ def test_html_book_metadata_has_book_level_scholar_fields() -> None:
     assert publication.PUBLICATION_YEAR != publication.ONLINE_PUBLICATION_YEAR
 
 
+def test_html_reader_settings_are_url_backed_and_storage_free() -> None:
+    template = build_html.HTML_TEMPLATE.read_text()
+    script = (publication.SRC / "layout" / "wave-html.js").read_text()
+    reader_source = f"{template}\n{script}"
+
+    assert all(
+        storage_api not in reader_source
+        for storage_api in ("localStorage", "sessionStorage", "indexedDB")
+    )
+    assert all(
+        storage_key not in reader_source
+        for storage_key in (
+            "wave-theme",
+            "wave-text-size",
+            "wave-math-renderer",
+            "wave-figure-view",
+        )
+    )
+    assert "const readerStateApi = (() =>" in template
+    assert 'const parameterNames = ["figures", "zoom", "theme", "math"]' in template
+    assert 'history.replaceState(null, "", nextPath)' in template
+    assert 'robots.content = "noindex,follow"' in template
+    assert 'themeNames = { system: "System", light: "Light", dark: "Dark" }' in script
+    assert "data-theme-label>Device<" not in template
+    assert "data-theme-label>System<" in template
+
+
+def test_html_artwork_uses_wave_motions_pages_urls() -> None:
+    template = build_html.HTML_TEMPLATE.read_text()
+    generated = build_html.page_metadata(build_html.OUT / "references.html")
+    expected = tuple(
+        f"{publication.SITE_URL.rstrip('/')}/{path}"
+        for path in publication.ARTWORK_ASSET_PATHS
+    )
+
+    assert 'src="$artwork_cover_url$"' in template
+    assert 'src="$artwork_closing_url$"' in template
+    assert generated["artwork_cover_url"] == html.escape(expected[0], quote=True)
+    assert generated["artwork_closing_url"] == html.escape(expected[1], quote=True)
+    assert all("metmuseum.org" not in url for url in expected)
+    assert all("raw.githubusercontent.com" not in url for url in expected)
+    assert "metmuseum.org" not in template
+    assert "raw.githubusercontent.com" not in template
+
+
 def test_html_sitemap_contains_pages_and_reader_resources() -> None:
     root = ET.fromstring(build_html.sitemap_text())
     namespace = {"sitemap": build_html.SITEMAP_NAMESPACE}
@@ -162,6 +207,7 @@ def test_html_sitemap_contains_pages_and_reader_resources() -> None:
         f"{publication.SITE_URL}/wave-motions.epub",
     ]
     assert set(urls[-2:]).isdisjoint(build_html.canonical_page_urls())
+    assert all("?" not in url for url in urls)
 
 
 def test_paged_artwork_derivatives_are_deterministic_and_keep_masters_unchanged(

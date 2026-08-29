@@ -105,15 +105,15 @@ Keep public section anchors stable.
 
 ## HTML
 
-Preserve the responsive reader, Auto/Light/Dark themes, GitHub Source navigation, Contents navigation, wide-math/table overflow behavior, and stable chapter/section navigation unless explicitly redesigned.
+Preserve the responsive reader, System/Light/Dark themes, GitHub Source navigation, Contents navigation, wide-math/table overflow behavior, and stable chapter/section navigation unless explicitly redesigned.
 
 The current reader also preserves these navigation behaviors: the sticky context reflects the current chapter/section; direct section permalinks initialize that context and the matching Contents entry immediately; scrolling updates the active section; wide layouts expose the Contents rail when space permits, while narrower layouts use the Contents popover/fallback; browser fragment/back-forward navigation must remain correct. The visible Rendering control switches between MathJax and native MathML and should remain available unless deliberately replaced.
 
 `build_html.py` owns the public HTML discovery metadata. It derives one clean canonical URL, description, social URL, and structured-data record per page from the shared publication model and page inventory, and writes the same canonical page set to `release/sitemap.xml`. Chapter descriptions are curated strings in the same canonical metadata as the maintained chapter and section headings; Contents and navigation keep the complete section inventory. Google Scholar Highwire metadata belongs only on the complete-book landing page; chapter pages must not present themselves as separate scholarly works.
 
-The finished HTML reader is self-contained for runtime assets. It includes pinned MathJax, MathJax fonts, Source Serif, and Source Sans under local `assets/`; a clean build may fetch the pinned vendor archives into the build cache, but the generated HTML and tagged release ZIP must not require third-party network resources to render text or mathematics.
+The finished HTML reader keeps required runtime assets local: pinned MathJax, MathJax fonts, Source Serif, and Source Sans are under local `assets/`. The two large decorative cover/back-cover artwork images use stable Wave Motions Pages URLs and are optional to reading; a clean build may fetch the pinned vendor archives into the build cache, but the generated HTML and tagged release ZIP must not require third-party network resources to render text or mathematics.
 
-The HTML build also emits one root `app.webmanifest` and one root `service-worker.js`. The manifest consumes the deterministic Stage-1 icons, and the worker precaches the complete local HTML reader with a build-identity cache; PDF, EPUB, and archive downloads stay outside that offline set. Reading and local-file behavior must remain functional without service-worker support.
+The HTML build also emits one root `app.webmanifest` and one root `service-worker.js`. The manifest consumes the deterministic Stage-1 icons, and the worker precaches the complete reading content and required local reader assets with a build-identity cache; PDF, EPUB, archive downloads, and the two large decorative artwork images stay outside that offline set. Reading and local-file behavior must remain functional without service-worker support.
 
 Do not dark-mode invert/filter the front-matter photograph. Generated black-on-white scientific diagrams may be theme-adjusted for legibility without changing their content.
 

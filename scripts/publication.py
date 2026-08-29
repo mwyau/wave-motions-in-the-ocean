@@ -77,6 +77,11 @@ SOURCE_RENDER_DPI = 170
 SOURCE_CROP_VERSION = "v1"
 TIKZ_CACHE_VERSION = "v3"
 FIGURE_ASSET_PREFIX = "assets/figures"
+ARTWORK_ASSET_PATHS = (
+    f"{FIGURE_ASSET_PREFIX}/great-wave-met-dp130155.jpg",
+    f"{FIGURE_ASSET_PREFIX}/naruto-whirlpool-met-jp1198.jpg",
+)
+OFFLINE_OPTIONAL_ARTWORK_ASSETS = frozenset(ARTWORK_ASSET_PATHS)
 
 
 @dataclass(frozen=True)
@@ -128,6 +133,7 @@ def _citation_scalar(name: str) -> str:
 
 BOOK_TITLE = "Wave Motions in the Ocean"
 PUBLICATION_TITLE = f"{BOOK_TITLE}: Myrl's View"
+WEB_APP_NAME = BOOK_TITLE
 AUTHORS = ("David C. Chapman", "Paola Malanotte-Rizzoli")
 EDITOR = "Albert M. W. Yau"
 PUBLICATION_YEAR = _citation_scalar("year")
@@ -1870,7 +1876,7 @@ def web_app_manifest() -> dict[str, object]:
     background_color, theme_color = reader_palette()
     return {
         "id": WEB_APP_RELATIVE_URL,
-        "name": PUBLICATION_TITLE,
+        "name": WEB_APP_NAME,
         "short_name": WEB_APP_SHORT_NAME,
         "start_url": WEB_APP_RELATIVE_URL,
         "scope": WEB_APP_RELATIVE_URL,
@@ -1906,9 +1912,9 @@ def write_web_app_manifest(root: Path) -> Path:
 def offline_reader_resources(root: Path) -> tuple[str, ...]:
     """Return the sorted local files needed by the HTML reader offline.
 
-    The complete generated asset tree is included so MathJax, fonts, figures,
-    and both sides of every figure toggle remain available without a network.
-    Publication downloads and release bookkeeping are deliberately excluded.
+    Required MathJax, font, figure, and photograph assets are included so the
+    reader remains usable without a network. Download artifacts and the two
+    large optional editorial artwork images are deliberately excluded.
     """
     root = Path(root).resolve()
     candidates = list(root.glob("*.html"))
@@ -1928,7 +1934,11 @@ def offline_reader_resources(root: Path) -> tuple[str, ...]:
         if not path.is_file():
             continue
         relative = path.relative_to(root).as_posix()
-        if relative in excluded_names or path.suffix.lower() in excluded_suffixes:
+        if (
+            relative in excluded_names
+            or relative in OFFLINE_OPTIONAL_ARTWORK_ASSETS
+            or path.suffix.lower() in excluded_suffixes
+        ):
             continue
         resources.append(relative)
     return tuple(sorted(set(resources)))
@@ -1981,9 +1991,10 @@ self.addEventListener("activate", (event) => {{
 
 const scopeUrl = new URL(self.registration.scope);
 const assetRootPath = new URL("assets/", scopeUrl).pathname;
+const readerPagePattern = /(?:^|\\/)(?:index|chapter\\d+|references)\\.html$/;
 const readerPageQuery = (url) =>
-  url.searchParams.toString() === "math=mathjax" ||
-  url.searchParams.toString() === "math=mathml";
+  Boolean(url.search) &&
+  (url.pathname === scopeUrl.pathname || readerPagePattern.test(url.pathname));
 
 const cachedRequest = (cache, request, url) => {{
   if (url.pathname.startsWith(assetRootPath)) {{

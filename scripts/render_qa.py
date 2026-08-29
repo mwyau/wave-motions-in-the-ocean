@@ -51,7 +51,7 @@ MATHML_ANNOTATION_RE = re.compile(
     re.DOTALL | re.IGNORECASE,
 )
 MATHML_NS = "http://www.w3.org/1998/Math/MathML"
-MATH_PARITY_TEXT_SIZES = ("50%", "100%", "200%")
+MATH_PARITY_ZOOMS = ("0.5", "1.0", "2.0")
 MATH_PARITY_VIEWPORTS = ((390, 844), (768, 1000), (1440, 1200))
 MATHML_COMPARISON_ROUTE = "/__render-qa__/mathml-mathjax-comparison.html"
 READER_REGRESSION_ROUTE = "/__render-qa__/reader-regressions.html"
@@ -590,14 +590,14 @@ def math_parity_jobs(
 ) -> list[tuple[str, str, int, int, bool]]:
     return [
         (
-            f"math-parity-{width}-{text_size.replace('%', '')}.png",
-            f"{route}?{urllib.parse.urlencode({'text-size': text_size})}",
+            f"math-parity-{width}-{round(float(zoom) * 100)}.png",
+            f"{route}?{urllib.parse.urlencode({'zoom': zoom})}",
             width,
             height,
             False,
         )
         for width, height in MATH_PARITY_VIEWPORTS
-        for text_size in MATH_PARITY_TEXT_SIZES
+        for zoom in MATH_PARITY_ZOOMS
     ]
 
 
@@ -831,11 +831,10 @@ def mathml_comparison_specimen(
         '<html lang="en-US"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width, initial-scale=1">'
         "<script>"
-        "const textSizePercentages = new Set(['50%', '100%', '200%']);"
-        "const requestedTextSize = new URLSearchParams(location.search).get('text-size');"
-        "if (textSizePercentages.has(requestedTextSize)) {"
-        "const numericTextSize = Number.parseInt(requestedTextSize, 10);"
-        "document.documentElement.style.setProperty('--wave-text-scale', String(numericTextSize / 100));"
+        "const zoomValues = new Set(['0.5', '1.0', '2.0']);"
+        "const requestedZoom = new URLSearchParams(location.search).get('zoom');"
+        "if (zoomValues.has(requestedZoom)) {"
+        "document.documentElement.style.setProperty('--wave-text-scale', requestedZoom);"
         "}"
         "</script>"
         "<title>MathJax and native MathML comparison</title>"
@@ -1361,7 +1360,7 @@ def write_report(report: Report) -> Path:
             "- Review every PDF contact sheet for unexpected blank pages, large whitespace changes, clipping, undersized figures, and abrupt pagination changes.",
             "- Inspect modern PDF pages 1–12 at full size (front cover, half-title, frontispiece, title/edition notice, Contents, prefaces/editor note) plus every chapter opener and figure-dense page.",
             "- For facsimile, verify the exact 184-page physical structure before release and compare any suspicious blank/sparse pages to the source-page edition.",
-            "- Open HTML in a real desktop browser and a phone/narrow viewport; test top/bottom navigation, Appearance theme/text-size choices, direct section permalinks, heading permalink/copy-link reveal and focus, scrolling active-section updates, back/forward fragment navigation, wide Contents rail, no-JS/native and scripted narrow Contents behavior, static MathML first paint, MathJax atomic swap/fallback, the non-persistent math URL override, per-figure vector/source switching, wide math/tables, image scaling, and the explicit 320px toolbar screenshot.",
+            "- Open HTML in a real desktop browser and a phone/narrow viewport; test top/bottom navigation, URL-backed System/Light/Dark theme and 50%–200% zoom choices, direct section permalinks, heading permalink/copy-link reveal and focus, scrolling active-section updates, back/forward fragment navigation, wide Contents rail, no-JS/native and scripted narrow Contents behavior, static MathML first paint, MathJax atomic swap/fallback, normalized reader URLs and query-page noindex behavior, per-figure vector/source switching, wide math/tables, image scaling, and the explicit 320px toolbar screenshot.",
             "- Complete the EPUB reader matrix above in real reading systems; structural/browser inspection alone is insufficient.",
             "",
         ]
@@ -1466,13 +1465,6 @@ def reader_regression_specimen(report: Report) -> Path:
           checks,
         });
       };
-      const storageEntries = (name) => {
-        try {
-          return [name, frame.contentWindow[name]];
-        } catch (_) {
-          return null;
-        }
-      };
       const loadReader = (url) => new Promise((resolve) => {
         frame.addEventListener("load", () => {
           setTimeout(() => resolve(frame.contentDocument), 300);
@@ -1528,14 +1520,54 @@ def reader_regression_specimen(report: Report) -> Path:
         check(isOriginal(first), "first figure switches back to its original PNG");
         check(first.toggle.textContent.trim() === "Switch to Vector", "first action restores Switch to Vector");
 
-        const storageNames = ["localStorage", "sessionStorage"];
-        const stores = storageNames.map(storageEntries).filter(Boolean);
-        const figureStorageKeys = () => stores.flatMap(([name, store]) =>
-          Object.keys(store)
-            .filter((key) => /figure/i.test(key))
-            .map((key) => name + ":" + key),
+        const currentState = () => frame.contentWindow.waveReaderState?.current;
+        const stateMatches = (expected) => {
+          const actual = currentState();
+          return actual && Object.keys(expected).every((key) => actual[key] === expected[key]);
+        };
+        const defaultState = {
+          figures: "original",
+          zoom: 1,
+          theme: "system",
+          math: "mathjax",
+        };
+        const fullState = {
+          figures: "vector",
+          zoom: 2,
+          theme: "light",
+          math: "mathml",
+        };
+        const stateQuery = "?figures=vector&zoom=2.0&theme=light&math=mathml";
+        const readerHref = (prefix) => Array.from(doc.querySelectorAll("a[href]"))
+          .map((link) => link.getAttribute("href"))
+          .find((href) => href?.startsWith(prefix));
+
+        check(frame.contentWindow.location.search === "", "clean URL has no reader query parameters");
+        check(stateMatches(defaultState), "clean URL initializes Original, 100%, System, and MathJax");
+        check(doc.querySelector("[data-figure-label]")?.textContent.trim() === "Original", "default Figures control says Original");
+        check(doc.querySelector("[data-text-size-value]")?.textContent.trim() === "100%", "default Text control says 100%");
+        check(doc.querySelector("[data-theme-label]")?.textContent.trim() === "System", "default Theme control says System");
+        check(doc.querySelector("[data-math-label]")?.textContent.trim() === "MathJax", "default Rendering control says MathJax");
+        check(!doc.documentElement.hasAttribute("data-theme"), "default System theme follows the media preference");
+        check(!doc.querySelector('meta[name="robots"]'), "clean URL has no noindex directive");
+
+        doc = await loadReader("/chapter4.html?zoom=1.00&unknown=keep");
+        check(
+          frame.contentWindow.location.search === "?unknown=keep",
+          "recognized default query values normalize away while unrelated values remain",
         );
-        check(stores.length === storageNames.length, "reader storage is available for the persistence check");
+        check(
+          doc.querySelector('meta[name="robots"]')?.content === "noindex,follow",
+          "normalized query variant keeps noindex,follow",
+        );
+        const unrelatedTarget = Array.from(doc.querySelectorAll("a[href]"))
+          .map((link) => link.getAttribute("href"))
+          .find((href) => href?.startsWith("chapter5.html"));
+        check(
+          Boolean(unrelatedTarget && !unrelatedTarget.includes("unknown=keep")),
+          "unrelated current query values are not propagated to reader links",
+        );
+
         const figureControl = doc.querySelector("[data-figure-cycle]");
         const figureControlLabel = doc.querySelector("[data-figure-label]");
         check(Boolean(figureControl && figureControlLabel), "Settings exposes the global Figures control");
@@ -1547,54 +1579,125 @@ def reader_regression_specimen(report: Report) -> Path:
             "global figure preference has default-oriented accessibility text",
           );
         }
-        check(figureStorageKeys().length === 0, "local figure switching writes no storage preference");
 
-        figureControl?.click();
-        await wait(50);
-        check(isVector(first) && isVector(second), "global Vector preference updates all current figures");
-        check(
-          figureControlLabel?.textContent.trim() === "Vector" &&
-            figureControl?.getAttribute("aria-label") === "Default figure rendering: Vector",
-          "global figure preference changes to Vector",
-        );
-        check(
-          frame.contentWindow.localStorage.getItem("wave-figure-view") === "vector",
-          "global Vector preference is persisted",
-        );
-        check(
-          !figureStorageKeys().some((key) => key.startsWith("sessionStorage:")),
-          "figure preference is not written to session storage",
-        );
-
-        first.toggle.click();
-        await wait(50);
-        check(isOriginal(first) && isVector(second), "local override affects only its figure after a global change");
-        check(figureControlLabel?.textContent.trim() === "Vector", "local override leaves the global preference unchanged");
-        figureControl?.click();
-        await wait(50);
-        check(isOriginal(first) && isOriginal(second), "a global change resets temporary local overrides");
-        check(
-          frame.contentWindow.localStorage.getItem("wave-figure-view") === "original" &&
-            figureControlLabel?.textContent.trim() === "Original",
-          "global Original preference is persisted",
-        );
-        figureControl?.click();
-        await wait(50);
-        doc = await loadReader("/chapter1.html?math=mathjax");
-        const reloadedFigures = Array.from(doc.querySelectorAll("figure.wave-figure-switchable")).slice(0, 2);
-        const reloadedParts = reloadedFigures.map((figure) => ({
+        doc = await loadReader("/chapter4.html" + stateQuery + "#the-internal-wave-equation");
+        const fullFigures = Array.from(doc.querySelectorAll("figure.wave-figure-switchable")).slice(0, 2);
+        const fullParts = fullFigures.map((figure) => ({
           image: figure.querySelector("img[data-vector-src]"),
           toggle: figure.querySelector("[data-figure-toggle]"),
         }));
+        const fullPartsComplete =
+          fullParts.length === 2 && fullParts.every(({ image, toggle }) => image && toggle);
+        check(fullPartsComplete, "full-state figures have paired images and local actions");
+        if (!fullPartsComplete) {
+          finish();
+          return;
+        }
+        check(frame.contentWindow.location.search === stateQuery, "full reader state keeps its canonical query order");
+        check(frame.contentWindow.location.hash === "#the-internal-wave-equation", "reader state keeps the current hash");
+        check(stateMatches(fullState), "full URL initializes Vector, 200%, Light, and MathML");
         check(
-          reloadedParts.length === 2 && reloadedParts.every(isVector),
-          "persisted Vector preference applies on a new page load",
+          fullParts.length === 2 && fullParts.every(isVector),
+          "full URL applies the global Vector figure state before normal reader use",
+        );
+        check(doc.querySelector("[data-figure-label]")?.textContent.trim() === "Vector", "full Figures control says Vector");
+        check(doc.querySelector("[data-text-size-value]")?.textContent.trim() === "200%", "full Text control says 200%");
+        check(doc.querySelector("[data-theme-label]")?.textContent.trim() === "Light", "full Theme control says Light");
+        check(doc.querySelector("[data-math-label]")?.textContent.trim() === "MathML", "full Rendering control says MathML");
+        check(doc.documentElement.dataset.theme === "light", "full URL applies the Light theme immediately");
+        check(doc.documentElement.style.getPropertyValue("--wave-text-scale") === "2", "full URL applies 200% text scaling immediately");
+        check(
+          doc.querySelector('span[data-math-renderer="mathml"]')?.hidden === false &&
+            doc.querySelector('span[data-math-renderer="mathjax"]')?.hidden === true,
+          "full URL selects native MathML",
         );
         check(
-          doc.querySelector("[data-figure-label]")?.textContent.trim() === "Vector" &&
-            doc.querySelector("[data-figure-cycle]")?.getAttribute("aria-label") === "Default figure rendering: Vector",
-          "new page Settings reflects the persisted Vector preference",
+          doc.querySelector('meta[name="robots"]')?.content === "noindex,follow",
+          "query-string URL receives noindex,follow",
         );
+        const canonical = doc.querySelector('link[rel="canonical"]')?.getAttribute("href") || "";
+        const social = doc.querySelector('meta[property="og:url"]')?.getAttribute("content") || "";
+        check(canonical.endsWith("/chapter4.html") && !canonical.includes("?"), "query variant keeps a parameter-free canonical link");
+        check(social === canonical && !social.includes("?"), "query variant keeps parameter-free Open Graph identity");
+        let schema = null;
+        try {
+          schema = JSON.parse(doc.querySelector('script[type="application/ld+json"]')?.textContent || "");
+        } catch (_) {}
+        check(schema?.url === canonical && schema?.isPartOf?.url?.includes("?") === false, "query variant keeps parameter-free structured-data identity");
+
+        const navigationChecks = [
+          ["Previous", "chapter3.html"],
+          ["Next", "chapter5.html"],
+          ["Contents", "index.html"],
+          ["another chapter", "chapter5.html"],
+          ["References", "references.html"],
+        ];
+        navigationChecks.forEach(([label, prefix]) => {
+          const href = readerHref(prefix);
+          check(Boolean(href && href.includes(stateQuery)), label + " carries the full reader state");
+        });
+        const crossPageSection = readerHref("chapter5.html" + stateQuery + "#");
+        check(Boolean(crossPageSection), "cross-page section links carry reader state before the hash");
+        check(
+          Array.from(doc.querySelectorAll("a[href]"))
+            .filter((link) => /\\.(?:pdf|epub)(?:$|#)/i.test(link.getAttribute("href") || ""))
+            .every((link) => !link.getAttribute("href").includes("?")),
+          "download links never receive reader-state parameters",
+        );
+
+        const historyLength = frame.contentWindow.history.length;
+        const fullFigureControl = doc.querySelector("[data-figure-cycle]");
+        const fullFigureLabel = doc.querySelector("[data-figure-label]");
+        const fullTextReset = doc.querySelector('[data-text-size-action="reset"]');
+        const fullTextIncrease = doc.querySelector('[data-text-size-action="increase"]');
+        const fullTheme = doc.querySelector("[data-theme-cycle]");
+        const fullMath = doc.querySelector("[data-math-cycle]");
+        fullParts[0].toggle.click();
+        await wait(50);
+        check(isOriginal(fullParts[0]) && isVector(fullParts[1]), "individual figure override affects only its figure");
+        check(frame.contentWindow.location.search === stateQuery, "individual figure override does not change the global figures URL state");
+        fullFigureControl?.click();
+        await wait(50);
+        check(isOriginal(fullParts[0]) && isOriginal(fullParts[1]), "global Original state resets transient figure overrides");
+        check(frame.contentWindow.location.search === "?zoom=2.0&theme=light&math=mathml", "returning Figures to Original removes its default parameter");
+        fullFigureControl?.click();
+        await wait(50);
+        fullTextReset?.click();
+        await wait(50);
+        check(frame.contentWindow.location.search === "?figures=vector&theme=light&math=mathml", "resetting text removes zoom from the URL");
+        check(frame.contentWindow.location.hash === "#the-internal-wave-equation", "setting changes preserve the current hash");
+        fullTextIncrease?.click();
+        await wait(50);
+        check(frame.contentWindow.location.search === "?figures=vector&zoom=1.1&theme=light&math=mathml", "text increase serializes zoom with one decimal");
+        fullTextReset?.click();
+        fullTheme?.click();
+        await wait(50);
+        check(frame.contentWindow.location.search === "?figures=vector&theme=dark&math=mathml", "theme change uses the URL state");
+        fullTheme?.click();
+        await wait(50);
+        check(frame.contentWindow.location.search === "?figures=vector&math=mathml", "System theme removes the default theme parameter");
+        fullMath?.click();
+        await wait(300);
+        check(frame.contentWindow.location.search === "?figures=vector", "MathJax removes its default parameter");
+        fullFigureControl?.click();
+        await wait(50);
+        check(frame.contentWindow.location.search === "", "returning all settings to defaults leaves a clean URL");
+        check(stateMatches(defaultState), "reset settings restore the complete default state");
+        check(frame.contentWindow.history.length === historyLength, "setting clicks use replaceState without adding history entries");
+        check(fullFigureLabel?.textContent.trim() === "Original", "reset Figures control says Original");
+        check(doc.querySelector("[data-theme-label]")?.textContent.trim() === "System", "reset Theme control says System");
+
+        const api = frame.contentWindow.waveReaderState;
+        ["0.5", "0.6", "1.5", "2.0"].forEach((zoom) => {
+          check(api.read("?zoom=" + zoom).zoom === Number(zoom), "zoom=" + zoom + " is accepted");
+        });
+        ["0.4", "2.1", "1.05", "banana"].forEach((zoom) => {
+          check(api.read("?zoom=" + zoom).zoom === 1, "zoom=" + zoom + " falls back to 1.0");
+        });
+        check(api.entries(defaultState).length === 0, "default state serializes without reader parameters");
+        check(JSON.stringify(api.entries(fullState)) === JSON.stringify([
+          ["figures", "vector"], ["zoom", "2.0"], ["theme", "light"], ["math", "mathml"],
+        ]), "full state serializes in figures, zoom, theme, math order");
 
         const heading = Array.from(doc.querySelectorAll("main h1[id], main h2[id]"))
           .sort((left, right) => right.textContent.length - left.textContent.length)[0];
@@ -1737,10 +1840,6 @@ def reader_regression_specimen(report: Report) -> Path:
             label + " is not an independent horizontal scroll container",
           );
         }
-        check(
-          frame.contentWindow.localStorage.getItem("wave-figure-view") === "vector",
-          "figure preference remains persisted after all checks",
-        );
         finish();
       };
       frame.addEventListener("load", () => {
@@ -1749,11 +1848,7 @@ def reader_regression_specimen(report: Report) -> Path:
           finish();
         });
       }, { once: true });
-      try {
-        localStorage.removeItem("wave-figure-view");
-        sessionStorage.removeItem("wave-figure-view");
-      } catch (_) {}
-      frame.src = "/chapter1.html?math=mathjax";
+      frame.src = "/chapter1.html";
     })();
   </script>
 </body>
@@ -1793,22 +1888,20 @@ def reader_visual_specimen(report: Report) -> Path:
         "chapter5.html",
         "chapter6.html",
       ]);
-      const textSize = Number.parseInt(params.get("text-size"), 10);
-      const theme = params.get("theme");
       const settingsOpen = params.get("settings") === "1";
       const frame = document.querySelector("#reader-visual-frame");
       frame.addEventListener("load", () => {
-        const root = frame.contentDocument.documentElement;
-        if ([50, 100, 200].includes(textSize)) {
-          root.style.setProperty("--wave-text-scale", String(textSize / 100));
-        }
-        if (theme === "light" || theme === "dark") root.dataset.theme = theme;
         if (settingsOpen) {
           frame.contentDocument.querySelector("[aria-controls=reader-settings]")?.click();
         }
         document.documentElement.dataset.qaReady = "";
       }, { once: true });
-      frame.src = "/" + (allowedPages.has(page) ? page : "chapter1.html");
+      const readerQuery = new URLSearchParams();
+      for (const name of ["figures", "zoom", "theme", "math"]) {
+        if (params.has(name)) readerQuery.set(name, params.get(name));
+      }
+      const target = allowedPages.has(page) ? page : "chapter1.html";
+      frame.src = "/" + target + (readerQuery.toString() ? "?" + readerQuery : "");
     })();
   </script>
 </body>
@@ -1826,17 +1919,17 @@ def browser_reader_visual_jobs(
     visual_page = reader_visual_specimen(report)
     qa_pages[READER_VISUAL_ROUTE] = visual_page
     for width, height in ((390, 844), (768, 1000), (1440, 1200)):
-        for text_size in MATH_PARITY_TEXT_SIZES:
+        for zoom in MATH_PARITY_ZOOMS:
             query = urllib.parse.urlencode(
                 {
                     "page": "chapter1.html",
-                    "text-size": text_size,
+                    "zoom": zoom,
                     "theme": "light",
                 }
             )
             jobs.append(
                 (
-                    f"reader-light-{width}-{text_size.replace('%', '')}.png",
+                    f"reader-light-{width}-{round(float(zoom) * 100)}.png",
                     f"{READER_VISUAL_ROUTE}?{query}",
                     width,
                     height,
@@ -1844,7 +1937,7 @@ def browser_reader_visual_jobs(
                 )
             )
         query = urllib.parse.urlencode(
-            {"page": "chapter1.html", "text-size": "100%", "theme": "dark"}
+            {"page": "chapter1.html", "zoom": "1.0", "theme": "dark"}
         )
         jobs.append(
             (
@@ -1855,10 +1948,29 @@ def browser_reader_visual_jobs(
                 False,
             )
         )
+    full_state_query = urllib.parse.urlencode(
+        {
+            "page": "chapter4.html",
+            "figures": "vector",
+            "zoom": "2.0",
+            "theme": "light",
+            "math": "mathml",
+            "settings": "1",
+        }
+    )
+    jobs.append(
+        (
+            "reader-full-state-390.png",
+            f"{READER_VISUAL_ROUTE}?{full_state_query}",
+            390,
+            844,
+            False,
+        )
+    )
     settings_query = urllib.parse.urlencode(
         {
             "page": "chapter1.html",
-            "text-size": "100%",
+            "zoom": "1.0",
             "theme": "light",
             "settings": "1",
         }
@@ -1930,7 +2042,7 @@ def browser_reader_regressions(
     if passed:
         lines.append(
             "- Chromium reader regression assertions: PASS at 320px and 390px "
-            "(global and per-figure switching, figure persistence, Settings layout, "
+            "(URL-backed global settings, transient per-figure switching, Settings layout, "
             "heading permalink actions, narrow heading wrapping, visible-viewport "
             "copy-link containment, overflow at 50%/100%/200%, and inline "
             "MathJax/MathML overflow)"

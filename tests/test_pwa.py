@@ -6,10 +6,14 @@ from pathlib import Path
 import validate
 from publication import (
     APPLE_TOUCH_ICON_PATH,
+    ARTWORK_ASSET_PATHS,
+    BOOK_TITLE,
     MANIFEST_ICON_OUTPUTS,
+    OFFLINE_OPTIONAL_ARTWORK_ASSETS,
     PUBLICATION_TITLE,
     SERVICE_WORKER_FILENAME,
     SITE_URL,
+    WEB_APP_NAME,
     WEB_APP_SHORT_NAME,
     WEB_MANIFEST_FILENAME,
     BuildInfo,
@@ -36,8 +40,11 @@ def test_web_app_manifest_is_deterministic_and_pages_safe() -> None:
     assert first == web_app_manifest_text()
     manifest = json.loads(first)
 
-    assert manifest["name"] == PUBLICATION_TITLE
-    assert manifest["short_name"] == WEB_APP_SHORT_NAME
+    assert PUBLICATION_TITLE == f"{BOOK_TITLE}: Myrl's View"
+    assert manifest["name"] == WEB_APP_NAME == BOOK_TITLE == "Wave Motions in the Ocean"
+    assert manifest["short_name"] == WEB_APP_SHORT_NAME == "Wave Motions"
+    assert manifest["name"] != manifest["short_name"]
+    assert all("Myrl's View" not in manifest[key] for key in ("name", "short_name"))
     assert manifest["id"] == manifest["start_url"] == manifest["scope"] == "./"
     assert manifest["display"] == "standalone"
     assert manifest["lang"] == "en-US"
@@ -76,9 +83,11 @@ def test_service_worker_has_sorted_complete_precache_and_versioned_lifecycle(
         "fonts/reader.woff2",
         "mathjax/tex-chtml-full.js",
         "mathjax/output/chtml/fonts/woff-v2/MathJax_Main-Regular.woff",
-        "figures/sample.svg",
-        "figures/sample.png",
-        "images/great-wave.jpg",
+        "figures/scientific-vector.svg",
+        "figures/scientific-original.png",
+        "figures/great-wave-met-dp130155.jpg",
+        "figures/naruto-whirlpool-met-jp1198.jpg",
+        "figures/salmon-hendershott-como-1980.jpg",
         "icons/icon-192.png",
         "icons/icon-512.png",
         "icons/apple-touch-icon.png",
@@ -103,15 +112,18 @@ def test_service_worker_has_sorted_complete_precache_and_versioned_lifecycle(
 
     assert entries == list(offline_reader_resources(root))
     assert entries == sorted(entries)
+    assert set(ARTWORK_ASSET_PATHS) == set(OFFLINE_OPTIONAL_ARTWORK_ASSETS)
+    assert set(ARTWORK_ASSET_PATHS).isdisjoint(entries)
+    assert "assets/figures/salmon-hendershott-como-1980.jpg" in entries
     assert {
         "assets/wave.css",
         "assets/wave.js",
         "assets/fonts/reader.woff2",
         "assets/mathjax/tex-chtml-full.js",
         "assets/mathjax/output/chtml/fonts/woff-v2/MathJax_Main-Regular.woff",
-        "assets/figures/sample.svg",
-        "assets/figures/sample.png",
-        "assets/images/great-wave.jpg",
+        "assets/figures/scientific-vector.svg",
+        "assets/figures/scientific-original.png",
+        "assets/figures/salmon-hendershott-como-1980.jpg",
         "assets/icons/icon-192.png",
         "assets/icons/icon-512.png",
         "assets/icons/apple-touch-icon.png",
@@ -121,6 +133,8 @@ def test_service_worker_has_sorted_complete_precache_and_versioned_lifecycle(
     )
     assert "SHA256SUMS" not in entries
     assert SERVICE_WORKER_FILENAME not in entries
+    assert set(ARTWORK_ASSET_PATHS).isdisjoint(precache_entries(worker))
+    assert "cache.put" not in worker
     assert 'const CACHE_NAME = "wave-motions-abcdef0";' in worker
     assert 'const CACHE_PREFIX = "wave-motions-";' in worker
     assert "key.startsWith(CACHE_PREFIX)" in worker
@@ -140,6 +154,13 @@ def test_pwa_validator_accepts_a_generated_publication_root(
             '<link rel="manifest" href="app.webmanifest">'
             f'<link rel="apple-touch-icon" sizes="180x180" href="{APPLE_TOUCH_ICON_PATH}">'
         )
+    for name in (
+        *ARTWORK_ASSET_PATHS,
+        "assets/figures/salmon-hendershott-como-1980.jpg",
+    ):
+        path = root / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(name.encode())
     write_web_app_manifest(root)
     info = BuildInfo("b" * 40, "bcdef01", None)
     write_service_worker(root, info)

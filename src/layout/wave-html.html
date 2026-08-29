@@ -31,44 +31,116 @@ $scholar_metadata$
   <script>
     (() => {
       const root = document.documentElement;
+      const readerStateApi = (() => {
+        const defaults = Object.freeze({
+          figures: "original",
+          zoom: 1,
+          theme: "system",
+          math: "mathjax",
+        });
+        const parameterNames = ["figures", "zoom", "theme", "math"];
+        const readerParameters = new Set(parameterNames);
+
+        const normalizeZoom = (value) => {
+          const candidate = typeof value === "number" ? value : Number(value);
+          const rounded = Math.round(candidate * 10) / 10;
+          return Number.isFinite(candidate) &&
+            candidate >= 0.5 &&
+            candidate <= 2 &&
+            Math.abs(candidate - rounded) < 1e-9
+            ? rounded
+            : defaults.zoom;
+        };
+
+        const normalize = (input = {}) => ({
+          figures: input.figures === "vector" ? "vector" : defaults.figures,
+          zoom: normalizeZoom(input.zoom),
+          theme:
+            input.theme === "light" || input.theme === "dark"
+              ? input.theme
+              : defaults.theme,
+          math: input.math === "mathml" ? "mathml" : defaults.math,
+        });
+
+        const read = (search) => {
+          const params = new URLSearchParams(search);
+          return normalize({
+            figures: params.get("figures"),
+            zoom: params.get("zoom"),
+            theme: params.get("theme"),
+            math: params.get("math"),
+          });
+        };
+
+        const entries = (input) => {
+          const state = normalize(input);
+          const params = new URLSearchParams();
+          if (state.figures !== defaults.figures) {
+            params.set("figures", state.figures);
+          }
+          if (state.zoom !== defaults.zoom) {
+            params.set("zoom", state.zoom.toFixed(1));
+          }
+          if (state.theme !== defaults.theme) {
+            params.set("theme", state.theme);
+          }
+          if (state.math !== defaults.math) {
+            params.set("math", state.math);
+          }
+          return Array.from(params.entries());
+        };
+
+        const withState = (source, input, preserveUnrelated) => {
+          const url = new URL(source.href);
+          const unrelated = preserveUnrelated
+            ? Array.from(url.searchParams.entries()).filter(
+                ([key]) => !readerParameters.has(key),
+              )
+            : [];
+          url.search = "";
+          unrelated.forEach(([key, value]) => url.searchParams.append(key, value));
+          entries(input).forEach(([key, value]) => url.searchParams.append(key, value));
+          return url;
+        };
+
+        const replaceCurrent = (input, { normalizeOnly = false } = {}) => {
+          const current = new URL(location.href);
+          if (
+            normalizeOnly &&
+            !parameterNames.some((name) => current.searchParams.has(name))
+          ) {
+            return;
+          }
+          const next = withState(current, input, true);
+          const currentPath = current.pathname + current.search + current.hash;
+          const nextPath = next.pathname + next.search + next.hash;
+          if (nextPath !== currentPath) history.replaceState(null, "", nextPath);
+        };
+
+        return { defaults, entries, normalize, read, replaceCurrent, withState };
+      })();
+      window.waveReaderState = readerStateApi;
       root.classList.remove("no-js");
       root.classList.add("js");
-      const requestedMathMode = new URLSearchParams(location.search).get("math");
-      const hasValidMathOverride =
-        requestedMathMode === "mathjax" || requestedMathMode === "mathml";
-      let initialMathMode =
-        hasValidMathOverride
-          ? requestedMathMode
-          : "mathjax";
-      try {
-        const savedTheme = localStorage.getItem("wave-theme");
-        if (savedTheme === "light" || savedTheme === "dark") {
-          root.dataset.theme = savedTheme;
-        }
-        const rawTextSize = localStorage.getItem("wave-text-size");
-        const legacyTextSizes = { small: 90, default: 100, large: 110 };
-        const savedTextSize = legacyTextSizes[rawTextSize] ?? Number(rawTextSize);
-        const validTextSize =
-          Number.isInteger(savedTextSize) &&
-          savedTextSize >= 50 &&
-          savedTextSize <= 200 &&
-          savedTextSize % 10 === 0
-            ? savedTextSize
-            : 100;
-        if (validTextSize !== 100) {
-          root.style.setProperty("--wave-text-scale", String(validTextSize / 100));
-        }
-        const savedMathMode = localStorage.getItem("wave-math-renderer");
-        if (!hasValidMathOverride && savedMathMode === "mathml") {
-          initialMathMode = "mathml";
-        }
-        const savedFigureView = localStorage.getItem("wave-figure-view");
-        if (savedFigureView === "original" || savedFigureView === "vector") {
-          root.dataset.initialFigure = savedFigureView;
-        }
-      } catch (_) {}
-      root.dataset.initialMath = initialMathMode;
-      if (initialMathMode !== "mathjax") return;
+      const hasQuery = location.search !== "";
+      if (hasQuery) {
+        const robots = document.createElement("meta");
+        robots.name = "robots";
+        robots.content = "noindex,follow";
+        document.head.append(robots);
+      }
+      const initialState = readerStateApi.read(location.search);
+      readerStateApi.initial = initialState;
+      readerStateApi.replaceCurrent(initialState, { normalizeOnly: true });
+      root.dataset.initialFigure = initialState.figures;
+      root.dataset.initialMath = initialState.math;
+      if (initialState.zoom !== readerStateApi.defaults.zoom) {
+        root.style.setProperty("--wave-text-scale", String(initialState.zoom));
+      }
+      if (initialState.theme !== readerStateApi.defaults.theme) {
+        root.dataset.theme = initialState.theme;
+      }
+      if (initialState.math !== "mathjax") return;
 
       root.dataset.mathPending = "";
       window.setTimeout(() => {
@@ -120,7 +192,7 @@ $scholar_metadata$
       <div class="reader-setting-row">
         <span class="reader-setting-label">Rendering:</span>
         <button class="math-renderer-cycle reader-cycle js-only" type="button" data-math-cycle>
-          <span data-math-label>MathML</span>
+          <span data-math-label>MathJax</span>
         </button>
       </div>
       <div class="reader-setting-row">
@@ -139,7 +211,7 @@ $scholar_metadata$
       </div>
       <div class="reader-setting-row">
         <span class="reader-setting-label">Theme:</span>
-        <button class="theme-cycle reader-cycle js-only" type="button" data-theme-cycle aria-label="Theme"><span data-theme-label>Device</span></button>
+        <button class="theme-cycle reader-cycle js-only" type="button" data-theme-cycle aria-label="Theme"><span data-theme-label>System</span></button>
       </div>
     </div>
   </div>
@@ -185,13 +257,13 @@ $if(bibliography)$
 <section class="artwork-section" aria-labelledby="artwork">
 <h2 id="artwork">Artwork</h2>
 <figure>
-  <img class="artwork-cover-image" src="assets/figures/great-wave-met-dp130155.jpg" alt="Katsushika Hokusai, Under the Wave off Kanagawa (The Great Wave)" loading="lazy" decoding="async">
+  <img class="artwork-cover-image" src="$artwork_cover_url$" alt="Katsushika Hokusai, Under the Wave off Kanagawa (The Great Wave)" loading="lazy" decoding="async">
   <figcaption><strong>Front cover.</strong> Katsushika Hokusai, <cite>Under the Wave off Kanagawa (The Great Wave)</cite>, from <cite>Thirty-six Views of Mount Fuji</cite>, ca. 1830–32. The Metropolitan Museum of Art, JP1847. Public Domain; image from The Met Open Access (CC0).</figcaption>
 </figure>
 <figure>
   <!-- Match the PDF back-cover scale, shift, and clip from back-modern.tex. -->
   <div class="artwork-closing-frame">
-    <img class="artwork-closing-image" src="assets/figures/naruto-whirlpool-met-jp1198.jpg" alt="Utagawa Hiroshige, Naruto Whirlpool, Awa Province" loading="lazy" decoding="async">
+    <img class="artwork-closing-image" src="$artwork_closing_url$" alt="Utagawa Hiroshige, Naruto Whirlpool, Awa Province" loading="lazy" decoding="async">
   </div>
   <figcaption><strong>Back cover.</strong> Utagawa Hiroshige, <cite>Naruto Whirlpool, Awa Province</cite>, from <cite>Views of Famous Places in the Sixty-Odd Provinces</cite>, ca. 1853. The Metropolitan Museum of Art, JP1198. Public Domain; image from The Met Open Access (CC0).</figcaption>
 </figure>

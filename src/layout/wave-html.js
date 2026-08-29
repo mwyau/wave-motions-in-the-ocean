@@ -1,74 +1,74 @@
 (() => {
   const root = document.documentElement;
   root.dataset.mathSetup = "";
-  const themeKey = "wave-theme";
-  const themeModes = ["auto", "light", "dark"];
-  const themeNames = { auto: "Device", light: "Light", dark: "Dark" };
+  const readerStateApi = window.waveReaderState;
+  const readerState = readerStateApi.normalize(readerStateApi.initial);
+  readerStateApi.current = readerState;
+  const readerPagePattern = /^(?:index|chapter\d+|references)\.html$/;
+
+  const updateReaderLinks = () => {
+    document.querySelectorAll("a[href]").forEach((link) => {
+      const raw = link.getAttribute("href");
+      if (!raw || raw.startsWith("#")) return;
+      let url;
+      try {
+        url = new URL(raw, location.href);
+      } catch (_) {
+        return;
+      }
+      if (url.origin !== location.origin) return;
+      const filename = url.pathname.split("/").pop();
+      if (!readerPagePattern.test(filename)) return;
+      const next = readerStateApi.withState(url, readerState, false);
+      const nextFilename = next.pathname.split("/").pop();
+      link.setAttribute("href", `${nextFilename}${next.search}${next.hash}`);
+    });
+  };
+
+  const commitReaderState = () => {
+    readerStateApi.replaceCurrent(readerState);
+    updateReaderLinks();
+  };
+
+  const themeModes = ["system", "light", "dark"];
+  const themeNames = { system: "System", light: "Light", dark: "Dark" };
   const themeToggle = document.querySelector("[data-theme-cycle]");
   const themeLabel = document.querySelector("[data-theme-label]");
-  let themeMode = "auto";
-
-  try {
-    const saved = localStorage.getItem(themeKey);
-    if (themeModes.includes(saved)) themeMode = saved;
-  } catch (_) {}
 
   const applyTheme = () => {
-    if (themeMode === "auto") delete root.dataset.theme;
-    else root.dataset.theme = themeMode;
-    if (themeLabel) themeLabel.textContent = themeNames[themeMode];
+    if (readerState.theme === "system") root.removeAttribute("data-theme");
+    else root.dataset.theme = readerState.theme;
+    if (themeLabel) themeLabel.textContent = themeNames[readerState.theme];
     if (themeToggle) {
       themeToggle.setAttribute(
         "aria-label",
-        `Theme; current ${themeNames[themeMode]}`,
+        `Theme; current ${themeNames[readerState.theme]}`,
       );
-      themeToggle.title = `Theme: ${themeNames[themeMode]}`;
+      themeToggle.title = `Theme: ${themeNames[readerState.theme]}`;
     }
   };
 
   const setThemeMode = (mode) => {
     if (!themeModes.includes(mode)) return;
-    themeMode = mode;
-    try {
-      if (themeMode === "auto") localStorage.removeItem(themeKey);
-      else localStorage.setItem(themeKey, themeMode);
-    } catch (_) {}
+    readerState.theme = mode;
     applyTheme();
+    commitReaderState();
   };
 
   themeToggle?.addEventListener("click", () => {
     const nextMode =
-      themeModes[(themeModes.indexOf(themeMode) + 1) % themeModes.length];
+      themeModes[(themeModes.indexOf(readerState.theme) + 1) % themeModes.length];
     setThemeMode(nextMode);
   });
 
-  const textSizeKey = "wave-text-size";
   const textSizeActions = ["decrease", "reset", "increase"];
   const textSizeMin = 50;
   const textSizeMax = 200;
   const textSizeStep = 10;
   const textSizeDefault = 100;
-  const legacyTextSizes = { small: 90, default: 100, large: 110 };
   const textSizeButtons = document.querySelectorAll("[data-text-size-action]");
   const textSizeValue = document.querySelector("[data-text-size-value]");
-
-  const normalizeTextSize = (value) => {
-    const candidate = legacyTextSizes[value] ?? Number(value);
-    if (
-      Number.isInteger(candidate) &&
-      candidate >= textSizeMin &&
-      candidate <= textSizeMax &&
-      candidate % textSizeStep === 0
-    ) {
-      return candidate;
-    }
-    return textSizeDefault;
-  };
-
-  let textSizePercent = textSizeDefault;
-  try {
-    textSizePercent = normalizeTextSize(localStorage.getItem(textSizeKey));
-  } catch (_) {}
+  let textSizePercent = Math.round(readerState.zoom * 100);
 
   const applyTextSize = () => {
     if (textSizePercent === textSizeDefault) {
@@ -114,7 +114,6 @@
     });
   };
 
-  const figureKey = "wave-figure-view";
   const figureModes = ["original", "vector"];
   const figureNames = { original: "Original", vector: "Vector" };
   const figureControl = document.querySelector("[data-figure-cycle]");
@@ -122,15 +121,6 @@
   const switchableFigures = Array.from(
     document.querySelectorAll("figure.wave-figure-switchable"),
   );
-  let figurePreference = "original";
-
-  try {
-    const bootstrapFigure = root.dataset.initialFigure;
-    const savedFigure = figureModes.includes(bootstrapFigure)
-      ? bootstrapFigure
-      : localStorage.getItem(figureKey);
-    if (figureModes.includes(savedFigure)) figurePreference = savedFigure;
-  } catch (_) {}
 
   const figureImage = (figure) => figure.querySelector("img[data-vector-src]");
 
@@ -149,8 +139,8 @@
   };
 
   const syncFigureControl = () => {
-    if (!figureControl || !figureModes.includes(figurePreference)) return;
-    const name = figureNames[figurePreference];
+    if (!figureControl || !figureModes.includes(readerState.figures)) return;
+    const name = figureNames[readerState.figures];
     if (figureLabel) figureLabel.textContent = name;
     figureControl.setAttribute("aria-label", `Default figure rendering: ${name}`);
     figureControl.title = `Default figure rendering: ${name}`;
@@ -178,26 +168,20 @@
     });
   };
 
-  const persistFigurePreference = (mode) => {
-    try {
-      localStorage.setItem(figureKey, mode);
-    } catch (_) {}
-  };
-
-  const applyFigurePreference = (mode, { persist = false } = {}) => {
+  const applyFigurePreference = (mode, { updateUrl = false } = {}) => {
     if (!figureModes.includes(mode)) return;
     const anchor = visibleContentAnchor();
     const images = switchableFigures
       .map((figure) => setFigureMode(figure, mode))
       .filter(Boolean);
-    figurePreference = mode;
+    readerState.figures = mode;
     syncFigureControl();
-    if (persist) persistFigurePreference(mode);
     restoreAfterFigureChange(anchor, images);
+    if (updateUrl) commitReaderState();
   };
 
   switchableFigures.forEach((figure) => {
-    setFigureMode(figure, figurePreference);
+    setFigureMode(figure, readerState.figures);
     syncFigureAction(figure);
     const toggle = figure.querySelector("[data-figure-toggle]");
     toggle?.addEventListener("click", () => {
@@ -209,10 +193,12 @@
     });
   });
 
+  root.dataset.figureReady = "";
   syncFigureControl();
   figureControl?.addEventListener("click", () => {
-    const next = figureModes[(figureModes.indexOf(figurePreference) + 1) % figureModes.length];
-    applyFigurePreference(next, { persist: true });
+    const next =
+      figureModes[(figureModes.indexOf(readerState.figures) + 1) % figureModes.length];
+    applyFigurePreference(next, { updateUrl: true });
   });
 
   textSizeButtons.forEach((button) => {
@@ -227,11 +213,9 @@
       } else {
         textSizePercent = textSizeDefault;
       }
-      try {
-        if (textSizePercent === textSizeDefault) localStorage.removeItem(textSizeKey);
-        else localStorage.setItem(textSizeKey, String(textSizePercent));
-      } catch (_) {}
+      readerState.zoom = textSizePercent / 100;
       applyTextSize();
+      commitReaderState();
       requestAnimationFrame(() => restoreContentAnchor(anchor));
     });
   });
@@ -239,26 +223,12 @@
   applyTheme();
   applyTextSize();
 
-  const params = new URLSearchParams(location.search);
-  const mathKey = "wave-math-renderer";
   const mathModes = ["mathjax", "mathml"];
   const mathNames = { mathjax: "MathJax", mathml: "MathML" };
-  let savedMathMode = "mathjax";
-  try {
-    const saved = localStorage.getItem(mathKey);
-    if (mathModes.includes(saved)) savedMathMode = saved;
-  } catch (_) {}
-  const requestedMathMode = params.get("math");
-  let mathUrlOverride = mathModes.includes(requestedMathMode) ? requestedMathMode : null;
-  const bootstrapMathMode = mathModes.includes(root.dataset.initialMath)
-    ? root.dataset.initialMath
-    : savedMathMode;
-  const initialMathMode = mathUrlOverride || bootstrapMathMode;
-  let mathMode = initialMathMode;
+  let mathMode = readerState.math;
   const mathCycle = document.querySelector("[data-math-cycle]");
   const mathLabel = document.querySelector("[data-math-label]");
   const mathRenderers = document.querySelectorAll("[data-math-renderer]");
-  const readerPagePattern = /^(?:index|chapter\d+|references)\.html$/;
 
   const showMathMode = (mode) => {
     mathRenderers.forEach((node) => {
@@ -282,36 +252,6 @@
     root.removeAttribute("data-math-pending");
     root.dataset.mathReady = "";
     root.dispatchEvent(new Event("wave-math-ready"));
-  };
-
-  const updateReaderLinks = () => {
-    const linkMathMode =
-      mathUrlOverride || (savedMathMode === "mathml" ? "mathml" : null);
-    document.querySelectorAll("a[href]").forEach((link) => {
-      const raw = link.getAttribute("href");
-      if (!raw || raw.startsWith("#")) return;
-      let url;
-      try {
-        url = new URL(raw, location.href);
-      } catch (_) {
-        return;
-      }
-      if (url.origin !== location.origin) return;
-      const filename = url.pathname.split("/").pop();
-      if (!readerPagePattern.test(filename)) return;
-      if (linkMathMode) url.searchParams.set("math", linkMathMode);
-      else url.searchParams.delete("math");
-      const query = url.searchParams.toString();
-      link.setAttribute("href", `${filename}${query ? `?${query}` : ""}${url.hash}`);
-    });
-  };
-
-  const updateReaderUrl = () => {
-    const url = new URL(location.href);
-    if (mathMode === "mathml") url.searchParams.set("math", "mathml");
-    else url.searchParams.delete("math");
-    const query = url.searchParams.toString();
-    history.replaceState(null, "", `${url.pathname}${query ? `?${query}` : ""}${url.hash}`);
   };
 
   const typesetMathJaxIfNeeded = () => {
@@ -339,26 +279,18 @@
     return typeset();
   };
 
-  const persistMathMode = (mode) => {
-    try {
-      if (mode === "mathml") localStorage.setItem(mathKey, mode);
-      else localStorage.removeItem(mathKey);
-      savedMathMode = mode;
-    } catch (_) {}
-  };
-
   const applyMathMode = (
     target,
-    { persist = false, updateUrl = false, initial = false } = {},
+    { updateUrl = false, initial = false } = {},
   ) => {
     if (target === "mathml") {
       mathMode = target;
+      readerState.math = target;
       showMathMode(mathMode);
       syncMathControl();
       markMathReady(mathMode);
-      if (persist) persistMathMode(mathMode);
-      if (updateUrl) updateReaderUrl();
-      updateReaderLinks();
+      if (updateUrl) commitReaderState();
+      else updateReaderLinks();
       return Promise.resolve(true);
     }
     if (initial && root.hasAttribute("data-math-fallback")) {
@@ -374,28 +306,28 @@
       showMathMode(mathMode);
       syncMathControl();
       markMathReady(mathMode);
-      if (ready && persist) persistMathMode(mathMode);
-      if (updateUrl) updateReaderUrl();
-      updateReaderLinks();
+      if (updateUrl) commitReaderState();
+      else updateReaderLinks();
       return ready;
     });
   };
 
+  updateReaderLinks();
   syncMathControl();
-  if (initialMathMode === "mathml") showMathMode("mathml");
+  if (readerState.math === "mathml") showMathMode("mathml");
   if (mathCycle) {
     mathCycle.addEventListener("click", () => {
       const anchor = visibleContentAnchor();
       const nextMode = mathModes[(mathModes.indexOf(mathMode) + 1) % mathModes.length];
-      mathUrlOverride = null;
-      applyMathMode(nextMode, { persist: true, updateUrl: true }).then(() => {
+      readerState.math = nextMode;
+      applyMathMode(nextMode, { updateUrl: true }).then(() => {
         requestAnimationFrame(() => restoreContentAnchor(anchor));
       });
     });
   }
   let initialMathReady;
   const startInitialMath = () => {
-    initialMathReady = applyMathMode(initialMathMode, { initial: true });
+    initialMathReady = applyMathMode(readerState.math, { initial: true });
     initialMathReady.then(alignFragmentAfterLayout);
   };
 

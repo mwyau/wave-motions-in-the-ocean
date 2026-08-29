@@ -444,6 +444,9 @@ a.reader-context-chapter:focus-visible {
 :root.js[data-initial-math="mathjax"]:not([data-math-ready]) #main-content {
   visibility: hidden;
 }
+:root.js[data-initial-figure="vector"]:not([data-figure-ready]) #main-content {
+  visibility: hidden;
+}
 :root.js:not([data-toc-ready]) .toc-toggle,
 :root.js:not([data-toc-ready]) .book-contents-rail {
   visibility: hidden !important;
