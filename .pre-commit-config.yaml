@@ -42,7 +42,7 @@ repos:
         name: Update figure and equation audit freshness
         entry: uv run --frozen python scripts/publication.py audit-update
         language: system
-        files: '^(src/(chapter[1-6]\.tex|FIGURES\.md|EQUATIONS\.md|figures/|equations/)|scripts/(publication|compare_figures)\.py|skills/|references/chapman-rizzoli-1989/)'
+        files: '^(tex-packages\.txt|src/(chapter[1-6]\.tex|FIGURES\.md|EQUATIONS\.md|figures/|equations/)|scripts/(publication|compare_figures)\.py|skills/|references/chapman-rizzoli-1989/)'
 
       - id: sync-readme
         name: Synchronize README

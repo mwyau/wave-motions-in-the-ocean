@@ -222,6 +222,7 @@ EQUATION_PAGE_RE = re.compile(
 )
 EQUATION_BEGIN_RE = re.compile(r"^\s*\\begin\{(?P<environment>[^}]+)\}\s*$")
 EQUATION_STEM_RE = re.compile(r"ch\d{2}-p\d{3}-e\d{2,}")
+MAINTAINED_FIGURE_CHAPTER_RE = re.compile(r"^ch0?([1-6])(?:-|$)")
 
 FIGURE_LEDGER_CHAPTERS = tuple(range(1, 7))
 FIGURE_REPRESENTATIONS = frozenset({"vector", "source-pdf"})
@@ -3294,6 +3295,7 @@ def _audit_candidate_chapters(paths: Iterable[str]) -> tuple[bool, tuple[int, ..
             "scripts/publication.py",
             "scripts/compare_figures.py",
             ".pre-commit-config.yaml",
+            "tex-packages.txt",
         } or path.startswith("skills/"):
             all_chapters = True
             continue
@@ -3316,6 +3318,39 @@ def _audit_candidate_chapters(paths: Iterable[str]) -> tuple[bool, tuple[int, ..
     if all_chapters or not chapters:
         return True, FIGURE_LEDGER_CHAPTERS
     return False, tuple(sorted(chapters))
+
+
+def _audit_maintained_figure_stems(
+    chapters: Iterable[int] | None,
+) -> tuple[str, ...]:
+    """Select maintained TikZ figures for an audit scope."""
+    stems = maintained_tikz_stems()
+    if chapters is None:
+        return stems
+    selected = set(chapters)
+    mapped: list[tuple[str, int]] = []
+    for stem in stems:
+        match = MAINTAINED_FIGURE_CHAPTER_RE.match(stem)
+        if match is None:
+            return stems
+        mapped.append((stem, int(match.group(1))))
+    return tuple(stem for stem, chapter in mapped if chapter in selected)
+
+
+def _audit_maintained_figure_asset_errors(
+    chapters: Iterable[int] | None,
+) -> list[str]:
+    """Return cheap, actionable errors for maintained TikZ figure assets."""
+    errors: list[str] = []
+    for stem in _audit_maintained_figure_stems(chapters):
+        asset_errors = maintained_figure_asset_errors(stem, verify_content=False)
+        if asset_errors:
+            errors.append(
+                f"maintained figure {stem}: {'; '.join(asset_errors)}\n"
+                "  Regenerate: uv run --frozen python scripts/compare_figures.py "
+                f"{stem}"
+            )
+    return errors
 
 
 def _equation_manifest_change_ids(
@@ -3357,6 +3392,7 @@ def _audit_check_only(
 ) -> list[str]:
     errors = figure_ledger_errors(chapters=selected)
     errors.extend(equation_ledger_errors(chapters=selected))
+    errors.extend(_audit_maintained_figure_asset_errors(selected))
     if full_assets:
         errors.extend(equation_asset_errors())
     return errors
@@ -3418,20 +3454,29 @@ def _audit_update_cli(argv: list[str] | None = None) -> int:
             ):
                 stale_asset_chapters.add(display.chapter)
 
-    if stale_asset_chapters:
-        chapters_text = ", ".join(map(str, sorted(stale_asset_chapters)))
-        chapter_word = "Chapter" if len(stale_asset_chapters) == 1 else "Chapters"
-        print(
-            f"Equation review assets are stale in {chapter_word} {chapters_text}.\n\n"
-            "Regenerate:\n"
-            + "\n".join(
-                "  uv run --frozen python scripts/publication.py equations "
-                f"--chapter {chapter} --assets"
-                for chapter in sorted(stale_asset_chapters)
-            ),
-            file=sys.stderr,
-        )
+    figure_asset_errors = _audit_maintained_figure_asset_errors(selected)
+    if stale_asset_chapters or figure_asset_errors:
+        if stale_asset_chapters:
+            chapters_text = ", ".join(map(str, sorted(stale_asset_chapters)))
+            chapter_word = "Chapter" if len(stale_asset_chapters) == 1 else "Chapters"
+            print(
+                f"Equation review assets are stale in {chapter_word} {chapters_text}.\n\n"
+                "Regenerate:\n"
+                + "\n".join(
+                    "  uv run --frozen python scripts/publication.py equations "
+                    f"--chapter {chapter} --assets"
+                    for chapter in sorted(stale_asset_chapters)
+                ),
+                file=sys.stderr,
+            )
+        if figure_asset_errors:
+            print(
+                "maintained figure asset validation failed:\n- "
+                + "\n- ".join(figure_asset_errors),
+                file=sys.stderr,
+            )
         return 1
+
     return 0
 
 

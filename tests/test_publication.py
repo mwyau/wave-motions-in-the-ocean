@@ -702,6 +702,91 @@ def test_audit_update_reports_stale_asset_chapters_without_rendering(
     assert capsys.readouterr().err == ""
 
 
+def test_audit_paths_report_stale_maintained_svg_without_rendering(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+    (source_dir / "scan.pdf").write_bytes(b"scan")
+    figures = tmp_path / "figures"
+    monkeypatch.setattr(publication, "SOURCE_DIR", source_dir)
+    monkeypatch.setattr(publication, "FIGURES", figures)
+    _write_valid_figure_assets(figures, source_dir)
+    (figures / "sample.svg").write_text(
+        "<svg><!-- wave-generated-sha256: 0000000000000000 --></svg>"
+    )
+
+    monkeypatch.setattr(publication, "figure_ledger_errors", lambda **_kwargs: [])
+    monkeypatch.setattr(publication, "equation_ledger_errors", lambda **_kwargs: [])
+    assert publication._audit_update_cli(["--check", "src/chapter1.tex"]) == 1
+    check_diagnostic = capsys.readouterr().err
+    assert "sample.svg has digest" in check_diagnostic
+    assert (
+        "uv run --frozen python scripts/compare_figures.py sample" in check_diagnostic
+    )
+
+    monkeypatch.setattr(
+        publication,
+        "_equation_manifest_change_ids",
+        lambda chapters: {chapter: () for chapter in chapters},
+    )
+    monkeypatch.setattr(
+        publication,
+        "write_figure_chapter_ledgers",
+        lambda *_args, **_kwargs: None,
+    )
+    monkeypatch.setattr(
+        publication,
+        "write_equation_ledger",
+        lambda *_args, **_kwargs: None,
+    )
+    monkeypatch.setattr(publication, "collect_equation_displays", lambda: ())
+    monkeypatch.setattr(
+        publication,
+        "render_tikz_svg",
+        lambda *_args, **_kwargs: pytest.fail("audit freshness must not render SVGs"),
+    )
+
+    assert publication._audit_update_cli(["src/chapter1.tex"]) == 1
+    update_diagnostic = capsys.readouterr().err
+    assert "maintained figure asset validation failed" in update_diagnostic
+    assert "sample.svg has digest" in update_diagnostic
+    assert (
+        "uv run --frozen python scripts/compare_figures.py sample" in update_diagnostic
+    )
+
+
+def test_audit_figure_asset_validation_scopes_to_selected_chapter(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, bool]] = []
+    monkeypatch.setattr(
+        publication,
+        "maintained_tikz_stems",
+        lambda: ("ch01-first", "ch02-second", "ch06-last"),
+    )
+
+    def record_call(stem: str, *, verify_content: bool) -> list[str]:
+        calls.append((stem, verify_content))
+        return []
+
+    monkeypatch.setattr(publication, "maintained_figure_asset_errors", record_call)
+    monkeypatch.setattr(publication, "figure_ledger_errors", lambda **_kwargs: [])
+    monkeypatch.setattr(publication, "equation_ledger_errors", lambda **_kwargs: [])
+
+    assert publication._audit_check_only((2,)) == []
+    assert calls == [("ch02-second", False)]
+
+
+def test_tex_packages_is_a_global_audit_input() -> None:
+    assert publication._audit_candidate_chapters(["tex-packages.txt"]) == (
+        True,
+        publication.FIGURE_LEDGER_CHAPTERS,
+    )
+
+
 def test_equation_ledger_is_stable_and_contains_no_machine_data(tmp_path: Path) -> None:
     source = _write_equation_test_sources(tmp_path)
     first, count = equation_ledger_text(source)
