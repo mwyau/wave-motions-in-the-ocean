@@ -1548,7 +1548,7 @@ def check_html() -> None:
             'class="book-contents-popover"',
             'class="build-info"',
             ">Source</a>",
-            "Build <a",
+            "Early Release</footer>",
             "Front matter",
             "References",
             "assets/wave.css",
