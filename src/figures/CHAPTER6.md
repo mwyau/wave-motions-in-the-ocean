@@ -99,7 +99,7 @@ Entries follow printed page, figure order on the page, and component asset.
 - **Printed page:** 159
 - **Representation:** vector
 - **Equation check:** ai-checked
-- **Scientific check:** Roots for the displayed finite-slope comparisons were independently evaluated from `tan(t)+m t=0`. The 1989 source figure labels the comparison `-k/(ell+b)` and the horizontal limit `ell=infinity`, while the nearby derivation uses signed `ell<0` and gives `tan(kL)=k/(ell-b)`. The vector preserves the source notation pending resolution of this discrepancy; see `ERRATA.md`, printed p.159.
+- **Scientific check:** The source figure uses `ell` for the positive offshore decay magnitude `q=-ell_chapter`. Under that change of variable, the chapter relation `tan(kL)=k/(ell_chapter-b)` is exactly `tan(kL)=-k/(q+b)`, and `q->infinity` is the source figure's `ell=infinity` horizontal limit. The vector therefore preserves the source labels and root family; see `ERRATA.md`, printed p.159, for the unstated notation change.
 
 #### Figure 6.7 — source PDF crop, printed page 159
 

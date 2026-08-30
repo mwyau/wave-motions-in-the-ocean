@@ -429,14 +429,14 @@ Entries are ordered by chapter, then printed page, then item on the same page. S
 
 ## Chapter 6
 
-### Printed page 159 — shelf root-condition figure's wavenumber sign convention
+### Printed page 159 — shelf root-condition figure's unstated decay-wavenumber convention
 
 - **Category:** `figure`
 - **Status:** `pending-human-approval`
 - **Location:** Chapter 6, printed page 159, upper figure
-- **Source:** The source figure labels the descending comparison as $-k/(\ell+b)$ and its horizontal limit as $\ell=\infty$. The nearby chapter derivation uses signed $\ell<0$ and gives $\tan(kL)=k/(\ell-b)$.
-- **Proposed correction:** Clarify the figure's $\ell$ convention. If $\ell$ is intended to be the signed chapter variable, use $-k/(b-\ell)=k/(\ell-b)$ and $\ell\to-\infty$. If the figure instead uses $\ell$ for the positive offshore decay magnitude $-\ell$, state that convention explicitly.
-- **Reason/evidence:** Matching $\psi=Ae^{b(x-L)}\sin kx$ to $\psi=Be^{\ell(x-L)}$ at $x=L$ gives $b\sin(kL)+k\cos(kL)=\ell\sin(kL)$, hence $\tan(kL)=k/(\ell-b)$ for the chapter's signed variable. The source figure and nearby derivation use different visible notations, and the source does not state how they are to be reconciled. Preserve the source figure pending human review.
+- **Source:** The chapter uses signed $\ell<0$ in the deep-ocean decay $Be^{\ell(x-L)}$ and derives $\tan(kL)=k/(\ell-b)$. The source figure instead labels the descending comparison as $-k/(\ell+b)$, with limits $\ell=0$ and $\ell=\infty$.
+- **Proposed correction:** State explicitly that the figure's $\ell$ is the positive offshore decay magnitude $q=-\ell_{\mathrm{chapter}}>0$, or relabel that figure variable as $q$.
+- **Reason/evidence:** With $q=-\ell_{\mathrm{chapter}}$, the chapter relation becomes $k/(\ell_{\mathrm{chapter}}-b)=-k/(q+b)$ exactly, and $q\to\infty$ corresponds to $\ell_{\mathrm{chapter}}\to-\infty$. The plotted root condition is therefore algebraically consistent with the chapter derivation; the source issue is the unstated reuse of $\ell$ with the opposite sign convention. Preserve the source figure labels pending human review.
 
 ### Printed page 159 — modal maximum differentiated at fixed cross-shelf wavenumber
 

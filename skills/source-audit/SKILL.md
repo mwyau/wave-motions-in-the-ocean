@@ -48,7 +48,7 @@ This applies to every maintained reconstruction surface: prose, display and inli
 
 If a chapter equation and source figure, source prose and source figure, or source equation and the mathematically expected result disagree, preserve each source surface faithfully. Do not make them agree by choosing whichever version seems scientifically preferable. Record the discrepancy and keep the proposed change pending.
 
-Example: if the chapter and figure print `p`, while science suggests `rho`, the chapter and maintained TikZ must still contain `p` when the erratum is pending. Likewise, if the source figure prints `-k/(ell+b)` but the nearby derivation gives `k/(ell-b)`, preserve the source figure label and chapter derivation separately; do not reconcile them in the committed vector.
+Example: if the chapter and figure print `p`, while science suggests `rho`, the chapter and maintained TikZ must still contain `p` when the erratum is pending. If an apparent disagreement is only a change of variable, document that equivalence rather than treating it as a scientific conflict. On printed p.159, defining the positive offshore decay magnitude `q=-ell_chapter` turns `k/(ell_chapter-b)` into `-k/(q+b)`; the maintained vector keeps the source figure's `ell` labels. If source surfaces remain genuinely incompatible after their conventions are resolved, preserve them separately and record the discrepancy rather than silently correcting either one.
 
 ## Check order
 

@@ -1,8 +1,8 @@
 % wave-source: pdf=ChapmanRizzoli6.pdf; page=12; trim=75bp 485bp 65bp 160bp
 % Source: Wave Motions in the Ocean, printed p.159 (physical p.12), upper figure.
-% Equation-generated roots of tan(kL)=-k/(ell+b), written with t=kL.
-% The horizontal comparison is ell=infinity; the two finite-slope lines are
-% representative negative -k/(ell+b) comparisons shown in the source.
+% The source figure uses ell for the positive offshore decay magnitude q=-ell_chapter.
+% Thus tan(kL)=k/(ell_chapter-b) becomes tan(kL)=-k/(q+b); rendered labels retain
+% the source's ell notation, including ell=infinity for q->infinity.
 \begin{tikzpicture}[x=.78cm,y=1cm,>=stealth,font=\small,line cap=round,line join=round]
   \def\xaxis{0.85}
   \def\yaxis{3.25}
