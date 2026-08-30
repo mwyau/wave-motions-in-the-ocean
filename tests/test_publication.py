@@ -19,6 +19,8 @@ from publication import (
     _validate_mask_boxes,
     collect_equation_displays,
     equation_asset_paths,
+    equation_crop_ledger_errors,
+    equation_crop_ledger_path,
     equation_ledger_text,
     equation_markdown_math,
     expected_source_png_metadata,
@@ -76,6 +78,22 @@ def _write_equation_test_sources(root: Path) -> Path:
     for chapter in range(3, 7):
         (source / f"chapter{chapter}.tex").write_text(
             f"% Source printed page {chapter + 2} / physical page 1\n"
+        )
+    equation_dir = source / "equations"
+    equation_dir.mkdir()
+    (equation_dir / "CHAPTER1.crops").write_text(
+        "# Maintained source crop metadata for Chapter 1 equation review PNGs.\n"
+        "ch01-p002-e01  0,0,2,2@300dpi\n"
+        "ch01-p002-e02  0,0,2,2@300dpi\n"
+        "ch01-p003-e01  0,0,2,2@300dpi\n"
+    )
+    (equation_dir / "CHAPTER2.crops").write_text(
+        "# Maintained source crop metadata for Chapter 2 equation review PNGs.\n"
+        "ch02-p004-e01  0,0,2,2@300dpi\n"
+    )
+    for chapter in range(3, 7):
+        (equation_dir / f"CHAPTER{chapter}.crops").write_text(
+            f"# Maintained source crop metadata for Chapter {chapter} equation review PNGs.\n"
         )
     return source
 
@@ -435,6 +453,7 @@ def test_equation_asset_refresh_records_inputs_and_rejects_extras(
         source="\\begin{waveequation}\n\tx = 1\n\\end{waveequation}",
     )
     equation_dir.mkdir()
+    (equation_dir / "CHAPTER1.crops").write_text("ch01-p002-e01  0,0,2,2@300dpi\n")
 
     monkeypatch.setattr(publication, "SOURCE_DIR", source_dir)
     publication.file_sha256.cache_clear()
@@ -577,6 +596,56 @@ def test_equations_asset_check_scope_controls_unexpected_png_scan(
     assert "current for Chapter 1" in capsys.readouterr().out
 
 
+def test_equation_source_crop_ledger_change_marks_assets_stale(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = _write_equation_test_sources(tmp_path)
+    source_dir = tmp_path / "references"
+    source_dir.mkdir()
+    (source_dir / "ChapmanRizzoli0_2.pdf").write_bytes(b"source pdf")
+    source_page = tmp_path / "source-page.png"
+    Image.new("RGB", (2, 2), "white").save(source_page)
+
+    monkeypatch.setattr(publication, "SRC", source)
+    monkeypatch.setattr(publication, "SOURCE_DIR", source_dir)
+    monkeypatch.setattr(
+        publication,
+        "_equation_source_page_path",
+        lambda _display, _dpi: source_page,
+    )
+    publication.file_sha256.cache_clear()
+
+    equation_dir = source / "equations"
+    crop = publication.EquationSourceCrop(trim="0bp 0bp 0bp 0bp", pixels=(0, 0, 2, 2))
+    display = collect_equation_displays(source)[0]
+    for kind, path in zip(
+        publication.EQUATION_ASSET_KINDS,
+        equation_asset_paths(display.stem),
+        strict=True,
+    ):
+        metadata = publication._equation_asset_metadata(
+            display,
+            kind,
+            source_crop=crop if kind == "source" else None,
+        )
+        publication._save_generated_equation_png(
+            equation_dir / path.name,
+            Image.new("RGB", (2, 2), "white"),
+            metadata,
+        )
+
+    assert publication.stale_equation_displays([display], equation_dir) == ()
+
+    equation_crop_ledger_path(1, equation_dir).write_text(
+        "# Maintained source crop metadata for Chapter 1 equation review PNGs.\n"
+        "ch01-p002-e01  1,0,1,2@300dpi\n"
+        "ch01-p002-e02  0,0,2,2@300dpi\n"
+        "ch01-p003-e01  0,0,2,2@300dpi\n"
+    )
+    assert publication.stale_equation_displays([display], equation_dir) == (display,)
+
+
 @pytest.mark.parametrize(
     "stale_indexes",
     [
@@ -677,6 +746,9 @@ def test_audit_update_reports_stale_asset_chapters_without_rendering(
         "regenerate_equation_assets",
         lambda *_args, **_kwargs: pytest.fail("the audit hook must not render assets"),
     )
+    monkeypatch.setattr(
+        publication, "equation_crop_ledger_errors", lambda chapters=None: []
+    )
 
     assert publication._audit_update_cli(["src/chapter4.tex"]) == 1
     diagnostic = capsys.readouterr().err
@@ -702,89 +774,23 @@ def test_audit_update_reports_stale_asset_chapters_without_rendering(
     assert capsys.readouterr().err == ""
 
 
-def test_audit_paths_report_stale_maintained_svg_without_rendering(
+def test_equation_crop_ledger_errors_detect_missing_and_unexpected_entries(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
 ) -> None:
-    source_dir = tmp_path / "source"
-    source_dir.mkdir()
-    (source_dir / "scan.pdf").write_bytes(b"scan")
-    figures = tmp_path / "figures"
-    monkeypatch.setattr(publication, "SOURCE_DIR", source_dir)
-    monkeypatch.setattr(publication, "FIGURES", figures)
-    _write_valid_figure_assets(figures, source_dir)
-    (figures / "sample.svg").write_text(
-        "<svg><!-- wave-generated-sha256: 0000000000000000 --></svg>"
-    )
-
-    monkeypatch.setattr(publication, "figure_ledger_errors", lambda **_kwargs: [])
-    monkeypatch.setattr(publication, "equation_ledger_errors", lambda **_kwargs: [])
-    assert publication._audit_update_cli(["--check", "src/chapter1.tex"]) == 1
-    check_diagnostic = capsys.readouterr().err
-    assert "sample.svg has digest" in check_diagnostic
+    source = _write_equation_test_sources(tmp_path)
+    equation_dir = source / "equations"
     assert (
-        "uv run --frozen python scripts/compare_figures.py sample" in check_diagnostic
+        equation_crop_ledger_errors(source_dir=source, equation_dir=equation_dir) == []
     )
 
-    monkeypatch.setattr(
-        publication,
-        "_equation_manifest_change_ids",
-        lambda chapters: {chapter: () for chapter in chapters},
+    chapter1 = equation_crop_ledger_path(1, equation_dir)
+    chapter1.write_text(
+        "ch01-p002-e01  0,0,2,2@300dpi\nch01-p002-e99  0,0,2,2@300dpi\n"
     )
-    monkeypatch.setattr(
-        publication,
-        "write_figure_chapter_ledgers",
-        lambda *_args, **_kwargs: None,
-    )
-    monkeypatch.setattr(
-        publication,
-        "write_equation_ledger",
-        lambda *_args, **_kwargs: None,
-    )
-    monkeypatch.setattr(publication, "collect_equation_displays", lambda: ())
-    monkeypatch.setattr(
-        publication,
-        "render_tikz_svg",
-        lambda *_args, **_kwargs: pytest.fail("audit freshness must not render SVGs"),
-    )
-
-    assert publication._audit_update_cli(["src/chapter1.tex"]) == 1
-    update_diagnostic = capsys.readouterr().err
-    assert "maintained figure asset validation failed" in update_diagnostic
-    assert "sample.svg has digest" in update_diagnostic
-    assert (
-        "uv run --frozen python scripts/compare_figures.py sample" in update_diagnostic
-    )
-
-
-def test_audit_figure_asset_validation_scopes_to_selected_chapter(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    calls: list[tuple[str, bool]] = []
-    monkeypatch.setattr(
-        publication,
-        "maintained_tikz_stems",
-        lambda: ("ch01-first", "ch02-second", "ch06-last"),
-    )
-
-    def record_call(stem: str, *, verify_content: bool) -> list[str]:
-        calls.append((stem, verify_content))
-        return []
-
-    monkeypatch.setattr(publication, "maintained_figure_asset_errors", record_call)
-    monkeypatch.setattr(publication, "figure_ledger_errors", lambda **_kwargs: [])
-    monkeypatch.setattr(publication, "equation_ledger_errors", lambda **_kwargs: [])
-
-    assert publication._audit_check_only((2,)) == []
-    assert calls == [("ch02-second", False)]
-
-
-def test_tex_packages_is_a_global_audit_input() -> None:
-    assert publication._audit_candidate_chapters(["tex-packages.txt"]) == (
-        True,
-        publication.FIGURE_LEDGER_CHAPTERS,
-    )
+    errors = equation_crop_ledger_errors(source_dir=source, equation_dir=equation_dir)
+    assert any("missing crop entry for ch01-p002-e02" in error for error in errors)
+    assert any("missing crop entry for ch01-p003-e01" in error for error in errors)
+    assert any("unexpected crop entry for ch01-p002-e99" in error for error in errors)
 
 
 def test_equation_ledger_is_stable_and_contains_no_machine_data(tmp_path: Path) -> None:

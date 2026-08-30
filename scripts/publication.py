@@ -44,6 +44,11 @@ SOURCE_PAGE_CACHE = CACHE / "source-pages"
 TIKZ_CACHE = CACHE / "tikz"
 SOURCE_RENDER_DPI = 170
 FIGURE_ASSET_PREFIX = "assets/figures"
+EQUATION_CROP_LEDGER_SUFFIX = ".crops"
+EQUATION_CROP_LEDGER_RE = re.compile(
+    r"^(?P<stem>ch(?P<chapter>[0-9]{2})-p[0-9]{3}-e[0-9]{2,})[ \t]+"
+    r"(?P<crop>[0-9]+,[0-9]+,[0-9]+,[0-9]+@[0-9]+dpi)$"
+)
 
 
 @dataclass(frozen=True)
@@ -222,7 +227,6 @@ EQUATION_PAGE_RE = re.compile(
 )
 EQUATION_BEGIN_RE = re.compile(r"^\s*\\begin\{(?P<environment>[^}]+)\}\s*$")
 EQUATION_STEM_RE = re.compile(r"ch\d{2}-p\d{3}-e\d{2,}")
-MAINTAINED_FIGURE_CHAPTER_RE = re.compile(r"^ch0?([1-6])(?:-|$)")
 
 FIGURE_LEDGER_CHAPTERS = tuple(range(1, 7))
 FIGURE_REPRESENTATIONS = frozenset({"vector", "source-pdf"})
@@ -2053,6 +2057,98 @@ def _parse_equation_source_crop(value: str) -> EquationSourceCrop:
     return EquationSourceCrop(trim="", pixels=pixels, dpi=dpi)
 
 
+def equation_crop_ledger_path(
+    chapter: int,
+    equation_dir: Path | None = None,
+) -> Path:
+    """Return the maintained crop ledger for one chapter's equation source PNGs."""
+    if chapter not in FIGURE_LEDGER_CHAPTERS:
+        raise ValueError(f"unsupported equation crop chapter: {chapter}")
+    equation_dir = equation_dir or SRC / "equations"
+    return equation_dir / f"CHAPTER{chapter}{EQUATION_CROP_LEDGER_SUFFIX}"
+
+
+def _read_equation_crop_ledger(
+    chapter: int,
+    equation_dir: Path | None = None,
+) -> dict[str, EquationSourceCrop]:
+    path = equation_crop_ledger_path(chapter, equation_dir)
+    if not path.is_file():
+        raise FileNotFoundError(path)
+    crops: dict[str, EquationSourceCrop] = {}
+    for line_number, raw_line in enumerate(path.read_text().splitlines(), start=1):
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        match = EQUATION_CROP_LEDGER_RE.fullmatch(line)
+        if match is None:
+            raise ValueError(
+                f"{path}:{line_number}: expected '<stem> x,y,width,height@300dpi'"
+            )
+        stem = match.group("stem")
+        if int(match.group("chapter")) != chapter:
+            raise ValueError(
+                f"{path}:{line_number}: crop stem {stem!r} does not belong to Chapter {chapter}"
+            )
+        if stem in crops:
+            raise ValueError(f"{path}:{line_number}: duplicate crop entry for {stem}")
+        crops[stem] = _parse_equation_source_crop(match.group("crop"))
+    return crops
+
+
+def equation_crop_ledger_errors(
+    chapters: Iterable[int] | None = None,
+    equation_dir: Path | None = None,
+    source_dir: Path | None = None,
+) -> list[str]:
+    """Return maintained equation source-crop ledger problems."""
+    if source_dir is None:
+        displays = collect_equation_displays()
+    else:
+        displays = collect_equation_displays(source_dir)
+    selected = tuple(chapters if chapters is not None else FIGURE_LEDGER_CHAPTERS)
+    by_chapter = {
+        chapter: tuple(display for display in displays if display.chapter == chapter)
+        for chapter in selected
+    }
+    errors: list[str] = []
+    for chapter in selected:
+        path = equation_crop_ledger_path(chapter, equation_dir)
+        try:
+            crops = _read_equation_crop_ledger(chapter, equation_dir)
+        except (FileNotFoundError, OSError, ValueError) as exc:
+            errors.append(f"{path}: {exc}")
+            continue
+        expected_stems = {display.stem for display in by_chapter[chapter]}
+        actual_stems = set(crops)
+        missing = sorted(expected_stems - actual_stems)
+        extra = sorted(actual_stems - expected_stems)
+        errors.extend(f"{path}: missing crop entry for {stem}" for stem in missing)
+        errors.extend(f"{path}: unexpected crop entry for {stem}" for stem in extra)
+    return errors
+
+
+def _equation_source_crop_from_ledger(
+    display: EquationDisplay,
+    equation_dir: Path | None = None,
+) -> EquationSourceCrop:
+    path = equation_crop_ledger_path(display.chapter, equation_dir)
+    try:
+        crop = _read_equation_crop_ledger(display.chapter, equation_dir)[display.stem]
+    except FileNotFoundError as exc:
+        raise ValueError(f"missing equation crop ledger: {path}") from exc
+    except KeyError as exc:
+        raise ValueError(f"{path}: missing crop entry for {display.stem}") from exc
+    page_path = _equation_source_page_path(display, crop.dpi)
+    with Image.open(page_path) as page:
+        trim = _format_equation_source_trim(crop.pixels, page.size, crop.dpi)
+    return EquationSourceCrop(trim=trim, pixels=crop.pixels, dpi=crop.dpi)
+
+
+def _equation_source_crop_pixels_text(crop: EquationSourceCrop) -> str:
+    return ",".join(str(value) for value in crop.pixels) + f"@{crop.dpi}dpi"
+
+
 def _locate_equation_source_crop(
     display: EquationDisplay,
     source_path: Path,
@@ -2195,9 +2291,8 @@ def _equation_asset_input_metadata(
                 {
                     "wave-source-crop": source_crop.trim,
                     "wave-source-crop-dpi": str(source_crop.dpi),
-                    "wave-source-crop-pixels": (
-                        ",".join(str(value) for value in source_crop.pixels)
-                        + f"@{source_crop.dpi}dpi"
+                    "wave-source-crop-pixels": _equation_source_crop_pixels_text(
+                        source_crop
                     ),
                 }
             )
@@ -2209,8 +2304,11 @@ def _equation_asset_metadata(
     kind: str,
     path: Path | None = None,
     source_crop: EquationSourceCrop | None = None,
+    equation_dir: Path | None = None,
 ) -> dict[str, str]:
     del path
+    if kind == "source" and source_crop is None:
+        source_crop = _equation_source_crop_from_ledger(display, equation_dir)
     return _equation_asset_input_metadata(display, kind, source_crop)
 
 
@@ -2218,9 +2316,10 @@ def expected_equation_asset_metadata(
     display: EquationDisplay,
     kind: str,
     path: Path | None = None,
+    equation_dir: Path | None = None,
 ) -> dict[str, str]:
     """Return stable input metadata expected in one equation review PNG."""
-    return _equation_asset_metadata(display, kind, path)
+    return _equation_asset_metadata(display, kind, path, equation_dir=equation_dir)
 
 
 def _recorded_source_crop_errors(
@@ -2289,7 +2388,9 @@ def _equation_asset_errors_for_display(
             continue
         try:
             actual = _png_text_metadata(path)
-            expected = _equation_asset_metadata(display, kind)
+            expected = _equation_asset_metadata(
+                display, kind, equation_dir=equation_dir
+            )
             pixel_digest = _png_pixel_digest(path)
         except (OSError, ValueError) as exc:
             errors.append(str(exc))
@@ -2336,17 +2437,10 @@ def stale_equation_displays(
     displays: Iterable[EquationDisplay],
     equation_dir: Path | None = None,
 ) -> tuple[EquationDisplay, ...]:
-    """Return equations for which any of the three review PNGs is stale."""
-    equation_dir = equation_dir or SRC / "equations"
-    return tuple(
-        display
-        for display in displays
-        if equation_asset_errors_for_display(
-            display,
-            equation_dir,
-            validate_source_page=False,
-        )
-    )
+    """Return equations for which any review PNG input record is stale."""
+    displays = tuple(displays)
+    stale = _equation_asset_input_stale_ids(displays, equation_dir)
+    return tuple(display for display in displays if display.stem in stale)
 
 
 def equation_asset_errors(
@@ -2427,6 +2521,13 @@ def _equation_asset_input_stale_ids(
     equation_dir = equation_dir or SRC / "equations"
     stale: set[str] = set()
     for display in displays:
+        try:
+            recorded_crop = _read_equation_crop_ledger(display.chapter, equation_dir)[
+                display.stem
+            ]
+        except FileNotFoundError, OSError, KeyError, ValueError:
+            stale.add(display.stem)
+            continue
         for kind, path in zip(
             EQUATION_ASSET_KINDS,
             (equation_dir / item.name for item in equation_asset_paths(display.stem)),
@@ -2437,10 +2538,33 @@ def _equation_asset_input_stale_ids(
                 continue
             try:
                 actual = _png_text_metadata(path)
-                expected = _equation_asset_metadata(display, kind)
+                expected = _equation_asset_input_metadata(display, kind)
+                pixel_digest = _png_pixel_digest(path)
             except OSError, ValueError:
                 stale.add(display.stem)
                 continue
+            if actual.get("wave-equation-pixel-sha256") != pixel_digest:
+                stale.add(display.stem)
+                continue
+            if kind == "source":
+                expected = {
+                    **expected,
+                    "wave-source-pdf": EQUATION_SOURCE_PDFS[display.chapter],
+                    "wave-source-pdf-sha256": file_sha256(
+                        str(
+                            (
+                                SOURCE_DIR / EQUATION_SOURCE_PDFS[display.chapter]
+                            ).resolve()
+                        )
+                    )
+                    if (SOURCE_DIR / EQUATION_SOURCE_PDFS[display.chapter]).is_file()
+                    else "<missing>",
+                    "wave-source-page": str(display.physical_page),
+                    "wave-source-crop-dpi": str(recorded_crop.dpi),
+                    "wave-source-crop-pixels": _equation_source_crop_pixels_text(
+                        recorded_crop
+                    ),
+                }
             if any(actual.get(key) != value for key, value in expected.items()):
                 stale.add(display.stem)
     return stale
@@ -2671,7 +2795,7 @@ def _render_equation_source_assets(
     try:
         for display in displays:
             source_path = equation_dir / f"{display.stem}-source.png"
-            crop = _recorded_equation_source_crop(display, source_path)
+            crop = _equation_source_crop_from_ledger(display, equation_dir)
             page_key = (EQUATION_SOURCE_PDFS[display.chapter], display.physical_page)
             if page_key not in page_images:
                 page_path = _equation_source_page_path(display, crop.dpi)
@@ -3209,6 +3333,7 @@ def _equations_cli(argv: list[str] | None = None) -> int:
     errors: list[str] = []
     if args.check:
         errors.extend(equation_ledger_errors(output, chapters=chapters))
+        errors.extend(equation_crop_ledger_errors(chapters=chapters))
     else:
         count = write_equation_ledger(output, chapters=chapters)
         if not args.assets:
@@ -3295,7 +3420,6 @@ def _audit_candidate_chapters(paths: Iterable[str]) -> tuple[bool, tuple[int, ..
             "scripts/publication.py",
             "scripts/compare_figures.py",
             ".pre-commit-config.yaml",
-            "tex-packages.txt",
         } or path.startswith("skills/"):
             all_chapters = True
             continue
@@ -3318,39 +3442,6 @@ def _audit_candidate_chapters(paths: Iterable[str]) -> tuple[bool, tuple[int, ..
     if all_chapters or not chapters:
         return True, FIGURE_LEDGER_CHAPTERS
     return False, tuple(sorted(chapters))
-
-
-def _audit_maintained_figure_stems(
-    chapters: Iterable[int] | None,
-) -> tuple[str, ...]:
-    """Select maintained TikZ figures for an audit scope."""
-    stems = maintained_tikz_stems()
-    if chapters is None:
-        return stems
-    selected = set(chapters)
-    mapped: list[tuple[str, int]] = []
-    for stem in stems:
-        match = MAINTAINED_FIGURE_CHAPTER_RE.match(stem)
-        if match is None:
-            return stems
-        mapped.append((stem, int(match.group(1))))
-    return tuple(stem for stem, chapter in mapped if chapter in selected)
-
-
-def _audit_maintained_figure_asset_errors(
-    chapters: Iterable[int] | None,
-) -> list[str]:
-    """Return cheap, actionable errors for maintained TikZ figure assets."""
-    errors: list[str] = []
-    for stem in _audit_maintained_figure_stems(chapters):
-        asset_errors = maintained_figure_asset_errors(stem, verify_content=False)
-        if asset_errors:
-            errors.append(
-                f"maintained figure {stem}: {'; '.join(asset_errors)}\n"
-                "  Regenerate: uv run --frozen python scripts/compare_figures.py "
-                f"{stem}"
-            )
-    return errors
 
 
 def _equation_manifest_change_ids(
@@ -3392,7 +3483,7 @@ def _audit_check_only(
 ) -> list[str]:
     errors = figure_ledger_errors(chapters=selected)
     errors.extend(equation_ledger_errors(chapters=selected))
-    errors.extend(_audit_maintained_figure_asset_errors(selected))
+    errors.extend(equation_crop_ledger_errors(chapters=selected))
     if full_assets:
         errors.extend(equation_asset_errors())
     return errors
@@ -3421,6 +3512,14 @@ def _audit_update_cli(argv: list[str] | None = None) -> int:
         return 0
 
     chapters = FIGURE_LEDGER_CHAPTERS if selected is None else selected
+    crop_errors = equation_crop_ledger_errors(chapters=chapters)
+    if crop_errors:
+        print(
+            "audit freshness check failed:\n- "
+            + "\n- ".join(summarize_equation_asset_errors(crop_errors)),
+            file=sys.stderr,
+        )
+        return 1
     equation_changes = _equation_manifest_change_ids(chapters)
     write_figure_chapter_ledgers(SRC, chapters)
     write_equation_ledger(SRC / "EQUATIONS.md", chapters=chapters)
@@ -3454,29 +3553,20 @@ def _audit_update_cli(argv: list[str] | None = None) -> int:
             ):
                 stale_asset_chapters.add(display.chapter)
 
-    figure_asset_errors = _audit_maintained_figure_asset_errors(selected)
-    if stale_asset_chapters or figure_asset_errors:
-        if stale_asset_chapters:
-            chapters_text = ", ".join(map(str, sorted(stale_asset_chapters)))
-            chapter_word = "Chapter" if len(stale_asset_chapters) == 1 else "Chapters"
-            print(
-                f"Equation review assets are stale in {chapter_word} {chapters_text}.\n\n"
-                "Regenerate:\n"
-                + "\n".join(
-                    "  uv run --frozen python scripts/publication.py equations "
-                    f"--chapter {chapter} --assets"
-                    for chapter in sorted(stale_asset_chapters)
-                ),
-                file=sys.stderr,
-            )
-        if figure_asset_errors:
-            print(
-                "maintained figure asset validation failed:\n- "
-                + "\n- ".join(figure_asset_errors),
-                file=sys.stderr,
-            )
+    if stale_asset_chapters:
+        chapters_text = ", ".join(map(str, sorted(stale_asset_chapters)))
+        chapter_word = "Chapter" if len(stale_asset_chapters) == 1 else "Chapters"
+        print(
+            f"Equation review assets are stale in {chapter_word} {chapters_text}.\n\n"
+            "Regenerate:\n"
+            + "\n".join(
+                "  uv run --frozen python scripts/publication.py equations "
+                f"--chapter {chapter} --assets"
+                for chapter in sorted(stale_asset_chapters)
+            ),
+            file=sys.stderr,
+        )
         return 1
-
     return 0
 
 

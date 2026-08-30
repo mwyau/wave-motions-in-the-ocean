@@ -50,6 +50,15 @@ Entries are ordered by chapter, then printed page, then item on the same page. S
 - **Proposed correction:** State that amplitude and local phase gradients vary slowly while phase itself varies on the wave scale.
 - **Reason/evidence:** The proposed WKB formulation is more standard, but the source wording is unambiguous and must be preserved absent approval.
 
+### Printed page 14 — held-fixed qualifiers omitted from the reconstructed chain-rule display
+
+- **Category:** `equation`
+- **Status:** `pending-human-approval`
+- **Location:** Chapter 1, printed page 14, unnumbered display between (1.2) and (1.3)
+- **Source:** $\left.\frac{\partial k_i}{\partial t}\right|_{\vec x}+\left.\frac{\partial\Omega}{\partial x_i}\right|_{\vec k,t}+\left.\frac{\partial\Omega}{\partial k_j}\right|_{\vec x,t}\frac{\partial k_j}{\partial x_i}=0$.
+- **Proposed correction:** Restore the three held-fixed qualifiers shown in the source.
+- **Reason/evidence:** The maintained display has the same derivative terms but omits $|_{\vec x}$, $|_{\vec k,t}$, and $|_{\vec x,t}$. The scan is clear. Immediately before the display it says, “In a similar manner starting with (1.1)”; immediately after it uses $\nabla\times\vec k=0$ to interchange $\partial k_j/\partial x_i$ and $\partial k_i/\partial x_j$ before obtaining (1.3). The qualifiers therefore belong to this chain-rule step rather than to neighboring prose or a different display.
+
 ## Chapter 2
 
 ### Printed page 19 — adiabatic entropy derivative
