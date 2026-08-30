@@ -162,9 +162,13 @@ def test_service_worker_has_sorted_complete_precache_and_versioned_lifecycle(
     assert set(ARTWORK_ASSET_PATHS).isdisjoint(precache_entries(worker))
     assert 'const CACHE_NAME = "wave-motions-abcdef0";' in worker
     assert 'const CACHE_PREFIX = "wave-motions-";' in worker
+    assert "const precacheRequests = PRECACHE_URLS.map(" in worker
+    assert 'new Request(url, { cache: "reload" })' in worker
+    assert "cache.addAll(precacheRequests)" in worker
+    assert 'cache: "no-store"' not in worker
     assert "self.skipWaiting()" in worker
     assert "self.clients.claim()" in worker
-    assert worker.index("cache.addAll(PRECACHE_URLS)") < worker.index(
+    assert worker.index("cache.addAll(precacheRequests)") < worker.index(
         "self.skipWaiting()"
     )
     assert worker.index("caches.delete") < worker.index("self.clients.claim()")

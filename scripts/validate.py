@@ -849,7 +849,10 @@ def pwa_errors(root: Path = PUBLICATION) -> list[str]:
             install_rules = (
                 (r"event\.waitUntil\s*\(", "install waitUntil"),
                 (r"caches\s*\.\s*open\s*\(\s*CACHE_NAME\s*\)", "install cache open"),
-                (r"cache\s*\.\s*addAll\s*\(\s*PRECACHE_URLS\s*\)", "atomic precache"),
+                (
+                    r"cache\s*\.\s*addAll\s*\(\s*precacheRequests\s*\)",
+                    "atomic precache",
+                ),
                 (r"self\s*\.\s*skipWaiting\s*\(\)", "skipWaiting lifecycle takeover"),
             )
             for pattern, description in install_rules:
@@ -858,7 +861,7 @@ def pwa_errors(root: Path = PUBLICATION) -> list[str]:
                         "service worker is missing lifecycle rule: " + description
                     )
             add_all = re.search(
-                r"cache\s*\.\s*addAll\s*\(\s*PRECACHE_URLS\s*\)", install_body
+                r"cache\s*\.\s*addAll\s*\(\s*precacheRequests\s*\)", install_body
             )
             skip_waiting = re.search(r"self\s*\.\s*skipWaiting\s*\(\)", install_body)
             if add_all and skip_waiting and add_all.start() > skip_waiting.start():
@@ -906,6 +909,14 @@ def pwa_errors(root: Path = PUBLICATION) -> list[str]:
             ),
             (r"\b(?:const|let|var)\s+readerPagePattern\s*=", "reader URL pattern"),
             (r"Boolean\(\s*url\.search\s*\)", "reader query handling"),
+            (r"\b(?:const|let|var)\s+precacheRequests\s*=", "precache request set"),
+            (
+                (
+                    r"new\s+Request\s*\(\s*url\s*,\s*\{[^}]*"
+                    r"\bcache\s*:\s*[\"']reload[\"'][^}]*\}\s*\)"
+                ),
+                "fresh-network precache requests",
+            ),
             (r"cached\s*\|\|\s*fetch\(\s*request\s*\)", "cache-first requests"),
         )
         for pattern, description in required_rules:
@@ -913,6 +924,8 @@ def pwa_errors(root: Path = PUBLICATION) -> list[str]:
                 errors.append(
                     "service worker is missing boundary or cache rule: " + description
                 )
+        if re.search(r"\bcache\s*:\s*[\"']no-store[\"']", worker_text):
+            errors.append("service worker must use cache: reload for precaching")
         if any(
             marker and marker in worker_text
             for marker in (str(root), str(ROOT.resolve()))

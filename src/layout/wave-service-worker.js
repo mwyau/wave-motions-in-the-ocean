@@ -1,12 +1,15 @@
 const CACHE_NAME = __WAVE_CACHE_NAME__;
 const CACHE_PREFIX = "wave-motions-";
 const PRECACHE_URLS = __WAVE_PRECACHE_URLS__;
+const precacheRequests = PRECACHE_URLS.map(
+  (url) => new Request(url, { cache: "reload" }),
+);
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then((cache) => cache.addAll(precacheRequests))
       .then(() => self.skipWaiting()),
   );
 });
