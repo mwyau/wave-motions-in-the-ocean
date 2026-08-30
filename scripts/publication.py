@@ -101,6 +101,7 @@ PUBLICATION_YEAR = _citation_scalar("year")
 ONLINE_PUBLICATION_YEAR = "2026"
 DOI = _citation_scalar("doi")
 DOI_URL = f"https://doi.org/{DOI}"
+CONTACT_LABEL = "Corrections and comments"
 CONTACT_EMAIL = "albert.yau@stonybrook.edu"
 LANGUAGE = "en-US"
 MATHJAX_URL = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"

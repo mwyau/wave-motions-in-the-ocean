@@ -29,6 +29,7 @@ from publication import (
     BOOK_TITLE,
     CACHE,
     CONTACT_EMAIL,
+    CONTACT_LABEL,
     DOI_URL,
     DOWNLOADS,
     EDITOR,
@@ -1424,7 +1425,8 @@ def html_frontmatter_footer() -> str:
         '<li><a href="chapter1.html">Start reading</a></li>'
         + links
         + "</ul>"
-        + f'<p>Contact: <a href="mailto:{CONTACT_EMAIL}">{CONTACT_EMAIL}</a></p>'
+        + f"<p><strong>{html.escape(CONTACT_LABEL)}:</strong> "
+        + f'<a href="mailto:{CONTACT_EMAIL}">{CONTACT_EMAIL}</a></p>'
         + "</section>"
     )
 

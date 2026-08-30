@@ -19,6 +19,7 @@ from pathlib import Path
 
 from publication import (
     CONTACT_EMAIL,
+    CONTACT_LABEL,
     DOWNLOADS,
     ROOT,
     SITE_URL,
@@ -186,7 +187,7 @@ def read_download_markdown() -> str:
     lines.extend(
         [
             "",
-            f"**Corrections and comments:** [{CONTACT_EMAIL}](mailto:{CONTACT_EMAIL})",
+            f"**{CONTACT_LABEL}:** [{CONTACT_EMAIL}](mailto:{CONTACT_EMAIL})",
         ]
     )
     return "\n".join(lines)
