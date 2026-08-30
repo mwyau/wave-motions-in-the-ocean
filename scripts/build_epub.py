@@ -708,8 +708,7 @@ def build_stamp(data: bytes) -> tuple[bytes, bool]:
     label = html.escape(info.label)
     url = html.escape(info.commit_url, quote=True)
     paragraph = (
-        '<p class="build-info">Digital edition build: '
-        f'<a href="{url}"><code>{label}</code></a></p>'
+        f'<p class="build-info">Build: <a href="{url}"><code>{label}</code></a></p>'
     ).encode()
     data = BUILD_STAMP_RE.sub(b"", data)
     if b"Albert M. W. Yau" not in data:
