@@ -807,6 +807,17 @@ if (
   (location.protocol === "http:" || location.protocol === "https:") &&
   "serviceWorker" in navigator
 ) {
+  const hadController = navigator.serviceWorker.controller !== null;
+  let reloadingForUpdate = false;
+
+  if (hadController) {
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (reloadingForUpdate) return;
+      reloadingForUpdate = true;
+      location.reload();
+    });
+  }
+
   navigator.serviceWorker
     .register("./service-worker.js", { scope: "./" })
     .catch(() => {});

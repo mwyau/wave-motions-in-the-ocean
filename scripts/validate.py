@@ -66,13 +66,12 @@ from webapp import (
     ARTWORK_ASSET_PATHS,
     ICON_ASSET_PREFIX,
     MANIFEST_ICON_OUTPUTS,
-    OFFLINE_OPTIONAL_ARTWORK_ASSETS,
+    OFFLINE_EXCLUDED_ASSETS,
     SERVICE_WORKER_FILENAME,
     WEB_APP_NAME,
     WEB_APP_SHORT_NAME,
     WEB_MANIFEST_FILENAME,
     application_icon_errors,
-    is_runtime_figure_asset,
     offline_reader_resources,
     web_app_manifest,
 )
@@ -575,6 +574,17 @@ def _js_string_constant(source: str, name: str) -> str | None:
     return value if isinstance(value, str) else None
 
 
+def _service_worker_listener_body(source: str, event_name: str) -> str | None:
+    """Return one service-worker event body without relying on formatting."""
+    match = re.search(
+        rf"self\s*\.\s*addEventListener\s*\(\s*[\"']{re.escape(event_name)}[\"']\s*,"
+        r"(?P<body>.*?)(?=\s*self\s*\.\s*addEventListener\s*\(|\Z)",
+        source,
+        flags=re.DOTALL,
+    )
+    return match.group("body") if match else None
+
+
 def validate_offline_runtime(root: Path) -> None:
     root = root.resolve()
     pages = sorted(root.glob("*.html"))
@@ -832,11 +842,56 @@ def pwa_errors(root: Path = PUBLICATION) -> list[str]:
             errors.append("service worker cleanup is not limited to this app namespace")
         if not re.search(r"\bcaches\.delete\s*\(", worker_text):
             errors.append("service worker does not clean up old app caches")
-        for forbidden in (r"\bskipWaiting\s*\(", r"\bclients\.claim\s*\("):
-            if re.search(forbidden, worker_text):
+        install_body = _service_worker_listener_body(worker_text, "install")
+        if install_body is None:
+            errors.append("service worker is missing its install handler")
+        else:
+            install_rules = (
+                (r"event\.waitUntil\s*\(", "install waitUntil"),
+                (r"caches\s*\.\s*open\s*\(\s*CACHE_NAME\s*\)", "install cache open"),
+                (r"cache\s*\.\s*addAll\s*\(\s*PRECACHE_URLS\s*\)", "atomic precache"),
+                (r"self\s*\.\s*skipWaiting\s*\(\)", "skipWaiting lifecycle takeover"),
+            )
+            for pattern, description in install_rules:
+                if not re.search(pattern, install_body, flags=re.DOTALL):
+                    errors.append(
+                        "service worker is missing lifecycle rule: " + description
+                    )
+            add_all = re.search(
+                r"cache\s*\.\s*addAll\s*\(\s*PRECACHE_URLS\s*\)", install_body
+            )
+            skip_waiting = re.search(r"self\s*\.\s*skipWaiting\s*\(\)", install_body)
+            if add_all and skip_waiting and add_all.start() > skip_waiting.start():
                 errors.append(
-                    "service worker must not force lifecycle takeover: "
-                    + forbidden.replace(r"\s*", "")
+                    "service worker must precache completely before skipWaiting"
+                )
+
+        activate_body = _service_worker_listener_body(worker_text, "activate")
+        if activate_body is None:
+            errors.append("service worker is missing its activate handler")
+        else:
+            activate_rules = (
+                (r"event\.waitUntil\s*\(", "activate waitUntil"),
+                (r"caches\s*\.\s*keys\s*\(\s*\)", "old-cache enumeration"),
+                (r"caches\s*\.\s*delete\s*\(", "old-cache deletion"),
+                (r"self\s*\.\s*clients\s*\.\s*claim\s*\(\)", "clients.claim takeover"),
+            )
+            for pattern, description in activate_rules:
+                if not re.search(pattern, activate_body, flags=re.DOTALL):
+                    errors.append(
+                        "service worker is missing lifecycle rule: " + description
+                    )
+            delete_cache = re.search(r"caches\s*\.\s*delete\s*\(", activate_body)
+            claim_clients = re.search(
+                r"self\s*\.\s*clients\s*\.\s*claim\s*\(\)", activate_body
+            )
+            if (
+                delete_cache
+                and claim_clients
+                and delete_cache.start() > claim_clients.start()
+            ):
+                errors.append(
+                    "service worker must delete old app caches before clients.claim"
                 )
         required_rules = (
             (r"request\.method\s*!==\s*[\"']GET[\"']", "GET-only requests"),
@@ -851,10 +906,7 @@ def pwa_errors(root: Path = PUBLICATION) -> list[str]:
             ),
             (r"\b(?:const|let|var)\s+readerPagePattern\s*=", "reader URL pattern"),
             (r"Boolean\(\s*url\.search\s*\)", "reader query handling"),
-            (r"\b(?:const|let|var)\s+figureAssetPath\s*=", "figure asset path"),
-            (r"\b(?:const|let|var)\s+isRuntimeFigure\s*=", "runtime figure boundary"),
-            (r"\bcache\.put\s*\(\s*request", "runtime figure cache write"),
-            (r"\bresponse\.ok\b", "successful response guard"),
+            (r"cached\s*\|\|\s*fetch\(\s*request\s*\)", "cache-first requests"),
         )
         for pattern, description in required_rules:
             if not re.search(pattern, worker_text, flags=re.DOTALL):
@@ -900,7 +952,7 @@ def pwa_errors(root: Path = PUBLICATION) -> list[str]:
         if len(precache) != len(set(precache)):
             errors.append("service worker precache contains duplicate entries")
 
-        for artwork in sorted(OFFLINE_OPTIONAL_ARTWORK_ASSETS):
+        for artwork in sorted(OFFLINE_EXCLUDED_ASSETS):
             target = root / artwork
             if not target.is_file():
                 errors.append(
@@ -941,21 +993,36 @@ def pwa_errors(root: Path = PUBLICATION) -> list[str]:
             for path in (root / "assets").rglob("*")
             if path.is_file()
         }
-        runtime_figure_assets = {
-            relative for relative in asset_files if is_runtime_figure_asset(relative)
+        figure_extensions = {".png", ".svg", ".jpg", ".jpeg"}
+        figure_assets = {
+            relative
+            for relative in asset_files
+            if relative.startswith("assets/figures/")
+            and Path(relative).suffix.lower() in figure_extensions
         }
-        precached_runtime_figures = runtime_figure_assets.intersection(precache)
-        if precached_runtime_figures:
-            errors.append(
-                "service worker precaches runtime figure assets: "
-                + ", ".join(sorted(precached_runtime_figures)[:20])
-            )
-        missing_assets = sorted(
-            asset_files
-            - set(precache)
-            - runtime_figure_assets
-            - set(OFFLINE_OPTIONAL_ARTWORK_ASSETS)
+        missing_figure_assets = sorted(
+            figure_assets - set(precache) - set(OFFLINE_EXCLUDED_ASSETS)
         )
+        if missing_figure_assets:
+            errors.append(
+                "service worker omits required publication figures: "
+                + ", ".join(missing_figure_assets[:20])
+                + (" ..." if len(missing_figure_assets) > 20 else "")
+            )
+        download_suffixes = {".epub", ".pdf", ".zip"}
+        bookkeeping_names = {
+            "SHA256SUMS",
+            "wave-motions-html.zip",
+            SERVICE_WORKER_FILENAME,
+        }
+        required_asset_files = {
+            relative
+            for relative in asset_files
+            if relative not in OFFLINE_EXCLUDED_ASSETS
+            and Path(relative).suffix.lower() not in download_suffixes
+            and Path(relative).name not in bookkeeping_names
+        }
+        missing_assets = sorted(required_asset_files - set(precache))
         if missing_assets:
             errors.append(
                 "service worker omits local reader assets: "

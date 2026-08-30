@@ -9,14 +9,13 @@ from webapp import (
     APPLE_TOUCH_ICON_PATH,
     ARTWORK_ASSET_PATHS,
     MANIFEST_ICON_OUTPUTS,
-    OFFLINE_OPTIONAL_ARTWORK_ASSETS,
+    OFFLINE_EXCLUDED_ASSETS,
     SERVICE_WORKER_FILENAME,
     WEB_APP_NAME,
     WEB_APP_SHORT_NAME,
     WEB_MANIFEST_FILENAME,
     all_reader_resources,
     generate_application_icons,
-    is_runtime_figure_asset,
     offline_reader_resources,
     reader_palette,
     service_worker_text,
@@ -79,6 +78,15 @@ def test_service_worker_registration_is_guarded_and_repository_safe() -> None:
     assert "window.isSecureContext" in source
     assert 'location.protocol === "http:"' in source
     assert 'location.protocol === "https:"' in source
+    assert (
+        "const hadController = navigator.serviceWorker.controller !== null;" in source
+    )
+    assert "let reloadingForUpdate = false;" in source
+    assert "if (hadController)" in source
+    assert 'navigator.serviceWorker.addEventListener("controllerchange"' in source
+    assert "if (reloadingForUpdate) return;" in source
+    assert "reloadingForUpdate = true;" in source
+    assert "location.reload();" in source
 
 
 def test_service_worker_has_sorted_complete_precache_and_versioned_lifecycle(
@@ -100,6 +108,7 @@ def test_service_worker_has_sorted_complete_precache_and_versioned_lifecycle(
         "figures/great-wave-met-dp130155.jpg",
         "figures/naruto-whirlpool-met-jp1198.jpg",
         "figures/salmon-hendershott-como-1980.jpg",
+        "figures/small-publication.jpeg",
         "icons/icon-192.png",
         "icons/icon-512.png",
         "icons/apple-touch-icon.png",
@@ -113,6 +122,8 @@ def test_service_worker_has_sorted_complete_precache_and_versioned_lifecycle(
         "wave-motions-html.zip",
         "SHA256SUMS",
         "assets/ignored.pdf",
+        "assets/SHA256SUMS",
+        "assets/service-worker.js",
     ):
         path = root / name
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -124,41 +135,41 @@ def test_service_worker_has_sorted_complete_precache_and_versioned_lifecycle(
 
     assert entries == list(offline_reader_resources(root))
     assert entries == sorted(entries)
-    assert len(entries) < len(all_reader_resources(root))
-    runtime_figures = {
-        entry for entry in all_reader_resources(root) if is_runtime_figure_asset(entry)
-    }
-    assert runtime_figures
-    assert runtime_figures.isdisjoint(entries)
-    assert set(ARTWORK_ASSET_PATHS) == set(OFFLINE_OPTIONAL_ARTWORK_ASSETS)
+    assert set(entries) == set(all_reader_resources(root)) - set(ARTWORK_ASSET_PATHS)
+    assert set(ARTWORK_ASSET_PATHS) == set(OFFLINE_EXCLUDED_ASSETS)
     assert set(ARTWORK_ASSET_PATHS).isdisjoint(entries)
-    assert "assets/figures/salmon-hendershott-como-1980.jpg" in entries
-    assert all(not is_runtime_figure_asset(entry) for entry in entries)
     assert {
         "assets/wave.css",
         "assets/wave.js",
         "assets/fonts/reader.woff2",
         "assets/mathjax/tex-chtml-full.js",
         "assets/mathjax/output/chtml/fonts/woff-v2/MathJax_Main-Regular.woff",
+        "assets/figures/scientific-vector.svg",
+        "assets/figures/scientific-original.png",
         "assets/figures/salmon-hendershott-como-1980.jpg",
+        "assets/figures/small-publication.jpeg",
         "assets/icons/icon-192.png",
         "assets/icons/icon-512.png",
         "assets/icons/apple-touch-icon.png",
     } <= set(entries)
-    assert {
-        "assets/figures/scientific-vector.svg",
-        "assets/figures/scientific-original.png",
-    }.isdisjoint(entries)
     assert all(
         not entry.lower().endswith((".pdf", ".epub", ".zip")) for entry in entries
     )
     assert "SHA256SUMS" not in entries
     assert SERVICE_WORKER_FILENAME not in entries
+    assert "assets/SHA256SUMS" not in entries
+    assert "assets/service-worker.js" not in entries
     assert set(ARTWORK_ASSET_PATHS).isdisjoint(precache_entries(worker))
     assert 'const CACHE_NAME = "wave-motions-abcdef0";' in worker
     assert 'const CACHE_PREFIX = "wave-motions-";' in worker
-    assert "skipWaiting" not in worker
-    assert "clients.claim" not in worker
+    assert "self.skipWaiting()" in worker
+    assert "self.clients.claim()" in worker
+    assert worker.index("cache.addAll(PRECACHE_URLS)") < worker.index(
+        "self.skipWaiting()"
+    )
+    assert worker.index("caches.delete") < worker.index("self.clients.claim()")
+    assert "cache.put" not in worker
+    assert "isRuntimeFigure" not in worker
 
 
 def test_pwa_validator_accepts_a_generated_publication_root(
@@ -175,6 +186,9 @@ def test_pwa_validator_accepts_a_generated_publication_root(
     for name in (
         *ARTWORK_ASSET_PATHS,
         "assets/figures/salmon-hendershott-como-1980.jpg",
+        "assets/figures/scientific-original.png",
+        "assets/figures/scientific-vector.svg",
+        "assets/figures/small-publication.jpeg",
     ):
         path = root / name
         path.parent.mkdir(parents=True, exist_ok=True)

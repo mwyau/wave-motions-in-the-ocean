@@ -4,7 +4,10 @@ const PRECACHE_URLS = __WAVE_PRECACHE_URLS__;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS)),
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then(() => self.skipWaiting()),
   );
 });
 
@@ -15,19 +18,14 @@ self.addEventListener("activate", (event) => {
         keys
           .filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
           .map((key) => caches.delete(key)),
-      ),
+      ).then(() => self.clients.claim()),
     ),
   );
 });
 
 const scopeUrl = new URL(self.registration.scope);
 const assetRootPath = new URL("assets/", scopeUrl).pathname;
-const figureAssetPath = new URL("assets/figures/", scopeUrl).pathname;
 const readerPagePattern = /(?:^|\/)(?:index|chapter\d+|references)\.html$/;
-const isRuntimeFigure = (url) =>
-  url.origin === scopeUrl.origin &&
-  url.pathname.startsWith(figureAssetPath) &&
-  /\.(?:png|svg)$/i.test(url.pathname);
 const readerPageQuery = (url) =>
   Boolean(url.search) &&
   (url.pathname === scopeUrl.pathname || readerPagePattern.test(url.pathname));
@@ -57,25 +55,6 @@ const cachedRequest = (cache, request, url) => {
   return cache.match(request);
 };
 
-const runtimeFigureRequest = (cache, request) =>
-  cache.match(request, { ignoreSearch: true }).then((cached) => {
-    if (cached) return cached;
-    return fetch(request)
-      .then((response) => {
-        if (!response.ok) return response;
-        return cache.put(request, response.clone()).then(
-          () => response,
-          () => response,
-        );
-      })
-      .catch((error) =>
-        cache.match(request, { ignoreSearch: true }).then((fallback) => {
-          if (fallback) return fallback;
-          throw error;
-        }),
-      );
-  });
-
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET") return;
@@ -88,7 +67,6 @@ self.addEventListener("fetch", (event) => {
 
   event.respondWith(
     caches.open(CACHE_NAME).then((cache) => {
-      if (isRuntimeFigure(url)) return runtimeFigureRequest(cache, request);
       return cachedRequest(cache, request, url).then(
         (cached) => cached || fetch(request),
       );

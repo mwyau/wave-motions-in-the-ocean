@@ -47,12 +47,7 @@ ARTWORK_ASSET_PATHS = (
     "assets/figures/great-wave-met-dp130155.jpg",
     "assets/figures/naruto-whirlpool-met-jp1198.jpg",
 )
-OFFLINE_OPTIONAL_ARTWORK_ASSETS = frozenset(ARTWORK_ASSET_PATHS)
-FIGURE_ASSET_PREFIX = "assets/figures/"
-RUNTIME_FIGURE_EXTENSIONS = frozenset({".png", ".svg"})
-OFFLINE_CORE_READER_ASSETS = frozenset(
-    {"assets/figures/salmon-hendershott-como-1980.jpg"}
-)
+OFFLINE_EXCLUDED_ASSETS = frozenset(ARTWORK_ASSET_PATHS)
 
 
 def icon_crop_pixels(source_size: tuple[int, int]) -> tuple[int, int, int, int]:
@@ -302,7 +297,7 @@ def _reader_resource_candidates(root: Path) -> tuple[str, ...]:
         if not path.is_file():
             continue
         relative = path.relative_to(root).as_posix()
-        if relative in excluded_names or path.suffix.lower() in excluded_suffixes:
+        if path.name in excluded_names or path.suffix.lower() in excluded_suffixes:
             continue
         resources.append(relative)
     return tuple(sorted(set(resources)))
@@ -313,30 +308,12 @@ def all_reader_resources(root: Path) -> tuple[str, ...]:
     return _reader_resource_candidates(root)
 
 
-def is_runtime_figure_asset(relative: str) -> bool:
-    """Return whether a publication-relative path is a runtime-cached figure."""
-    return (
-        relative.startswith(FIGURE_ASSET_PREFIX)
-        and Path(relative).suffix.lower() in RUNTIME_FIGURE_EXTENSIONS
-    )
-
-
 def offline_reader_resources(root: Path) -> tuple[str, ...]:
-    """Return the sorted shell and text-reading files needed offline.
-
-    The complete HTML reader, local runtime assets, and the small front-matter
-    photograph are precached. Scientific PNG/SVG figures and large optional
-    artwork are fetched and cached only after a successful runtime request.
-    Download artifacts remain outside the offline policy.
-    """
+    """Return all local reader resources except the two large artwork files."""
     return tuple(
         relative
         for relative in _reader_resource_candidates(root)
-        if relative not in OFFLINE_OPTIONAL_ARTWORK_ASSETS
-        and (
-            not relative.startswith(FIGURE_ASSET_PREFIX)
-            or relative in OFFLINE_CORE_READER_ASSETS
-        )
+        if relative not in OFFLINE_EXCLUDED_ASSETS
     )
 
 
