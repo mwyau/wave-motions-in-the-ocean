@@ -6,6 +6,21 @@
 % direct TeX use continues to resolve the maintained source image.
 \providecommand{\WavePublicationImagePath}[1]{images/#1}
 
+\NewDocumentCommand{\WaveEarlyReleaseStamp}{}{%
+	\begingroup
+	\setlength{\fboxrule}{1.6pt}%
+	\setlength{\fboxsep}{0pt}%
+	\color{WaveCoverBlue}%
+	\rotatebox[origin=c]{-7}{%
+		\fbox{%
+			\parbox[c][0.59in][c]{2.30in}{%
+				\centering\sffamily\bfseries\fontsize{18}{20}\selectfont EARLY RELEASE%
+			}%
+		}%
+	}%
+	\endgroup
+}
+
 \NewDocumentCommand{\WaveModernCover}{}{%
 	\thispagestyle{empty}%
 	\pagecolor{WaveCoverPaper}%
@@ -28,6 +43,7 @@
 		\vspace{0.015in}
 		{\color{WaveCoverBlue}\sffamily\fontsize{22}{25}\selectfont\bfseries Paola Malanotte-Rizzoli\par}
 		\vfill
-		{\color{WaveCoverBlue}\sffamily\fontsize{14}{17}\selectfont Edited by Albert M. W. Yau\par}
+		{\color{WaveCoverBlue}\sffamily\fontsize{14}{17}\selectfont Edited by Albert M. W. Yau%
+			\rlap{\hspace{-10pt}\raisebox{0.71in}[0pt][0pt]{\WaveEarlyReleaseStamp}}\par}
 	\end{center}%
 }
