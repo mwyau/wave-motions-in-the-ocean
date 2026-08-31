@@ -135,6 +135,13 @@ jobs:
           uv run --frozen python scripts/release.py archive
           --root release --output wave-motions-html.zip
 
+      - name: Add Google Search Console verification to Pages
+        if: github.ref == 'refs/heads/main'
+        run: >-
+          install -m 0644
+          .github/pages/google1c7bd6941a1a975b.html
+          release/google1c7bd6941a1a975b.html
+
       - name: Upload publication artifact
         uses: actions/upload-pages-artifact@v5.0.0
         with:
