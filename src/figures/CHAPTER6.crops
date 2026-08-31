@@ -1,0 +1,17 @@
+# Maintained source-PDF crop metadata for Chapter 6 scientific figures.
+# Format: <figure-id>  pdf=<source PDF>; page=<physical PDF page>; trim=<left bottom right top in bp>; mask=<x0 y0 x1 y1 in bp>
+# Masks use absolute lower-left source-page coordinates and are omitted when none apply.
+ch06-p151-sloping-channel  pdf=ChapmanRizzoli6.pdf; page=4; trim=155bp 515bp 145bp 125bp
+ch06-p152-bottom-trapped-mode  pdf=ChapmanRizzoli6.pdf; page=5; trim=175bp 155bp 185bp 490bp
+ch06-p154-effective-slope  pdf=ChapmanRizzoli6.pdf; page=7; trim=120bp 520bp 85bp 125bp
+ch06-p156-bottom-slope-trapping  pdf=ChapmanRizzoli6.pdf; page=9; trim=65bp 450bp 55bp 205bp
+ch06-p157-continental-shelf  pdf=ChapmanRizzoli6.pdf; page=10; trim=155bp 560bp 140bp 80bp
+ch06-p159-shelf-root-condition  pdf=ChapmanRizzoli6.pdf; page=12; trim=75bp 485bp 65bp 160bp
+ch06-p159-modal-dispersion-source  pdf=ChapmanRizzoli6.pdf; page=12; trim=135bp 315bp 120bp 370bp
+ch06-p161-coastal-spectrum-source  pdf=ChapmanRizzoli6.pdf; page=15; trim=105bp 325bp 85bp 265bp; mask=0bp 500bp 300bp 545bp
+ch06-p162-coastal-geometry  pdf=ChapmanRizzoli6.pdf; page=16; trim=155bp 374bp 125bp 310bp
+ch06-p164-ctw-dispersion-family  pdf=ChapmanRizzoli6.pdf; page=18; trim=75bp 520bp 65bp 70bp
+ch06-p164-stratification-effect  pdf=ChapmanRizzoli6.pdf; page=18; trim=75bp 315bp 95bp 350bp; mask=0bp 420bp 300bp 470bp
+ch06-p165-scattering-by-stratification  pdf=ChapmanRizzoli6.pdf; page=19; trim=70bp 545bp 65bp 45bp
+ch06-p167-mode-transition  pdf=ChapmanRizzoli6.pdf; page=21; trim=105bp 370bp 90bp 294bp; mask=0bp 470bp 300bp 500bp
+ch06-p168-wind-forced-shelf  pdf=ChapmanRizzoli6.pdf; page=22; trim=155bp 440bp 135bp 240bp

@@ -1,0 +1,15 @@
+# Maintained source-PDF crop metadata for Chapter 3 scientific figures.
+# Format: <figure-id>  pdf=<source PDF>; page=<physical PDF page>; trim=<left bottom right top in bp>; mask=<x0 y0 x1 y1 in bp>
+# Masks use absolute lower-left source-page coordinates and are omitted when none apply.
+ch03-p039-surface-boundaries  pdf=ChapmanRizzoli3.pdf; page=3; trim=125bp 585bp 125bp 80bp
+ch03-p042-surface-wave-dispersion  pdf=ChapmanRizzoli3.pdf; page=7; trim=195bp 225bp 180bp 460bp
+ch03-p044-two-fluid-interface  pdf=ChapmanRizzoli3.pdf; page=9; trim=180bp 530bp 145bp 120bp
+ch03-p052-delta-snapshot  pdf=ChapmanRizzoli3.pdf; page=17; trim=125bp 380bp 100bp 315bp
+ch03-p052-delta-wavestaff  pdf=ChapmanRizzoli3.pdf; page=17; trim=140bp 215bp 140bp 465bp
+ch03-p055-ship-wave-geometry  pdf=ChapmanRizzoli3.pdf; page=20; trim=120bp 555bp 95bp 90bp
+ch03-p056-kelvin-wake  pdf=ChapmanRizzoli3.pdf; page=21; trim=145bp 500bp 125bp 145bp
+ch03-p056-shallow-mach-cone  pdf=ChapmanRizzoli3.pdf; page=21; trim=140bp 220bp 125bp 410bp; mask=140bp 220bp 500bp 236bp
+ch03-p057-energy-sketch  pdf=ChapmanRizzoli3.pdf; page=22; trim=410bp 95bp 45bp 580bp
+ch03-p061-following-current-dispersion  pdf=ChapmanRizzoli3.pdf; page=26; trim=80bp 115bp 70bp 430bp
+ch03-p062-opposing-current-blocking  pdf=ChapmanRizzoli3.pdf; page=27; trim=65bp 415bp 70bp 130bp
+ch03-p063-shear-current-refraction  pdf=ChapmanRizzoli3.pdf; page=28; trim=145bp 520bp 150bp 75bp

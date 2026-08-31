@@ -1,0 +1,10 @@
+# Maintained source-PDF crop metadata for Chapter 1 scientific figures.
+# Format: <figure-id>  pdf=<source PDF>; page=<physical PDF page>; trim=<left bottom right top in bp>; mask=<x0 y0 x1 y1 in bp>
+# Masks use absolute lower-left source-page coordinates and are omitted when none apply.
+ch01-p004-phase-speed  pdf=ChapmanRizzoli0_2.pdf; page=14; trim=60.24bp 443.04bp 78.72bp 36.00bp
+ch01-p008-wave-packet  pdf=ChapmanRizzoli0_2.pdf; page=18; trim=123bp 490bp 72bp 143bp; mask=123bp 642bp 540bp 650bp
+ch01-p008-spectrum  pdf=ChapmanRizzoli0_2.pdf; page=18; trim=178.08bp 100.08bp 207.84bp 517.92bp
+ch01-p010-stationary-phase  pdf=ChapmanRizzoli0_2.pdf; page=20; trim=84bp 481bp 117bp 230bp
+ch01-p012-wave-crest-path  pdf=ChapmanRizzoli0_2.pdf; page=22; trim=120bp 255bp 180bp 395bp
+ch01-p015-initial-wave-groups  pdf=ChapmanRizzoli0_2.pdf; page=25; trim=62bp 445bp 69bp 46bp
+ch01-p016-ray-crossing  pdf=ChapmanRizzoli0_2.pdf; page=26; trim=62bp 435bp 69bp 46bp

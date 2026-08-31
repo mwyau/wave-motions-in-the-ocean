@@ -25,6 +25,8 @@ from publication import (
     equation_markdown_math,
     expected_source_png_metadata,
     figure_asset_paths,
+    figure_crop_ledger_errors,
+    figure_crop_ledger_path,
     maintained_figure_asset_errors,
     parse_mask,
     parse_trim,
@@ -774,6 +776,169 @@ def test_audit_update_reports_stale_asset_chapters_without_rendering(
     assert capsys.readouterr().err == ""
 
 
+def test_audit_paths_report_stale_maintained_svg_without_rendering(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+    (source_dir / "scan.pdf").write_bytes(b"scan")
+    figures = tmp_path / "figures"
+    monkeypatch.setattr(publication, "SOURCE_DIR", source_dir)
+    monkeypatch.setattr(publication, "FIGURES", figures)
+    _write_valid_figure_assets(figures, source_dir)
+    (figures / "sample.svg").write_text(
+        "<svg><!-- wave-generated-sha256: 0000000000000000 --></svg>"
+    )
+    monkeypatch.setattr(publication, "figure_ledger_errors", lambda **_kwargs: [])
+    monkeypatch.setattr(publication, "equation_ledger_errors", lambda **_kwargs: [])
+    monkeypatch.setattr(
+        publication, "equation_crop_ledger_errors", lambda chapters=None: []
+    )
+    monkeypatch.setattr(publication, "figure_crop_ledger_errors", lambda **_kwargs: [])
+
+    assert publication._audit_update_cli(["--check", "src/chapter1.tex"]) == 1
+    check_diagnostic = capsys.readouterr().err
+    assert "sample.svg has digest" in check_diagnostic
+    assert (
+        "uv run --frozen python scripts/compare_figures.py sample" in check_diagnostic
+    )
+
+    monkeypatch.setattr(
+        publication,
+        "_equation_manifest_change_ids",
+        lambda chapters: {chapter: () for chapter in chapters},
+    )
+    monkeypatch.setattr(
+        publication, "write_figure_chapter_ledgers", lambda *_args, **_kwargs: None
+    )
+    monkeypatch.setattr(
+        publication, "write_equation_ledger", lambda *_args, **_kwargs: None
+    )
+    monkeypatch.setattr(publication, "collect_equation_displays", lambda: ())
+
+    def fail_if_rendered(*_args, **_kwargs):
+        raise AssertionError("audit freshness must not render assets")
+
+    for name in (
+        "render_tikz_svg",
+        "render_tikz_source_png",
+        "source_crop",
+        "_render_pdf_page",
+    ):
+        monkeypatch.setattr(publication, name, fail_if_rendered)
+
+    assert publication._audit_update_cli(["src/chapter1.tex"]) == 1
+    update_diagnostic = capsys.readouterr().err
+    assert "maintained figure asset validation failed" in update_diagnostic
+    assert "sample.svg has digest" in update_diagnostic
+    assert (
+        "uv run --frozen python scripts/compare_figures.py sample" in update_diagnostic
+    )
+
+
+def test_audit_check_with_full_assets_does_not_render_source_pages_or_figures(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(publication, "figure_ledger_errors", lambda **_kwargs: [])
+    monkeypatch.setattr(publication, "equation_ledger_errors", lambda **_kwargs: [])
+    monkeypatch.setattr(
+        publication, "equation_crop_ledger_errors", lambda chapters=None: []
+    )
+    monkeypatch.setattr(publication, "maintained_tikz_stems", lambda: ())
+    monkeypatch.setattr(publication, "collect_equation_displays", lambda: ())
+    asset_check_calls: list[bool] = []
+    monkeypatch.setattr(
+        publication,
+        "equation_asset_errors",
+        lambda *, validate_source_page: (
+            asset_check_calls.append(validate_source_page) or []
+        ),
+    )
+
+    def fail_if_rendered(*_args, **_kwargs):
+        raise AssertionError("audit-check must not render assets")
+
+    for name in (
+        "render_tikz_svg",
+        "render_tikz_source_png",
+        "source_crop",
+        "_render_pdf_page",
+    ):
+        monkeypatch.setattr(publication, name, fail_if_rendered)
+
+    assert publication._audit_check_only(None, full_assets=True) == []
+    assert asset_check_calls == [False]
+
+
+def test_audit_figure_asset_validation_scopes_to_selected_chapter(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, bool]] = []
+    monkeypatch.setattr(
+        publication,
+        "maintained_tikz_stems",
+        lambda: ("ch01-first", "ch02-second", "ch06-last"),
+    )
+
+    def record_call(stem: str, *, verify_content: bool) -> list[str]:
+        calls.append((stem, verify_content))
+        return []
+
+    monkeypatch.setattr(publication, "maintained_figure_asset_errors", record_call)
+    monkeypatch.setattr(publication, "figure_ledger_errors", lambda **_kwargs: [])
+    monkeypatch.setattr(publication, "equation_ledger_errors", lambda **_kwargs: [])
+    monkeypatch.setattr(
+        publication, "equation_crop_ledger_errors", lambda chapters=None: []
+    )
+
+    assert publication._audit_check_only((2,)) == []
+    assert calls == [("ch02-second", False)]
+
+
+def test_audit_global_scope_checks_all_maintained_figures(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, bool]] = []
+    monkeypatch.setattr(
+        publication,
+        "maintained_tikz_stems",
+        lambda: ("ch01-first", "ch02-second", "ch06-last"),
+    )
+    monkeypatch.setattr(
+        publication,
+        "maintained_figure_asset_errors",
+        lambda stem, *, verify_content: calls.append((stem, verify_content)) or [],
+    )
+    monkeypatch.setattr(publication, "figure_ledger_errors", lambda **_kwargs: [])
+    monkeypatch.setattr(publication, "equation_ledger_errors", lambda **_kwargs: [])
+    monkeypatch.setattr(
+        publication, "equation_crop_ledger_errors", lambda chapters=None: []
+    )
+
+    assert publication._audit_check_only(None) == []
+    assert calls == [
+        ("ch01-first", False),
+        ("ch02-second", False),
+        ("ch06-last", False),
+    ]
+
+
+@pytest.mark.parametrize(
+    "paths",
+    [
+        ["tex-packages.txt"],
+        ["tex-packages.txt", "src/chapter2.tex"],
+    ],
+)
+def test_tex_packages_is_a_global_audit_input(paths: list[str]) -> None:
+    assert publication._audit_candidate_chapters(paths) == (
+        True,
+        publication.FIGURE_LEDGER_CHAPTERS,
+    )
+
+
 def test_equation_crop_ledger_errors_detect_missing_and_unexpected_entries(
     tmp_path: Path,
 ) -> None:
@@ -936,6 +1101,79 @@ def test_parse_mask_rejects_wrong_count_and_units() -> None:
             parse_mask(mask)
 
 
+def test_figure_crop_ledger_parses_resolution_independent_geometry(
+    tmp_path: Path,
+) -> None:
+    figures = tmp_path / "figures"
+    figures.mkdir()
+    figure_crop_ledger_path(1, figures).write_text(
+        "# Figure crop ledger\n"
+        "ch01-example  pdf=scan.pdf; page=3; "
+        "trim=1bp 2.5bp 3bp 4bp; "
+        "mask=10bp 20bp 30bp 40bp | 50bp 60bp 70bp 80bp\n"
+    )
+
+    crops = publication._read_figure_crop_ledger(1, figures)
+
+    assert crops["ch01-example"] == publication.FigureSourceCrop(
+        pdf="scan.pdf",
+        page=3,
+        trim="1bp 2.5bp 3bp 4bp",
+        masks=((10.0, 20.0, 30.0, 40.0), (50.0, 60.0, 70.0, 80.0)),
+    )
+
+
+@pytest.mark.parametrize(
+    ("ledger", "message"),
+    [
+        ("ch01-example  pdf=scan.pdf; page=3; trim=1bp 2bp 3bp\n", "four bp"),
+        (
+            (
+                "ch01-example  pdf=scan.pdf; page=3; trim=1bp 2bp 3bp 4bp\n"
+                "ch01-example  pdf=scan.pdf; page=3; trim=1bp 2bp 3bp 4bp\n"
+            ),
+            "duplicate crop entry",
+        ),
+        (
+            "ch02-example  pdf=scan.pdf; page=3; trim=1bp 2bp 3bp 4bp\n",
+            "does not belong to Chapter 1",
+        ),
+    ],
+)
+def test_figure_crop_ledger_rejects_malformed_duplicate_and_wrong_chapter_entries(
+    tmp_path: Path,
+    ledger: str,
+    message: str,
+) -> None:
+    figures = tmp_path / "figures"
+    figures.mkdir()
+    figure_crop_ledger_path(1, figures).write_text(ledger)
+
+    with pytest.raises(ValueError, match=message):
+        publication._read_figure_crop_ledger(1, figures)
+
+
+def test_figure_crop_ledger_reports_missing_and_unexpected_ids(tmp_path: Path) -> None:
+    root = tmp_path / "src"
+    figures = root / "figures"
+    figures.mkdir(parents=True)
+    figure_crop_ledger_path(1, figures).write_text(
+        "extra  pdf=scan.pdf; page=3; trim=1bp 2bp 3bp 4bp\n"
+    )
+    (figures / "ch01-expected.tikz").write_text(
+        "% wave-source: pdf=scan.pdf; page=3; trim=1bp 2bp 3bp 4bp\n"
+    )
+
+    errors = figure_crop_ledger_errors(
+        root=root,
+        chapters=(1,),
+        source_dir=tmp_path / "references",
+    )
+
+    assert any("missing crop entry for ch01-expected" in error for error in errors)
+    assert any("unexpected crop entry for extra" in error for error in errors)
+
+
 def test_figure_asset_paths_use_the_same_stem() -> None:
     tikz, svg, png = figure_asset_paths("ch01-p004-phase-speed")
 
@@ -958,6 +1196,15 @@ def _write_valid_figure_assets(
     tikz.write_text(
         f"% wave-source: pdf=scan.pdf; page=3; trim={trim}\n"
         + (masks + "\n" if masks else "")
+    )
+    source_masks = publication.tikz_source_masks("sample")
+    mask_field = ""
+    if source_masks:
+        mask_field = "; mask=" + " | ".join(
+            " ".join(f"{value:g}bp" for value in mask) for mask in source_masks
+        )
+    (figures / "CHAPTER1.crops").write_text(
+        "sample  pdf=scan.pdf; page=3; trim=" + trim + mask_field + "\n"
     )
     publication.file_sha256.cache_clear()
     expected = expected_source_png_metadata("sample")
@@ -989,12 +1236,15 @@ def test_source_png_metadata_records_source_identity_and_render_inputs(
     assert metadata is not None
     with Image.open(figures / "sample.png") as image:
         assert image.info == metadata
+    assert maintained_figure_asset_errors("sample") == []
 
 
 @pytest.mark.parametrize(
     ("change", "expected"),
     [
         ("trim", "wave-source-trim"),
+        ("page", "wave-source-page"),
+        ("pdf", "wave-source-pdf"),
         ("masks", "wave-source-masks"),
         ("dpi", "wave-source-dpi"),
     ],
@@ -1017,6 +1267,10 @@ def test_source_png_is_stale_when_crop_inputs_change(
     text = tikz.read_text()
     if change == "trim":
         text = text.replace("1bp 2bp 3bp 4bp", "2bp 2bp 3bp 4bp")
+    elif change == "page":
+        text = text.replace("page=3", "page=4")
+    elif change == "pdf":
+        text = text.replace("pdf=scan.pdf", "pdf=other.pdf")
     elif change == "masks":
         text += (
             "% wave-source-mask: pdf=scan.pdf; page=3; "
@@ -1080,6 +1334,154 @@ def test_source_only_asset_does_not_require_vector_siblings(
     monkeypatch.setattr(publication, "FIGURES", figures)
 
     validate_maintained_figure_assets()
+
+
+def _write_sourceart_figure_fixture(tmp_path: Path) -> tuple[Path, Path]:
+    root = tmp_path / "src"
+    figures = root / "figures"
+    source_dir = tmp_path / "references"
+    figures.mkdir(parents=True)
+    source_dir.mkdir()
+    (source_dir / "scan.pdf").write_bytes(b"scan")
+    (root / "chapter1.tex").write_text(
+        r"""\sourceart[0.5]{scan.pdf}{3}{1bp 2bp 3bp 4bp}[10/20/30/40]
+"""
+    )
+    (figures / "CHAPTER1.crops").write_text(
+        "sample  pdf=scan.pdf; page=3; trim=1bp 2bp 3bp 4bp; mask=10bp 20bp 30bp 40bp\n"
+    )
+    (figures / "CHAPTER1.md").write_text(
+        "#### Figure 1.1 — source, printed page 3\n"
+        "- **Asset:** `sample.png`\n"
+        "- **Original source:** [scan.pdf](../../references/chapman-rizzoli-1989/scan.pdf), physical page 3\n"
+        "- **Representation:** source-pdf\n"
+    )
+    crop = publication.FigureSourceCrop(
+        pdf="scan.pdf",
+        page=3,
+        trim="1bp 2bp 3bp 4bp",
+        masks=((10.0, 20.0, 30.0, 40.0),),
+    )
+    publication.file_sha256.cache_clear()
+    metadata = publication._source_png_metadata_for_figure_crop(crop, source_dir)
+    info = PngInfo()
+    for key, value in metadata.items():
+        info.add_text(key, value)
+    Image.new("RGB", (2, 2), "white").save(
+        figures / "sample.png",
+        pnginfo=info,
+    )
+    return root, source_dir
+
+
+def test_figure_crop_ledger_validates_sourceart_mirrors(
+    tmp_path: Path,
+) -> None:
+    root, source_dir = _write_sourceart_figure_fixture(tmp_path)
+
+    assert figure_crop_ledger_errors(root, chapters=(1,), source_dir=source_dir) == []
+
+
+@pytest.mark.parametrize(
+    ("change", "expected"),
+    [
+        ("trim", "wave-source-trim"),
+        ("page", "wave-source-page"),
+        ("pdf", "wave-source-pdf"),
+        ("mask", "wave-source-masks"),
+    ],
+)
+def test_figure_crop_ledger_rejects_changed_sourceart_mirrors(
+    tmp_path: Path,
+    change: str,
+    expected: str,
+) -> None:
+    root, source_dir = _write_sourceart_figure_fixture(tmp_path)
+    chapter = root / "chapter1.tex"
+    text = chapter.read_text()
+    if change == "trim":
+        text = text.replace("1bp 2bp 3bp 4bp", "2bp 2bp 3bp 4bp")
+    elif change == "page":
+        text = text.replace("{3}{1bp", "{4}{1bp")
+    elif change == "pdf":
+        text = text.replace("scan.pdf", "other.pdf")
+    else:
+        text = text.replace("[10/20/30/40]", "")
+    chapter.write_text(text)
+
+    errors = figure_crop_ledger_errors(root, chapters=(1,), source_dir=source_dir)
+
+    assert any(expected in error for error in errors)
+
+
+def test_figure_crop_change_marks_png_stale_without_rendering(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+    (source_dir / "scan.pdf").write_bytes(b"scan")
+    figures = tmp_path / "figures"
+    monkeypatch.setattr(publication, "SOURCE_DIR", source_dir)
+    monkeypatch.setattr(publication, "FIGURES", figures)
+    _write_valid_figure_assets(figures, source_dir)
+    figure_crop_ledger_path(1, figures).write_text(
+        "sample  pdf=scan.pdf; page=3; trim=2bp 2bp 3bp 4bp\n"
+    )
+
+    def fail_if_rendered(*_args, **_kwargs):
+        raise AssertionError("figure crop freshness must not render assets")
+
+    monkeypatch.setattr(publication, "render_tikz_svg", fail_if_rendered)
+    monkeypatch.setattr(publication, "render_tikz_source_png", fail_if_rendered)
+    monkeypatch.setattr(publication, "source_crop", fail_if_rendered)
+
+    errors = maintained_figure_asset_errors("sample")
+
+    assert any("wave-source-trim" in error for error in errors)
+    assert any("metadata wave-source-trim" in error for error in errors)
+
+
+def test_figure_manifest_digest_tracks_only_the_changed_crop_record(
+    tmp_path: Path,
+) -> None:
+    figures = tmp_path / "figures"
+    figures.mkdir()
+    ledger = figure_crop_ledger_path(1, figures)
+    ledger.write_text(
+        "sample  pdf=scan.pdf; page=3; trim=1bp 2bp 3bp 4bp\n"
+        "other  pdf=scan.pdf; page=3; trim=5bp 6bp 7bp 8bp\n"
+    )
+
+    def entry(stem: str, number: int) -> publication.FigureLedgerEntry:
+        return publication.FigureLedgerEntry(
+            chapter=1,
+            number=number,
+            title=stem,
+            printed_page=3,
+            asset=f"{stem}.tikz",
+            representation="vector",
+            block="",
+            image_paths=(),
+        )
+
+    sample = entry("sample", 1)
+    other = entry("other", 2)
+    before = (
+        publication.figure_entry_digest(sample, figures),
+        publication.figure_entry_digest(other, figures),
+    )
+    ledger.write_text(
+        "sample  pdf=scan.pdf; page=3; trim=2bp 2bp 3bp 4bp\n"
+        "other  pdf=scan.pdf; page=3; trim=5bp 6bp 7bp 8bp\n"
+    )
+    after = (
+        publication.figure_entry_digest(sample, figures),
+        publication.figure_entry_digest(other, figures),
+    )
+
+    assert after[0] != before[0]
+    assert after[1] == before[1]
 
 
 def test_tikz_source_masks_accepts_multiple_matching_masks(
@@ -1405,6 +1807,9 @@ def test_prepare_original_assets_copies_only_source_backed_tikz(
     figures.mkdir()
     (figures / "vector.tikz").write_text(
         "% wave-source: pdf=scan.pdf; page=3; trim=1bp 2bp 3bp 4bp\n"
+    )
+    (figures / "CHAPTER1.crops").write_text(
+        "vector  pdf=scan.pdf; page=3; trim=1bp 2bp 3bp 4bp\n"
     )
     (figures / "digital.tikz").write_text("% digital-only\n")
     monkeypatch.setattr(publication, "FIGURES", figures)

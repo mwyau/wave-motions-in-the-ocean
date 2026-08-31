@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Maintain and audit same-stem source/reconstruction figure assets.
 
-Vector source info is stored in each retained .tikz file as:
+Vector source info is maintained in the chapter crop ledger and mirrored in
+each retained .tikz file as:
     % wave-source: pdf=ChapmanRizzoli5.pdf; page=21; trim=...bp ...bp ...bp ...bp
 
 Source-PDF-only placements are represented by ``\\sourceart`` in the chapter
@@ -25,14 +26,13 @@ from PIL import Image, ImageDraw
 from publication import (
     FIGURES,
     figure_asset_paths,
+    figure_source_crop,
     maintained_figure_asset_errors,
     maintained_tikz_stems,
     render_source_crop,
     render_tikz_png,
     render_tikz_source_png,
     render_tikz_svg,
-    tikz_source_masks,
-    tikz_source_metadata,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -75,10 +75,9 @@ def compare(stem: str, dpi: int) -> Path:
     tikz = FIGURES / f"{stem}.tikz"
     if not tikz.exists():
         raise FileNotFoundError(f"No retained vector named {stem!r}")
-    metadata = tikz_source_metadata(stem)
-    if metadata is None:
+    crop = figure_source_crop(stem)
+    if crop is None:
         raise RuntimeError(f"Missing wave-source comment in {tikz}")
-    pdf_name, page, trim = metadata
 
     OUTROOT.mkdir(parents=True, exist_ok=True)
     comparison = OUTROOT / f"{stem}.png"
@@ -87,8 +86,15 @@ def compare(stem: str, dpi: int) -> Path:
         tmpdir = Path(td)
         original = tmpdir / "original.png"
         reconstruction = tmpdir / "reconstruction.png"
-        masks = tikz_source_masks(stem)
-        render_source_crop(pdf_name, page, trim, original, dpi, masks=masks)
+        render_source_crop(
+            crop.pdf,
+            crop.page,
+            crop.trim,
+            original,
+            dpi,
+            angle=crop.angle,
+            masks=crop.masks,
+        )
         render_tikz_png(stem, reconstruction, dpi)
         side_by_side(original, reconstruction, comparison)
 
@@ -117,7 +123,7 @@ def update_assets(stem: str) -> tuple[str, ...]:
         temporary_svg = temporary_root / "figures" / f"{stem}.svg"
         shutil.copy2(temporary_svg, svg)
 
-        if tikz_source_metadata(stem) is not None:
+        if figure_source_crop(stem) is not None:
             render_tikz_source_png(
                 stem,
                 temporary_root,

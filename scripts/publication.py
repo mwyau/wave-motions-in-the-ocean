@@ -44,7 +44,9 @@ SOURCE_PAGE_CACHE = CACHE / "source-pages"
 TIKZ_CACHE = CACHE / "tikz"
 SOURCE_RENDER_DPI = 170
 FIGURE_ASSET_PREFIX = "assets/figures"
+FIGURE_CROP_LEDGER_SUFFIX = ".crops"
 EQUATION_CROP_LEDGER_SUFFIX = ".crops"
+FIGURE_CROP_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 EQUATION_CROP_LEDGER_RE = re.compile(
     r"^(?P<stem>ch(?P<chapter>[0-9]{2})-p[0-9]{3}-e[0-9]{2,})[ \t]+"
     r"(?P<crop>[0-9]+,[0-9]+,[0-9]+,[0-9]+@[0-9]+dpi)$"
@@ -69,6 +71,22 @@ class PublicationImageSpec:
             return source_size
         height = max(1, round(source_height * width / source_width))
         return width, height
+
+
+@dataclass(frozen=True)
+class FigureSourceCrop:
+    """Resolution-independent source-PDF geometry for one scientific figure."""
+
+    pdf: str
+    page: int
+    trim: str
+    masks: tuple[tuple[float, float, float, float], ...] = ()
+    angle: float = 0.0
+
+    @property
+    def identity(self) -> tuple[object, ...]:
+        """Return the geometry used when comparing source mirrors."""
+        return (self.pdf, self.page, parse_trim(self.trim), self.masks, self.angle)
 
 
 # The modern trim is 7 x 10 in with 0.75 in side margins, so the front cover's
@@ -230,6 +248,7 @@ EQUATION_STEM_RE = re.compile(r"ch\d{2}-p\d{3}-e\d{2,}")
 
 FIGURE_LEDGER_CHAPTERS = tuple(range(1, 7))
 FIGURE_REPRESENTATIONS = frozenset({"vector", "source-pdf"})
+MAINTAINED_FIGURE_CHAPTER_RE = re.compile(r"^ch0?([1-6])(?:-|$)")
 FIGURE_ENTRY_RE = re.compile(
     r"^#### Figure (?P<chapter>[1-6])\.(?P<number>\d+) — (?P<title>.+)$",
     re.MULTILINE,
@@ -358,6 +377,144 @@ def _validate_mask_boxes(
             max(x0, crop[0]) < min(x1, crop[2]) and max(y0, crop[1]) < min(y1, crop[3])
         ):
             raise ValueError(f"mask does not intersect the final crop: {mask}")
+
+
+def _figure_chapter_from_stem(stem: str) -> int | None:
+    match = MAINTAINED_FIGURE_CHAPTER_RE.match(stem)
+    return int(match.group(1)) if match is not None else None
+
+
+def figure_crop_ledger_path(
+    chapter: int,
+    figure_dir: Path | None = None,
+) -> Path:
+    """Return the maintained source-crop ledger for one figure chapter."""
+    if chapter not in FIGURE_LEDGER_CHAPTERS:
+        raise ValueError(f"unsupported figure crop chapter: {chapter}")
+    figure_dir = figure_dir or FIGURES
+    return figure_dir / f"CHAPTER{chapter}{FIGURE_CROP_LEDGER_SUFFIX}"
+
+
+def _parse_figure_source_crop(
+    stem: str,
+    fields_text: str,
+    path: Path,
+    line_number: int,
+    chapter: int,
+) -> FigureSourceCrop:
+    if not FIGURE_CROP_ID_RE.fullmatch(stem):
+        raise ValueError(f"{path}:{line_number}: invalid figure crop ID {stem!r}")
+    stem_chapter = _figure_chapter_from_stem(stem)
+    if stem_chapter is not None and stem_chapter != chapter:
+        raise ValueError(
+            f"{path}:{line_number}: crop stem {stem!r} does not belong to "
+            f"Chapter {chapter}"
+        )
+
+    fields: dict[str, str] = {}
+    masks: list[tuple[float, float, float, float]] = []
+    mask_none = False
+    for field_text in fields_text.split(";"):
+        field = field_text.strip()
+        if not field or "=" not in field:
+            raise ValueError(
+                f"{path}:{line_number}: expected figure crop fields "
+                "pdf=...; page=...; trim=..."
+            )
+        key, value = (part.strip() for part in field.split("=", 1))
+        if key in {"pdf", "page", "trim", "angle"}:
+            if key in fields:
+                raise ValueError(f"{path}:{line_number}: duplicate crop field {key}")
+            fields[key] = value
+            continue
+        if key in {"mask", "masks"}:
+            if value.lower() == "none":
+                if masks or mask_none:
+                    raise ValueError(
+                        f"{path}:{line_number}: cannot combine mask=none with masks"
+                    )
+                mask_none = True
+                continue
+            if mask_none:
+                raise ValueError(
+                    f"{path}:{line_number}: cannot combine mask=none with masks"
+                )
+            parts = [part.strip() for part in value.split("|")]
+            if not parts or any(not part for part in parts):
+                raise ValueError(f"{path}:{line_number}: empty figure crop mask")
+            try:
+                masks.extend(parse_mask(part) for part in parts)
+            except ValueError as exc:
+                raise ValueError(f"{path}:{line_number}: {exc}") from exc
+            continue
+        raise ValueError(f"{path}:{line_number}: unknown crop field {key!r}")
+
+    missing = [key for key in ("pdf", "page", "trim") if key not in fields]
+    if missing:
+        raise ValueError(
+            f"{path}:{line_number}: missing figure crop field(s): {', '.join(missing)}"
+        )
+    pdf_name = fields["pdf"]
+    if Path(pdf_name).name != pdf_name or Path(pdf_name).suffix.lower() != ".pdf":
+        raise ValueError(f"{path}:{line_number}: invalid source PDF {pdf_name!r}")
+    try:
+        page = int(fields["page"])
+    except ValueError as exc:
+        raise ValueError(f"{path}:{line_number}: invalid source page") from exc
+    if page <= 0:
+        raise ValueError(f"{path}:{line_number}: source page must be positive")
+    trim = fields["trim"]
+    try:
+        trim_values = parse_trim(trim)
+    except ValueError as exc:
+        raise ValueError(f"{path}:{line_number}: {exc}") from exc
+    if any(value < 0 for value in trim_values):
+        raise ValueError(f"{path}:{line_number}: trim values must be non-negative")
+
+    angle = 0.0
+    if "angle" in fields:
+        try:
+            angle = float(fields["angle"])
+        except ValueError as exc:
+            raise ValueError(f"{path}:{line_number}: invalid source angle") from exc
+
+    return FigureSourceCrop(
+        pdf=pdf_name,
+        page=page,
+        trim=trim,
+        masks=tuple(masks),
+        angle=angle,
+    )
+
+
+def _read_figure_crop_ledger(
+    chapter: int,
+    figure_dir: Path | None = None,
+) -> dict[str, FigureSourceCrop]:
+    path = figure_crop_ledger_path(chapter, figure_dir)
+    if not path.is_file():
+        raise FileNotFoundError(path)
+    crops: dict[str, FigureSourceCrop] = {}
+    for line_number, raw_line in enumerate(path.read_text().splitlines(), start=1):
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        match = re.match(r"^(?P<stem>\S+)[ \t]+(?P<fields>.+)$", line)
+        if match is None:
+            raise ValueError(
+                f"{path}:{line_number}: expected '<figure-id>  pdf=...; page=...; trim=...'"
+            )
+        stem = match.group("stem")
+        if stem in crops:
+            raise ValueError(f"{path}:{line_number}: duplicate crop entry for {stem}")
+        crops[stem] = _parse_figure_source_crop(
+            stem,
+            match.group("fields"),
+            path,
+            line_number,
+            chapter,
+        )
+    return crops
 
 
 def _mask_box_pixels(
@@ -573,9 +730,10 @@ def source_crop(
     return f"{asset_prefix}/{name}"
 
 
-def tikz_source_metadata(stem: str) -> tuple[str, int, str] | None:
-    """Return source-PDF metadata embedded in a retained TikZ figure."""
-    tikz = FIGURES / f"{stem}.tikz"
+def _tikz_source_metadata_from_path(
+    tikz: Path,
+) -> tuple[str, int, str] | None:
+    """Return source-PDF metadata embedded in one TikZ file."""
     if not tikz.is_file():
         raise FileNotFoundError(tikz)
     text = tikz.read_text()
@@ -596,9 +754,15 @@ def tikz_source_metadata(stem: str) -> tuple[str, int, str] | None:
     return pdf_name, int(match.group("page")), trim
 
 
-def tikz_source_masks(stem: str) -> tuple[tuple[float, float, float, float], ...]:
-    """Return absolute source-page masks recorded beside a TikZ crop."""
-    tikz = FIGURES / f"{stem}.tikz"
+def tikz_source_metadata(stem: str) -> tuple[str, int, str] | None:
+    """Return source-PDF metadata embedded in a retained TikZ figure."""
+    return _tikz_source_metadata_from_path(FIGURES / f"{stem}.tikz")
+
+
+def _tikz_source_masks_from_path(
+    tikz: Path,
+) -> tuple[tuple[float, float, float, float], ...]:
+    """Return absolute source-page masks recorded beside one TikZ crop."""
     if not tikz.is_file():
         raise FileNotFoundError(tikz)
     text = tikz.read_text()
@@ -614,24 +778,156 @@ def tikz_source_masks(stem: str) -> tuple[tuple[float, float, float, float], ...
     )
 
 
-def expected_source_png_metadata(stem: str) -> dict[str, str] | None:
-    """Return the metadata a maintained source PNG must contain."""
-    metadata = tikz_source_metadata(stem)
+def tikz_source_masks(stem: str) -> tuple[tuple[float, float, float, float], ...]:
+    """Return absolute source-page masks recorded beside a TikZ crop."""
+    return _tikz_source_masks_from_path(FIGURES / f"{stem}.tikz")
+
+
+def _tikz_source_masks_for_crop(
+    tikz: Path,
+    pdf_name: str,
+    page: int,
+) -> tuple[tuple[float, float, float, float], ...]:
+    """Parse every mask marker while requiring it to target the source crop."""
+    text = tikz.read_text()
+    marker_count = len(re.findall(r"^% wave-source-mask:", text, re.MULTILINE))
+    matches = list(TIKZ_MASK_RE.finditer(text))
+    if marker_count != len(matches):
+        raise ValueError(f"malformed wave-source-mask comment in {tikz}")
+    masks: list[tuple[float, float, float, float]] = []
+    for match in matches:
+        mask_pdf = match.group("pdf").strip()
+        mask_page = int(match.group("page"))
+        if mask_pdf != pdf_name or mask_page != page:
+            raise ValueError(
+                f"wave-source-mask in {tikz} targets {mask_pdf} page {mask_page}; "
+                f"expected {pdf_name} page {page}"
+            )
+        masks.append(parse_mask(match.group("rect")))
+    return tuple(masks)
+
+
+def _figure_source_crop_from_tikz_path(
+    tikz: Path,
+) -> FigureSourceCrop | None:
+    metadata = _tikz_source_metadata_from_path(tikz)
     if metadata is None:
         return None
     pdf_name, page, trim = metadata
-    pdf = SOURCE_DIR / pdf_name
+    return FigureSourceCrop(
+        pdf=pdf_name,
+        page=page,
+        trim=trim,
+        masks=_tikz_source_masks_for_crop(tikz, pdf_name, page),
+    )
+
+
+def _figure_source_crop_from_ledger(
+    stem: str,
+    figure_dir: Path | None = None,
+) -> FigureSourceCrop:
+    figure_dir = figure_dir or FIGURES
+    chapter = _figure_chapter_from_stem(stem)
+    if chapter is not None:
+        path = figure_crop_ledger_path(chapter, figure_dir)
+        crops = _read_figure_crop_ledger(chapter, figure_dir)
+        try:
+            return crops[stem]
+        except KeyError as exc:
+            raise ValueError(f"{path}: missing crop entry for {stem}") from exc
+
+    matches: list[FigureSourceCrop] = []
+    for path in sorted(figure_dir.glob(f"CHAPTER*{FIGURE_CROP_LEDGER_SUFFIX}")):
+        match = re.fullmatch(r"CHAPTER([1-6])\.crops", path.name)
+        if match is None:
+            continue
+        chapter_number = int(match.group(1))
+        crops = _read_figure_crop_ledger(chapter_number, figure_dir)
+        if stem in crops:
+            matches.append(crops[stem])
+    if len(matches) == 1:
+        return matches[0]
+    if len(matches) > 1:
+        raise ValueError(f"figure crop ID {stem!r} appears in multiple ledgers")
+    raise ValueError(f"missing figure crop ledger entry for {stem}")
+
+
+def figure_source_crop(
+    stem: str,
+    figure_dir: Path | None = None,
+) -> FigureSourceCrop | None:
+    """Return authoritative source-PDF geometry for a retained TikZ figure."""
+    figure_dir = figure_dir or FIGURES
+    tikz_crop = _figure_source_crop_from_tikz_path(figure_dir / f"{stem}.tikz")
+    if tikz_crop is None:
+        return None
+    return _figure_source_crop_from_ledger(stem, figure_dir)
+
+
+def _source_png_metadata_for_figure_crop(
+    crop: FigureSourceCrop,
+    source_dir: Path | None = None,
+) -> dict[str, str]:
+    source_dir = source_dir or SOURCE_DIR
+    pdf = source_dir / crop.pdf
     if not pdf.is_file():
         raise FileNotFoundError(pdf)
     return _source_png_metadata(
-        pdf_name,
-        page,
-        trim,
-        tikz_source_masks(stem),
+        crop.pdf,
+        crop.page,
+        crop.trim,
+        crop.masks,
         file_sha256(str(pdf.resolve())),
         SOURCE_RENDER_DPI,
-        0.0,
+        crop.angle,
     )
+
+
+def expected_source_png_metadata(
+    stem: str,
+    *,
+    figure_dir: Path | None = None,
+) -> dict[str, str] | None:
+    """Return authoritative metadata a maintained source PNG must contain."""
+    figure_dir = figure_dir or FIGURES
+    tikz = figure_dir / f"{stem}.tikz"
+    if tikz.is_file() and _tikz_source_metadata_from_path(tikz) is None:
+        return None
+    return _source_png_metadata_for_figure_crop(
+        _figure_source_crop_from_ledger(stem, figure_dir),
+    )
+
+
+def _figure_source_crop_mirror_errors(
+    expected: FigureSourceCrop,
+    actual: FigureSourceCrop,
+    label: str,
+) -> list[str]:
+    errors: list[str] = []
+    if actual.pdf != expected.pdf:
+        errors.append(
+            f"{label} wave-source-pdf is {actual.pdf!r}; expected {expected.pdf!r}"
+        )
+    if actual.page != expected.page:
+        errors.append(
+            f"{label} wave-source-page is {actual.page}; expected {expected.page}"
+        )
+    if parse_trim(actual.trim) != parse_trim(expected.trim):
+        errors.append(
+            f"{label} wave-source-trim is {actual.trim!r}; expected {expected.trim!r}"
+        )
+    if actual.masks != expected.masks:
+        errors.append(
+            f"{label} wave-source-masks are "
+            f"{_format_source_masks(actual.masks)!r}; expected "
+            f"{_format_source_masks(expected.masks)!r}"
+        )
+    if actual.angle != expected.angle:
+        errors.append(
+            f"{label} wave-source-angle is {actual.angle:g}; "
+            f"expected {expected.angle:g}"
+        )
+    return errors
 
 
 def render_source_crop(
@@ -778,18 +1074,18 @@ def render_tikz_source_png(
     asset_prefix: str = FIGURE_ASSET_PREFIX,
 ) -> str | None:
     """Render the original source crop for one retained TikZ figure."""
-    metadata = tikz_source_metadata(stem)
-    if metadata is None:
+    crop = figure_source_crop(stem)
+    if crop is None:
         return None
-    pdf_name, page, trim = metadata
     return source_crop(
-        pdf_name,
-        page,
-        trim,
+        crop.pdf,
+        crop.page,
+        crop.trim,
         assets_root,
         asset_prefix=asset_prefix,
         asset_name=f"{stem}.png",
-        masks=tikz_source_masks(stem),
+        angle=crop.angle,
+        masks=crop.masks,
     )
 
 
@@ -820,6 +1116,23 @@ def maintained_figure_asset_errors(
         errors.append(str(exc))
         source_metadata = None
 
+    expected_crop: FigureSourceCrop | None = None
+    if source_metadata is not None:
+        try:
+            actual_crop = _figure_source_crop_from_tikz_path(tikz)
+            expected_crop = _figure_source_crop_from_ledger(stem)
+            assert actual_crop is not None
+        except (FileNotFoundError, OSError, ValueError) as exc:
+            errors.append(str(exc))
+        else:
+            errors.extend(
+                _figure_source_crop_mirror_errors(
+                    expected_crop,
+                    actual_crop,
+                    str(tikz),
+                )
+            )
+
     if not svg.is_file() or svg.stat().st_size == 0:
         errors.append(f"{svg} is missing or empty")
     else:
@@ -838,7 +1151,7 @@ def maintained_figure_asset_errors(
                     f"expected {expected_digest}"
                 )
 
-    if source_metadata is None:
+    if source_metadata is None or expected_crop is None:
         return errors
 
     if not png.is_file() or png.stat().st_size == 0:
@@ -847,8 +1160,7 @@ def maintained_figure_asset_errors(
 
     try:
         actual_metadata = _png_text_metadata(png)
-        expected_metadata = expected_source_png_metadata(stem)
-        assert expected_metadata is not None
+        expected_metadata = _source_png_metadata_for_figure_crop(expected_crop)
     except (OSError, ValueError) as exc:
         errors.append(str(exc))
         return errors
@@ -939,6 +1251,12 @@ def _figure_source_metadata(path: Path) -> tuple[str, ...]:
     )
 
 
+def _figure_source_crop_identity_text(crop: FigureSourceCrop) -> str:
+    trim = " ".join(_format_bp(value) for value in parse_trim(crop.trim))
+    masks = _format_source_masks(crop.masks)
+    return f"pdf={crop.pdf};page={crop.page};trim={trim};masks={masks};angle={crop.angle:g}"
+
+
 def figure_entry_digest(entry: FigureLedgerEntry, figure_dir: Path) -> str:
     """Hash source and placement inputs, excluding mutable review text."""
     asset_path = figure_dir / entry.asset
@@ -964,6 +1282,17 @@ def figure_entry_digest(entry: FigureLedgerEntry, figure_dir: Path) -> str:
                 "\\input{figures/" in line and f"{stem}.tikz" in line
             ):
                 parts.append(f"chapter-placement={line.strip()}")
+    try:
+        source_crop = _figure_source_crop_from_ledger(
+            Path(entry.asset).stem,
+            figure_dir,
+        )
+    except FileNotFoundError, OSError, ValueError:
+        parts.append("figure-source-crop=<missing>")
+    else:
+        parts.append(
+            "figure-source-crop=" + _figure_source_crop_identity_text(source_crop)
+        )
     if asset_path.is_file():
         parts.append(
             f"asset-sha256={hashlib.sha256(asset_path.read_bytes()).hexdigest()}"
@@ -1178,6 +1507,239 @@ def _figure_entries_from_text(
     return tuple(entries)
 
 
+def _figure_source_crop_from_sourceart_match(
+    match: re.Match[str],
+) -> FigureSourceCrop:
+    pdf_name = match.group("pdf").strip()
+    if Path(pdf_name).name != pdf_name or Path(pdf_name).suffix.lower() != ".pdf":
+        raise ValueError(f"invalid sourceart PDF {pdf_name!r}")
+    trim = match.group("trim").strip()
+    parse_trim(trim)
+    mask = match.group("mask")
+    masks = () if mask is None else (parse_mask(mask),)
+    return FigureSourceCrop(
+        pdf=pdf_name,
+        page=int(match.group("page")),
+        trim=trim,
+        masks=masks,
+    )
+
+
+def _figure_source_crop_from_png(path: Path) -> FigureSourceCrop:
+    metadata = _png_text_metadata(path)
+    missing = [
+        key
+        for key in ("wave-source-pdf", "wave-source-page", "wave-source-trim")
+        if not metadata.get(key)
+    ]
+    if missing:
+        raise ValueError(f"{path}: missing source metadata {', '.join(missing)}")
+    try:
+        page = int(metadata["wave-source-page"])
+        parse_trim(metadata["wave-source-trim"])
+        mask_text = metadata.get("wave-source-masks", "none")
+        masks = (
+            ()
+            if mask_text == "none"
+            else tuple(parse_mask(item.strip()) for item in mask_text.split(";"))
+        )
+        angle = float(metadata.get("wave-source-angle", "0"))
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{path}: malformed source metadata: {exc}") from exc
+    return FigureSourceCrop(
+        pdf=metadata["wave-source-pdf"],
+        page=page,
+        trim=metadata["wave-source-trim"],
+        masks=masks,
+        angle=angle,
+    )
+
+
+def _figure_source_png_expected_metadata(
+    crop: FigureSourceCrop,
+    source_dir: Path,
+) -> dict[str, str]:
+    pdf = source_dir / crop.pdf
+    pdf_digest = file_sha256(str(pdf.resolve())) if pdf.is_file() else "<missing>"
+    return _source_png_metadata(
+        crop.pdf,
+        crop.page,
+        crop.trim,
+        crop.masks,
+        pdf_digest,
+        SOURCE_RENDER_DPI,
+        crop.angle,
+    )
+
+
+def figure_crop_ledger_errors(
+    root: Path | None = None,
+    chapters: Iterable[int] | None = None,
+    source_dir: Path | None = None,
+) -> list[str]:
+    """Return source-crop ledger, mirror, source, and PNG metadata errors."""
+    root = root or SRC
+    figure_dir = root / "figures"
+    source_dir = source_dir or SOURCE_DIR
+    selected = tuple(chapters) if chapters is not None else FIGURE_LEDGER_CHAPTERS
+    invalid = sorted(set(selected) - set(FIGURE_LEDGER_CHAPTERS))
+    if invalid:
+        return [f"invalid figure crop chapter(s): {', '.join(map(str, invalid))}"]
+
+    errors: list[str] = []
+    for chapter in selected:
+        ledger_path = figure_crop_ledger_path(chapter, figure_dir)
+        try:
+            crops = _read_figure_crop_ledger(chapter, figure_dir)
+        except (FileNotFoundError, OSError, ValueError) as exc:
+            errors.append(f"{ledger_path}: {exc}")
+            continue
+
+        chapter_path = figure_dir / f"CHAPTER{chapter}.md"
+        entries: tuple[FigureLedgerEntry, ...] = ()
+        if chapter_path.is_file():
+            try:
+                entries = _figure_entries_from_text(
+                    chapter_path.read_text(), chapter=chapter
+                )
+            except (OSError, ValueError) as exc:
+                errors.append(str(exc))
+
+        expected_entries: dict[str, FigureLedgerEntry | None] = {}
+        for entry in entries:
+            if entry.representation not in FIGURE_REPRESENTATIONS:
+                continue
+            stem = Path(entry.asset).stem
+            if stem in expected_entries:
+                errors.append(f"{chapter_path}: duplicate figure crop ID {stem}")
+            expected_entries[stem] = entry
+
+        for tikz in sorted(figure_dir.glob("*.tikz")):
+            if _figure_chapter_from_stem(tikz.stem) == chapter:
+                expected_entries.setdefault(tikz.stem, None)
+
+        expected_ids = set(expected_entries)
+        actual_ids = set(crops)
+        errors.extend(
+            f"{ledger_path}: missing crop entry for {stem}"
+            for stem in sorted(expected_ids - actual_ids)
+        )
+        errors.extend(
+            f"{ledger_path}: unexpected crop entry for {stem}"
+            for stem in sorted(actual_ids - expected_ids)
+        )
+
+        source_entries = [
+            entry for entry in entries if entry.representation == "source-pdf"
+        ]
+        chapter_source = root / f"chapter{chapter}.tex"
+        sourceart_matches: list[re.Match[str]] = []
+        if chapter_source.is_file():
+            sourceart_matches = list(SOURCEART_RE.finditer(chapter_source.read_text()))
+        if len(sourceart_matches) != len(source_entries):
+            errors.append(
+                f"{chapter_source}: found {len(sourceart_matches)} sourceart calls; "
+                f"expected {len(source_entries)} for source-pdf figure entries"
+            )
+
+        for stem, entry in expected_entries.items():
+            crop = crops.get(stem)
+            if crop is None:
+                continue
+            pdf = source_dir / crop.pdf
+            if not pdf.is_file():
+                errors.append(f"{ledger_path}: missing source PDF for {stem}: {pdf}")
+
+            if entry is not None:
+                original_match = re.search(
+                    r"^- \*\*Original source:\*\* \[[^]]+\]\([^)]*/"
+                    r"(?P<pdf>[^)]+)\), physical page (?P<page>\d+)$",
+                    entry.block,
+                    re.MULTILINE,
+                )
+                if original_match is not None:
+                    original = FigureSourceCrop(
+                        pdf=original_match.group("pdf"),
+                        page=int(original_match.group("page")),
+                        trim=crop.trim,
+                        masks=crop.masks,
+                        angle=crop.angle,
+                    )
+                    errors.extend(
+                        _figure_source_crop_mirror_errors(
+                            crop,
+                            original,
+                            f"{chapter_path} Figure {entry.chapter}.{entry.number} source",
+                        )
+                    )
+
+            tikz = figure_dir / f"{stem}.tikz"
+            if tikz.is_file():
+                try:
+                    actual_tikz = _figure_source_crop_from_tikz_path(tikz)
+                except (OSError, ValueError) as exc:
+                    errors.append(str(exc))
+                else:
+                    if actual_tikz is None:
+                        errors.append(f"{tikz}: missing wave-source comment")
+                    else:
+                        errors.extend(
+                            _figure_source_crop_mirror_errors(
+                                crop,
+                                actual_tikz,
+                                str(tikz),
+                            )
+                        )
+            elif entry is not None and entry.representation == "vector":
+                errors.append(f"{tikz}: missing maintained vector source")
+
+            png = figure_dir / f"{stem}.png"
+            if not png.is_file() or png.stat().st_size == 0:
+                errors.append(f"{png}: missing or empty maintained source PNG")
+            else:
+                try:
+                    actual_png = _figure_source_crop_from_png(png)
+                    expected_png = _figure_source_png_expected_metadata(
+                        crop, source_dir
+                    )
+                except (OSError, ValueError) as exc:
+                    errors.append(str(exc))
+                else:
+                    errors.extend(
+                        _figure_source_crop_mirror_errors(
+                            crop,
+                            actual_png,
+                            str(png),
+                        )
+                    )
+                    actual_metadata = _png_text_metadata(png)
+                    errors.extend(
+                        f"{png} metadata {key} is {actual_metadata.get(key)!r}; "
+                        f"expected {value!r}"
+                        for key, value in expected_png.items()
+                        if actual_metadata.get(key) != value
+                    )
+
+        for entry, match in zip(source_entries, sourceart_matches, strict=False):
+            stem = Path(entry.asset).stem
+            crop = crops.get(stem)
+            if crop is None:
+                continue
+            try:
+                actual_sourceart = _figure_source_crop_from_sourceart_match(match)
+            except (ValueError, TypeError) as exc:
+                errors.append(f"{chapter_source}: malformed sourceart: {exc}")
+            else:
+                errors.extend(
+                    _figure_source_crop_mirror_errors(
+                        crop,
+                        actual_sourceart,
+                        f"{chapter_source} sourceart for {stem}",
+                    )
+                )
+    return errors
+
+
 def _figure_ledger_counts(
     entries_by_chapter: dict[int, tuple[FigureLedgerEntry, ...]],
 ) -> tuple[int, dict[str, int]]:
@@ -1290,7 +1852,7 @@ def figure_ledger_errors(
         return [f"invalid figure audit chapter(s): {', '.join(map(str, invalid))}"]
     chapter_dir = root / "figures"
     expected_paths = figure_ledger_chapter_paths(root)
-    errors: list[str] = []
+    errors = figure_crop_ledger_errors(root=root, chapters=selected)
     for chapter in selected:
         path = expected_paths[chapter - 1]
         if not path.is_file() or path.stat().st_size == 0:
@@ -2446,6 +3008,8 @@ def stale_equation_displays(
 def equation_asset_errors(
     displays: Iterable[EquationDisplay] | None = None,
     equation_dir: Path | None = None,
+    *,
+    validate_source_page: bool = True,
 ) -> list[str]:
     """Return missing, stale, or malformed equation review PNG errors."""
     selected_all = displays is None
@@ -2465,6 +3029,7 @@ def equation_asset_errors(
             _equation_asset_errors_for_display(
                 display,
                 equation_dir,
+                validate_source_page=validate_source_page,
                 source_pdf_errors=source_pdf_errors,
             )
         )
@@ -3391,6 +3956,7 @@ def _figures_cli(argv: list[str] | None = None) -> int:
     chapters = (args.chapter,) if args.chapter is not None else None
     if args.check:
         errors = figure_ledger_errors(chapters=chapters)
+        errors.extend(_audit_maintained_figure_asset_errors(chapters))
         if errors:
             print(
                 "figure ledger validation failed:\n- " + "\n- ".join(errors),
@@ -3420,6 +3986,7 @@ def _audit_candidate_chapters(paths: Iterable[str]) -> tuple[bool, tuple[int, ..
             "scripts/publication.py",
             "scripts/compare_figures.py",
             ".pre-commit-config.yaml",
+            "tex-packages.txt",
         } or path.startswith("skills/"):
             all_chapters = True
             continue
@@ -3442,6 +4009,39 @@ def _audit_candidate_chapters(paths: Iterable[str]) -> tuple[bool, tuple[int, ..
     if all_chapters or not chapters:
         return True, FIGURE_LEDGER_CHAPTERS
     return False, tuple(sorted(chapters))
+
+
+def _audit_maintained_figure_stems(
+    chapters: Iterable[int] | None,
+) -> tuple[str, ...]:
+    """Select maintained TikZ figures for a cheap audit scope."""
+    stems = maintained_tikz_stems()
+    if chapters is None:
+        return stems
+    selected = set(chapters)
+    mapped: list[tuple[str, int]] = []
+    for stem in stems:
+        match = MAINTAINED_FIGURE_CHAPTER_RE.match(stem)
+        if match is None:
+            return stems
+        mapped.append((stem, int(match.group(1))))
+    return tuple(stem for stem, chapter in mapped if chapter in selected)
+
+
+def _audit_maintained_figure_asset_errors(
+    chapters: Iterable[int] | None,
+) -> list[str]:
+    """Return cheap, actionable errors for maintained TikZ figure assets."""
+    errors: list[str] = []
+    for stem in _audit_maintained_figure_stems(chapters):
+        asset_errors = maintained_figure_asset_errors(stem, verify_content=False)
+        if asset_errors:
+            errors.append(
+                f"maintained figure {stem}: {'; '.join(asset_errors)}\n"
+                "  Regenerate: uv run --frozen python scripts/compare_figures.py "
+                f"{stem}"
+            )
+    return errors
 
 
 def _equation_manifest_change_ids(
@@ -3484,8 +4084,9 @@ def _audit_check_only(
     errors = figure_ledger_errors(chapters=selected)
     errors.extend(equation_ledger_errors(chapters=selected))
     errors.extend(equation_crop_ledger_errors(chapters=selected))
+    errors.extend(_audit_maintained_figure_asset_errors(selected))
     if full_assets:
-        errors.extend(equation_asset_errors())
+        errors.extend(equation_asset_errors(validate_source_page=False))
     return errors
 
 
@@ -3512,6 +4113,13 @@ def _audit_update_cli(argv: list[str] | None = None) -> int:
         return 0
 
     chapters = FIGURE_LEDGER_CHAPTERS if selected is None else selected
+    figure_crop_errors = figure_crop_ledger_errors(chapters=chapters)
+    if figure_crop_errors:
+        print(
+            "audit freshness check failed:\n- " + "\n- ".join(figure_crop_errors),
+            file=sys.stderr,
+        )
+        return 1
     crop_errors = equation_crop_ledger_errors(chapters=chapters)
     if crop_errors:
         print(
@@ -3553,19 +4161,27 @@ def _audit_update_cli(argv: list[str] | None = None) -> int:
             ):
                 stale_asset_chapters.add(display.chapter)
 
-    if stale_asset_chapters:
-        chapters_text = ", ".join(map(str, sorted(stale_asset_chapters)))
-        chapter_word = "Chapter" if len(stale_asset_chapters) == 1 else "Chapters"
-        print(
-            f"Equation review assets are stale in {chapter_word} {chapters_text}.\n\n"
-            "Regenerate:\n"
-            + "\n".join(
-                "  uv run --frozen python scripts/publication.py equations "
-                f"--chapter {chapter} --assets"
-                for chapter in sorted(stale_asset_chapters)
-            ),
-            file=sys.stderr,
-        )
+    figure_asset_errors = _audit_maintained_figure_asset_errors(selected)
+    if stale_asset_chapters or figure_asset_errors:
+        if stale_asset_chapters:
+            chapters_text = ", ".join(map(str, sorted(stale_asset_chapters)))
+            chapter_word = "Chapter" if len(stale_asset_chapters) == 1 else "Chapters"
+            print(
+                f"Equation review assets are stale in {chapter_word} {chapters_text}.\n\n"
+                "Regenerate:\n"
+                + "\n".join(
+                    "  uv run --frozen python scripts/publication.py equations "
+                    f"--chapter {chapter} --assets"
+                    for chapter in sorted(stale_asset_chapters)
+                ),
+                file=sys.stderr,
+            )
+        if figure_asset_errors:
+            print(
+                "maintained figure asset validation failed:\n- "
+                + "\n- ".join(figure_asset_errors),
+                file=sys.stderr,
+            )
         return 1
     return 0
 

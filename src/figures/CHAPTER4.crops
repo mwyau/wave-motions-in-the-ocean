@@ -1,0 +1,33 @@
+# Maintained source-PDF crop metadata for Chapter 4 scientific figures.
+# Format: <figure-id>  pdf=<source PDF>; page=<physical PDF page>; trim=<left bottom right top in bp>; mask=<x0 y0 x1 y1 in bp>
+# Masks use absolute lower-left source-page coordinates and are omitted when none apply.
+ch04-p065-parcel-displacement  pdf=ChapmanRizzoli4.pdf; page=2; trim=185bp 545bp 155bp 75bp
+ch04-p068-boundary-value-problem  pdf=ChapmanRizzoli4.pdf; page=5; trim=105bp 425bp 90bp 175bp
+ch04-p069-dispersion-cone  pdf=ChapmanRizzoli4.pdf; page=6; trim=190bp 570bp 160bp 60bp
+ch04-p069-nonrotating-transverse  pdf=ChapmanRizzoli4.pdf; page=6; trim=220bp 60bp 195bp 610bp
+ch04-p070-rotating-transverse  pdf=ChapmanRizzoli4.pdf; page=7; trim=185bp 350bp 170bp 300bp
+ch04-p072-phase-energy-theta  pdf=ChapmanRizzoli4.pdf; page=9; trim=90bp 550bp 80bp 130bp
+ch04-p072-phase-energy-phi  pdf=ChapmanRizzoli4.pdf; page=9; trim=105bp 129bp 95bp 520bp
+ch04-p073-rotation-only-limits  pdf=ChapmanRizzoli4.pdf; page=10; trim=150bp 300bp 120bp 345bp
+ch04-p074-stratification-only-limits  pdf=ChapmanRizzoli4.pdf; page=11; trim=150bp 380bp 100bp 230bp
+ch04-p075-rotation-stratification-limits  pdf=ChapmanRizzoli4.pdf; page=12; trim=145bp 375bp 110bp 180bp
+ch04-p076-waveguide-boundary-problem  pdf=ChapmanRizzoli4.pdf; page=13; trim=105bp 295bp 90bp 350bp
+ch04-p077-frequency-regimes  pdf=ChapmanRizzoli4.pdf; page=14; trim=79bp 532bp 75bp 130bp
+ch04-p078-case-a-intersections  pdf=ChapmanRizzoli4.pdf; page=15; trim=175bp 555bp 185bp 100bp
+ch04-p078-case-a1-no-intersections  pdf=ChapmanRizzoli4.pdf; page=15; trim=175bp 295bp 180bp 379bp
+ch04-p079-case-b-intersections  pdf=ChapmanRizzoli4.pdf; page=16; trim=35bp 345bp 55bp 272bp
+ch04-p080-waveguide-dispersion  pdf=ChapmanRizzoli4.pdf; page=17; trim=175bp 289bp 185bp 330bp
+ch04-p081-mode-structure  pdf=ChapmanRizzoli4.pdf; page=18; trim=115bp 410bp 100bp 215bp
+ch04-p081-particle-cells  pdf=ChapmanRizzoli4.pdf; page=18; trim=85bp 140bp 75bp 425bp
+ch04-p083-evanescent-case-a  pdf=ChapmanRizzoli4.pdf; page=20; trim=75bp 515bp 75bp 70bp
+ch04-p084-evanescent-case-b  pdf=ChapmanRizzoli4.pdf; page=21; trim=95bp 520bp 75bp 65bp
+ch04-p085-topographic-generation  pdf=ChapmanRizzoli4.pdf; page=22; trim=70bp 525bp 55bp 125bp
+ch04-p088-characteristics  pdf=ChapmanRizzoli4.pdf; page=25; trim=85bp 420bp 70bp 235bp
+ch04-p089-slope-reflection  pdf=ChapmanRizzoli4.pdf; page=26; trim=75bp 540bp 55bp 65bp
+ch04-p089-wavenumber-projection  pdf=ChapmanRizzoli4.pdf; page=26; trim=120bp 225bp 45bp 395bp
+ch04-p090-wavenumber-triangle  pdf=ChapmanRizzoli4.pdf; page=27; trim=130bp 580bp 110bp 70bp
+ch04-p090-velocity-reflection  pdf=ChapmanRizzoli4.pdf; page=27; trim=95bp 210bp 75bp 425bp; mask=95bp 361bp 205bp 367bp
+ch04-p091-slope-reflection-source  pdf=ChapmanRizzoli4.pdf; page=28; trim=70bp 60bp 55bp 300bp
+ch04-p092-density-profiles  pdf=ChapmanRizzoli4.pdf; page=29; trim=85bp 335bp 90bp 238bp
+ch04-p093-turning-profile  pdf=ChapmanRizzoli4.pdf; page=30; trim=170bp 430bp 180bp 220bp
+ch04-p094-eigenvalue-spectrum  pdf=ChapmanRizzoli4.pdf; page=31; trim=90bp 225bp 90bp 390bp

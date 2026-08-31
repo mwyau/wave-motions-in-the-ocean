@@ -1,0 +1,13 @@
+# Maintained source-PDF crop metadata for Chapter 2 scientific figures.
+# Format: <figure-id>  pdf=<source PDF>; page=<physical PDF page>; trim=<left bottom right top in bp>; mask=<x0 y0 x1 y1 in bp>
+# Masks use absolute lower-left source-page coordinates and are omitted when none apply.
+ch02-p021-solid-boundary-reflection  pdf=ChapmanRizzoli0_2.pdf; page=31; trim=105bp 444bp 100bp 180bp
+ch02-p022-specular-reflection  pdf=ChapmanRizzoli0_2.pdf; page=32; trim=140bp 512bp 135bp 91bp
+ch02-p023-waveguide-boundary-problem  pdf=ChapmanRizzoli0_2.pdf; page=33; trim=115bp 460bp 110bp 110bp
+ch02-p024-waveguide-dispersion  pdf=ChapmanRizzoli0_2.pdf; page=34; trim=145bp 155bp 190bp 500bp
+ch02-p026-interface-scattering  pdf=ChapmanRizzoli0_2.pdf; page=36; trim=105bp 545bp 100bp 85bp
+ch02-p028-total-internal-reflection  pdf=ChapmanRizzoli0_2.pdf; page=38; trim=90bp 105bp 70bp 545bp
+ch02-p032-forced-source-jump  pdf=ChapmanRizzoli0_2.pdf; page=42; trim=100bp 575bp 90bp 90bp
+ch02-p034-sound-speed-profile  pdf=ChapmanRizzoli0_2.pdf; page=44; trim=170bp 195bp 170bp 397bp; mask=170bp 382bp 240bp 397bp
+ch02-p035-sound-speed-profiles  pdf=ChapmanRizzoli0_2.pdf; page=45; trim=150bp 480bp 140bp 55bp
+ch02-p036-sound-ray-turning  pdf=ChapmanRizzoli0_2.pdf; page=46; trim=80bp 250bp 70bp 472bp

@@ -1,0 +1,34 @@
+# Maintained source-PDF crop metadata for Chapter 5 scientific figures.
+# Format: <figure-id>  pdf=<source PDF>; page=<physical PDF page>; trim=<left bottom right top in bp>; mask=<x0 y0 x1 y1 in bp>
+# Masks use absolute lower-left source-page coordinates and are omitted when none apply.
+ch05-p097-spherical-coordinates-source  pdf=ChapmanRizzoli5.pdf; page=2; trim=230bp 300bp 175bp 295bp; mask=230bp 465bp 255bp 490bp
+ch05-p108-wall-reflection  pdf=ChapmanRizzoli5.pdf; page=13; trim=206.40bp 570.24bp 222.72bp 81.60bp
+ch05-p108-rectangular-basin  pdf=ChapmanRizzoli5.pdf; page=13; trim=168.00bp 205.44bp 165.12bp 475.20bp
+ch05-p110-depth-step-rays  pdf=ChapmanRizzoli5.pdf; page=15; trim=69.60bp 212.64bp 97.92bp 465.60bp
+ch05-p113-critical-reflection-source  pdf=ChapmanRizzoli5.pdf; page=18; trim=200bp 540bp 205bp 80bp
+ch05-p113-transmission-source  pdf=ChapmanRizzoli5.pdf; page=18; trim=105bp 315bp 95bp 312bp
+ch05-p114-step-shelf  pdf=ChapmanRizzoli5.pdf; page=19; trim=158.40bp 443.04bp 181.92bp 240.00bp
+ch05-p114-ray-paths  pdf=ChapmanRizzoli5.pdf; page=19; trim=124.80bp 198.24bp 131.52bp 436.80bp
+ch05-p115-edge-wave-profile  pdf=ChapmanRizzoli5.pdf; page=20; trim=180.00bp 453bp 213.12bp 235.20bp
+ch05-p116-edge-wave-dispersion  pdf=ChapmanRizzoli5.pdf; page=21; trim=129.60bp 445.44bp 155.52bp 168.00bp
+ch05-p117-forced-shelf-profile  pdf=ChapmanRizzoli5.pdf; page=22; trim=168.00bp 555.84bp 174.72bp 110.40bp
+ch05-p118-coastal-seiche-modes  pdf=ChapmanRizzoli5.pdf; page=23; trim=163.20bp 530bp 174.72bp 168.00bp
+ch05-p119-particle-motion  pdf=ChapmanRizzoli5.pdf; page=24; trim=96.00bp 440.64bp 110bp 250.80bp
+ch05-p123-waveguide-channel  pdf=ChapmanRizzoli5.pdf; page=28; trim=144.00bp 558.24bp 129.12bp 129.60bp
+ch05-p124-amphidromic-pattern  pdf=ChapmanRizzoli5.pdf; page=29; trim=120bp 150bp 108bp 525bp
+ch05-p125-closed-channel  pdf=ChapmanRizzoli5.pdf; page=30; trim=194.40bp 491.04bp 174.72bp 187.20bp
+ch05-p126-kelvin-turning-corner  pdf=ChapmanRizzoli5.pdf; page=31; trim=182bp 581bp 175bp 80bp
+ch05-p129-rossby-dispersion  pdf=ChapmanRizzoli5.pdf; page=34; trim=163.20bp 270bp 189.12bp 351.60bp
+ch05-p130-rossby-mechanism  pdf=ChapmanRizzoli5.pdf; page=35; trim=91.20bp 330.24bp 59.52bp 285.60bp
+ch05-p132-divergent-dispersion  pdf=ChapmanRizzoli5.pdf; page=37; trim=168.00bp 345bp 203.52bp 292.80bp
+ch05-p132-pressure-high  pdf=ChapmanRizzoli5.pdf; page=37; trim=158.40bp 140bp 160.32bp 537.60bp
+ch05-p134-general-rossby-dispersion  pdf=ChapmanRizzoli5.pdf; page=39; trim=65bp 460bp 55bp 20bp; mask=65bp 460bp 220bp 490bp
+ch05-p135-wave-class-dispersion  pdf=ChapmanRizzoli5.pdf; page=40; trim=60bp 300bp 75bp 255bp; mask=75bp 525bp 175bp 541bp
+ch05-p137-angled-wall-reflection  pdf=ChapmanRizzoli5.pdf; page=42; trim=130bp 475bp 130bp 35bp
+ch05-p138-rossby-reflection-construction  pdf=ChapmanRizzoli5.pdf; page=43; trim=105bp 475bp 95bp 35bp
+ch05-p139-western-reflection  pdf=ChapmanRizzoli5.pdf; page=44; trim=145bp 520bp 140bp 185bp
+ch05-p139-eastern-reflection  pdf=ChapmanRizzoli5.pdf; page=44; trim=145bp 370bp 140bp 320bp
+ch05-p142-hermite-modes  pdf=ChapmanRizzoli5.pdf; page=47; trim=65bp 410bp 60bp 150bp
+ch05-p145-kelvin-circulation  pdf=ChapmanRizzoli5.pdf; page=50; trim=145bp 485bp 115bp 180bp; mask=145bp 580bp 195bp 611bp
+ch05-p145-equatorial-dispersion  pdf=ChapmanRizzoli5.pdf; page=50; trim=45bp 65bp 40bp 440bp
+ch05-p147-equatorial-ray  pdf=ChapmanRizzoli5.pdf; page=52; trim=175bp 530bp 150bp 45bp
