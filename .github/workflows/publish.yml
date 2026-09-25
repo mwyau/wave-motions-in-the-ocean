@@ -50,7 +50,7 @@ jobs:
           echo "Release tag $tag points to a commit reachable from main ($status)."
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v10.0.1
+        uses: astral-sh/setup-uv@v10.2.0
         with:
           version: "0.12.1"
           enable-cache: true
@@ -93,7 +93,7 @@ jobs:
 
       - name: Install TinyTeX
         if: steps.tinytex_cache.outputs.cache-hit != 'true'
-        uses: r-lib/actions/setup-tinytex@v2.13.0
+        uses: r-lib/actions/setup-tinytex@v2.14.0
 
       - name: Configure TinyTeX
         run: |
@@ -203,7 +203,7 @@ jobs:
 
       - name: Deploy GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5.0.0
+        uses: actions/deploy-pages@v5.0.1
         with:
           artifact_name: wave-motions-publication
 
